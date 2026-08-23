@@ -1,0 +1,17 @@
+; countdown.tasm — the control case.
+;
+; "Is the counter still positive?" is a genuinely BINARY decision. There is no
+; third outcome to route, so the three-way branch has nothing to offer: the
+; two-way version of this program is this program. Both variants of the benchmark
+; run the same file, and the measured difference is exactly zero.
+        IN
+        STORE n
+lp:     LOAD  n
+        OUT
+        ADDI  -1
+        STORE n
+        BR3   t
+t:      .table done, done, lp
+done:   HALT
+        .org  -4
+n:      .word 0

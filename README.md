@@ -2,11 +2,11 @@
 
 A working emulator for a computer that counts in **three states instead of two**.
 Core arithmetic, an instruction set, a virtual machine, an assembler, and demo
-programs. 195 tests, all passing, including exhaustive sweeps over the machine's
+programs. 210 tests, all passing, including exhaustive sweeps over the machine's
 entire value space.
 
 ```bash
-npm test                      # 195 checks
+npm test                      # 210 checks
 node src/run.js programs/multiply.tasm 7 5
 npm run selfhost              # the machine emulating itself
 ```
@@ -124,6 +124,37 @@ in branching is real but it is not free. `BR3` still does the work that suits it
 in `h_br3` the emulated three-way branch is implemented by the host's three-way
 branch, one for one.
 
+## Is any of it actually worth it?
+
+Everything above checks that ternary is *correct*. `npm run bench` checks whether
+it is *worth it* — the claim the source conversation made loudest and never
+measured. It compares **three-way against two-way dispatch on the same machine**:
+a two-way branch is `BR3` with two arms pointing at the same place, which is
+exactly what a binary machine's conditional branch does. Same hardware, same
+instruction set, same memory. Only the branch structure differs.
+
+The two-way baseline is written to be as good as the machine allows — `BR3` leaves
+the accumulator untouched, so it retests the value already in it and pays no
+store/reload tax. A baseline the reader could improve would make the whole
+exercise worthless.
+
+| | three-way | two-way | |
+|---|---|---|---|
+| Classify one value | 21 cells, 5.50 steps | 26 cells, 6.00 steps | 19% smaller |
+| Six in a loop | 41 cells, 68.0 steps | 46 cells, 71.0 steps | 4.2% fewer steps |
+| A genuinely binary decision | — | — | **identical; no benefit exists** |
+| Deep dispatch (27 ways) | 149 cells | 30 cells (indexed jump) | **three-way loses** |
+
+**The three-way branch is a real win, and a modest one:** about half an
+instruction and a fifth of the code per decision point, and only where the
+decision genuinely has three outcomes. When the question is yes-or-no, the
+two-way version of the program *is* the program. And when the dispatch gets deep,
+the elegant `BR3` tree loses decisively to a boring indexed jump table.
+
+Averaged over every tryte value the saving is 0.50 instructions per decision,
+which is what the theory predicts: a negative value is settled by the first
+two-way test, so only the other two outcomes save anything.
+
 ## Where this came from
 
 This project is the unfinished half of a Google AI Mode conversation
@@ -176,7 +207,8 @@ src/selfhost.js    run a program natively, or inside the emulated machine
 src/run.js         CLI runner
 programs/          threeway.tasm, multiply.tasm, tgate.tasm, interp.tasm
 test/              test-core.js (27), test-vm.js (41), test-selfhost.js (60),
-                   test-page.js (39), test-style.js (28), run-all.js
+                   test-bench.js (15), test-page.js (39), test-style.js (28), run-all.js
+bench/             the three-way vs two-way branching benchmark
 build/             inlines src/ into a single interactive HTML page
 docs/tryte-vm.html the built page
 docs/origin/       the source conversation, its audit, and its code artifacts

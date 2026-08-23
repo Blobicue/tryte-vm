@@ -1,0 +1,24 @@
+; classify-two.tasm — identical task, two-way branches only for the classification.
+        LOADI 6
+        STORE count
+loop:   LOAD  count
+        BR3   more
+more:   .table done, done, body
+body:   IN
+        BR3   s1
+s1:     .table neg, nn, nn    ; negative, or not
+nn:     BR3   s2              ; accumulator still holds the value
+s2:     .table zero, zero, pos
+neg:    LOADI -1
+        JMP   emit
+zero:   LOADI 0
+        JMP   emit
+pos:    LOADI 1
+emit:   OUT
+        LOAD  count
+        ADDI  -1
+        STORE count
+        JMP   loop
+done:   HALT
+        .org  -1
+count:  .word 0

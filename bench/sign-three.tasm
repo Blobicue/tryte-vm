@@ -1,0 +1,12 @@
+; sign-three.tasm — classify one value, using the three-way branch.
+; One test, three destinations.
+        IN
+        BR3   t
+t:      .table n, z, p
+n:      LOADI -1
+        JMP   e
+z:      LOADI 0
+        JMP   e
+p:      LOADI 1
+e:      OUT
+        HALT

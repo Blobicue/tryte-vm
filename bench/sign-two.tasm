@@ -1,0 +1,19 @@
+; sign-two.tasm — the same task using only TWO-WAY branches.
+;
+; A two-way branch is BR3 with two of its three arms pointing at the same place,
+; which is exactly what a binary machine's conditional branch does. Note there is
+; no spill: BR3 does not disturb the accumulator, so the second test reads the
+; value still sitting in it. Charging this version a store/reload would be a
+; strawman — the cost measured here is the branch structure and nothing else.
+        IN
+        BR3   t1
+t1:     .table n, nn, nn      ; negative, or not
+nn:     BR3   t2              ; not negative: zero, or positive
+t2:     .table z, z, p
+n:      LOADI -1
+        JMP   e
+z:      LOADI 0
+        JMP   e
+p:      LOADI 1
+e:      OUT
+        HALT

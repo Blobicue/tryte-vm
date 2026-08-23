@@ -1,0 +1,24 @@
+; classify-three.tasm — classify N values in a loop, three-way branch per value.
+; The loop-control test (keep going?) is a genuinely binary decision and is
+; written identically in both variants, so only the classification differs.
+        LOADI 6
+        STORE count
+loop:   LOAD  count
+        BR3   more
+more:   .table done, done, body
+body:   IN
+        BR3   sgn
+sgn:    .table neg, zero, pos
+neg:    LOADI -1
+        JMP   emit
+zero:   LOADI 0
+        JMP   emit
+pos:    LOADI 1
+emit:   OUT
+        LOAD  count
+        ADDI  -1
+        STORE count
+        JMP   loop
+done:   HALT
+        .org  -1
+count:  .word 0
