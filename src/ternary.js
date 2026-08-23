@@ -1,0 +1,135 @@
+'use strict';
+/* ---------------------------------------------------------------------------
+ * ternary.js — balanced ternary core
+ *
+ * A TRIT is one of -1, 0, +1.
+ * A TRYTE is 6 trits. 3^6 = 729 distinct values, held balanced: -364 .. +364.
+ *
+ * Balanced ternary has no sign bit. The sign of a number is the sign of its
+ * leading non-zero trit, and negation is simply flipping every trit. There is
+ * no two's complement, no separate subtract circuit, and truncating a value
+ * rounds it to nearest rather than toward zero. Those four properties are the
+ * whole reason this number system is interesting, and each is asserted in
+ * test/test.js rather than merely claimed here.
+ * ------------------------------------------------------------------------- */
+
+const TRITS_PER_TRYTE = 6;
+const RADIX = 3;
+const TRYTE_STATES = RADIX ** TRITS_PER_TRYTE;   // 729
+const TRYTE_MAX = (TRYTE_STATES - 1) / 2;        // +364
+const TRYTE_MIN = -TRYTE_MAX;                    // -364
+
+/** Fold any integer into the balanced tryte range, wrapping mod 729. */
+function wrap(v) {
+  return ((((v - TRYTE_MIN) % TRYTE_STATES) + TRYTE_STATES) % TRYTE_STATES) + TRYTE_MIN;
+}
+
+/** Integer -> array of 6 trits, least-significant first. Wraps out-of-range input. */
+function toTrits(v, n = TRITS_PER_TRYTE) {
+  let x = wrap(v);
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    let r = ((x % RADIX) + RADIX) % RADIX;   // 0, 1, 2
+    if (r === 2) r = -1;                     // 2 carries up and becomes -1
+    out.push(r);
+    x = (x - r) / RADIX;
+  }
+  return out;
+}
+
+/** Array of trits (LSB first) -> integer. */
+function fromTrits(trits) {
+  let v = 0;
+  for (let i = trits.length - 1; i >= 0; i--) v = v * RADIX + trits[i];
+  return v;
+}
+
+/** Human-readable form, most-significant first: '+' / '0' / '-'. */
+function tritString(v) {
+  return toTrits(v).reverse().map(t => (t > 0 ? '+' : t < 0 ? '-' : '0')).join('');
+}
+
+/** Parse '+-0++0' (MSB first) back to an integer. */
+function parseTritString(s) {
+  const trits = s.trim().split('').map(c => {
+    if (c === '+') return 1;
+    if (c === '-') return -1;
+    if (c === '0') return 0;
+    throw new Error(`bad trit character: ${c}`);
+  });
+  return fromTrits(trits.reverse());
+}
+
+/* --- arithmetic ---------------------------------------------------------- */
+
+const add = (a, b) => wrap(a + b);
+const sub = (a, b) => wrap(a - b);
+const mul = (a, b) => wrap(a * b);
+
+/** Negation: flip every trit. Provably identical to arithmetic negation. */
+function neg(a) {
+  return fromTrits(toTrits(a).map(t => -t));
+}
+
+/** Sign is the sign of the leading (most significant) non-zero trit. */
+function sign(a) {
+  const t = toTrits(a);
+  for (let i = t.length - 1; i >= 0; i--) if (t[i] !== 0) return t[i];
+  return 0;
+}
+
+/** Shift left n trits — multiply by 3^n, wrapping. */
+const shiftLeft = (a, n) => wrap(a * RADIX ** n);
+
+/**
+ * Shift right n trits. Dropping low trits in balanced ternary rounds to
+ * nearest (ties away from zero), which is why no rounding logic is needed.
+ */
+function shiftRight(a, n) {
+  const t = toTrits(a);
+  const kept = t.slice(n).concat(new Array(n).fill(0));
+  return fromTrits(kept);
+}
+
+/* --- tritwise gates ------------------------------------------------------ */
+/* The ternary-native analogs. MIN generalises AND, MAX generalises OR, and
+ * NEG generalises NOT. CLAMPSUM is the 9-row gate published in the source
+ * conversation, confirmed there as the saturating ternary sum. */
+
+const tritwise2 = fn => (a, b) => {
+  const x = toTrits(a), y = toTrits(b);
+  return fromTrits(x.map((t, i) => fn(t, y[i])));
+};
+
+const tMIN = tritwise2((p, q) => Math.min(p, q));
+const tMAX = tritwise2((p, q) => Math.max(p, q));
+const tCLAMPSUM = tritwise2((p, q) => Math.max(-1, Math.min(1, p + q)));
+const tNEG = neg;
+
+/**
+ * TGATE — the idea the source conversation was reaching for, in ternary-native
+ * form. A control tryte reconfigures the unit per trit position: each control
+ * trit selects which gate acts on that slice of the two data trytes.
+ *
+ *   control trit -1  ->  NEG(x)        (ignores y)
+ *   control trit  0  ->  MIN(x, y)
+ *   control trit +1  ->  MAX(x, y)
+ *
+ * One tryte of control therefore names one of 3^6 = 729 distinct 6-slice
+ * circuits, and the data reconfigures the unit as it arrives.
+ */
+function tgate(control, x, y) {
+  const c = toTrits(control), xs = toTrits(x), ys = toTrits(y);
+  return fromTrits(c.map((mode, i) => {
+    if (mode === -1) return -xs[i];
+    if (mode === 0) return Math.min(xs[i], ys[i]);
+    return Math.max(xs[i], ys[i]);
+  }));
+}
+
+module.exports = {
+  TRITS_PER_TRYTE, RADIX, TRYTE_STATES, TRYTE_MAX, TRYTE_MIN,
+  wrap, toTrits, fromTrits, tritString, parseTritString,
+  add, sub, mul, neg, sign, shiftLeft, shiftRight,
+  tMIN, tMAX, tCLAMPSUM, tNEG, tgate,
+};

@@ -1,0 +1,44 @@
+; tgate.tasm — the source conversation's idea, made real and made ternary.
+;
+; The original wanted a data word whose own digits ARE the logic gates, so the
+; unit reconfigures itself as data passes through. On binary data with AND/OR/NOT
+; that is just an opcode driving a multiplexer. On ternary data it is a genuinely
+; three-way choice per trit position:
+;
+;       control trit -  ->  NEG(x)       (ignores y)
+;       control trit 0  ->  MIN(x, y)    (the AND analog)
+;       control trit +  ->  MAX(x, y)    (the OR analog)
+;
+; One control tryte therefore names one of 729 distinct six-slice circuits.
+; Below, the SAME two data values run through three different circuits.
+
+        IN
+        STORE x
+        IN
+        STORE y
+
+        SETC  t000000      ; every trit MIN  -> the whole unit becomes MIN
+        LOAD  x
+        TGATE y
+        OUT
+
+        SETC  t++++++      ; every trit MAX  -> the whole unit becomes MAX
+        LOAD  x
+        TGATE y
+        OUT
+
+        SETC  t------      ; every trit NEG  -> the whole unit becomes negate
+        LOAD  x
+        TGATE y
+        OUT
+
+        SETC  t+0-+0-      ; a MIXED circuit: MAX, MIN, NEG, MAX, MIN, NEG
+        LOAD  x
+        TGATE y
+        OUT
+
+        HALT
+
+        .org  -10
+x:      .word 0
+y:      .word 0

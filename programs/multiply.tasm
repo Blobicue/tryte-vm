@@ -1,0 +1,63 @@
+; multiply.tasm — shift-and-add multiplication, done the balanced-ternary way.
+;
+; The machine has no multiply instruction. It builds one from shifts and adds.
+;
+; The interesting part is extracting one trit at a time. In balanced ternary,
+; shifting right ROUNDS TO NEAREST rather than truncating toward zero, so
+;
+;       lowest_trit(v)  =  v - 3 * (v >> 1)
+;
+; falls out of the shift itself. No masking, no sign correction, no special
+; case for negative numbers — the same six steps handle every sign combination.
+
+        IN                 ; first input  -> multiplicand
+        STORE mult
+        IN                 ; second input -> multiplier
+        STORE rem
+        LOADI 0
+        STORE result
+        LOADI 6            ; six trits in a tryte
+        STORE count
+
+loop:   LOAD  rem
+        SHR   1
+        STORE remhi        ; remhi = round(rem / 3)
+        SHL   1
+        STORE tmp          ; tmp   = 3 * remhi
+        LOAD  rem
+        SUB   tmp          ; A     = lowest trit of rem
+        BR3   pick
+pick:   .table minus, skip, plus
+
+plus:   LOAD  result
+        ADD   mult
+        STORE result
+        JMP   next
+minus:  LOAD  result
+        SUB   mult
+        STORE result
+        JMP   next
+skip:   JMP   next
+
+next:   LOAD  mult
+        SHL   1
+        STORE mult         ; multiplicand climbs one trit
+        LOAD  remhi
+        STORE rem          ; multiplier drops one trit
+        LOAD  count
+        ADDI  -1
+        STORE count
+        BR3   again
+again:  .table fin, fin, loop
+
+fin:    LOAD  result
+        OUT
+        HALT
+
+        .org  -20
+mult:   .word 0
+rem:    .word 0
+remhi:  .word 0
+result: .word 0
+count:  .word 0
+tmp:    .word 0

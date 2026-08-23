@@ -1,0 +1,4 @@
+# Keep the repository LF regardless of platform; the tests and the build
+# concatenate source files verbatim, so line endings should not drift.
+* text=auto eol=lf
+*.png binary

@@ -1,0 +1,28 @@
+======================================================================
+STAGE 1: Tryte Vector [+1,  0] (OR, AND)
+STAGE 2: Tryte Vector [-1,  0] (NOT, AND)
+======================================================================
+
+[TEST CASE 1] Inputs: X=0, Y=0
+  ↳ Step 1: Trit 1 (OR)  -> 0 OR 0 = 0
+  ↳ Step 1: Trit 2 (AND) -> 0 AND 0 = 0  ======> [CARRY = 0]
+  ↳ Step 2: Trit 1 (NOT) -> NOT(0) = 1
+  ↳ Step 2: Trit 2 (AND) -> 0 AND 1 = 0 ======> [SUM   = 0]
+
+[TEST CASE 2] Inputs: X=0, Y=1
+  ↳ Step 1: Trit 1 (OR)  -> 0 OR 1 = 1
+  ↳ Step 1: Trit 2 (AND) -> 0 AND 1 = 0  ======> [CARRY = 0]
+  ↳ Step 2: Trit 1 (NOT) -> NOT(0) = 1
+  ↳ Step 2: Trit 2 (AND) -> 1 AND 1 = 1 ======> [SUM   = 1]
+
+[TEST CASE 3] Inputs: X=1, Y=0
+  ↳ Step 1: Trit 1 (OR)  -> 1 OR 0 = 1
+  ↳ Step 1: Trit 2 (AND) -> 1 AND 0 = 0  ======> [CARRY = 0]
+  ↳ Step 2: Trit 1 (NOT) -> NOT(0) = 1
+  ↳ Step 2: Trit 2 (AND) -> 1 AND 1 = 1 ======> [SUM   = 1]
+
+[TEST CASE 4] Inputs: X=1, Y=1
+  ↳ Step 1: Trit 1 (OR)  -> 1 OR 1 = 1
+  ↳ Step 1: Trit 2 (AND) -> 1 AND 1 = 1  ======> [CARRY = 1]
+  ↳ Step 2: Trit 1 (NOT) -> NOT(1) = 0
+  ↳ Step 2: Trit 2 (AND) -> 1 AND 0 = 0 ======> [SUM   = 0]

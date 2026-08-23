@@ -1,0 +1,34 @@
+; threeway.tasm — the instruction binary machines cannot have.
+;
+; BR3 tests the accumulator ONCE and lands on one of three addresses:
+; negative, zero, or positive. No flags register, no chain of compares.
+; This program classifies each input value, and uses a SECOND BR3 to run
+; the loop itself.
+
+        LOADI 5            ; five values to classify
+        STORE count
+
+loop:   LOAD  count
+        BR3   more         ; keep going only while count is positive
+more:   .table done, done, body
+
+body:   IN                 ; fetch the next value
+        BR3   sgn          ; one test, three destinations
+sgn:    .table neg, zero, pos
+
+neg:    LOADI -1
+        JMP   emit
+zero:   LOADI 0
+        JMP   emit
+pos:    LOADI 1
+
+emit:   OUT
+        LOAD  count
+        ADDI  -1
+        STORE count
+        JMP   loop
+
+done:   HALT
+
+        .org  -1
+count:  .word 0

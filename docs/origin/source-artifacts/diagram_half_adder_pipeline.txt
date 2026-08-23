@@ -1,0 +1,8 @@
+ Inputs (X, Y)
+     │
+     ├──► [Tryte 1: Trit 1 (+1 / OR)] ──────► (X OR Y) ──────────┐
+     │                                                           ▼
+     └──► [Tryte 1: Trit 2 ( 0 / AND)] ───┬──► [Tryte 2: Trit 1 (-1 / NOT)] ──► NOT(X AND Y)
+                                          │                                          │
+                                          ├──► [ CARRY OUTPUT ]                      │
+                                          └──────────────────────────────────────────┴─► [Tryte 2: Trit 2 (0 / AND)] ──► [ SUM OUTPUT ]

@@ -1,0 +1,15 @@
+{
+  "name": "tryte-vm",
+  "version": "0.1.0",
+  "description": "A balanced-ternary computer emulator: core arithmetic, ISA, VM, assembler and demo programs.",
+  "main": "src/vm.js",
+  "scripts": {
+    "test": "node test/run-all.js",
+    "build": "node build/build-artifact.js",
+    "threeway": "node src/run.js programs/threeway.tasm 7 -3 0 42 -100",
+    "multiply": "node src/run.js programs/multiply.tasm 7 5",
+    "tgate": "node src/run.js programs/tgate.tasm 123 -45"
+  },
+  "license": "MIT",
+  "private": true
+}

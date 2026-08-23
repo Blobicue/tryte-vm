@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>4-Bit Tryte ALU Simulation</title>
+  <script src="https://tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6 font-sans">
+  <div class="max-w-5xl mx-auto space-y-6">
+    
+    <!-- Header -->
+    <header class="border-b border-slate-800 pb-4">
+      <h1 class="text-2xl font-bold text-cyan-400">4-Bit Bit-Sliced Tryte ALU Simulator</h1>
+      <p class="text-slate-400 text-sm">Self-compiling hardware pipeline combining 3-stage full adders with a dynamic ternary multiplexer (T-MUX).</p>
+    </header>
+
+    <!-- Control & Input Panel -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+      
+      <!-- Input X (4-Bit) -->
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Input Bus X [x₃ x₂ x₁ x₀]</label>
+        <div class="flex gap-2" id="bus-x-controls">
+          <!-- Populated by JS -->
+        </div>
+        <div class="mt-2 text-xs text-slate-400">Value: <span id="val-x" class="font-mono text-cyan-300 font-bold">0</span></div>
+      </div>
+
+      <!-- Input Y (4-Bit) -->
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Input Bus Y [y₃ y₂ y₁ y₀]</label>
+        <div class="flex gap-2" id="bus-y-controls">
+          <!-- Populated by JS -->
+        </div>
+        <div class="mt-2 text-xs text-slate-400">Value: <span id="val-y" class="font-mono text-cyan-300 font-bold">0</span></div>
+      </div>
+
+      <!-- Control Trit & Cin -->
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Control Trit (S_ALU) &amp; C_in</label>
+        <div class="flex items-center gap-4">
+          <!-- Ternary S Selector -->
+          <div class="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
+            <button onclick="setTrit(-1)" id="trit-neg1" class="px-3 py-1 text-xs font-bold rounded transition-colors">-1 (XOR)</button>
+            <button onclick="setTrit(0)"  id="trit-zero" class="px-3 py-1 text-xs font-bold rounded transition-colors">0 (AND)</button>
+            <button onclick="setTrit(1)"  id="trit-pos1" class="px-3 py-1 text-xs font-bold rounded transition-colors">+1 (ADD)</button>
+          </div>
+          <!-- Cin Toggle -->
+          <button onclick="toggleCin()" id="cin-btn" class="px-3 py-2 text-xs font-bold rounded-lg border border-slate-700 bg-slate-800 transition-colors">
+            C_in: <span id="cin-val">0</span>
+          </button>
+        </div>
+        <div class="mt-2 text-xs text-slate-400">Active Mode: <span id="alu-mode" class="font-bold text-amber-400">Bitwise XOR</span></div>
+      </div>
+    </div>
+
+    <!-- Bit-Slice Pipeline Display -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+      <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4">Bit-Sliced Execution Pipeline</h2>
+      
+      <div class="grid grid-cols-4 gap-4 text-center">
+        <!-- Slice 3 -->
+        <div id="slice-3" class="bg-slate-950 border border-slate-800 rounded-lg p-4 transition-all">
+          <div class="text-xs font-bold text-slate-400 border-b border-slate-800 pb-1 mb-3">SLICE 3 (MSB)</div>
+          <div class="text-xs space-y-2 font-mono text-left">
+            <div>x₃: <span id="s3-x" class="text-cyan-400 font-bold">0</span> | y₃: <span id="s3-y" class="text-cyan-400 font-bold">0</span></div>
+            <div class="text-slate-400">XOR: <span id="s3-xor">0</span> | AND: <span id="s3-and">0</span></div>
+            <div class="text-slate-400">Sum: <span id="s3-sum">0</span> | Carry In: <span id="s3-cin">0</span></div>
+            <div class="text-amber-400 pt-2 border-t border-slate-800/80 font-bold">Out₃: <span id="s3-out">0</span></div>
+          </div>
+        </div>
+
+        <!-- Slice 2 -->
+        <div id="slice-2" class="bg-slate-950 border border-slate-800 rounded-lg p-4 transition-all">
+          <div class="text-xs font-bold text-slate-400 border-b border-slate-800 pb-1 mb-3">SLICE 2</div>
+          <div class="text-xs space-y-2 font-mono text-left">
+            <div>x₂: <span id="s2-x" class="text-cyan-400 font-bold">0</span> | y₂: <span id="s2-y" class="text-cyan-400 font-bold">0</span></div>
+            <div class="text-slate-400">XOR: <span id="s2-xor">0</span> | AND: <span id="s2-and">0</span></div>
+            <div class="text-slate-400">Sum: <span id="s2-sum">0</span> | Carry In: <span id="s2-cin">0</span></div>
+            <div class="text-amber-400 pt-2 border-t border-slate-800/80 font-bold">Out₂: <span id="s2-out">0</span></div>
+          </div>
+        </div>
+
+        <!-- Slice 1 -->
+        <div id="slice-1" class="bg-slate-950 border border-slate-800 rounded-lg p-4 transition-all">
+          <div class="text-xs font-bold text-slate-400 border-b border-slate-800 pb-1 mb-3">SLICE 1</div>
+          <div class="text-xs space-y-2 font-mono text-left">
+            <div>x₁: <span id="s1-x" class="text-cyan-400 font-bold">0</span> | y₁: <span id="s1-y" class="text-cyan-400 font-bold">0</span></div>
+            <div class="text-slate-400">XOR: <span id="s1-xor">0</span> | AND: <span id="s1-and">0</span></div>
+            <div class="text-slate-400">Sum: <span id="s1-sum">0</span> | Carry In: <span id="s1-cin">0</span></div>
+            <div class="text-amber-400 pt-2 border-t border-slate-800/80 font-bold">Out₁: <span id="s1-out">0</span></div>
+          </div>
+        </div>
+
+        <!-- Slice 0 -->
+        <div id="slice-0" class="bg-slate-950 border border-slate-800 rounded-lg p-4 transition-all">
+          <div class="text-xs font-bold text-slate-400 border-b border-slate-800 pb-1 mb-3">SLICE 0 (LSB)</div>
+          <div class="text-xs space-y-2 font-mono text-left">
+            <div>x₀: <span id="s0-x" class="text-cyan-400 font-bold">0</span> | y₀: <span id="s0-y" class="text-cyan-400 font-bold">0</span></div>
+            <div class="text-slate-400">XOR: <span id="s0-xor">0</span> | AND: <span id="s0-and">0</span></div>
+            <div class="text-slate-400">Sum: <span id="s0-sum">0</span> | Carry In: <span id="s0-cin">0</span></div>
+            <div class="text-amber-400 pt-2 border-t border-slate-800/80 font-bold">Out₀: <span id="s0-out">0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Output & Flags Panel -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">ALU Bus Output [Out₃ Out₂ Out₁ Out₀]</label>
+        <div class="text-3xl font-mono font-bold tracking-widest text-amber-400" id="alu-output-binary">0000</div>
+        <div class="text-xs text-slate-400 mt-1">Decimal Representation: <span id="alu-output-decimal" class="font-mono text-cyan-300 font-bold">0</span></div>
+      </div>
+
+      <div class="flex items-center justify-around border-t md:border-t-0 md:border-l border-slate-800 pt-4 md:pt-0">
+        <div class="text-center">
+          <div class="text-xs uppercase text-slate-400 font-semibold mb-1">Carry Flag (C_out)</div>
+          <div id="flag-cout" class="w-8 h-8 rounded-full flex items-center justify-center font-mono font-bold mx-auto bg-slate-800 text-slate-500 border border-slate-700">0</div>
+        </div>
+        <div class="text-center">
+          <div class="text-xs uppercase text-slate-400 font-semibold mb-1">Zero Flag (Z)</div>
+          <div id="flag-zero" class="w-8 h-8 rounded-full flex items-center justify-center font-mono font-bold mx-auto bg-slate-800 text-slate-500 border border-slate-700">1</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // State
+    const state = {
+      X:, // [MSB -> LSB] => [x3, x2, x1, x0]
+      Y:,
+      Cin: 0,
+      S: -1 // -1: XOR, 0: AND, +1: ADD
+    };
+
+    // DOM Setup
+    function initButtons() {
+      const busX = document.getElementById('bus-x-controls');
+      const busY = document.getElementById('bus-y-controls');
+
+      for (let i = 3; i >= 0; i--) {
+        busX.innerHTML += `
+          <button onclick="toggleBit('X', ${i})" id="btn-x-${i}" class="w-10 h-10 rounded font-mono font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-400 transition-colors">0</button>
+        `;
+        busY.innerHTML += `
+          <button onclick="toggleBit('Y', ${i})" id="btn-y-${i}" class="w-10 h-10 rounded font-mono font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-400 transition-colors">0</button>
+        `;
+      }
+    }
+
+    // Handlers
+    function toggleBit(bus, index) {
+      state[bus][index] = state[bus][index] === 0 ? 1 : 0;
+      document.getElementById(`btn-${bus.toLowerCase()}-${index}`).innerText = state[bus][index];
+      computeALU();
+    }
+
+    function toggleCin() {
+      state.Cin = state.Cin === 0 ? 1 : 0;
+      document.getElementById('cin-val').innerText = state.Cin;
+      computeALU();
+    }
+
+    function setTrit(val) {
+      state.S = val;
+      computeALU();
+    }
+
+    // Logic Execution & Live Propagation
+    function computeALU() {
+      // Update Trit Selector Buttons UI
+      const modes = { '-1': 'Bitwise XOR', '0': 'Bitwise AND', '1': '4-Bit Ripple-Carry Full-Adder' };
+      document.getElementById('alu-mode').innerText = modes[state.S.toString()];
+      
+      ['-1', '0', '1'].forEach(v => {
+        const btnId = v === '-1' ? 'trit-neg1' : (v === '0' ? 'trit-zero' : 'trit-pos1');
+        const btn = document.getElementById(btnId);
+        if (parseInt(v) === state.S) {
+          btn.className = "px-3 py-1 text-xs font-bold rounded bg-cyan-500 text-slate-950 transition-colors shadow";
+        } else {

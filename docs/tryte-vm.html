@@ -1,0 +1,853 @@
+<title>Tryte VM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;600&display=swap">
+
+<style>
+:root {
+  /* Light. The three trit states carry the palette; UI chrome stays quiet.
+     Rust and teal are matched in weight because the number system is balanced. */
+  --paper:    #F1F4F7;
+  --surface:  #FFFFFF;
+  --sunken:   #E8EDF2;
+  --ink:      #161B21;
+  --ink-2:    #556170;
+  --ink-3:    #7C8895;
+  --rule:     #D6DEE6;
+  --neg:      #B0402A;
+  --neg-bg:   #F7E5E0;
+  --pos:      #0A6F82;
+  --pos-bg:   #DCEEF1;
+  --zero:     #67727F;
+  --zero-bg:  #E9EDF1;
+  --on-accent:#FFFFFF;
+  --shadow:   0 1px 2px rgba(20,30,40,.06), 0 4px 14px rgba(20,30,40,.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:   #101418;
+    --surface: #181D23;
+    --sunken:  #0B0E12;
+    --ink:     #E4EAF1;
+    --ink-2:   #9BA8B5;
+    --ink-3:   #74818E;
+    --rule:    #29313A;
+    --neg:     #E3805F;
+    --neg-bg:  #33201B;
+    --pos:     #3FB3C6;
+    --pos-bg:  #142E34;
+    --zero:    #7E8A96;
+    --zero-bg: #1E242B;
+    --on-accent: #0B1216;
+    --shadow:  0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  --paper:   #101418;
+  --surface: #181D23;
+  --sunken:  #0B0E12;
+  --ink:     #E4EAF1;
+  --ink-2:   #9BA8B5;
+  --ink-3:   #74818E;
+  --rule:    #29313A;
+  --neg:     #E3805F;
+  --neg-bg:  #33201B;
+  --pos:     #3FB3C6;
+  --pos-bg:  #142E34;
+  --zero:    #7E8A96;
+  --zero-bg: #1E242B;
+  --on-accent: #0B1216;
+  --shadow:  0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.3);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1000px; margin: 0 auto; padding: 56px 24px 96px; display: flex; flex-direction: column; gap: 48px; }
+
+/* --- type ---------------------------------------------------------------- */
+h1, h2, h3 { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: -0.015em; }
+h1 { font-size: clamp(1.9rem, 4.6vw, 2.7rem); line-height: 1.1; }
+h2 { font-size: 1.32rem; line-height: 1.25; }
+h3 { font-size: 0.95rem; }
+p  { margin: 0; max-width: 66ch; }
+.lede { font-size: 1.06rem; color: var(--ink-2); max-width: 62ch; }
+.eyebrow {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3);
+}
+.note { font-size: 0.88rem; color: var(--ink-2); }
+code, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+/* --- structure ----------------------------------------------------------- */
+header.hd { display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid var(--rule); padding-bottom: 32px; }
+section { display: flex; flex-direction: column; gap: 18px; }
+.sec-head { display: flex; flex-direction: column; gap: 6px; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 5px; padding: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 18px; }
+.row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.cols { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+/* --- the trit strip: the signature element ------------------------------- */
+.strip { display: flex; gap: 5px; }
+.trit {
+  flex: 1 1 0; min-width: 0; aspect-ratio: 1 / 1.24;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  border: 1px solid var(--rule); border-radius: 4px;
+  font-family: "IBM Plex Mono", monospace;
+}
+.trit .glyph { font-size: clamp(1.1rem, 3.4vw, 1.7rem); font-weight: 600; line-height: 1; }
+.trit .place { font-size: 0.62rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.trit.pos  { background: var(--pos-bg);  color: var(--pos);  border-color: var(--pos); }
+.trit.neg  { background: var(--neg-bg);  color: var(--neg);  border-color: var(--neg); }
+.trit.zero { background: var(--zero-bg); color: var(--zero); }
+.strip.sm .trit { aspect-ratio: 1 / 1; }
+.strip.sm .glyph { font-size: 0.95rem; }
+.strip.sm .place { display: none; }
+
+/* --- controls ------------------------------------------------------------ */
+button, select, input[type="text"], input[type="number"] {
+  font-family: "IBM Plex Sans", sans-serif; font-size: 0.9rem; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 4px;
+  padding: 8px 13px;
+}
+input[type="text"], input[type="number"] { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
+button { cursor: pointer; font-weight: 600; transition: background-color .12s ease, border-color .12s ease; }
+button:hover { background: var(--sunken); border-color: var(--ink-3); }
+button.primary { background: var(--pos); border-color: var(--pos); color: var(--on-accent); }
+button.primary:hover { filter: brightness(1.08); }
+:focus-visible { outline: 2px solid var(--pos); outline-offset: 2px; }
+label.fld { display: flex; flex-direction: column; gap: 5px; font-size: 0.78rem; color: var(--ink-2); font-weight: 500; }
+
+/* three-state switch, one per control trit */
+.sw { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.sw .stack { display: flex; flex-direction: column; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+.sw button {
+  border: 0; border-radius: 0; padding: 5px 9px; font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem; background: var(--surface); color: var(--ink-3); font-weight: 500;
+}
+.sw button + button { border-top: 1px solid var(--rule); }
+.sw button[aria-pressed="true"] { color: var(--on-accent); }
+.sw button[data-m="-1"][aria-pressed="true"] { background: var(--neg); }
+.sw button[data-m="0"][aria-pressed="true"]  { background: var(--zero); }
+.sw button[data-m="1"][aria-pressed="true"]  { background: var(--pos); }
+.sw .cap { font-size: 0.62rem; color: var(--ink-3); font-family: "IBM Plex Mono", monospace; }
+
+/* --- readouts ------------------------------------------------------------ */
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 0.87rem; align-items: baseline; }
+.kv dt { color: var(--ink-3); font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; text-transform: uppercase; letter-spacing: .08em; }
+.kv dd { margin: 0; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
+.big { font-family: "IBM Plex Mono", monospace; font-size: 1.85rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.tape { background: var(--sunken); border: 1px solid var(--rule); border-radius: 4px; padding: 11px 13px; min-height: 44px; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
+.chip { padding: 2px 9px; border-radius: 3px; background: var(--zero-bg); color: var(--ink); border: 1px solid var(--rule); font-size: 0.85rem; }
+.chip.pos { background: var(--pos-bg); color: var(--pos); border-color: var(--pos); }
+.chip.neg { background: var(--neg-bg); color: var(--neg); border-color: var(--neg); }
+
+/* --- listing ------------------------------------------------------------- */
+.listing { background: var(--sunken); border: 1px solid var(--rule); border-radius: 4px; overflow: auto; max-height: 340px; }
+.listing pre { margin: 0; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; line-height: 1.62; }
+.listing .ln { display: block; padding: 0 13px; white-space: pre; color: var(--ink-2); border-left: 3px solid transparent; }
+.listing .ln.here { background: var(--pos-bg); color: var(--ink); border-left-color: var(--pos); }
+.listing .cm { color: var(--ink-3); font-style: italic; }
+
+table.ops { border-collapse: collapse; width: 100%; font-size: 0.83rem; }
+table.ops th, table.ops td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.ops th { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-3); font-weight: 600; }
+table.ops td.m { font-family: "IBM Plex Mono", monospace; font-weight: 600; white-space: nowrap; }
+.scroll-x { overflow-x: auto; }
+
+footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; flex-direction: column; gap: 10px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header class="hd">
+    <span class="eyebrow">Balanced ternary · emulator</span>
+    <h1>Tryte VM</h1>
+    <p class="lede">A working computer that counts in three states instead of two. A digit here is not
+      a light switch but a balance scale: it tips left, sits level, or tips right — <span class="mono">−1, 0, +1</span>.
+      Weights go on either pan, so negative numbers stop being a special case.</p>
+    <p class="note">Everything below runs the actual emulator source, inlined from the same files the
+      117-test suite checks &mdash; including 26 that drive these very controls headlessly. Nothing here is a mock-up.</p>
+  </header>
+
+  <!-- 1 ------------------------------------------------------------------ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">01 — the number</span>
+      <h2>One tryte, six scales</h2>
+      <p>Six trits make a <strong>tryte</strong>: 3<sup>6</sup> = 729 values, running −364 to +364.
+        Type a number and watch the scales settle. Then press <em>Negate</em> — every scale simply tips
+        the other way. That is the whole operation; there is no sign digit to flip and no two's complement.</p>
+    </div>
+    <div class="panel">
+      <div class="row">
+        <label class="fld">Value (−364 … 364)
+          <input type="number" id="num-input" value="123" min="-364" max="364" step="1" style="width:130px">
+        </label>
+        <div class="row" style="gap:8px;align-self:flex-end">
+          <button id="b-neg">Negate</button>
+          <button id="b-x3">Shift left (×3)</button>
+          <button id="b-d3">Shift right (÷3)</button>
+        </div>
+      </div>
+      <div class="strip" id="num-strip"></div>
+      <div class="cols">
+        <dl class="kv">
+          <dt>Value</dt><dd id="r-val" class="big" style="font-size:1.3rem">123</dd>
+          <dt>Trits</dt><dd id="r-trits">+----0</dd>
+          <dt>Negated</dt><dd id="r-mirror">-++++0</dd>
+          <dt>Sign</dt><dd id="r-sign">+1</dd>
+        </dl>
+        <p class="note" id="r-explain"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 ------------------------------------------------------------------ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">02 — the machine</span>
+      <h2>Three registers, 729 cells</h2>
+      <p>Memory is addressed <span class="mono">−364 … +364</span>, so address <span class="mono">0</span> is the
+        <em>centre</em> of memory rather than one end. Pick a program, give it inputs, and step through it.
+        <strong>multiply</strong> is the one to watch: the machine has no multiply instruction, so it extracts one
+        trit at a time using <span class="mono">v − 3 × (v ≫ 1)</span> — which only works because shifting right
+        rounds to nearest instead of truncating.</p>
+    </div>
+    <div class="panel">
+      <div class="row">
+        <label class="fld">Program
+          <select id="prog-select"></select>
+        </label>
+        <label class="fld">Inputs
+          <input type="text" id="prog-input" value="7, 5" style="width:190px">
+        </label>
+        <div class="row" style="gap:8px;align-self:flex-end">
+          <button class="primary" id="b-run">Run</button>
+          <button id="b-step">Step</button>
+          <button id="b-reset">Reset</button>
+        </div>
+      </div>
+
+      <div class="cols">
+        <div>
+          <h3 style="margin-bottom:8px">Accumulator <span class="note mono" id="reg-a-val"></span></h3>
+          <div class="strip sm" id="reg-a"></div>
+          <h3 style="margin:16px 0 8px">Gate control <span class="note mono" id="reg-c-val"></span></h3>
+          <div class="strip sm" id="reg-c"></div>
+          <dl class="kv" style="margin-top:16px">
+            <dt>PC</dt><dd id="reg-pc">0</dd>
+            <dt>Steps</dt><dd id="reg-steps">0</dd>
+            <dt>State</dt><dd id="reg-state">ready</dd>
+          </dl>
+        </div>
+        <div>
+          <h3 style="margin-bottom:8px">Output</h3>
+          <div class="tape" id="out-tape"><span class="note">nothing emitted yet</span></div>
+          <h3 style="margin:16px 0 8px">Listing</h3>
+          <div class="listing"><pre id="listing"></pre></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 ------------------------------------------------------------------ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">03 — the reconfigurable unit</span>
+      <h2>A control word that is the circuit</h2>
+      <p>Each of the six switches sets what that slice of the unit <em>does</em> — negate, min, or max —
+        so one control tryte names one of 729 distinct six-slice circuits. Min is the AND analog and max is
+        the OR analog; on three-state data this is a real three-way choice per position rather than an
+        opcode picking between two.</p>
+    </div>
+    <div class="panel">
+      <div class="row" style="gap:26px">
+        <div>
+          <div class="eyebrow" style="margin-bottom:8px">Control tryte</div>
+          <div class="row" id="tg-switches" style="gap:7px"></div>
+        </div>
+        <div class="cols" style="flex:1 1 220px">
+          <label class="fld">Data X <input type="number" id="tg-x" value="123" min="-364" max="364"></label>
+          <label class="fld">Data Y <input type="number" id="tg-y" value="-45" min="-364" max="364"></label>
+        </div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom:8px">Result <span class="mono" id="tg-out-val"></span></div>
+        <div class="strip" id="tg-out"></div>
+      </div>
+      <p class="note" id="tg-explain"></p>
+    </div>
+  </section>
+
+  <!-- 4 ------------------------------------------------------------------ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">04 — instruction set</span>
+      <h2>Nineteen instructions</h2>
+      <p><span class="mono">BR3</span> is the one with no binary equivalent: it inspects the accumulator once
+        and lands on one of three addresses. No flags register, no chain of compares.</p>
+    </div>
+    <div class="panel scroll-x">
+      <table class="ops"><thead><tr><th>Op</th><th>Operand</th><th>Effect</th></tr></thead>
+        <tbody id="ops-body"></tbody></table>
+    </div>
+  </section>
+
+  <footer>
+    <p class="note"><strong>Where this came from.</strong> A Google AI Mode conversation designed a "tryte ALU"
+      and offered three separate times to implement balanced ternary arithmetic, then never did — every artifact
+      it produced was binary logic in ternary vocabulary, down to a Verilog module encoding the trit as two binary
+      wires. This is the part it kept promising.</p>
+    <p class="note"><strong>Prior art.</strong> Setun, built in 1958 at Moscow State University under Sergei
+      Sobolev and Nikolay Brusentsov, was the first modern ternary computer and used this same balanced system.
+      Around 50 were built between 1959 and 1965 from ferrite cores and diodes.</p>
+  </footer>
+</div>
+
+<script>
+/* --- src/ternary.js --- */
+
+/* ---------------------------------------------------------------------------
+ * ternary.js — balanced ternary core
+ *
+ * A TRIT is one of -1, 0, +1.
+ * A TRYTE is 6 trits. 3^6 = 729 distinct values, held balanced: -364 .. +364.
+ *
+ * Balanced ternary has no sign bit. The sign of a number is the sign of its
+ * leading non-zero trit, and negation is simply flipping every trit. There is
+ * no two's complement, no separate subtract circuit, and truncating a value
+ * rounds it to nearest rather than toward zero. Those four properties are the
+ * whole reason this number system is interesting, and each is asserted in
+ * test/test.js rather than merely claimed here.
+ * ------------------------------------------------------------------------- */
+
+const TRITS_PER_TRYTE = 6;
+const RADIX = 3;
+const TRYTE_STATES = RADIX ** TRITS_PER_TRYTE;   // 729
+const TRYTE_MAX = (TRYTE_STATES - 1) / 2;        // +364
+const TRYTE_MIN = -TRYTE_MAX;                    // -364
+
+/** Fold any integer into the balanced tryte range, wrapping mod 729. */
+function wrap(v) {
+  return ((((v - TRYTE_MIN) % TRYTE_STATES) + TRYTE_STATES) % TRYTE_STATES) + TRYTE_MIN;
+}
+
+/** Integer -> array of 6 trits, least-significant first. Wraps out-of-range input. */
+function toTrits(v, n = TRITS_PER_TRYTE) {
+  let x = wrap(v);
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    let r = ((x % RADIX) + RADIX) % RADIX;   // 0, 1, 2
+    if (r === 2) r = -1;                     // 2 carries up and becomes -1
+    out.push(r);
+    x = (x - r) / RADIX;
+  }
+  return out;
+}
+
+/** Array of trits (LSB first) -> integer. */
+function fromTrits(trits) {
+  let v = 0;
+  for (let i = trits.length - 1; i >= 0; i--) v = v * RADIX + trits[i];
+  return v;
+}
+
+/** Human-readable form, most-significant first: '+' / '0' / '-'. */
+function tritString(v) {
+  return toTrits(v).reverse().map(t => (t > 0 ? '+' : t < 0 ? '-' : '0')).join('');
+}
+
+/** Parse '+-0++0' (MSB first) back to an integer. */
+function parseTritString(s) {
+  const trits = s.trim().split('').map(c => {
+    if (c === '+') return 1;
+    if (c === '-') return -1;
+    if (c === '0') return 0;
+    throw new Error(`bad trit character: ${c}`);
+  });
+  return fromTrits(trits.reverse());
+}
+
+/* --- arithmetic ---------------------------------------------------------- */
+
+const add = (a, b) => wrap(a + b);
+const sub = (a, b) => wrap(a - b);
+const mul = (a, b) => wrap(a * b);
+
+/** Negation: flip every trit. Provably identical to arithmetic negation. */
+function neg(a) {
+  return fromTrits(toTrits(a).map(t => -t));
+}
+
+/** Sign is the sign of the leading (most significant) non-zero trit. */
+function sign(a) {
+  const t = toTrits(a);
+  for (let i = t.length - 1; i >= 0; i--) if (t[i] !== 0) return t[i];
+  return 0;
+}
+
+/** Shift left n trits — multiply by 3^n, wrapping. */
+const shiftLeft = (a, n) => wrap(a * RADIX ** n);
+
+/**
+ * Shift right n trits. Dropping low trits in balanced ternary rounds to
+ * nearest (ties away from zero), which is why no rounding logic is needed.
+ */
+function shiftRight(a, n) {
+  const t = toTrits(a);
+  const kept = t.slice(n).concat(new Array(n).fill(0));
+  return fromTrits(kept);
+}
+
+/* --- tritwise gates ------------------------------------------------------ */
+/* The ternary-native analogs. MIN generalises AND, MAX generalises OR, and
+ * NEG generalises NOT. CLAMPSUM is the 9-row gate published in the source
+ * conversation, confirmed there as the saturating ternary sum. */
+
+const tritwise2 = fn => (a, b) => {
+  const x = toTrits(a), y = toTrits(b);
+  return fromTrits(x.map((t, i) => fn(t, y[i])));
+};
+
+const tMIN = tritwise2((p, q) => Math.min(p, q));
+const tMAX = tritwise2((p, q) => Math.max(p, q));
+const tCLAMPSUM = tritwise2((p, q) => Math.max(-1, Math.min(1, p + q)));
+const tNEG = neg;
+
+/**
+ * TGATE — the idea the source conversation was reaching for, in ternary-native
+ * form. A control tryte reconfigures the unit per trit position: each control
+ * trit selects which gate acts on that slice of the two data trytes.
+ *
+ *   control trit -1  ->  NEG(x)        (ignores y)
+ *   control trit  0  ->  MIN(x, y)
+ *   control trit +1  ->  MAX(x, y)
+ *
+ * One tryte of control therefore names one of 3^6 = 729 distinct 6-slice
+ * circuits, and the data reconfigures the unit as it arrives.
+ */
+function tgate(control, x, y) {
+  const c = toTrits(control), xs = toTrits(x), ys = toTrits(y);
+  return fromTrits(c.map((mode, i) => {
+    if (mode === -1) return -xs[i];
+    if (mode === 0) return Math.min(xs[i], ys[i]);
+    return Math.max(xs[i], ys[i]);
+  }));
+}
+
+
+
+const T = { TRITS_PER_TRYTE, RADIX, TRYTE_STATES, TRYTE_MAX, TRYTE_MIN, wrap, toTrits, fromTrits, tritString, parseTritString, add, sub, mul, neg, sign, shiftLeft, shiftRight, tMIN, tMAX, tCLAMPSUM, tNEG, tgate };
+
+/* --- src/isa.js --- */
+
+/* isa.js — instruction set for the tryte VM.
+ *
+ * Every instruction is two memory cells: [opcode, operand].
+ * Memory is addressed by balanced tryte, so addresses run -364 .. +364 and
+ * address 0 is the CENTRE of memory, not one end. Programs are assembled
+ * upward from 0; data conventionally sits below it. */
+
+const OPS = {
+  HALT:  { code:  0, operand: 'none', doc: 'stop the machine' },
+  LOADI: { code:  1, operand: 'imm',  doc: 'A = immediate' },
+  LOAD:  { code:  2, operand: 'addr', doc: 'A = mem[addr]' },
+  STORE: { code:  3, operand: 'addr', doc: 'mem[addr] = A' },
+  ADD:   { code:  4, operand: 'addr', doc: 'A = A + mem[addr]' },
+  ADDI:  { code:  5, operand: 'imm',  doc: 'A = A + immediate' },
+  SUB:   { code:  6, operand: 'addr', doc: 'A = A - mem[addr]' },
+  NEG:   { code:  7, operand: 'none', doc: 'A = -A, by flipping every trit' },
+  MIN:   { code:  8, operand: 'addr', doc: 'A = tritwise MIN(A, mem[addr])' },
+  MAX:   { code:  9, operand: 'addr', doc: 'A = tritwise MAX(A, mem[addr])' },
+  CSUM:  { code: 10, operand: 'addr', doc: 'A = tritwise clamped sum' },
+  SETC:  { code: 11, operand: 'imm',  doc: 'C = immediate (TGATE control tryte)' },
+  TGATE: { code: 12, operand: 'addr', doc: 'A = TGATE(C, A, mem[addr])' },
+  SHL:   { code: 13, operand: 'imm',  doc: 'A = A shifted left n trits (x 3^n)' },
+  SHR:   { code: 14, operand: 'imm',  doc: 'A = A shifted right n trits (rounds to nearest)' },
+  JMP:   { code: 15, operand: 'addr', doc: 'PC = addr' },
+  BR3:   { code: 16, operand: 'addr', doc: 'three-way branch: PC = mem[addr + sign(A)]' },
+  OUT:   { code: 17, operand: 'none', doc: 'emit A to output' },
+  IN:    { code: 18, operand: 'none', doc: 'A = next input value' },
+};
+
+const BY_CODE = {};
+for (const [name, spec] of Object.entries(OPS)) BY_CODE[spec.code] = { name, ...spec };
+
+
+
+/* --- src/vm.js --- */
+
+/* vm.js — the machine.
+ *
+ * Three registers, all trytes: A (accumulator), C (gate control), PC.
+ * One instruction is two cells. Nothing here is binary. */
+
+
+
+const CELLS = T.TRYTE_STATES;              // 729
+const idx = addr => T.wrap(addr) - T.TRYTE_MIN;   // tryte address -> array slot
+
+class TryteVM {
+  constructor(opts = {}) {
+    this.mem = new Int16Array(CELLS);
+    this.A = 0; this.C = 0; this.PC = 0;
+    this.output = [];
+    this.input = (opts.input || []).slice();
+    this.halted = false;
+    this.steps = 0;
+    this.maxSteps = opts.maxSteps || 200000;
+    this.trace = [];
+    this.tracing = !!opts.trace;
+  }
+
+  read(addr) { return this.mem[idx(addr)]; }
+  write(addr, v) { this.mem[idx(addr)] = T.wrap(v); }
+
+  /** Load assembled cells at a starting address. */
+  loadImage(cells, start = 0) {
+    cells.forEach((v, i) => this.write(start + i, v));
+    this.PC = start;
+    return this;
+  }
+
+  /** Execute one instruction. Returns false once halted. */
+  step() {
+    if (this.halted) return false;
+    if (this.steps++ >= this.maxSteps) throw new Error('step limit exceeded (runaway program?)');
+
+    const pcBefore = this.PC;
+    const opcode = this.read(this.PC);
+    const operand = this.read(this.PC + 1);
+    const op = BY_CODE[opcode];
+    if (!op) throw new Error(`illegal opcode ${opcode} at address ${pcBefore}`);
+
+    let nextPC = T.wrap(this.PC + 2);
+
+    switch (op.name) {
+      case 'HALT':  this.halted = true; break;
+      case 'LOADI': this.A = T.wrap(operand); break;
+      case 'LOAD':  this.A = this.read(operand); break;
+      case 'STORE': this.write(operand, this.A); break;
+      case 'ADD':   this.A = T.add(this.A, this.read(operand)); break;
+      case 'ADDI':  this.A = T.add(this.A, operand); break;
+      case 'SUB':   this.A = T.sub(this.A, this.read(operand)); break;
+      case 'NEG':   this.A = T.neg(this.A); break;
+      case 'MIN':   this.A = T.tMIN(this.A, this.read(operand)); break;
+      case 'MAX':   this.A = T.tMAX(this.A, this.read(operand)); break;
+      case 'CSUM':  this.A = T.tCLAMPSUM(this.A, this.read(operand)); break;
+      case 'SETC':  this.C = T.wrap(operand); break;
+      case 'TGATE': this.A = T.tgate(this.C, this.A, this.read(operand)); break;
+      case 'SHL':   this.A = T.shiftLeft(this.A, operand); break;
+      case 'SHR':   this.A = T.shiftRight(this.A, operand); break;
+      case 'JMP':   nextPC = T.wrap(operand); break;
+      // The signature instruction: one test, three destinations, no flags register.
+      case 'BR3':   nextPC = this.read(T.wrap(operand + T.sign(this.A))); break;
+      case 'OUT':   this.output.push(this.A); break;
+      case 'IN':    this.A = this.input.length ? T.wrap(this.input.shift()) : 0; break;
+      default: throw new Error(`unimplemented op ${op.name}`);
+    }
+
+    if (this.tracing) {
+      this.trace.push({ pc: pcBefore, op: op.name, operand, A: this.A, C: this.C, next: nextPC });
+    }
+    this.PC = nextPC;
+    return !this.halted;
+  }
+
+  run() { while (this.step()); return this; }
+}
+
+
+
+/* --- src/assembler.js --- */
+
+/* assembler.js — text mnemonics -> tryte cells. Two passes: resolve labels, then emit.
+ *
+ * Syntax
+ *   label:  LOADI 42          ; comment
+ *           BR3   choose
+ *   choose: .table neg, zero, pos     ; 3 cells; the label names the MIDDLE one
+ *   value:  .word 17, -3, t+-0++0     ; raw data cells ('t' prefix = trit literal)
+ *           .org  -100                ; continue assembling at this address
+ */
+
+
+
+function parseNumber(tok, labels, where) {
+  tok = tok.trim();
+  if (/^t[+\-0]+$/i.test(tok)) return T.parseTritString(tok.slice(1));
+  if (/^[+-]?\d+$/.test(tok)) return parseInt(tok, 10);
+  const m = tok.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*([+-])\s*(\d+)$/);
+  if (m) {
+    if (!(m[1] in labels)) throw new Error(`unknown label '${m[1]}' (${where})`);
+    return labels[m[1]] + (m[2] === '+' ? 1 : -1) * parseInt(m[3], 10);
+  }
+  if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(tok)) {
+    if (!(tok in labels)) throw new Error(`unknown label '${tok}' (${where})`);
+    return labels[tok];
+  }
+  throw new Error(`cannot parse operand '${tok}' (${where})`);
+}
+
+function tokenize(src) {
+  return src.split(/\r?\n/).map((raw, i) => {
+    const line = raw.replace(/[;#].*$/, '').trim();
+    if (!line) return null;
+    let label = null, rest = line;
+    const lm = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.*)$/);
+    if (lm) { label = lm[1]; rest = lm[2].trim(); }
+    const parts = rest ? rest.split(/\s+/) : [];
+    const mnemonic = parts.length ? parts[0].toUpperCase() : null;
+    const argText = parts.slice(1).join(' ');
+    const args = argText ? argText.split(',').map(s => s.trim()).filter(Boolean) : [];
+    return { lineNo: i + 1, raw, label, mnemonic, args };
+  }).filter(Boolean);
+}
+
+function assemble(src, origin = 0) {
+  const lines = tokenize(src);
+  const labels = {};
+
+  // --- pass 1: sizes and label addresses -----------------------------------
+  let pc = origin;
+  for (const L of lines) {
+    if (L.mnemonic === '.ORG') { pc = parseNumber(L.args[0], labels, `line ${L.lineNo}`); if (L.label) labels[L.label] = pc; continue; }
+    if (L.label) labels[L.label] = (L.mnemonic === '.TABLE') ? pc + 1 : pc;
+    if (!L.mnemonic) continue;
+    if (L.mnemonic === '.WORD') pc += L.args.length;
+    else if (L.mnemonic === '.TABLE') {
+      if (L.args.length !== 3) throw new Error(`.table needs exactly 3 targets (line ${L.lineNo})`);
+      pc += 3;
+    } else {
+      if (!(L.mnemonic in OPS)) throw new Error(`unknown instruction '${L.mnemonic}' (line ${L.lineNo})`);
+      pc += 2;
+    }
+  }
+
+  // --- pass 2: emit --------------------------------------------------------
+  const cells = new Map();
+  const lineOf = new Map();          // address -> source line number, for listings
+  pc = origin;
+  let curLine = 0;
+  const emit = v => { cells.set(T.wrap(pc), T.wrap(v)); lineOf.set(T.wrap(pc), curLine); pc = T.wrap(pc + 1); };
+
+  for (const L of lines) {
+    const where = `line ${L.lineNo}: ${L.raw.trim()}`;
+    curLine = L.lineNo;
+    if (L.mnemonic === '.ORG') { pc = parseNumber(L.args[0], labels, where); continue; }
+    if (!L.mnemonic) continue;
+    if (L.mnemonic === '.WORD') { L.args.forEach(a => emit(parseNumber(a, labels, where))); continue; }
+    if (L.mnemonic === '.TABLE') { L.args.forEach(a => emit(parseNumber(a, labels, where))); continue; }
+
+    const spec = OPS[L.mnemonic];
+    emit(spec.code);
+    if (spec.operand === 'none') {
+      if (L.args.length) throw new Error(`${L.mnemonic} takes no operand (${where})`);
+      emit(0);
+    } else {
+      if (L.args.length !== 1) throw new Error(`${L.mnemonic} needs exactly one operand (${where})`);
+      emit(parseNumber(L.args[0], labels, where));
+    }
+  }
+
+  return { cells, labels, origin, lineOf };
+}
+
+/** Assemble and load straight into a VM instance. */
+function loadInto(vm, src, origin = 0) {
+  const { cells, labels, lineOf } = assemble(src, origin);
+  for (const [addr, val] of cells) vm.write(addr, val);
+  vm.PC = origin;
+  vm.labels = labels;
+  vm.lineOf = lineOf;
+  return vm;
+}
+
+
+
+const PROGRAMS = {
+  "multiply": "; multiply.tasm — shift-and-add multiplication, done the balanced-ternary way.\n;\n; The machine has no multiply instruction. It builds one from shifts and adds.\n;\n; The interesting part is extracting one trit at a time. In balanced ternary,\n; shifting right ROUNDS TO NEAREST rather than truncating toward zero, so\n;\n;       lowest_trit(v)  =  v - 3 * (v >> 1)\n;\n; falls out of the shift itself. No masking, no sign correction, no special\n; case for negative numbers — the same six steps handle every sign combination.\n\n        IN                 ; first input  -> multiplicand\n        STORE mult\n        IN                 ; second input -> multiplier\n        STORE rem\n        LOADI 0\n        STORE result\n        LOADI 6            ; six trits in a tryte\n        STORE count\n\nloop:   LOAD  rem\n        SHR   1\n        STORE remhi        ; remhi = round(rem / 3)\n        SHL   1\n        STORE tmp          ; tmp   = 3 * remhi\n        LOAD  rem\n        SUB   tmp          ; A     = lowest trit of rem\n        BR3   pick\npick:   .table minus, skip, plus\n\nplus:   LOAD  result\n        ADD   mult\n        STORE result\n        JMP   next\nminus:  LOAD  result\n        SUB   mult\n        STORE result\n        JMP   next\nskip:   JMP   next\n\nnext:   LOAD  mult\n        SHL   1\n        STORE mult         ; multiplicand climbs one trit\n        LOAD  remhi\n        STORE rem          ; multiplier drops one trit\n        LOAD  count\n        ADDI  -1\n        STORE count\n        BR3   again\nagain:  .table fin, fin, loop\n\nfin:    LOAD  result\n        OUT\n        HALT\n\n        .org  -20\nmult:   .word 0\nrem:    .word 0\nremhi:  .word 0\nresult: .word 0\ncount:  .word 0\ntmp:    .word 0\n",
+  "tgate": "; tgate.tasm — the source conversation's idea, made real and made ternary.\n;\n; The original wanted a data word whose own digits ARE the logic gates, so the\n; unit reconfigures itself as data passes through. On binary data with AND/OR/NOT\n; that is just an opcode driving a multiplexer. On ternary data it is a genuinely\n; three-way choice per trit position:\n;\n;       control trit -  ->  NEG(x)       (ignores y)\n;       control trit 0  ->  MIN(x, y)    (the AND analog)\n;       control trit +  ->  MAX(x, y)    (the OR analog)\n;\n; One control tryte therefore names one of 729 distinct six-slice circuits.\n; Below, the SAME two data values run through three different circuits.\n\n        IN\n        STORE x\n        IN\n        STORE y\n\n        SETC  t000000      ; every trit MIN  -> the whole unit becomes MIN\n        LOAD  x\n        TGATE y\n        OUT\n\n        SETC  t++++++      ; every trit MAX  -> the whole unit becomes MAX\n        LOAD  x\n        TGATE y\n        OUT\n\n        SETC  t------      ; every trit NEG  -> the whole unit becomes negate\n        LOAD  x\n        TGATE y\n        OUT\n\n        SETC  t+0-+0-      ; a MIXED circuit: MAX, MIN, NEG, MAX, MIN, NEG\n        LOAD  x\n        TGATE y\n        OUT\n\n        HALT\n\n        .org  -10\nx:      .word 0\ny:      .word 0\n",
+  "threeway": "; threeway.tasm — the instruction binary machines cannot have.\n;\n; BR3 tests the accumulator ONCE and lands on one of three addresses:\n; negative, zero, or positive. No flags register, no chain of compares.\n; This program classifies each input value, and uses a SECOND BR3 to run\n; the loop itself.\n\n        LOADI 5            ; five values to classify\n        STORE count\n\nloop:   LOAD  count\n        BR3   more         ; keep going only while count is positive\nmore:   .table done, done, body\n\nbody:   IN                 ; fetch the next value\n        BR3   sgn          ; one test, three destinations\nsgn:    .table neg, zero, pos\n\nneg:    LOADI -1\n        JMP   emit\nzero:   LOADI 0\n        JMP   emit\npos:    LOADI 1\n\nemit:   OUT\n        LOAD  count\n        ADDI  -1\n        STORE count\n        JMP   loop\n\ndone:   HALT\n\n        .org  -1\ncount:  .word 0\n"
+};
+
+const PLACES = [243, 81, 27, 9, 3, 1];
+const $ = id => document.getElementById(id);
+const clampT = v => Math.max(T.TRYTE_MIN, Math.min(T.TRYTE_MAX, v | 0));
+
+function renderStrip(el, value) {
+  const trits = T.toTrits(value).slice().reverse();   // MSB first
+  el.innerHTML = '';
+  trits.forEach((t, i) => {
+    const d = document.createElement('div');
+    d.className = 'trit ' + (t > 0 ? 'pos' : t < 0 ? 'neg' : 'zero');
+    d.innerHTML = '<span class="glyph">' + (t > 0 ? '+' : t < 0 ? '−' : '0') +
+                  '</span><span class="place">' + PLACES[i] + '</span>';
+    el.appendChild(d);
+  });
+}
+
+/* --- 01: number explorer -------------------------------------------------- */
+const numIn = $('num-input');
+function drawNumber() {
+  const v = clampT(Number(numIn.value) || 0);
+  renderStrip($('num-strip'), v);
+  $('r-val').textContent = v;
+  $('r-trits').textContent = T.tritString(v);
+  $('r-mirror').textContent = T.tritString(T.neg(v));
+  $('r-sign').textContent = T.sign(v) > 0 ? '+1  (positive)' : T.sign(v) < 0 ? '−1  (negative)' : '0  (zero)';
+  const terms = T.toTrits(v).slice().reverse()
+    .map((t, i) => (t === 0 ? null : (t > 0 ? '+' : '−') + ' ' + PLACES[i]))
+    .filter(Boolean).join('  ');
+  $('r-explain').textContent = v === 0
+    ? 'Zero: every scale level.'
+    : 'Read as weights on a balance: ' + terms + '  =  ' + v +
+      '.  Its negation is the exact mirror, so the sign lives in the digits themselves, not in a separate bit.';
+}
+numIn.addEventListener('input', drawNumber);
+$('b-neg').addEventListener('click', () => { numIn.value = T.neg(clampT(Number(numIn.value) || 0)); drawNumber(); });
+$('b-x3').addEventListener('click', () => { numIn.value = T.shiftLeft(clampT(Number(numIn.value) || 0), 1); drawNumber(); });
+$('b-d3').addEventListener('click', () => { numIn.value = T.shiftRight(clampT(Number(numIn.value) || 0), 1); drawNumber(); });
+
+/* --- 02: the machine ------------------------------------------------------ */
+const DEFAULT_INPUTS = { threeway: '7, -3, 0, 42, -100', multiply: '7, 5', tgate: '123, -45' };
+const sel = $('prog-select');
+Object.keys(PROGRAMS).forEach(name => {
+  const o = document.createElement('option');
+  o.value = name; o.textContent = name + '.tasm';
+  sel.appendChild(o);
+});
+sel.value = 'multiply';
+
+let machine = null;
+function parseInputs() {
+  return ($('prog-input').value.match(/-?\d+/g) || []).map(Number);
+}
+function resetMachine() {
+  machine = new TryteVM({ input: parseInputs(), maxSteps: 100000 });
+  loadInto(machine, PROGRAMS[sel.value], 0);
+  drawMachine();
+}
+function drawMachine() {
+  renderStrip($('reg-a'), machine.A);
+  renderStrip($('reg-c'), machine.C);
+  $('reg-a-val').textContent = machine.A + '  ' + T.tritString(machine.A);
+  $('reg-c-val').textContent = machine.C + '  ' + T.tritString(machine.C);
+  $('reg-pc').textContent = machine.PC;
+  $('reg-steps').textContent = machine.steps;
+  $('reg-state').textContent = machine.halted ? 'halted' : 'ready';
+
+  const tape = $('out-tape');
+  tape.innerHTML = '';
+  if (!machine.output.length) {
+    tape.innerHTML = '<span class="note">nothing emitted yet</span>';
+  } else {
+    machine.output.forEach(v => {
+      const c = document.createElement('span');
+      c.className = 'chip ' + (v > 0 ? 'pos' : v < 0 ? 'neg' : '');
+      c.textContent = v + '  ' + T.tritString(v);
+      tape.appendChild(c);
+    });
+  }
+
+  const here = machine.lineOf ? machine.lineOf.get(machine.PC) : null;
+  const src = PROGRAMS[sel.value].split(/\r?\n/);
+  const pre = $('listing');
+  pre.innerHTML = '';
+  src.forEach((line, i) => {
+    const s = document.createElement('span');
+    s.className = 'ln' + (!machine.halted && i + 1 === here ? ' here' : '') +
+                  (/^\s*[;#]/.test(line) ? ' cm' : '');
+    s.textContent = String(i + 1).padStart(3, ' ') + '  ' + (line || ' ');
+    pre.appendChild(s);
+  });
+  const cur = pre.querySelector('.here');
+  if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'nearest' });
+}
+$('b-run').addEventListener('click', () => { try { machine.run(); } catch (e) { $('reg-state').textContent = e.message; } drawMachine(); });
+$('b-step').addEventListener('click', () => { try { machine.step(); } catch (e) { $('reg-state').textContent = e.message; } drawMachine(); });
+$('b-reset').addEventListener('click', resetMachine);
+sel.addEventListener('change', () => { $('prog-input').value = DEFAULT_INPUTS[sel.value] || ''; resetMachine(); });
+
+/* --- 03: TGATE ------------------------------------------------------------ */
+const MODES = [
+  { m: -1, label: '−', cap: 'NEG' },
+  { m: 0,  label: '0',      cap: 'MIN' },
+  { m: 1,  label: '+',      cap: 'MAX' },
+];
+let control = [1, 0, -1, 1, 0, -1];   // MSB-first, matches t+0-+0-
+
+function buildSwitches() {
+  const host = $('tg-switches');
+  host.innerHTML = '';
+  control.forEach((_, i) => {
+    const sw = document.createElement('div');
+    sw.className = 'sw';
+    const stack = document.createElement('div');
+    stack.className = 'stack';
+    MODES.forEach(mode => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.m = String(mode.m);
+      b.textContent = mode.label + ' ' + mode.cap;
+      b.setAttribute('aria-label', 'trit ' + (i + 1) + ' set to ' + mode.cap);
+      b.addEventListener('click', () => { control[i] = mode.m; buildSwitches(); drawTgate(); });
+      stack.appendChild(b);
+    });
+    const cap = document.createElement('span');
+    cap.className = 'cap';
+    cap.textContent = PLACES[i];
+    sw.appendChild(stack); sw.appendChild(cap);
+    host.appendChild(sw);
+  });
+  syncSwitches();
+}
+function syncSwitches() {
+  [...$('tg-switches').children].forEach((sw, i) => {
+    [...sw.querySelector('.stack').children].forEach(b => {
+      b.setAttribute('aria-pressed', String(Number(b.dataset.m) === control[i]));
+    });
+  });
+}
+function drawTgate() {
+  const x = clampT(Number($('tg-x').value) || 0);
+  const y = clampT(Number($('tg-y').value) || 0);
+  const c = T.fromTrits(control.slice().reverse());   // control[] is MSB-first
+  const out = T.tgate(c, x, y);
+  renderStrip($('tg-out'), out);
+  $('tg-out-val').textContent = out + '   control ' + T.tritString(c);
+  const names = control.map(m => (m === -1 ? 'NEG' : m === 0 ? 'MIN' : 'MAX'));
+  const all = names.every(n => n === names[0]);
+  $('tg-explain').textContent = 'Slices, most significant first: ' + names.join(' · ') + '.' +
+    (all ? '  With every slice the same, the unit collapses to a plain ' + names[0] + ' over the whole tryte.'
+         : '  Each slice runs a different gate in the same clock, on the same two data trytes.');
+}
+['tg-x', 'tg-y'].forEach(id => $(id).addEventListener('input', drawTgate));
+
+/* --- 04: instruction table ------------------------------------------------ */
+const tb = $('ops-body');
+Object.entries(OPS).forEach(([name, spec]) => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td class="m">' + name + '</td><td class="mono" style="color:var(--ink-3)">' +
+    (spec.operand === 'none' ? '—' : spec.operand) + '</td><td>' + spec.doc + '</td>';
+  tb.appendChild(tr);
+});
+
+/* --- go ------------------------------------------------------------------- */
+drawNumber();
+resetMachine();
+buildSwitches();
+drawTgate();
+</script>
