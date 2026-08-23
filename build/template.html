@@ -125,7 +125,15 @@ button:hover { background: var(--sunken); border-color: var(--ink-3); }
 button.primary { background: var(--pos); border-color: var(--pos); color: var(--on-accent); }
 button.primary:hover { filter: brightness(1.08); }
 :focus-visible { outline: 2px solid var(--pos); outline-offset: 2px; }
-label.fld { display: flex; flex-direction: column; gap: 5px; font-size: 0.78rem; color: var(--ink-2); font-weight: 500; }
+label.fld, .fld { display: flex; flex-direction: column; gap: 5px; font-size: 0.78rem; color: var(--ink-2); font-weight: 500; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button:disabled:hover { background: var(--surface); border-color: var(--rule); }
+
+/* segmented control: native vs emulated execution */
+.seg { display: flex; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; padding: 8px 12px; font-size: 0.82rem; background: var(--surface); color: var(--ink-2); font-weight: 500; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--pos); color: var(--on-accent); font-weight: 600; }
 
 /* three-state switch, one per control trit */
 .sw { display: flex; flex-direction: column; align-items: center; gap: 6px; }
@@ -178,7 +186,7 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; fl
       a light switch but a balance scale: it tips left, sits level, or tips right — <span class="mono">−1, 0, +1</span>.
       Weights go on either pan, so negative numbers stop being a special case.</p>
     <p class="note">Everything below runs the actual emulator source, inlined from the same files the
-      117-test suite checks &mdash; including 26 that drive these very controls headlessly. Nothing here is a mock-up.</p>
+      174-test suite checks &mdash; including 36 that drive these very controls headlessly. Nothing here is a mock-up.</p>
   </header>
 
   <!-- 1 ------------------------------------------------------------------ -->
@@ -224,6 +232,9 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; fl
         <strong>multiply</strong> is the one to watch: the machine has no multiply instruction, so it extracts one
         trit at a time using <span class="mono">v − 3 × (v ≫ 1)</span> — which only works because shifting right
         rounds to nearest instead of truncating.</p>
+      <p>Switch <em>Execution</em> to <strong>Inside the emulator</strong> and the same program runs on a tryte
+        VM written in this assembly, itself running on this machine. Same source, same inputs, same output —
+        about 25× the instructions.</p>
     </div>
     <div class="panel">
       <div class="row">
@@ -231,14 +242,21 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; fl
           <select id="prog-select"></select>
         </label>
         <label class="fld">Inputs
-          <input type="text" id="prog-input" value="7, 5" style="width:190px">
+          <input type="text" id="prog-input" value="7, 5" style="width:170px">
         </label>
+        <div class="fld">Execution
+          <div class="seg" id="exec-mode">
+            <button type="button" data-mode="native" aria-pressed="true">Native</button>
+            <button type="button" data-mode="hosted" aria-pressed="false">Inside the emulator</button>
+          </div>
+        </div>
         <div class="row" style="gap:8px;align-self:flex-end">
           <button class="primary" id="b-run">Run</button>
           <button id="b-step">Step</button>
           <button id="b-reset">Reset</button>
         </div>
       </div>
+      <p class="note" id="exec-note"></p>
 
       <div class="cols">
         <div>
@@ -365,38 +383,62 @@ $('b-d3').addEventListener('click', () => { numIn.value = T.shiftRight(clampT(Nu
 
 /* --- 02: the machine ------------------------------------------------------ */
 const DEFAULT_INPUTS = { threeway: '7, -3, 0, 42, -100', multiply: '7, 5', tgate: '123, -45' };
+setInterpSource(PROGRAMS.interp);          // the emulator, written in this assembly
+const LAY = layout();
+
 const sel = $('prog-select');
-Object.keys(PROGRAMS).forEach(name => {
-  const o = document.createElement('option');
-  o.value = name; o.textContent = name + '.tasm';
-  sel.appendChild(o);
-});
+Object.keys(PROGRAMS)
+  .filter(name => name !== 'interp')       // not a standalone program; it hosts the others
+  .forEach(name => {
+    const o = document.createElement('option');
+    o.value = name; o.textContent = name + '.tasm';
+    sel.appendChild(o);
+  });
 sel.value = 'multiply';
 
-let machine = null;
+let mode = 'native';
+let machine = null;      // the VM whose registers are on screen
+let view = null;         // {A, C, PC, steps, halted, output, lineOf}
+
 function parseInputs() {
   return ($('prog-input').value.match(/-?\d+/g) || []).map(Number);
 }
+function nativeView(vm) {
+  return { A: vm.A, C: vm.C, PC: vm.PC, steps: vm.steps, halted: vm.halted,
+           output: vm.output, lineOf: vm.lineOf };
+}
+/* In emulated mode the on-screen registers are the EMULATED machine's, read
+ * back out of the interpreter's own state cells — not the host's registers. */
+function hostedView(vm) {
+  return { A: vm.read(LAY.labels.ia), C: vm.read(LAY.labels.ic), PC: vm.read(LAY.labels.ipc),
+           steps: vm.steps, halted: vm.halted, output: vm.output, lineOf: null };
+}
 function resetMachine() {
-  machine = new TryteVM({ input: parseInputs(), maxSteps: 100000 });
-  loadInto(machine, PROGRAMS[sel.value], 0);
+  if (mode === 'native') {
+    machine = new TryteVM({ input: parseInputs(), maxSteps: 100000 });
+    loadInto(machine, PROGRAMS[sel.value], 0);
+    view = nativeView(machine);
+  } else {
+    machine = null;
+    view = { A: 0, C: 0, PC: 0, steps: 0, halted: false, output: [], lineOf: null };
+  }
   drawMachine();
 }
 function drawMachine() {
-  renderStrip($('reg-a'), machine.A);
-  renderStrip($('reg-c'), machine.C);
-  $('reg-a-val').textContent = machine.A + '  ' + T.tritString(machine.A);
-  $('reg-c-val').textContent = machine.C + '  ' + T.tritString(machine.C);
-  $('reg-pc').textContent = machine.PC;
-  $('reg-steps').textContent = machine.steps;
-  $('reg-state').textContent = machine.halted ? 'halted' : 'ready';
+  renderStrip($('reg-a'), view.A);
+  renderStrip($('reg-c'), view.C);
+  $('reg-a-val').textContent = view.A + '  ' + T.tritString(view.A);
+  $('reg-c-val').textContent = view.C + '  ' + T.tritString(view.C);
+  $('reg-pc').textContent = view.PC;
+  $('reg-steps').textContent = view.steps;
+  $('reg-state').textContent = view.halted ? 'halted' : 'ready';
 
   const tape = $('out-tape');
   tape.innerHTML = '';
-  if (!machine.output.length) {
+  if (!view.output.length) {
     tape.innerHTML = '<span class="note">nothing emitted yet</span>';
   } else {
-    machine.output.forEach(v => {
+    view.output.forEach(v => {
       const c = document.createElement('span');
       c.className = 'chip ' + (v > 0 ? 'pos' : v < 0 ? 'neg' : '');
       c.textContent = v + '  ' + T.tritString(v);
@@ -404,13 +446,13 @@ function drawMachine() {
     });
   }
 
-  const here = machine.lineOf ? machine.lineOf.get(machine.PC) : null;
+  const here = view.lineOf ? view.lineOf.get(view.PC) : null;
   const src = PROGRAMS[sel.value].split(/\r?\n/);
   const pre = $('listing');
   pre.innerHTML = '';
   src.forEach((line, i) => {
     const s = document.createElement('span');
-    s.className = 'ln' + (!machine.halted && i + 1 === here ? ' here' : '') +
+    s.className = 'ln' + (!view.halted && i + 1 === here ? ' here' : '') +
                   (/^\s*[;#]/.test(line) ? ' cm' : '');
     s.textContent = String(i + 1).padStart(3, ' ') + '  ' + (line || ' ');
     pre.appendChild(s);
@@ -418,10 +460,52 @@ function drawMachine() {
   const cur = pre.querySelector('.here');
   if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'nearest' });
 }
-$('b-run').addEventListener('click', () => { try { machine.run(); } catch (e) { $('reg-state').textContent = e.message; } drawMachine(); });
-$('b-step').addEventListener('click', () => { try { machine.step(); } catch (e) { $('reg-state').textContent = e.message; } drawMachine(); });
+
+function setMode(m) {
+  mode = m;
+  [...$('exec-mode').children].forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+  $('b-step').disabled = (m === 'hosted');
+  $('exec-note').textContent = m === 'native'
+    ? 'Running directly on the machine. Step to advance one instruction at a time.'
+    : 'Running inside interp.tasm — a tryte VM written in this assembly, executing on this '
+      + 'machine. The registers above are the emulated machine’s, read back out of the '
+      + 'interpreter’s state cells. Stepping is disabled because each emulated instruction '
+      + 'is roughly 25 real ones.';
+  resetMachine();
+}
+
+$('b-run').addEventListener('click', () => {
+  try {
+    if (mode === 'native') { machine.run(); view = nativeView(machine); }
+    else {
+      const before = performance.now();
+      const vm = runHosted(PROGRAMS[sel.value], parseInputs());
+      const outer = vm.steps;
+      const nat = runNative(PROGRAMS[sel.value], parseInputs());
+      view = hostedView(vm);
+      $('exec-note').textContent =
+        outer + ' host instructions ran ' + nat.steps + ' emulated ones ('
+        + (outer / nat.steps).toFixed(1) + '×). Output matches the native run'
+        + (vm.output.join() === nat.output.join() ? '.' : ' — MISMATCH.')
+        + '  Emulated memory: ' + LAY.innerCells + ' cells, addresses '
+        + LAY.innerLo + ' to ' + LAY.innerHi + '.'
+        + '  (' + Math.round(performance.now() - before) + ' ms)';
+    }
+  } catch (e) { $('reg-state').textContent = e.message; }
+  drawMachine();
+});
+$('b-step').addEventListener('click', () => {
+  try { machine.step(); view = nativeView(machine); }
+  catch (e) { $('reg-state').textContent = e.message; }
+  drawMachine();
+});
 $('b-reset').addEventListener('click', resetMachine);
 sel.addEventListener('change', () => { $('prog-input').value = DEFAULT_INPUTS[sel.value] || ''; resetMachine(); });
+$('exec-mode').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (b && b.dataset.mode) setMode(b.dataset.mode);
+});
 
 /* --- 03: TGATE ------------------------------------------------------------ */
 const MODES = [
@@ -489,7 +573,7 @@ Object.entries(OPS).forEach(([name, spec]) => {
 
 /* --- go ------------------------------------------------------------------- */
 drawNumber();
-resetMachine();
+setMode('native');
 buildSwitches();
 drawTgate();
 </script>

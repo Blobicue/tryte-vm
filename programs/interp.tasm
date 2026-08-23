@@ -1,0 +1,258 @@
+; interp.tasm — a tryte VM, running inside a tryte VM.
+;
+; This program emulates the machine it is running on. The emulated ("inner")
+; machine has the same three registers, the same 23 opcodes and the same
+; two-cell instruction format; it differs only in having less memory, which is
+; unavoidable — 729 cells cannot hold 729 cells plus an interpreter.
+;
+; MEMORY MAP (outer addresses run -364 .. +364)
+;   -364 .. ~+35   this interpreter, its jump table, and its state
+;   IBASE + a      inner address `a`, so the inner machine gets ~329 cells
+;
+; DISPATCH. An earlier draft used a three-level BR3 tree: 3 branches reach 27
+; destinations where binary needs 5, which is the prettier answer. Measured, it
+; cost 149 cells against 30 for the indexed jump below, so the indexed jump won.
+; The ternary advantage in branching is real but it is not free, and JMPX — added
+; for exactly this — makes the table cheaper. BR3 still does the work that suits
+; it: see h_br3, where the inner three-way branch is implemented by the outer one.
+
+IBASE:  .equ  200          ; inner address a lives at outer cell IBASE + a
+
+        .org  -364
+
+; ---------------------------------------------------------------- fetch/decode
+fetch:  LOAD  ipc
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr          ; opcode
+        STORE opc
+        LOAD  ptr
+        ADDI  1
+        STORE ptr
+        LOADX ptr          ; operand
+        STORE opd
+        LOAD  ipc
+        ADDI  2
+        STORE ipc          ; inner PC advances before the handler runs,
+                           ; so jumps may overwrite it freely
+        LOAD  opc
+        ADDI  jtbl
+        STORE ptr          ; ptr = address of the table ENTRY
+        LOADX ptr
+        STORE ptr          ; ptr = the handler address held in that entry
+        JMPX  ptr          ; PC = jtbl[opcode]
+
+; ---------------------------------------------------------------- handlers
+h_halt: HALT
+
+h_loadi:LOAD  opd
+        STORE ia
+        JMP   fetch
+
+h_load: LOAD  opd
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr
+        STORE ia
+        JMP   fetch
+
+h_store:LOAD  opd
+        ADDI  IBASE
+        STORE ptr
+        LOAD  ia
+        STOREX ptr
+        JMP   fetch
+
+h_add:  LOAD  opd
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr
+        STORE tmp
+        LOAD  ia
+        ADD   tmp
+        STORE ia
+        JMP   fetch
+
+h_addi: LOAD  ia
+        ADD   opd
+        STORE ia
+        JMP   fetch
+
+h_sub:  LOAD  opd
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr
+        STORE tmp
+        LOAD  ia
+        SUB   tmp
+        STORE ia
+        JMP   fetch
+
+h_neg:  LOAD  ia
+        NEG
+        STORE ia
+        JMP   fetch
+
+h_min:  LOAD  opd
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr
+        STORE tmp
+        LOAD  ia
+        MIN   tmp
+        STORE ia
+        JMP   fetch
+
+h_max:  LOAD  opd
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr
+        STORE tmp
+        LOAD  ia
+        MAX   tmp
+        STORE ia
+        JMP   fetch
+
+h_csum: LOAD  opd
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr
+        STORE tmp
+        LOAD  ia
+        CSUM  tmp
+        STORE ia
+        JMP   fetch
+
+h_setc: LOAD  opd
+        STORE ic
+        JMP   fetch
+
+h_tgate:LOAD  opd
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr
+        STORE tmp
+        LDC   ic           ; the inner control register drives the outer gate
+        LOAD  ia
+        TGATE tmp
+        STORE ia
+        JMP   fetch
+
+; SHL/SHR take an immediate shift count, so a variable count is done by
+; repeating a shift of one. Balanced ternary makes each step exact either way.
+h_shl:  LOAD  opd
+        STORE cnt
+        LOAD  ia
+        STORE tmp
+shl_lp: LOAD  cnt
+        BR3   shl_t
+shl_t:  .table shl_end, shl_end, shl_go
+shl_go: LOAD  tmp
+        SHL   1
+        STORE tmp
+        LOAD  cnt
+        ADDI  -1
+        STORE cnt
+        JMP   shl_lp
+shl_end:LOAD  tmp
+        STORE ia
+        JMP   fetch
+
+h_shr:  LOAD  opd
+        STORE cnt
+        LOAD  ia
+        STORE tmp
+shr_lp: LOAD  cnt
+        BR3   shr_t
+shr_t:  .table shr_end, shr_end, shr_go
+shr_go: LOAD  tmp
+        SHR   1
+        STORE tmp
+        LOAD  cnt
+        ADDI  -1
+        STORE cnt
+        JMP   shr_lp
+shr_end:LOAD  tmp
+        STORE ia
+        JMP   fetch
+
+h_jmp:  LOAD  opd
+        STORE ipc
+        JMP   fetch
+
+; The inner three-way branch, implemented by the outer three-way branch.
+h_br3:  LOAD  ia
+        BR3   br_t
+br_t:   .table br_n, br_z, br_p
+br_n:   LOAD  opd
+        ADDI  -1
+        JMP   br_go
+br_z:   LOAD  opd
+        JMP   br_go
+br_p:   LOAD  opd
+        ADDI  1
+br_go:  ADDI  IBASE
+        STORE ptr
+        LOADX ptr
+        STORE ipc
+        JMP   fetch
+
+h_out:  LOAD  ia
+        OUT
+        JMP   fetch
+
+h_in:   IN
+        STORE ia
+        JMP   fetch
+
+; The inner machine gets the indirect opcodes too, so it is a complete tryte VM
+; rather than a cut-down one — in principle it could host a third level.
+h_loadx:LOAD  opd
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr          ; inner pointer value
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr
+        STORE ia
+        JMP   fetch
+
+h_stox: LOAD  opd
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr
+        ADDI  IBASE
+        STORE ptr
+        LOAD  ia
+        STOREX ptr
+        JMP   fetch
+
+h_jmpx: LOAD  opd
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr
+        STORE ipc
+        JMP   fetch
+
+h_ldc:  LOAD  opd
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr
+        STORE ic
+        JMP   fetch
+
+; ---------------------------------------------------------------- dispatch table
+; One entry per opcode, in opcode order. JMPX indexes straight into it.
+jtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_neg
+        .word h_min, h_max, h_csum, h_setc, h_tgate, h_shl, h_shr, h_jmp
+        .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_ldc
+
+; ---------------------------------------------------------------- state
+ipc:    .word 0            ; inner program counter
+ia:     .word 0            ; inner accumulator
+ic:     .word 0            ; inner gate-control register
+opc:    .word 0            ; opcode being executed
+opd:    .word 0            ; its operand
+ptr:    .word 0            ; scratch pointer for indirect access
+tmp:    .word 0
+cnt:    .word 0

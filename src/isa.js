@@ -36,6 +36,7 @@ const OPS = {
   LOADX:  { code: 19, operand: 'addr', doc: 'A = mem[mem[addr]]  (load through a pointer cell)' },
   STOREX: { code: 20, operand: 'addr', doc: 'mem[mem[addr]] = A  (store through a pointer cell)' },
   JMPX:   { code: 21, operand: 'addr', doc: 'PC = mem[addr]      (computed jump)' },
+  LDC:    { code: 22, operand: 'addr', doc: 'C = mem[addr]       (SETC takes an immediate; this takes a variable)' },
 };
 
 const BY_CODE = {};

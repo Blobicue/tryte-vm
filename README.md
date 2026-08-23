@@ -2,12 +2,13 @@
 
 A working emulator for a computer that counts in **three states instead of two**.
 Core arithmetic, an instruction set, a virtual machine, an assembler, and demo
-programs. 117 tests, all passing, including exhaustive sweeps over the machine's
+programs. 174 tests, all passing, including exhaustive sweeps over the machine's
 entire value space.
 
 ```bash
-npm test                      # 117 checks
+npm test                      # 174 checks
 node src/run.js programs/multiply.tasm 7 5
+npm run selfhost              # the machine emulating itself
 ```
 
 ---
@@ -59,6 +60,44 @@ possible accumulator values.
 
 ---
 
+## It emulates itself
+
+`programs/interp.tasm` is a tryte VM written in this assembly, running on this
+machine. Load a program into it and the same source file, given the same inputs,
+produces the same output whether run natively or emulated. That equality is the
+acceptance test, not a demo — `test-selfhost.js` checks it for **all 23 opcodes**
+and for every demo program.
+
+```bash
+npm run selfhost
+```
+
+Two things came out of building it, both worth more than the emulator itself.
+
+**The instruction set was missing something, and only bootstrapping found it.**
+An interpreter must read memory at an address it *computes*. Every one of the
+original 19 instructions bakes its address in when the program is assembled. So
+the machine could not host an interpreter at all — and 117 passing tests had said
+nothing about it, because no demo program ever needed to. `LOADX`, `STOREX` and
+`JMPX` exist for that reason and no other.
+
+**729 cells cannot hold 729 cells.** The emulated machine is deliberately smaller:
+
+| | |
+|---|---|
+| Interpreter | 412 cells (outer −364 … 47) |
+| Emulated machine | 317 cells, inner addresses −152 … 164 |
+| Cost of emulation | ~25× the instructions |
+| Three levels deep | impossible: 412 > 317, and the suite asserts it |
+
+The dispatch loop is worth a look. A three-level `BR3` tree reaches 27
+destinations in 3 branches where binary needs 5 — the prettier answer, and the
+one this project was built to show off. Measured, it cost **149 cells against 30**
+for an indexed jump through `JMPX`, so the indexed jump won. The ternary advantage
+in branching is real but it is not free. `BR3` still does the work that suits it:
+in `h_br3` the emulated three-way branch is implemented by the host's three-way
+branch, one for one.
+
 ## Where this came from
 
 This project is the unfinished half of a Google AI Mode conversation
@@ -98,19 +137,20 @@ inspired by that lineage, not a reimplementation of it.
 | Memory | 729 cells, addressed **−364 … +364**; address 0 is the *centre* |
 | Registers | `A` accumulator, `C` gate control, `PC` |
 | Instruction | two cells: opcode, operand |
-| Instructions | 19 (`src/isa.js`) |
+| Instructions | 23 (`src/isa.js`) |
 
 ## Layout
 
 ```
 src/ternary.js     trit/tryte arithmetic and the tritwise gates
-src/isa.js         the 19 opcodes
+src/isa.js         the 23 opcodes
 src/vm.js          fetch, decode, execute
 src/assembler.js   text -> trytes, two passes, labels and directives
+src/selfhost.js    run a program natively, or inside the emulated machine
 src/run.js         CLI runner
-programs/          threeway.tasm, multiply.tasm, tgate.tasm
-test/              test-core.js (27), test-vm.js (36), test-page.js (26),
-                   test-style.js (28), run-all.js
+programs/          threeway.tasm, multiply.tasm, tgate.tasm, interp.tasm
+test/              test-core.js (27), test-vm.js (41), test-selfhost.js (42),
+                   test-page.js (36), test-style.js (28), run-all.js
 build/             inlines src/ into a single interactive HTML page
 docs/tryte-vm.html the built page
 docs/origin/       the source conversation, its audit, and its code artifacts
@@ -133,6 +173,11 @@ Two further layers exist because inspection alone proved unreliable here:
 - **The build cannot ship a divergence.** `build-artifact.js` inlines `src/` into the
   page, then re-runs the demo programs through the *bundled* copy and compares against
   the modules. If the page ever drifts from the tested code, the build fails.
+- **The emulator is mutation-tested through its own acceptance test.** Making the
+  interpreter subtract instead of add, swap two dispatch-table entries, reverse the
+  three-way branch arms, or advance the emulated program counter by one instead of
+  two each produces immediate failures. Without that, "identical output" could be
+  vacuously true.
 - **Both themes are checked arithmetically.** `test-style.js` computes WCAG contrast
   for every text/background pair in light and dark. This exists because three real
   defects shipped past visual inspection: a Cyrillic character inside a dark-mode hex

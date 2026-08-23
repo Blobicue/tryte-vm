@@ -71,6 +71,7 @@ class TryteVM {
       case 'LOADX':  this.A = this.read(this.read(operand)); break;
       case 'STOREX': this.write(this.read(operand), this.A); break;
       case 'JMPX':   nextPC = T.wrap(this.read(operand)); break;
+      case 'LDC':    this.C = this.read(operand); break;
       default: throw new Error(`unimplemented op ${op.name}`);
     }
 

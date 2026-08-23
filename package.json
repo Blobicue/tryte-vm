@@ -8,7 +8,8 @@
     "build": "node build/build-artifact.js",
     "threeway": "node src/run.js programs/threeway.tasm 7 -3 0 42 -100",
     "multiply": "node src/run.js programs/multiply.tasm 7 5",
-    "tgate": "node src/run.js programs/tgate.tasm 123 -45"
+    "tgate": "node src/run.js programs/tgate.tasm 123 -45",
+    "selfhost": "node test/test-selfhost.js"
   },
   "license": "MIT",
   "private": true

@@ -50,7 +50,11 @@ class El {
   get innerHTML() { return this.textContent; }
   appendChild(c) { c.parent = this; this.children.push(c); return c; }
   addEventListener(ev, fn) { (this.listeners[ev] = this.listeners[ev] || []).push(fn); }
-  dispatch(ev) { (this.listeners[ev] || []).forEach(fn => fn({ target: this })); }
+  /** Bubbles, so delegated handlers (the execution-mode control) are exercised. */
+  dispatch(ev, target = this) {
+    (this.listeners[ev] || []).forEach(fn => fn({ target }));
+    if (this.parent) this.parent.dispatch(ev, target);
+  }
   setAttribute(k, v) { this.attrs[k] = String(v); }
   getAttribute(k) { return this.attrs[k]; }
   get classList() {
@@ -66,6 +70,16 @@ class El {
       isClass ? e.className.split(/\s+/).includes(needle) : e.tagName === needle);
   }
   querySelector(sel) { return this.querySelectorAll(sel)[0] || null; }
+  closest(sel) {
+    const isClass = sel.startsWith('.');
+    const needle = isClass ? sel.slice(1) : sel.toUpperCase();
+    let n = this;
+    while (n) {
+      if (isClass ? n.className.split(/\s+/).includes(needle) : n.tagName === needle) return n;
+      n = n.parent;
+    }
+    return null;
+  }
   scrollIntoView() {}
 }
 
@@ -95,16 +109,21 @@ const IDS = {
   'b-reset': 'button', 'reg-a': 'div', 'reg-c': 'div', 'reg-a-val': 'span', 'reg-c-val': 'span',
   'reg-pc': 'dd', 'reg-steps': 'dd', 'reg-state': 'dd', 'out-tape': 'div', 'listing': 'pre',
   'tg-switches': 'div', 'tg-x': 'input', 'tg-y': 'input', 'tg-out': 'div', 'tg-out-val': 'span',
-  'tg-explain': 'p', 'ops-body': 'tbody',
+  'tg-explain': 'p', 'ops-body': 'tbody', 'exec-mode': 'div', 'exec-note': 'p',
 };
 const { doc, byId } = makeDocument();
 for (const [id, tag] of Object.entries(IDS)) doc._register(id, tag);
+for (const m of ['native', 'hosted']) {
+  const b = new El('button'); b.dataset.mode = m;
+  b.setAttribute('aria-pressed', String(m === 'native'));
+  byId['exec-mode'].appendChild(b);
+}
 byId['num-input'].value = '123';
 byId['prog-input'].value = '7, 5';
 byId['tg-x'].value = '123';
 byId['tg-y'].value = '-45';
 
-const sandbox = { document: doc, console };
+const sandbox = { document: doc, console, performance: { now: () => 0 } };
 vm.createContext(sandbox);
 vm.runInContext(html.split('<script>')[1].split('</script>')[0] + '\nglobalThis.__T = T;', sandbox);
 const T = sandbox.__T;
@@ -132,8 +151,9 @@ check(`the instruction table lists every opcode (${Object.keys(OPS).length})`,
   byId['ops-body'].children.length === Object.keys(OPS).length,
   `page has ${byId['ops-body'].children.length}`);
 check('the TGATE panel builds six three-state switches', byId['tg-switches'].children.length === 6);
-check('the program picker offers every demo program',
-  byId['prog-select'].children.length === 3);
+check('the program picker offers the demo programs but not the interpreter',
+  byId['prog-select'].children.length === 3 &&
+  !byId['prog-select'].children.some(o => o.value === 'interp'));
 
 console.log('\n=== 2. THE NUMBER EXPLORER ===');
 check('123 renders as +----0', byId['r-trits'].textContent === '+----0');
@@ -155,6 +175,11 @@ byId['b-d3'].dispatch('click');
 check('Shift right rounds to nearest (5 -> 2, not 1)', Number(byId['num-input'].value) === 2);
 
 console.log('\n=== 3. THE MACHINE PANEL ===');
+for (const m of ['native', 'hosted']) {
+  const b = new El('button'); b.dataset.mode = m;
+  b.setAttribute('aria-pressed', String(m === 'native'));
+  byId['exec-mode'].appendChild(b);
+}
 byId['num-input'].value = '123'; byId['num-input'].dispatch('input');
 check('a program is loaded and the listing is populated', byId['listing'].children.length > 20);
 check('nothing has run yet', byId['reg-steps'].textContent === '0');
@@ -193,6 +218,43 @@ check('the explanation reports the collapse', /collapses to a plain NEG/.test(by
   byId['tg-explain'].textContent);
 byId['tg-x'].value = '200'; byId['tg-x'].dispatch('input');
 check('editing the data re-runs the unit', readOut() === T.neg(200));
+
+console.log('\n=== 5. RUNNING INSIDE THE EMULATOR, FROM THE PAGE ===');
+{
+  const modeBtn = m => byId['exec-mode'].children.filter(b => b.dataset.mode === m)[0];
+  const outputs = () => byId['out-tape'].children.map(c => c.textContent.split(' ')[0]).join(',');
+
+  byId['prog-select'].value = 'multiply';
+  byId['prog-select'].dispatch('change');
+  byId['prog-input'].value = '7, 5';
+  byId['b-reset'].dispatch('click');
+  byId['b-run'].dispatch('click');
+  const nativeOut = outputs();
+  const nativeSteps = Number(byId['reg-steps'].textContent);
+  check('native run of multiply gives 35', nativeOut === '35', nativeOut);
+
+  modeBtn('hosted').dispatch('click');
+  check('the mode control marks emulated as selected',
+    modeBtn('hosted').getAttribute('aria-pressed') === 'true' &&
+    modeBtn('native').getAttribute('aria-pressed') === 'false');
+  check('stepping is disabled while emulating', byId['b-step'].disabled === true);
+
+  byId['prog-input'].value = '7, 5';
+  byId['b-run'].dispatch('click');
+  check('the emulated run produces the same output', outputs() === nativeOut, outputs());
+  const hostedSteps = Number(byId['reg-steps'].textContent);
+  check('it takes many more host instructions to do it',
+    hostedSteps > nativeSteps * 5, `${hostedSteps} vs ${nativeSteps}`);
+  check('the readout reports the ratio and confirms the match',
+    /host instructions ran/.test(byId['exec-note'].textContent) &&
+    /Output matches the native run\./.test(byId['exec-note'].textContent),
+    byId['exec-note'].textContent);
+  check('the registers shown are the EMULATED machine’s, not the host’s',
+    Number(byId['reg-pc'].textContent) < 200);
+
+  modeBtn('native').dispatch('click');
+  check('switching back to native re-enables stepping', byId['b-step'].disabled === false);
+}
 
 console.log('\n' + '='.repeat(64));
 console.log(fails.length ? `FAILED (${fails.length}): ${fails.join(', ')}` : `ALL ${pass} CHECKS PASSED`);

@@ -33,6 +33,7 @@ function buildBundle() {
     '/* --- src/isa.js --- */',       strip(read('src/isa.js')),
     '/* --- src/vm.js --- */',        strip(read('src/vm.js')),
     '/* --- src/assembler.js --- */', strip(read('src/assembler.js')),
+    '/* --- src/selfhost.js --- */',  strip(read('src/selfhost.js')),
   ].join('\n');
 }
 

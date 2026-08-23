@@ -6,6 +6,7 @@
  *           BR3   choose
  *   choose: .table neg, zero, pos     ; 3 cells; the label names the MIDDLE one
  *   value:  .word 17, -3, t+-0++0     ; raw data cells ('t' prefix = trit literal)
+ *   BASE:   .equ  200                 ; a named constant; occupies no memory
  *           .org  -100                ; continue assembling at this address
  */
 
@@ -51,6 +52,11 @@ function assemble(src, origin = 0) {
   let pc = origin;
   for (const L of lines) {
     if (L.mnemonic === '.ORG') { pc = parseNumber(L.args[0], labels, `line ${L.lineNo}`); if (L.label) labels[L.label] = pc; continue; }
+    if (L.mnemonic === '.EQU') {
+      if (!L.label) throw new Error(`.equ needs a label (line ${L.lineNo})`);
+      labels[L.label] = parseNumber(L.args[0], labels, `line ${L.lineNo}`);
+      continue;                                  // occupies no memory
+    }
     if (L.label) labels[L.label] = (L.mnemonic === '.TABLE') ? pc + 1 : pc;
     if (!L.mnemonic) continue;
     if (L.mnemonic === '.WORD') pc += L.args.length;
@@ -74,6 +80,7 @@ function assemble(src, origin = 0) {
     const where = `line ${L.lineNo}: ${L.raw.trim()}`;
     curLine = L.lineNo;
     if (L.mnemonic === '.ORG') { pc = parseNumber(L.args[0], labels, where); continue; }
+    if (L.mnemonic === '.EQU') continue;
     if (!L.mnemonic) continue;
     if (L.mnemonic === '.WORD') { L.args.forEach(a => emit(parseNumber(a, labels, where))); continue; }
     if (L.mnemonic === '.TABLE') { L.args.forEach(a => emit(parseNumber(a, labels, where))); continue; }
