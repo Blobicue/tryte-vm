@@ -2,11 +2,11 @@
 
 A working emulator for a computer that counts in **three states instead of two**.
 Core arithmetic, an instruction set, a virtual machine, an assembler, and demo
-programs. 210 tests, all passing, including exhaustive sweeps over the machine's
+programs. 235 tests, all passing, including exhaustive sweeps over the machine's
 entire value space.
 
 ```bash
-npm test                      # 210 checks
+npm test                      # 235 checks
 node src/run.js programs/multiply.tasm 7 5
 npm run selfhost              # the machine emulating itself
 ```
@@ -124,6 +124,43 @@ in branching is real but it is not free. `BR3` still does the work that suits it
 in `h_br3` the emulated three-way branch is implemented by the host's three-way
 branch, one for one.
 
+## The gates are three-valued logic, exactly
+
+Read the three trit states as truth values —
+
+> **−1 = false  ·  0 = unknown  ·  +1 = true**
+
+— and `MIN`, `MAX` and `NEG` stop being *analogies* for AND, OR and NOT. They
+**are** the connectives of Kleene's strong three-valued logic, on all twelve
+rows. That is the same logic SQL uses for `NULL`: unknown AND false is false
+(settled either way), unknown AND true is unknown (it still depends).
+
+```bash
+npm run logic
+node src/run.js programs/kleene.tasm 0 1
+```
+
+The tests that carry the claim are the ones that **fail** classically. In
+two-valued logic `a OR NOT a` is always true. Here, when `a` is unknown, it comes
+back **unknown** — the law of the excluded middle breaks, and so does
+non-contradiction. If they held, this would be binary logic with a spare state
+lying around. De Morgan, double negation, absorption and associativity all
+survive; the suite checks each.
+
+Two consequences worth noting. One `MIN` evaluates **six independent conjunctions
+at once**, because the gates were always tritwise. And `TGATE` can run a
+*different* connective in each of the six positions — the source conversation's
+original idea, which turns out to describe a small three-valued-logic vector unit.
+
+*A precision:* for these three connectives Kleene's K3 and Łukasiewicz's Ł3 are
+identical. They diverge only at implication, which this machine has no operator
+for, so either name is fair.
+
+**And why base three at all?** The historical argument for Setun, checked: the
+cost of representing a number is roughly the radix times the digits needed. For a
+million values, base 2 costs 40, **base 3 costs 39**, base 4 costs 40. Base 3
+wins because the continuous optimum is *e* = 2.718…, and 3 is the nearest integer.
+
 ## Is any of it actually worth it?
 
 Everything above checks that ternary is *correct*. `npm run bench` checks whether
@@ -205,9 +242,10 @@ src/vm.js          fetch, decode, execute
 src/assembler.js   text -> trytes, two passes, labels and directives
 src/selfhost.js    run a program natively, or inside the emulated machine
 src/run.js         CLI runner
-programs/          threeway.tasm, multiply.tasm, tgate.tasm, interp.tasm
+programs/          threeway.tasm, multiply.tasm, tgate.tasm, kleene.tasm, interp.tasm
 test/              test-core.js (27), test-vm.js (41), test-selfhost.js (60),
-                   test-bench.js (15), test-page.js (39), test-style.js (28), run-all.js
+                   test-bench.js (15), test-logic.js (25), test-page.js (39),
+                   test-style.js (28), run-all.js
 bench/             the three-way vs two-way branching benchmark
 build/             inlines src/ into a single interactive HTML page
 docs/tryte-vm.html the built page

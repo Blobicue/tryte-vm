@@ -1,0 +1,48 @@
+; kleene.tasm — the machine as a three-valued logic processor.
+;
+; Map the three trit states onto truth values:
+;
+;       -1 = false      0 = unknown      +1 = true
+;
+; Then MIN, MAX and NEG are not merely "like" AND, OR and NOT — they ARE Kleene's
+; strong three-valued logic, exactly, on all twelve rows. That is the same logic
+; SQL uses for NULL: unknown AND false is false (the answer is settled either
+; way), but unknown AND true is unknown (it still depends).
+;
+; Inputs: two truth values. Outputs: NOT a, a AND b, a OR b, and a OR NOT a.
+;
+; That last one is the interesting output. In two-valued logic a OR NOT a is
+; always true — the law of the excluded middle. Here, when a is unknown, it comes
+; back UNKNOWN. The law fails, which is what makes this a genuinely three-valued
+; logic rather than binary logic with a spare state lying around.
+
+        IN
+        STORE a
+        IN
+        STORE b
+
+        LOAD  a
+        NEG
+        OUT                ; NOT a
+
+        LOAD  a
+        MIN   b
+        OUT                ; a AND b
+
+        LOAD  a
+        MAX   b
+        OUT                ; a OR b
+
+        LOAD  a
+        NEG
+        STORE na
+        LOAD  a
+        MAX   na
+        OUT                ; a OR NOT a  — not always true
+
+        HALT
+
+        .org  -6
+a:      .word 0
+b:      .word 0
+na:     .word 0

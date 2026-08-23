@@ -10,7 +10,8 @@
     "multiply": "node src/run.js programs/multiply.tasm 7 5",
     "tgate": "node src/run.js programs/tgate.tasm 123 -45",
     "selfhost": "node test/test-selfhost.js",
-    "bench": "node test/test-bench.js"
+    "bench": "node test/test-bench.js",
+    "logic": "node test/test-logic.js"
   },
   "license": "MIT",
   "private": true

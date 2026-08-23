@@ -151,9 +151,12 @@ check(`the instruction table lists every opcode (${Object.keys(OPS).length})`,
   byId['ops-body'].children.length === Object.keys(OPS).length,
   `page has ${byId['ops-body'].children.length}`);
 check('the TGATE panel builds six three-state switches', byId['tg-switches'].children.length === 6);
-check('the program picker offers the demo programs but not the interpreter',
-  byId['prog-select'].children.length === 3 &&
-  !byId['prog-select'].children.some(o => o.value === 'interp'));
+check('the program picker offers every demo program but not the interpreter', (() => {
+  const { readPrograms } = require('../build/bundle.js');
+  const expected = Object.keys(readPrograms()).filter(n => n !== 'interp');
+  const offered = byId['prog-select'].children.map(o => o.value);
+  return offered.length === expected.length && expected.every(n => offered.includes(n));
+})(), byId['prog-select'].children.map(o => o.value).join(','));
 
 console.log('\n=== 2. THE NUMBER EXPLORER ===');
 check('123 renders as +----0', byId['r-trits'].textContent === '+----0');
