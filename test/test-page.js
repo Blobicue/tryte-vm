@@ -113,7 +113,7 @@ const IDS = {
 };
 const { doc, byId } = makeDocument();
 for (const [id, tag] of Object.entries(IDS)) doc._register(id, tag);
-for (const d of ['1', '2', '3']) {
+for (const d of ['1', '2', '3', '4']) {
   const b = new El('button'); b.dataset.depth = d;
   b.setAttribute('aria-pressed', String(d === '1'));
   byId['exec-mode'].appendChild(b);
@@ -178,7 +178,7 @@ byId['b-d3'].dispatch('click');
 check('Shift right rounds to nearest (5 -> 2, not 1)', Number(byId['num-input'].value) === 2);
 
 console.log('\n=== 3. THE MACHINE PANEL ===');
-for (const d of ['1', '2', '3']) {
+for (const d of ['1', '2', '3', '4']) {
   const b = new El('button'); b.dataset.depth = d;
   b.setAttribute('aria-pressed', String(d === '1'));
   byId['exec-mode'].appendChild(b);
@@ -271,7 +271,24 @@ console.log('\n=== 5. RUNNING INSIDE THE EMULATOR, FROM THE PAGE ===');
     /through 2 nested interpreters/.test(byId['exec-note'].textContent),
     byId['exec-note'].textContent);
 
+  // Depth 4: three nested interpreters, using the self-sufficient core.
+  byId['prog-select'].value = 'threeway';
+  byId['prog-select'].dispatch('change');
+  byId['prog-input'].value = '7, -3, 0, 42, -100';
+  modeBtn(4).dispatch('click');
+  byId['prog-input'].value = '7, -3, 0, 42, -100';
+  byId['b-run'].dispatch('click');
+  check('threeway at depth 4 matches the native run', outputs() === nativeThree,
+    `${outputs()} vs ${nativeThree}`);
+  check('the readout names three nested interpreters',
+    /through 3 nested interpreters/.test(byId['exec-note'].textContent),
+    byId['exec-note'].textContent);
+  check('depth 4 costs far more than depth 3',
+    Number(byId['reg-steps'].textContent) > 100000,
+    byId['reg-steps'].textContent);
+
   // A program that cannot fit two levels down must say so, not fail silently.
+  modeBtn(3).dispatch('click');
   byId['prog-select'].value = 'multiply';
   byId['prog-select'].dispatch('change');
   byId['prog-input'].value = '7, 5';

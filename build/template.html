@@ -186,7 +186,7 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; fl
       a light switch but a balance scale: it tips left, sits level, or tips right — <span class="mono">−1, 0, +1</span>.
       Weights go on either pan, so negative numbers stop being a special case.</p>
     <p class="note">Everything below runs the actual emulator source, inlined from the same files the
-      235-test suite checks &mdash; including 39 that drive these very controls headlessly. Nothing here is a mock-up.</p>
+      261-test suite checks &mdash; including 42 that drive these very controls headlessly. Nothing here is a mock-up.</p>
   </header>
 
   <!-- 1 ------------------------------------------------------------------ -->
@@ -233,10 +233,10 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; fl
         trit at a time using <span class="mono">v − 3 × (v ≫ 1)</span> — which only works because shifting right
         rounds to nearest instead of truncating.</p>
       <p>Switch <em>Execution</em> to <strong>Emulated</strong> and the same program runs on a tryte VM written
-        in this assembly, itself running on this machine. <strong>Emulated ×2</strong> puts an interpreter inside
-        an interpreter. Same source, same inputs, same output at every level — for about 27× the instructions
-        per level, so roughly 730× at the bottom. Only <span class="mono">threeway</span> is small enough to fit
-        two levels down; the others will tell you so.</p>
+        in this assembly, itself running on this machine. <strong>×2</strong> and <strong>×3</strong> stack more
+        of them. Same source, same inputs, same output at every level — for about 27× the instructions per
+        level, so roughly 19,000× three deep. Only <span class="mono">threeway</span> is small enough to go
+        that far; the others will tell you so.</p>
     </div>
     <div class="panel">
       <div class="row">
@@ -251,6 +251,7 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; fl
             <button type="button" data-depth="1" aria-pressed="true">Native</button>
             <button type="button" data-depth="2" aria-pressed="false">Emulated</button>
             <button type="button" data-depth="3" aria-pressed="false">Emulated &times;2</button>
+            <button type="button" data-depth="4" aria-pressed="false">Emulated &times;3</button>
           </div>
         </div>
         <div class="row" style="gap:8px;align-self:flex-end">
@@ -387,8 +388,10 @@ $('b-d3').addEventListener('click', () => { numIn.value = T.shiftRight(clampT(Nu
 /* --- 02: the machine ------------------------------------------------------ */
 const DEFAULT_INPUTS = { threeway: '7, -3, 0, 42, -100', multiply: '7, 5', tgate: '123, -45',
                          kleene: '0, 1' };
-setInterpSource(PROGRAMS.interp);          // the emulator, written in this assembly
-const PLAN3 = plan(3);                     // deepest nesting this machine can host
+setInterpSource(PROGRAMS.interp);                    // 23 opcodes, stacks two deep
+setInterpSource(PROGRAMS['interp-core'], 'core');    // 14 opcodes, stacks three deep
+const PLAN3 = plan(3, 'full');
+const PLAN4 = plan(4, 'core');
 
 const sel = $('prog-select');
 Object.keys(PROGRAMS)
@@ -478,6 +481,11 @@ const NOTE = {
      + 'are the same source file, relocated — a fixed memory base could never nest, because the '
      + 'emulated machine’s address window would never reach back down to the interpreter’s own '
      + 'origin. The innermost machine has ' + PLAN3.innerCells + ' cells, so only small programs fit.',
+  4: 'Three interpreters deep. The 23-opcode interpreter is too big to stack this far, so this '
+     + 'uses interp-core.tasm: the 14 opcodes it needs to interpret ITSELF, and nothing else. '
+     + 'That subset is closed under self-interpretation, which is what lets copies stack. The '
+     + 'innermost machine has ' + PLAN4.innerCells + ' cells. Expect roughly 20,000 host '
+     + 'instructions per emulated one, so this takes a moment.',
 };
 function setDepth(d) {
   depth = d;

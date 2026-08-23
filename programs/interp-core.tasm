@@ -1,0 +1,143 @@
+; interp-core.tasm — the smallest interpreter that can still interpret itself.
+;
+; programs/interp.tasm implements all 23 opcodes, and is 324 cells. Two of those
+; fit inside 729; three do not. This one implements 14 and is small enough to
+; stack three deep.
+;
+; THE SUBSET IS NOT ARBITRARY. The full interpreter executes MIN, MAX, CSUM, NEG,
+; SHL, SHR, TGATE and LDC in exactly one place each: the handler that implements
+; that opcode. Delete those handlers and the interpreter stops needing those
+; instructions — so what is left is CLOSED UNDER SELF-INTERPRETATION. Every
+; instruction this file executes is an instruction this file implements, which is
+; the property that lets a copy run inside a copy, to any depth memory allows.
+; test-selfhost.js checks that closure by reading this source, rather than
+; trusting the comment.
+;
+;   kept    HALT LOADI LOAD STORE ADD ADDI SUB JMP BR3 OUT IN LOADX STOREX JMPX
+;   dropped NEG MIN MAX CSUM SETC TGATE SHL SHR LDC   -> h_bad, which halts
+;
+; A program using a dropped opcode stops rather than misbehaving. multiply.tasm
+; needs SHL/SHR and tgate.tasm needs SETC/TGATE, so neither runs on the core;
+; threeway.tasm and anything built from the arithmetic subset do.
+;
+; Relocatable, and decodes the operand once in fetch, exactly as interp.tasm does.
+
+IBASE:  .equ  200          ; rewritten per level; inner address a is at outer IBASE + a
+
+; ---------------------------------------------------------------- fetch/decode
+fetch:  LOAD  ipc
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr
+        STORE opc
+        LOAD  ptr
+        ADDI  1
+        STORE ptr
+        LOADX ptr
+        STORE opd
+        ADDI  IBASE
+        STORE ea
+        LOADX ea
+        STORE mval
+        LOAD  ipc
+        ADDI  2
+        STORE ipc
+        LOAD  opc
+        ADDI  jtbl
+        STORE ptr
+        LOADX ptr
+        STORE ptr
+        JMPX  ptr
+
+; ---------------------------------------------------------------- handlers
+h_halt: HALT
+
+h_bad:  HALT               ; an opcode this core does not implement
+
+h_loadi:LOAD  opd
+        STORE ia
+        JMP   fetch
+
+h_load: LOAD  mval
+        STORE ia
+        JMP   fetch
+
+h_store:LOAD  ia
+        STOREX ea
+        JMP   fetch
+
+h_add:  LOAD  ia
+        ADD   mval
+        STORE ia
+        JMP   fetch
+
+h_addi: LOAD  ia
+        ADD   opd
+        STORE ia
+        JMP   fetch
+
+h_sub:  LOAD  ia
+        SUB   mval
+        STORE ia
+        JMP   fetch
+
+h_jmp:  LOAD  opd
+        STORE ipc
+        JMP   fetch
+
+; The emulated three-way branch, implemented by the host's three-way branch.
+h_br3:  LOAD  ia
+        BR3   br_t
+br_t:   .table br_n, br_z, br_p
+br_n:   LOAD  ea
+        ADDI  -1
+        JMP   br_go
+br_z:   LOAD  ea
+        JMP   br_go
+br_p:   LOAD  ea
+        ADDI  1
+br_go:  STORE ptr
+        LOADX ptr
+        STORE ipc
+        JMP   fetch
+
+h_out:  LOAD  ia
+        OUT
+        JMP   fetch
+
+h_in:   IN
+        STORE ia
+        JMP   fetch
+
+h_loadx:LOAD  mval
+        ADDI  IBASE
+        STORE ptr
+        LOADX ptr
+        STORE ia
+        JMP   fetch
+
+h_stox: LOAD  mval
+        ADDI  IBASE
+        STORE ptr
+        LOAD  ia
+        STOREX ptr
+        JMP   fetch
+
+h_jmpx: LOAD  mval
+        STORE ipc
+        JMP   fetch
+
+; ---------------------------------------------------------------- dispatch table
+; Indexed by opcode, so the dropped opcodes still need a slot; they get h_bad.
+jtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_bad
+        .word h_bad, h_bad, h_bad, h_bad, h_bad, h_bad, h_bad, h_jmp
+        .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_bad
+
+; ---------------------------------------------------------------- state
+ipc:    .word 0
+ia:     .word 0
+opc:    .word 0
+opd:    .word 0
+ea:     .word 0
+mval:   .word 0
+ptr:    .word 0

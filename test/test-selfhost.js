@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const T = require('../src/ternary.js');
 const { OPS } = require('../src/isa.js');
-const { runNative, runHosted, layout, plan, maxDepth, interpSize,
+const { runNative, runHosted, layout, plan, maxDepth, fits, interpSize,
         interpSource, setInterpSource } = require('../src/selfhost.js');
 
 let pass = 0; const fails = [];
@@ -191,6 +191,103 @@ console.log('\n=== 7. DEEPER IS NOT STRICTLY STRONGER ===');
   check('and the restored interpreter still agrees at every depth',
     [1, 2, 3].map(d => (d === 1 ? runNative(src, inp) : runHosted(src, inp, { depth: d })).output.join())
       .every(o => o === want));
+}
+
+console.log('\n=== 8. THREE NESTED INTERPRETERS ===');
+{
+  const CORE_OPS = ['HALT', 'LOADI', 'LOAD', 'STORE', 'ADD', 'ADDI', 'SUB',
+                    'JMP', 'BR3', 'OUT', 'IN', 'LOADX', 'STOREX', 'JMPX'];
+  const coreSrc = interpSource('core');
+
+  check(`the core interpreter is smaller than the full one (${interpSize('core')} vs ${interpSize('full')} cells)`,
+    interpSize('core') < interpSize('full'));
+
+  // The property that makes deep nesting possible, checked by reading the source
+  // rather than trusting the comment at the top of it.
+  const mnemonics = new Set();
+  for (const line of coreSrc.split(/\r?\n/)) {
+    const m = line.replace(/[;#].*/, '').trim()
+      .replace(/^[A-Za-z_][A-Za-z0-9_]*:\s*/, '').split(/\s+/)[0];
+    if (m && m.toUpperCase() in OPS) mnemonics.add(m.toUpperCase());
+  }
+  const leaks = [...mnemonics].filter(m => !CORE_OPS.includes(m));
+  check('the core is CLOSED under self-interpretation: every opcode it executes, it implements',
+    leaks.length === 0, `leaks: ${leaks.join(' ')}`);
+  check(`it executes ${mnemonics.size} distinct opcodes, all inside its ${CORE_OPS.length}-opcode set`,
+    mnemonics.size > 10 && mnemonics.size <= CORE_OPS.length);
+
+  // The dropped opcodes really are dropped, and the table really does route them away.
+  const dropped = Object.keys(OPS).filter(o => !CORE_OPS.includes(o));
+  check(`the ${dropped.length} dropped opcodes (${dropped.join(' ')}) route to h_bad`,
+    (coreSrc.match(/h_bad/g) || []).length >= dropped.length);
+
+  check(`the full interpreter stacks ${maxDepth('full')} deep, the core ${maxDepth('core')}`,
+    maxDepth('core') > maxDepth('full'));
+  check('depth 5 is beyond even the core', !fits(5, 'core'));
+
+  const src = prog('threeway.tasm'), inp = [7, -3, 0, 42, -100];
+  const want = runNative(src, inp).output.join();
+  const runs = [2, 3, 4].map(d => runHosted(src, inp, { depth: d, maxSteps: 5e7 }));
+  check('depth 4 — three nested interpreters — produces the same output',
+    runs[2].output.join() === want, runs[2].output.join());
+  check('depth 4 really used the core interpreter', runs[2].plan.variant === 'core');
+  check('depth 4 really laid out three interpreter layers', runs[2].layers.length === 3);
+  check(`the cost compounds as expected (${runs.map(r => r.steps.toLocaleString()).join(' -> ')})`,
+    runs[2].steps > runs[1].steps && runs[1].steps > runs[0].steps);
+
+  // The core on its own, at every depth it supports.
+  for (const d of [2, 3, 4]) {
+    const r = runHosted(src, inp, { depth: d, variant: 'core', maxSteps: 5e7 });
+    check(`the core alone agrees at depth ${d}`, r.output.join() === want, r.output.join());
+  }
+
+  // A program needing a dropped opcode must stop, not silently misbehave.
+  const mul = runHosted(prog('multiply.tasm'), [7, 5], { depth: 2, variant: 'core', maxSteps: 5e6 });
+  check('a program using a dropped opcode halts instead of producing a wrong answer',
+    mul.halted && mul.output.join() !== '35', `output ${mul.output}`);
+}
+
+console.log('\n=== 9. A BUG OF ORDER k IS INVISIBLE AT k LAYERS ===');
+{
+  // The earlier finding, sharpened. An interpreter bug that permutes the
+  // emulated semantics has an ORDER: the number of times it must be applied to
+  // become the identity. Stacking n interpreters applies the bug n times, so a
+  // bug of order k vanishes whenever k divides n. Swapping two branch arms has
+  // order 2 and disappears at 2 layers; rotating all three has order 3 and
+  // disappears at 3. Both predictions are checked below.
+  //
+  // Consequence: no single depth is a safe place to test. The acceptance tests
+  // compare every depth precisely because each one is blind to its own divisors.
+  const good = interpSource('core');
+  const mutants = {
+    'order 2 (swap two arms)':   good.replace('br_t:   .table br_n, br_z, br_p',
+                                              'br_t:   .table br_n, br_p, br_z'),
+    'order 3 (rotate all three)': good.replace('br_t:   .table br_n, br_z, br_p',
+                                               'br_t:   .table br_z, br_p, br_n'),
+  };
+  check('both mutations apply', Object.values(mutants).every(m => m !== good));
+
+  const src = prog('threeway.tasm'), inp = [7, -3, 0, 42, -100];
+  const want = runNative(src, inp).output.join();
+  const masked = (mutant, layers) => {
+    setInterpSource(mutant, 'core');
+    try { return runHosted(src, inp, { depth: layers + 1, variant: 'core', maxSteps: 5e7 })
+            .output.join() === want; }
+    catch { return false; }
+    finally { setInterpSource(good, 'core'); }
+  };
+
+  const o2 = mutants['order 2 (swap two arms)'];
+  const o3 = mutants['order 3 (rotate all three)'];
+  check('order-2 bug: caught at 1 layer', !masked(o2, 1));
+  check('order-2 bug: MASKED at 2 layers — 2 divides 2', masked(o2, 2));
+  check('order-2 bug: caught again at 3 layers', !masked(o2, 3));
+  check('order-3 bug: caught at 1 layer', !masked(o3, 1));
+  check('order-3 bug: caught at 2 layers', !masked(o3, 2));
+  check('order-3 bug: MASKED at 3 layers — 3 divides 3', masked(o3, 3));
+  check('so every depth is blind to bugs whose order divides its layer count',
+    masked(o2, 2) && masked(o3, 3) && !masked(o2, 3) && !masked(o3, 2));
+  check('the interpreter source was restored', interpSource('core') === good);
 }
 
 console.log('\n' + '='.repeat(64));

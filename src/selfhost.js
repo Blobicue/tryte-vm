@@ -26,44 +26,49 @@ const MEM_LO = -364, MEM_HI = 364;
 /* The interpreter source is injected rather than read at load time, so this
  * module works unchanged in the browser bundle, where there is no filesystem.
  * Node falls back to reading the file lazily. */
-let _interpSrc = null;
-function setInterpSource(src) { _interpSrc = src; }
-function interpSource() {
-  if (_interpSrc === null) {
-    _interpSrc = require('fs').readFileSync(
-      require('path').join(__dirname, '..', 'programs', 'interp.tasm'), 'utf8');
+/* Two interpreters. 'full' implements all 23 opcodes; 'core' implements the 14
+ * it needs to interpret itself, which makes it small enough to stack three deep.
+ * See programs/interp-core.tasm for why that subset is the right one. */
+const FILES = { full: 'interp.tasm', core: 'interp-core.tasm' };
+const _src = { full: null, core: null };
+
+function setInterpSource(src, variant = 'full') { _src[variant] = src; }
+function interpSource(variant = 'full') {
+  if (_src[variant] === null) {
+    _src[variant] = require('fs').readFileSync(
+      require('path').join(__dirname, '..', 'programs', FILES[variant]), 'utf8');
   }
-  return _interpSrc;
+  return _src[variant];
 }
 
 /** The interpreter source with its memory base rewritten for one level. */
-function interpFor(base) {
-  const out = interpSource().replace(/^IBASE:(\s*)\.equ(\s*)-?\d+/m, `IBASE:$1.equ$2${base}`);
-  if (out === interpSource() && !/^IBASE:\s*\.equ\s*/m.test(out)) {
-    throw new Error('interp.tasm no longer declares IBASE with .equ');
+function interpFor(base, variant = 'full') {
+  const src = interpSource(variant);
+  if (!/^IBASE:\s*\.equ\s*-?\d+/m.test(src)) {
+    throw new Error(`${FILES[variant]} no longer declares IBASE with .equ`);
   }
-  return out;
+  return src.replace(/^IBASE:(\s*)\.equ(\s*)-?\d+/m, `IBASE:$1.equ$2${base}`);
 }
 
-/** How many cells the interpreter occupies (independent of where it sits). */
-function interpSize() {
-  return assemble(interpFor(0), 0).cells.size;
+/** How many cells an interpreter occupies (independent of where it sits). */
+function interpSize(variant = 'full') {
+  return assemble(interpFor(0, variant), 0).cells.size;
 }
 
 /**
  * Work out where every layer sits for a given nesting depth.
  * depth 1 = native, 2 = one interpreter, 3 = an interpreter inside an interpreter.
  */
-function plan(depth = 2) {
-  const I = interpSize();
+function plan(depth = 2, variant = 'full') {
+  const I = interpSize(variant);
   let lo = MEM_LO, hi = MEM_HI;
   const levels = [];
   for (let k = 0; k < depth - 1; k++) {
     const size = hi - lo + 1;
     if (size < I) {
       throw new Error(
-        `depth ${depth} is impossible: level ${k + 1} has ${size} cells and the ` +
-        `interpreter needs ${I}`);
+        `depth ${depth} is impossible with the ${variant} interpreter: level ${k + 1} ` +
+        `has ${size} cells and the interpreter needs ${I}`);
     }
     const origin = lo;                       // interpreter sits at the bottom
     const base = Math.round((lo + I + hi) / 2);  // centre the window it hands on
@@ -71,7 +76,7 @@ function plan(depth = 2) {
     lo = lo + I - base;
     hi = hi - base;
   }
-  return { I, levels, innerLo: lo, innerHi: hi, innerCells: hi - lo + 1, depth };
+  return { I, levels, innerLo: lo, innerHi: hi, innerCells: hi - lo + 1, depth, variant };
 }
 
 /** Depth-2 layout, kept for the page and for readable reporting. */
@@ -105,14 +110,17 @@ function runNative(src, input = [], opts = {}) {
 function runHosted(src, input = [], opts = {}) {
   const depth = opts.depth || 2;
   if (depth < 2) return runNative(src, input, opts);
-  const P = plan(depth);
+  // Prefer the full 23-opcode interpreter; fall back to the self-sufficient core
+  // when the full one cannot be stacked that deep.
+  const variant = opts.variant || (fits(depth, 'full') ? 'full' : 'core');
+  const P = plan(depth, variant);
   const vm = new TryteVM({ input: input.slice(), maxSteps: opts.maxSteps || 20000000 });
 
   let off = 0;                       // host address of this level's address 0
   const layers = [];
   for (let k = 0; k < depth - 1; k++) {
     const { origin, base } = P.levels[k];
-    const asm = assemble(interpFor(base), origin);
+    const asm = assemble(interpFor(base, variant), origin);
     for (const [a, v] of asm.cells) vm.write(off + a, v);
     // Each interpreter's emulated PC points at whatever it is running: the next
     // interpreter down, or (at the innermost layer) the program itself at 0.
@@ -120,7 +128,7 @@ function runHosted(src, input = [], opts = {}) {
     vm.write(off + asm.labels.ia, 0);
     vm.write(off + asm.labels.ic, 0);
     if (k === 0) vm.PC = off + origin;
-    layers.push({ level: k + 1, origin, base, hostOffset: off, labels: asm.labels });
+    layers.push({ level: k + 1, origin, base, hostOffset: off, labels: asm.labels, variant });
     off += base;
   }
 
@@ -141,16 +149,19 @@ function runHosted(src, input = [], opts = {}) {
   return vm;
 }
 
-/** The greatest depth this machine can host, and why it stops there. */
-function maxDepth() {
+/** Can `depth` levels of this interpreter variant be stacked at all? */
+function fits(depth, variant = 'full') {
+  try { plan(depth, variant); return true; } catch { return false; }
+}
+
+/** The greatest depth this machine can host with a given interpreter. */
+function maxDepth(variant = 'full') {
   let d = 1;
-  for (;;) {
-    try { plan(d + 1); d++; } catch { return d; }
-    if (d > 10) return d;
-  }
+  while (d < 10 && fits(d + 1, variant)) d++;
+  return d;
 }
 
 module.exports = {
-  runNative, runHosted, layout, plan, maxDepth, interpSize,
-  setInterpSource, interpSource, interpFor, MEM_LO, MEM_HI,
+  runNative, runHosted, layout, plan, maxDepth, fits, interpSize,
+  setInterpSource, interpSource, interpFor, FILES, MEM_LO, MEM_HI,
 };

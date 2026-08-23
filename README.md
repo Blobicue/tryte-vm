@@ -2,11 +2,11 @@
 
 A working emulator for a computer that counts in **three states instead of two**.
 Core arithmetic, an instruction set, a virtual machine, an assembler, and demo
-programs. 235 tests, all passing, including exhaustive sweeps over the machine's
+programs. 261 tests, all passing, including exhaustive sweeps over the machine's
 entire value space.
 
 ```bash
-npm test                      # 235 checks
+npm test                      # 261 checks
 node src/run.js programs/multiply.tasm 7 5
 npm run selfhost              # the machine emulating itself
 ```
@@ -68,9 +68,29 @@ produces the same output whether run natively or emulated. That equality is the
 acceptance test, not a demo — `test-selfhost.js` checks it for **all 23 opcodes**
 and for every demo program.
 
-It nests. Two copies of the interpreter fit at once, so a program can run on a
-machine emulated by a machine emulated by the real one, and still produce
-identical output — for about 730× the instructions.
+It nests **three deep**. A program can run on a machine emulated by a machine
+emulated by a machine, still producing identical output, for about 19,000× the
+instructions.
+
+Getting past two required a second interpreter. The full one implements all 23
+opcodes in 324 cells and two of those fit in 729; three do not. But the full
+interpreter *executes* `MIN`, `MAX`, `CSUM`, `NEG`, `SHL`, `SHR`, `TGATE` and
+`LDC` in exactly one place each — the handler that implements them. Delete those
+handlers and it stops needing those instructions. What remains,
+`interp-core.tasm`, is 14 opcodes and **199 cells**, and it is **closed under
+self-interpretation**: every instruction it executes is an instruction it
+implements. That closure is the property that lets copies stack, and the suite
+verifies it by reading the source rather than trusting the comment.
+
+| | full | core |
+|---|---|---|
+| Opcodes | 23 | 14 |
+| Size | 324 cells | **199 cells** |
+| Stacks | 2 deep | **3 deep** |
+| Runs | every demo | anything in the arithmetic subset |
+
+Programs needing a dropped opcode halt rather than misbehaving — `multiply` needs
+shifts and `tgate` needs the gate control, so neither runs on the core.
 
 ```bash
 npm run selfhost
@@ -88,13 +108,13 @@ nothing about it, because no demo program ever needed to. `LOADX`, `STOREX` and
 **729 cells cannot hold 729 cells**, so the emulated machine is deliberately
 smaller. At first that capped the nesting at one level — and then it didn't:
 
-| | first working version | now |
-|---|---|---|
-| Interpreter | 412 cells | **324 cells** |
-| Emulated machine | 317 cells | 405 cells |
-| Cost per level | ~27× the instructions | ~27× |
-| Depth 3 | **impossible** — 412 > 317 | **works** — 81 cells at the bottom |
-| Depth 4 | impossible | impossible — 324 > 81 |
+| | first version | after decode moved to fetch | with the core |
+|---|---|---|---|
+| Interpreter | 412 cells | 324 cells | **199 cells** |
+| Cost per level | ~27× | ~27× | ~27× |
+| Depth 3 | impossible | **works** | works |
+| Depth 4 | impossible | impossible | **works** — 132 cells at the bottom |
+| Depth 5 | impossible | impossible | impossible |
 
 What bought the 88 cells was moving the operand decode — the effective address
 and the value living there — out of twelve handlers and into `fetch`, where it
@@ -108,13 +128,20 @@ level — away from the interpreter's own origin. No copy of `interp.tasm` could
 ever be loaded into a machine `interp.tasm` was running. Each level now picks its
 own origin and base, chosen to keep the next window centred.
 
-**Deeper is not strictly stronger.** Found by mutation testing and kept as a
-property test: an interpreter bug that is an *involution* on the emulated
-semantics cancels when applied an even number of times. Swapping two arms of the
-three-way branch is glaring at depth 2 and **invisible at depth 3**. A
-three-cycle error, which does not cancel, is caught at both. So the acceptance
-test compares depth 1, 2 *and* 3 — the deepest run alone would be a weaker
-check, not a stronger one.
+**A bug of order k is invisible at k layers.** This started as "deeper is not
+strictly stronger" and sharpened into something exact. An interpreter bug that
+permutes the emulated semantics has an *order* — how many applications return it
+to the identity. Stacking n interpreters applies the bug n times, so it vanishes
+whenever its order divides n:
+
+| | 1 layer | 2 layers | 3 layers |
+|---|---|---|---|
+| Swap two branch arms (order 2) | caught | **masked** | caught |
+| Rotate all three (order 3) | caught | caught | **masked** |
+
+Every depth is blind to bugs whose order divides its layer count, so no single
+depth is a safe place to test. The acceptance tests compare *every* depth, and
+the table above is itself a test — both maskings are asserted, not just noted.
 
 The dispatch loop is worth a look. A three-level `BR3` tree reaches 27
 destinations in 3 branches where binary needs 5 — the prettier answer, and the
@@ -242,9 +269,10 @@ src/vm.js          fetch, decode, execute
 src/assembler.js   text -> trytes, two passes, labels and directives
 src/selfhost.js    run a program natively, or inside the emulated machine
 src/run.js         CLI runner
-programs/          threeway.tasm, multiply.tasm, tgate.tasm, kleene.tasm, interp.tasm
-test/              test-core.js (27), test-vm.js (41), test-selfhost.js (60),
-                   test-bench.js (15), test-logic.js (25), test-page.js (39),
+programs/          threeway.tasm, multiply.tasm, tgate.tasm, kleene.tasm,
+                   interp.tasm (23 opcodes), interp-core.tasm (14, self-sufficient)
+test/              test-core.js (27), test-vm.js (41), test-selfhost.js (83),
+                   test-bench.js (15), test-logic.js (25), test-page.js (42),
                    test-style.js (28), run-all.js
 bench/             the three-way vs two-way branching benchmark
 build/             inlines src/ into a single interactive HTML page
