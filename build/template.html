@@ -186,7 +186,7 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; fl
       a light switch but a balance scale: it tips left, sits level, or tips right — <span class="mono">−1, 0, +1</span>.
       Weights go on either pan, so negative numbers stop being a special case.</p>
     <p class="note">Everything below runs the actual emulator source, inlined from the same files the
-      174-test suite checks &mdash; including 36 that drive these very controls headlessly. Nothing here is a mock-up.</p>
+      195-test suite checks &mdash; including 39 that drive these very controls headlessly. Nothing here is a mock-up.</p>
   </header>
 
   <!-- 1 ------------------------------------------------------------------ -->
@@ -232,9 +232,11 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; fl
         <strong>multiply</strong> is the one to watch: the machine has no multiply instruction, so it extracts one
         trit at a time using <span class="mono">v − 3 × (v ≫ 1)</span> — which only works because shifting right
         rounds to nearest instead of truncating.</p>
-      <p>Switch <em>Execution</em> to <strong>Inside the emulator</strong> and the same program runs on a tryte
-        VM written in this assembly, itself running on this machine. Same source, same inputs, same output —
-        about 25× the instructions.</p>
+      <p>Switch <em>Execution</em> to <strong>Emulated</strong> and the same program runs on a tryte VM written
+        in this assembly, itself running on this machine. <strong>Emulated ×2</strong> puts an interpreter inside
+        an interpreter. Same source, same inputs, same output at every level — for about 27× the instructions
+        per level, so roughly 730× at the bottom. Only <span class="mono">threeway</span> is small enough to fit
+        two levels down; the others will tell you so.</p>
     </div>
     <div class="panel">
       <div class="row">
@@ -246,8 +248,9 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; fl
         </label>
         <div class="fld">Execution
           <div class="seg" id="exec-mode">
-            <button type="button" data-mode="native" aria-pressed="true">Native</button>
-            <button type="button" data-mode="hosted" aria-pressed="false">Inside the emulator</button>
+            <button type="button" data-depth="1" aria-pressed="true">Native</button>
+            <button type="button" data-depth="2" aria-pressed="false">Emulated</button>
+            <button type="button" data-depth="3" aria-pressed="false">Emulated &times;2</button>
           </div>
         </div>
         <div class="row" style="gap:8px;align-self:flex-end">
@@ -384,7 +387,7 @@ $('b-d3').addEventListener('click', () => { numIn.value = T.shiftRight(clampT(Nu
 /* --- 02: the machine ------------------------------------------------------ */
 const DEFAULT_INPUTS = { threeway: '7, -3, 0, 42, -100', multiply: '7, 5', tgate: '123, -45' };
 setInterpSource(PROGRAMS.interp);          // the emulator, written in this assembly
-const LAY = layout();
+const PLAN3 = plan(3);                     // deepest nesting this machine can host
 
 const sel = $('prog-select');
 Object.keys(PROGRAMS)
@@ -396,7 +399,7 @@ Object.keys(PROGRAMS)
   });
 sel.value = 'multiply';
 
-let mode = 'native';
+let depth = 1;           // 1 = native, 2 = one interpreter, 3 = two nested
 let machine = null;      // the VM whose registers are on screen
 let view = null;         // {A, C, PC, steps, halted, output, lineOf}
 
@@ -407,14 +410,17 @@ function nativeView(vm) {
   return { A: vm.A, C: vm.C, PC: vm.PC, steps: vm.steps, halted: vm.halted,
            output: vm.output, lineOf: vm.lineOf };
 }
-/* In emulated mode the on-screen registers are the EMULATED machine's, read
- * back out of the interpreter's own state cells — not the host's registers. */
+/* In emulated mode the on-screen registers belong to the INNERMOST emulated
+ * machine, read back out of that interpreter's own state cells — not the host's
+ * registers. Each layer records where its state cells landed in host memory. */
 function hostedView(vm) {
-  return { A: vm.read(LAY.labels.ia), C: vm.read(LAY.labels.ic), PC: vm.read(LAY.labels.ipc),
+  const inner = vm.layers[vm.layers.length - 1];
+  const at = label => vm.read(inner.hostOffset + inner.labels[label]);
+  return { A: at('ia'), C: at('ic'), PC: at('ipc'),
            steps: vm.steps, halted: vm.halted, output: vm.output, lineOf: null };
 }
 function resetMachine() {
-  if (mode === 'native') {
+  if (depth === 1) {
     machine = new TryteVM({ input: parseInputs(), maxSteps: 100000 });
     loadInto(machine, PROGRAMS[sel.value], 0);
     view = nativeView(machine);
@@ -461,38 +467,51 @@ function drawMachine() {
   if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'nearest' });
 }
 
-function setMode(m) {
-  mode = m;
+const NOTE = {
+  1: 'Running directly on the machine. Step to advance one instruction at a time.',
+  2: 'Running inside interp.tasm — a tryte VM written in this assembly, executing on this '
+     + 'machine. The registers above belong to the emulated machine, read back out of the '
+     + 'interpreter’s state cells. Stepping is disabled: each emulated instruction is about '
+     + '27 real ones.',
+  3: 'Running inside an interpreter that is itself running inside an interpreter. Both copies '
+     + 'are the same source file, relocated — a fixed memory base could never nest, because the '
+     + 'emulated machine’s address window would never reach back down to the interpreter’s own '
+     + 'origin. The innermost machine has ' + PLAN3.innerCells + ' cells, so only small programs fit.',
+};
+function setDepth(d) {
+  depth = d;
   [...$('exec-mode').children].forEach(b =>
-    b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
-  $('b-step').disabled = (m === 'hosted');
-  $('exec-note').textContent = m === 'native'
-    ? 'Running directly on the machine. Step to advance one instruction at a time.'
-    : 'Running inside interp.tasm — a tryte VM written in this assembly, executing on this '
-      + 'machine. The registers above are the emulated machine’s, read back out of the '
-      + 'interpreter’s state cells. Stepping is disabled because each emulated instruction '
-      + 'is roughly 25 real ones.';
+    b.setAttribute('aria-pressed', String(Number(b.dataset.depth) === d)));
+  $('b-step').disabled = (d !== 1);
+  $('exec-note').textContent = NOTE[d];
   resetMachine();
 }
 
 $('b-run').addEventListener('click', () => {
   try {
-    if (mode === 'native') { machine.run(); view = nativeView(machine); }
+    if (depth === 1) { machine.run(); view = nativeView(machine); }
     else {
-      const before = performance.now();
-      const vm = runHosted(PROGRAMS[sel.value], parseInputs());
-      const outer = vm.steps;
-      const nat = runNative(PROGRAMS[sel.value], parseInputs());
+      const started = performance.now();
+      const src = PROGRAMS[sel.value], inputs = parseInputs();
+      const vm = runHosted(src, inputs, { depth });
+      const nat = runNative(src, inputs);
       view = hostedView(vm);
+      const P = vm.plan;
       $('exec-note').textContent =
-        outer + ' host instructions ran ' + nat.steps + ' emulated ones ('
-        + (outer / nat.steps).toFixed(1) + '×). Output matches the native run'
-        + (vm.output.join() === nat.output.join() ? '.' : ' — MISMATCH.')
-        + '  Emulated memory: ' + LAY.innerCells + ' cells, addresses '
-        + LAY.innerLo + ' to ' + LAY.innerHi + '.'
-        + '  (' + Math.round(performance.now() - before) + ' ms)';
+        vm.steps.toLocaleString() + ' host instructions ran ' + nat.steps + ' emulated ones ('
+        + Math.round(vm.steps / nat.steps) + '×) through '
+        + (depth - 1) + (depth === 2 ? ' interpreter. ' : ' nested interpreters. ')
+        + (vm.output.join() === nat.output.join()
+            ? 'Output is identical to the native run.'
+            : 'MISMATCH against the native run.')
+        + '  Innermost memory: ' + P.innerCells + ' cells, addresses '
+        + P.innerLo + ' to ' + P.innerHi + '.'
+        + '  (' + Math.round(performance.now() - started) + ' ms)';
     }
-  } catch (e) { $('reg-state').textContent = e.message; }
+  } catch (e) {
+    $('reg-state').textContent = 'stopped';
+    $('exec-note').textContent = e.message;
+  }
   drawMachine();
 });
 $('b-step').addEventListener('click', () => {
@@ -504,7 +523,7 @@ $('b-reset').addEventListener('click', resetMachine);
 sel.addEventListener('change', () => { $('prog-input').value = DEFAULT_INPUTS[sel.value] || ''; resetMachine(); });
 $('exec-mode').addEventListener('click', e => {
   const b = e.target.closest('button');
-  if (b && b.dataset.mode) setMode(b.dataset.mode);
+  if (b && b.dataset.depth) setDepth(Number(b.dataset.depth));
 });
 
 /* --- 03: TGATE ------------------------------------------------------------ */
@@ -573,7 +592,7 @@ Object.entries(OPS).forEach(([name, spec]) => {
 
 /* --- go ------------------------------------------------------------------- */
 drawNumber();
-setMode('native');
+setDepth(1);
 buildSwitches();
 drawTgate();
 </script>

@@ -186,7 +186,7 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; fl
       a light switch but a balance scale: it tips left, sits level, or tips right — <span class="mono">−1, 0, +1</span>.
       Weights go on either pan, so negative numbers stop being a special case.</p>
     <p class="note">Everything below runs the actual emulator source, inlined from the same files the
-      174-test suite checks &mdash; including 36 that drive these very controls headlessly. Nothing here is a mock-up.</p>
+      195-test suite checks &mdash; including 39 that drive these very controls headlessly. Nothing here is a mock-up.</p>
   </header>
 
   <!-- 1 ------------------------------------------------------------------ -->
@@ -232,9 +232,11 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; fl
         <strong>multiply</strong> is the one to watch: the machine has no multiply instruction, so it extracts one
         trit at a time using <span class="mono">v − 3 × (v ≫ 1)</span> — which only works because shifting right
         rounds to nearest instead of truncating.</p>
-      <p>Switch <em>Execution</em> to <strong>Inside the emulator</strong> and the same program runs on a tryte
-        VM written in this assembly, itself running on this machine. Same source, same inputs, same output —
-        about 25× the instructions.</p>
+      <p>Switch <em>Execution</em> to <strong>Emulated</strong> and the same program runs on a tryte VM written
+        in this assembly, itself running on this machine. <strong>Emulated ×2</strong> puts an interpreter inside
+        an interpreter. Same source, same inputs, same output at every level — for about 27× the instructions
+        per level, so roughly 730× at the bottom. Only <span class="mono">threeway</span> is small enough to fit
+        two levels down; the others will tell you so.</p>
     </div>
     <div class="panel">
       <div class="row">
@@ -246,8 +248,9 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; fl
         </label>
         <div class="fld">Execution
           <div class="seg" id="exec-mode">
-            <button type="button" data-mode="native" aria-pressed="true">Native</button>
-            <button type="button" data-mode="hosted" aria-pressed="false">Inside the emulator</button>
+            <button type="button" data-depth="1" aria-pressed="true">Native</button>
+            <button type="button" data-depth="2" aria-pressed="false">Emulated</button>
+            <button type="button" data-depth="3" aria-pressed="false">Emulated &times;2</button>
           </div>
         </div>
         <div class="row" style="gap:8px;align-self:flex-end">
@@ -725,21 +728,28 @@ function loadInto(vm, src, origin = 0) {
 
 /* --- src/selfhost.js --- */
 
-/* selfhost.js — run a tryte program inside a tryte machine that is itself
- * running on the tryte VM.
+/* selfhost.js — run a tryte program inside a tryte machine, to any depth.
  *
  * Layer 0  the JavaScript TryteVM in vm.js
  * Layer 1  programs/interp.tasm, executing on layer 0
- * Layer 2  the caller's program, executing on layer 1
+ * Layer 2  either the caller's program, or ANOTHER copy of interp.tasm
+ * ...
  *
  * runNative and runHosted take the same source and the same inputs. If the
- * emulator is correct they produce the same output, and that equality is the
- * acceptance test — see test/test-selfhost.js.
+ * emulator is correct they produce the same output at every depth, and that
+ * equality is the acceptance test — see test/test-selfhost.js.
+ *
+ * WHY THE INTERPRETER RELOCATES. Each machine addresses its memory through a
+ * base: inner address `a` lives at host address `base + a`. A single fixed base
+ * therefore shifts the usable window at every level, and it shifts it away from
+ * the interpreter's own origin — with one fixed base, no copy of interp.tasm can
+ * ever be loaded into a machine that interp.tasm is running. So each level gets
+ * its own origin and its own base, chosen to keep the next window centred.
  */
 
 
 
-const INTERP_ORIGIN = -364;
+const MEM_LO = -364, MEM_HI = 364;
 
 /* The interpreter source is injected rather than read at load time, so this
  * module works unchanged in the browser bundle, where there is no filesystem.
@@ -754,20 +764,55 @@ function interpSource() {
   return _interpSrc;
 }
 
-/** Assemble the interpreter once and report where everything sits. */
+/** The interpreter source with its memory base rewritten for one level. */
+function interpFor(base) {
+  const out = interpSource().replace(/^IBASE:(\s*)\.equ(\s*)-?\d+/m, `IBASE:$1.equ$2${base}`);
+  if (out === interpSource() && !/^IBASE:\s*\.equ\s*/m.test(out)) {
+    throw new Error('interp.tasm no longer declares IBASE with .equ');
+  }
+  return out;
+}
+
+/** How many cells the interpreter occupies (independent of where it sits). */
+function interpSize() {
+  return assemble(interpFor(0), 0).cells.size;
+}
+
+/**
+ * Work out where every layer sits for a given nesting depth.
+ * depth 1 = native, 2 = one interpreter, 3 = an interpreter inside an interpreter.
+ */
+function plan(depth = 2) {
+  const I = interpSize();
+  let lo = MEM_LO, hi = MEM_HI;
+  const levels = [];
+  for (let k = 0; k < depth - 1; k++) {
+    const size = hi - lo + 1;
+    if (size < I) {
+      throw new Error(
+        `depth ${depth} is impossible: level ${k + 1} has ${size} cells and the ` +
+        `interpreter needs ${I}`);
+    }
+    const origin = lo;                       // interpreter sits at the bottom
+    const base = Math.round((lo + I + hi) / 2);  // centre the window it hands on
+    levels.push({ origin, base, lo, hi, free: size - I });
+    lo = lo + I - base;
+    hi = hi - base;
+  }
+  return { I, levels, innerLo: lo, innerHi: hi, innerCells: hi - lo + 1, depth };
+}
+
+/** Depth-2 layout, kept for the page and for readable reporting. */
 function layout() {
-  const { cells, labels } = assemble(interpSource(), INTERP_ORIGIN);
-  const addrs = [...cells.keys()];
-  const top = Math.max(...addrs);
+  const P = plan(2);
+  const { origin, base } = P.levels[0];
+  const asm = assemble(interpFor(base), origin);
+  const addrs = [...asm.cells.keys()];
   return {
-    cells, labels,
-    IBASE: labels.IBASE,
-    interpLo: Math.min(...addrs),
-    interpHi: top,
-    innerLo: top + 1 - labels.IBASE,      // lowest inner address that is safe
-    innerHi: 364 - labels.IBASE,          // highest inner address that exists
-    interpCells: cells.size,
-    innerCells: 364 - top,
+    cells: asm.cells, labels: asm.labels, IBASE: base,
+    interpLo: Math.min(...addrs), interpHi: Math.max(...addrs),
+    interpCells: asm.cells.size,
+    innerLo: P.innerLo, innerHi: P.innerHi, innerCells: P.innerCells,
   };
 }
 
@@ -781,35 +826,62 @@ function runNative(src, input = [], opts = {}) {
   return vm;
 }
 
-/** Run the same program inside the emulated machine. */
+/**
+ * Run the same program inside `depth - 1` nested copies of the interpreter.
+ * Returns the host VM; `.output` is the emulated program's output.
+ */
 function runHosted(src, input = [], opts = {}) {
-  const L = layout();
-  const vm = new TryteVM({ input: input.slice(), maxSteps: opts.maxSteps || 5000000 });
+  const depth = opts.depth || 2;
+  if (depth < 2) return runNative(src, input, opts);
+  const P = plan(depth);
+  const vm = new TryteVM({ input: input.slice(), maxSteps: opts.maxSteps || 20000000 });
 
-  for (const [addr, val] of L.cells) vm.write(addr, val);        // layer 1
-
-  const inner = assemble(src, 0);                                // layer 2
-  for (const [addr, val] of inner.cells) {
-    if (addr < L.innerLo || addr > L.innerHi) {
-      throw new Error(
-        `inner address ${addr} is outside the emulated machine's memory ` +
-        `(${L.innerLo}..${L.innerHi}); the program is too large or reaches too low`);
-    }
-    vm.write(L.IBASE + addr, val);
+  let off = 0;                       // host address of this level's address 0
+  const layers = [];
+  for (let k = 0; k < depth - 1; k++) {
+    const { origin, base } = P.levels[k];
+    const asm = assemble(interpFor(base), origin);
+    for (const [a, v] of asm.cells) vm.write(off + a, v);
+    // Each interpreter's emulated PC points at whatever it is running: the next
+    // interpreter down, or (at the innermost layer) the program itself at 0.
+    vm.write(off + asm.labels.ipc, k < depth - 2 ? P.levels[k + 1].origin : 0);
+    vm.write(off + asm.labels.ia, 0);
+    vm.write(off + asm.labels.ic, 0);
+    if (k === 0) vm.PC = off + origin;
+    layers.push({ level: k + 1, origin, base, hostOffset: off, labels: asm.labels });
+    off += base;
   }
 
-  vm.write(L.labels.ipc, 0);            // inner program counter starts at 0
-  vm.write(L.labels.ia, 0);
-  vm.write(L.labels.ic, 0);
-  vm.PC = INTERP_ORIGIN;
+  const prog = assemble(src, 0);
+  for (const [a, v] of prog.cells) {
+    if (a < P.innerLo || a > P.innerHi) {
+      throw new Error(
+        `inner address ${a} is outside the emulated machine's memory ` +
+        `(${P.innerLo}..${P.innerHi}) at depth ${depth}; the program is too large ` +
+        `or reaches too far from its origin`);
+    }
+    vm.write(off + a, v);
+  }
+
   vm.run();
+  vm.layers = layers;
+  vm.plan = P;
   return vm;
+}
+
+/** The greatest depth this machine can host, and why it stops there. */
+function maxDepth() {
+  let d = 1;
+  for (;;) {
+    try { plan(d + 1); d++; } catch { return d; }
+    if (d > 10) return d;
+  }
 }
 
 
 
 const PROGRAMS = {
-  "interp": "; interp.tasm — a tryte VM, running inside a tryte VM.\n;\n; This program emulates the machine it is running on. The emulated (\"inner\")\n; machine has the same three registers, the same 23 opcodes and the same\n; two-cell instruction format; it differs only in having less memory, which is\n; unavoidable — 729 cells cannot hold 729 cells plus an interpreter.\n;\n; MEMORY MAP (outer addresses run -364 .. +364)\n;   -364 .. ~+35   this interpreter, its jump table, and its state\n;   IBASE + a      inner address `a`, so the inner machine gets ~329 cells\n;\n; DISPATCH. An earlier draft used a three-level BR3 tree: 3 branches reach 27\n; destinations where binary needs 5, which is the prettier answer. Measured, it\n; cost 149 cells against 30 for the indexed jump below, so the indexed jump won.\n; The ternary advantage in branching is real but it is not free, and JMPX — added\n; for exactly this — makes the table cheaper. BR3 still does the work that suits\n; it: see h_br3, where the inner three-way branch is implemented by the outer one.\n\nIBASE:  .equ  200          ; inner address a lives at outer cell IBASE + a\n\n        .org  -364\n\n; ---------------------------------------------------------------- fetch/decode\nfetch:  LOAD  ipc\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr          ; opcode\n        STORE opc\n        LOAD  ptr\n        ADDI  1\n        STORE ptr\n        LOADX ptr          ; operand\n        STORE opd\n        LOAD  ipc\n        ADDI  2\n        STORE ipc          ; inner PC advances before the handler runs,\n                           ; so jumps may overwrite it freely\n        LOAD  opc\n        ADDI  jtbl\n        STORE ptr          ; ptr = address of the table ENTRY\n        LOADX ptr\n        STORE ptr          ; ptr = the handler address held in that entry\n        JMPX  ptr          ; PC = jtbl[opcode]\n\n; ---------------------------------------------------------------- handlers\nh_halt: HALT\n\nh_loadi:LOAD  opd\n        STORE ia\n        JMP   fetch\n\nh_load: LOAD  opd\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE ia\n        JMP   fetch\n\nh_store:LOAD  opd\n        ADDI  IBASE\n        STORE ptr\n        LOAD  ia\n        STOREX ptr\n        JMP   fetch\n\nh_add:  LOAD  opd\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE tmp\n        LOAD  ia\n        ADD   tmp\n        STORE ia\n        JMP   fetch\n\nh_addi: LOAD  ia\n        ADD   opd\n        STORE ia\n        JMP   fetch\n\nh_sub:  LOAD  opd\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE tmp\n        LOAD  ia\n        SUB   tmp\n        STORE ia\n        JMP   fetch\n\nh_neg:  LOAD  ia\n        NEG\n        STORE ia\n        JMP   fetch\n\nh_min:  LOAD  opd\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE tmp\n        LOAD  ia\n        MIN   tmp\n        STORE ia\n        JMP   fetch\n\nh_max:  LOAD  opd\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE tmp\n        LOAD  ia\n        MAX   tmp\n        STORE ia\n        JMP   fetch\n\nh_csum: LOAD  opd\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE tmp\n        LOAD  ia\n        CSUM  tmp\n        STORE ia\n        JMP   fetch\n\nh_setc: LOAD  opd\n        STORE ic\n        JMP   fetch\n\nh_tgate:LOAD  opd\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE tmp\n        LDC   ic           ; the inner control register drives the outer gate\n        LOAD  ia\n        TGATE tmp\n        STORE ia\n        JMP   fetch\n\n; SHL/SHR take an immediate shift count, so a variable count is done by\n; repeating a shift of one. Balanced ternary makes each step exact either way.\nh_shl:  LOAD  opd\n        STORE cnt\n        LOAD  ia\n        STORE tmp\nshl_lp: LOAD  cnt\n        BR3   shl_t\nshl_t:  .table shl_end, shl_end, shl_go\nshl_go: LOAD  tmp\n        SHL   1\n        STORE tmp\n        LOAD  cnt\n        ADDI  -1\n        STORE cnt\n        JMP   shl_lp\nshl_end:LOAD  tmp\n        STORE ia\n        JMP   fetch\n\nh_shr:  LOAD  opd\n        STORE cnt\n        LOAD  ia\n        STORE tmp\nshr_lp: LOAD  cnt\n        BR3   shr_t\nshr_t:  .table shr_end, shr_end, shr_go\nshr_go: LOAD  tmp\n        SHR   1\n        STORE tmp\n        LOAD  cnt\n        ADDI  -1\n        STORE cnt\n        JMP   shr_lp\nshr_end:LOAD  tmp\n        STORE ia\n        JMP   fetch\n\nh_jmp:  LOAD  opd\n        STORE ipc\n        JMP   fetch\n\n; The inner three-way branch, implemented by the outer three-way branch.\nh_br3:  LOAD  ia\n        BR3   br_t\nbr_t:   .table br_n, br_z, br_p\nbr_n:   LOAD  opd\n        ADDI  -1\n        JMP   br_go\nbr_z:   LOAD  opd\n        JMP   br_go\nbr_p:   LOAD  opd\n        ADDI  1\nbr_go:  ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE ipc\n        JMP   fetch\n\nh_out:  LOAD  ia\n        OUT\n        JMP   fetch\n\nh_in:   IN\n        STORE ia\n        JMP   fetch\n\n; The inner machine gets the indirect opcodes too, so it is a complete tryte VM\n; rather than a cut-down one — in principle it could host a third level.\nh_loadx:LOAD  opd\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr          ; inner pointer value\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE ia\n        JMP   fetch\n\nh_stox: LOAD  opd\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        ADDI  IBASE\n        STORE ptr\n        LOAD  ia\n        STOREX ptr\n        JMP   fetch\n\nh_jmpx: LOAD  opd\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE ipc\n        JMP   fetch\n\nh_ldc:  LOAD  opd\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE ic\n        JMP   fetch\n\n; ---------------------------------------------------------------- dispatch table\n; One entry per opcode, in opcode order. JMPX indexes straight into it.\njtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_neg\n        .word h_min, h_max, h_csum, h_setc, h_tgate, h_shl, h_shr, h_jmp\n        .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_ldc\n\n; ---------------------------------------------------------------- state\nipc:    .word 0            ; inner program counter\nia:     .word 0            ; inner accumulator\nic:     .word 0            ; inner gate-control register\nopc:    .word 0            ; opcode being executed\nopd:    .word 0            ; its operand\nptr:    .word 0            ; scratch pointer for indirect access\ntmp:    .word 0\ncnt:    .word 0\n",
+  "interp": "; interp.tasm — a tryte VM, running inside a tryte VM.\n;\n; The emulated (\"inner\") machine has the same three registers, the same 23\n; opcodes and the same two-cell instruction format. It differs only in having\n; less memory, which is unavoidable: 729 cells cannot hold 729 cells plus an\n; interpreter.\n;\n; RELOCATABLE. There is deliberately no .org here and IBASE is rewritten at load\n; time, because a fixed layout can never nest. With one fixed base the emulated\n; machine's address window never reaches back down to the interpreter's own\n; origin, so no copy of this file could ever be loaded into a machine it was\n; running — see src/selfhost.js, which computes an origin and a base per level.\n;\n; DECODE. The effective address of the operand (ea) and the value living there\n; (mval) are computed once during fetch rather than in each handler. That is\n; what makes the interpreter small enough to nest: it moved roughly ninety cells\n; of repeated address arithmetic out of twelve handlers and into one place. The\n; same pressure produced instruction decode in real machines, for the same reason.\n;\n; A consequence worth stating: opcodes whose operand is an immediate (LOADI,\n; ADDI, SETC, SHL, SHR, JMP) still have mval computed for them, reading a cell\n; that means nothing to them. This is harmless — every address wraps into range,\n; so the read can never fault — and those handlers simply ignore it.\n;\n; DISPATCH is an indexed jump through JMPX. A three-level BR3 tree reaches 27\n; destinations in 3 branches where binary needs 5, which is the prettier answer,\n; but measured it cost 149 cells against 30. BR3 still does the work that suits\n; it: in h_br3 the emulated three-way branch is the host's three-way branch.\n\nIBASE:  .equ  200          ; rewritten per level; inner address a is at outer IBASE + a\n\n; ---------------------------------------------------------------- fetch/decode\nfetch:  LOAD  ipc\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE opc          ; opcode\n        LOAD  ptr\n        ADDI  1\n        STORE ptr\n        LOADX ptr\n        STORE opd          ; operand\n        ADDI  IBASE\n        STORE ea           ; effective address, if the operand is an address\n        LOADX ea\n        STORE mval         ; and the value living there\n        LOAD  ipc\n        ADDI  2\n        STORE ipc          ; the inner PC advances before the handler runs,\n                           ; so jumps may overwrite it freely\n        LOAD  opc\n        ADDI  jtbl\n        STORE ptr          ; ptr = address of the table entry\n        LOADX ptr\n        STORE ptr          ; ptr = the handler address held in that entry\n        JMPX  ptr\n\n; ---------------------------------------------------------------- handlers\nh_halt: HALT\n\nh_loadi:LOAD  opd\n        STORE ia\n        JMP   fetch\n\nh_load: LOAD  mval\n        STORE ia\n        JMP   fetch\n\nh_store:LOAD  ia\n        STOREX ea\n        JMP   fetch\n\nh_add:  LOAD  ia\n        ADD   mval\n        STORE ia\n        JMP   fetch\n\nh_addi: LOAD  ia\n        ADD   opd\n        STORE ia\n        JMP   fetch\n\nh_sub:  LOAD  ia\n        SUB   mval\n        STORE ia\n        JMP   fetch\n\nh_neg:  LOAD  ia\n        NEG\n        STORE ia\n        JMP   fetch\n\nh_min:  LOAD  ia\n        MIN   mval\n        STORE ia\n        JMP   fetch\n\nh_max:  LOAD  ia\n        MAX   mval\n        STORE ia\n        JMP   fetch\n\nh_csum: LOAD  ia\n        CSUM  mval\n        STORE ia\n        JMP   fetch\n\nh_setc: LOAD  opd\n        STORE ic\n        JMP   fetch\n\nh_tgate:LDC   ic           ; the inner control register drives the outer gate\n        LOAD  ia\n        TGATE mval\n        STORE ia\n        JMP   fetch\n\n; SHL/SHR take an immediate count, so a variable count repeats a shift of one.\nh_shl:  LOAD  opd\n        STORE cnt\n        LOAD  ia\n        STORE tmp\nshl_lp: LOAD  cnt\n        BR3   shl_t\nshl_t:  .table shl_end, shl_end, shl_go\nshl_go: LOAD  tmp\n        SHL   1\n        STORE tmp\n        LOAD  cnt\n        ADDI  -1\n        STORE cnt\n        JMP   shl_lp\nshl_end:LOAD  tmp\n        STORE ia\n        JMP   fetch\n\nh_shr:  LOAD  opd\n        STORE cnt\n        LOAD  ia\n        STORE tmp\nshr_lp: LOAD  cnt\n        BR3   shr_t\nshr_t:  .table shr_end, shr_end, shr_go\nshr_go: LOAD  tmp\n        SHR   1\n        STORE tmp\n        LOAD  cnt\n        ADDI  -1\n        STORE cnt\n        JMP   shr_lp\nshr_end:LOAD  tmp\n        STORE ia\n        JMP   fetch\n\nh_jmp:  LOAD  opd\n        STORE ipc\n        JMP   fetch\n\n; The emulated three-way branch, implemented by the host's three-way branch.\nh_br3:  LOAD  ia\n        BR3   br_t\nbr_t:   .table br_n, br_z, br_p\nbr_n:   LOAD  ea\n        ADDI  -1\n        JMP   br_go\nbr_z:   LOAD  ea\n        JMP   br_go\nbr_p:   LOAD  ea\n        ADDI  1\nbr_go:  STORE ptr\n        LOADX ptr\n        STORE ipc\n        JMP   fetch\n\nh_out:  LOAD  ia\n        OUT\n        JMP   fetch\n\nh_in:   IN\n        STORE ia\n        JMP   fetch\n\n; The emulated machine gets the indirect opcodes too, so it is a complete tryte\n; VM rather than a cut-down one — which is what lets it host another of itself.\nh_loadx:LOAD  mval\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE ia\n        JMP   fetch\n\nh_stox: LOAD  mval\n        ADDI  IBASE\n        STORE ptr\n        LOAD  ia\n        STOREX ptr\n        JMP   fetch\n\nh_jmpx: LOAD  mval\n        STORE ipc\n        JMP   fetch\n\nh_ldc:  LOAD  mval\n        STORE ic\n        JMP   fetch\n\n; ---------------------------------------------------------------- dispatch table\n; One entry per opcode, in opcode order. JMPX indexes straight into it.\njtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_neg\n        .word h_min, h_max, h_csum, h_setc, h_tgate, h_shl, h_shr, h_jmp\n        .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_ldc\n\n; ---------------------------------------------------------------- state\nipc:    .word 0            ; inner program counter\nia:     .word 0            ; inner accumulator\nic:     .word 0            ; inner gate-control register\nopc:    .word 0            ; opcode being executed\nopd:    .word 0            ; its operand\nea:     .word 0            ; operand read as an address\nmval:   .word 0            ; the value at that address\nptr:    .word 0            ; scratch pointer for indirect access\ntmp:    .word 0\ncnt:    .word 0\n",
   "multiply": "; multiply.tasm — shift-and-add multiplication, done the balanced-ternary way.\n;\n; The machine has no multiply instruction. It builds one from shifts and adds.\n;\n; The interesting part is extracting one trit at a time. In balanced ternary,\n; shifting right ROUNDS TO NEAREST rather than truncating toward zero, so\n;\n;       lowest_trit(v)  =  v - 3 * (v >> 1)\n;\n; falls out of the shift itself. No masking, no sign correction, no special\n; case for negative numbers — the same six steps handle every sign combination.\n\n        IN                 ; first input  -> multiplicand\n        STORE mult\n        IN                 ; second input -> multiplier\n        STORE rem\n        LOADI 0\n        STORE result\n        LOADI 6            ; six trits in a tryte\n        STORE count\n\nloop:   LOAD  rem\n        SHR   1\n        STORE remhi        ; remhi = round(rem / 3)\n        SHL   1\n        STORE tmp          ; tmp   = 3 * remhi\n        LOAD  rem\n        SUB   tmp          ; A     = lowest trit of rem\n        BR3   pick\npick:   .table minus, skip, plus\n\nplus:   LOAD  result\n        ADD   mult\n        STORE result\n        JMP   next\nminus:  LOAD  result\n        SUB   mult\n        STORE result\n        JMP   next\nskip:   JMP   next\n\nnext:   LOAD  mult\n        SHL   1\n        STORE mult         ; multiplicand climbs one trit\n        LOAD  remhi\n        STORE rem          ; multiplier drops one trit\n        LOAD  count\n        ADDI  -1\n        STORE count\n        BR3   again\nagain:  .table fin, fin, loop\n\nfin:    LOAD  result\n        OUT\n        HALT\n\n        .org  -20\nmult:   .word 0\nrem:    .word 0\nremhi:  .word 0\nresult: .word 0\ncount:  .word 0\ntmp:    .word 0\n",
   "tgate": "; tgate.tasm — the source conversation's idea, made real and made ternary.\n;\n; The original wanted a data word whose own digits ARE the logic gates, so the\n; unit reconfigures itself as data passes through. On binary data with AND/OR/NOT\n; that is just an opcode driving a multiplexer. On ternary data it is a genuinely\n; three-way choice per trit position:\n;\n;       control trit -  ->  NEG(x)       (ignores y)\n;       control trit 0  ->  MIN(x, y)    (the AND analog)\n;       control trit +  ->  MAX(x, y)    (the OR analog)\n;\n; One control tryte therefore names one of 729 distinct six-slice circuits.\n; Below, the SAME two data values run through three different circuits.\n\n        IN\n        STORE x\n        IN\n        STORE y\n\n        SETC  t000000      ; every trit MIN  -> the whole unit becomes MIN\n        LOAD  x\n        TGATE y\n        OUT\n\n        SETC  t++++++      ; every trit MAX  -> the whole unit becomes MAX\n        LOAD  x\n        TGATE y\n        OUT\n\n        SETC  t------      ; every trit NEG  -> the whole unit becomes negate\n        LOAD  x\n        TGATE y\n        OUT\n\n        SETC  t+0-+0-      ; a MIXED circuit: MAX, MIN, NEG, MAX, MIN, NEG\n        LOAD  x\n        TGATE y\n        OUT\n\n        HALT\n\n        .org  -10\nx:      .word 0\ny:      .word 0\n",
   "threeway": "; threeway.tasm — the instruction binary machines cannot have.\n;\n; BR3 tests the accumulator ONCE and lands on one of three addresses:\n; negative, zero, or positive. No flags register, no chain of compares.\n; This program classifies each input value, and uses a SECOND BR3 to run\n; the loop itself.\n\n        LOADI 5            ; five values to classify\n        STORE count\n\nloop:   LOAD  count\n        BR3   more         ; keep going only while count is positive\nmore:   .table done, done, body\n\nbody:   IN                 ; fetch the next value\n        BR3   sgn          ; one test, three destinations\nsgn:    .table neg, zero, pos\n\nneg:    LOADI -1\n        JMP   emit\nzero:   LOADI 0\n        JMP   emit\npos:    LOADI 1\n\nemit:   OUT\n        LOAD  count\n        ADDI  -1\n        STORE count\n        JMP   loop\n\ndone:   HALT\n\n        .org  -1\ncount:  .word 0\n"
@@ -856,7 +928,7 @@ $('b-d3').addEventListener('click', () => { numIn.value = T.shiftRight(clampT(Nu
 /* --- 02: the machine ------------------------------------------------------ */
 const DEFAULT_INPUTS = { threeway: '7, -3, 0, 42, -100', multiply: '7, 5', tgate: '123, -45' };
 setInterpSource(PROGRAMS.interp);          // the emulator, written in this assembly
-const LAY = layout();
+const PLAN3 = plan(3);                     // deepest nesting this machine can host
 
 const sel = $('prog-select');
 Object.keys(PROGRAMS)
@@ -868,7 +940,7 @@ Object.keys(PROGRAMS)
   });
 sel.value = 'multiply';
 
-let mode = 'native';
+let depth = 1;           // 1 = native, 2 = one interpreter, 3 = two nested
 let machine = null;      // the VM whose registers are on screen
 let view = null;         // {A, C, PC, steps, halted, output, lineOf}
 
@@ -879,14 +951,17 @@ function nativeView(vm) {
   return { A: vm.A, C: vm.C, PC: vm.PC, steps: vm.steps, halted: vm.halted,
            output: vm.output, lineOf: vm.lineOf };
 }
-/* In emulated mode the on-screen registers are the EMULATED machine's, read
- * back out of the interpreter's own state cells — not the host's registers. */
+/* In emulated mode the on-screen registers belong to the INNERMOST emulated
+ * machine, read back out of that interpreter's own state cells — not the host's
+ * registers. Each layer records where its state cells landed in host memory. */
 function hostedView(vm) {
-  return { A: vm.read(LAY.labels.ia), C: vm.read(LAY.labels.ic), PC: vm.read(LAY.labels.ipc),
+  const inner = vm.layers[vm.layers.length - 1];
+  const at = label => vm.read(inner.hostOffset + inner.labels[label]);
+  return { A: at('ia'), C: at('ic'), PC: at('ipc'),
            steps: vm.steps, halted: vm.halted, output: vm.output, lineOf: null };
 }
 function resetMachine() {
-  if (mode === 'native') {
+  if (depth === 1) {
     machine = new TryteVM({ input: parseInputs(), maxSteps: 100000 });
     loadInto(machine, PROGRAMS[sel.value], 0);
     view = nativeView(machine);
@@ -933,38 +1008,51 @@ function drawMachine() {
   if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'nearest' });
 }
 
-function setMode(m) {
-  mode = m;
+const NOTE = {
+  1: 'Running directly on the machine. Step to advance one instruction at a time.',
+  2: 'Running inside interp.tasm — a tryte VM written in this assembly, executing on this '
+     + 'machine. The registers above belong to the emulated machine, read back out of the '
+     + 'interpreter’s state cells. Stepping is disabled: each emulated instruction is about '
+     + '27 real ones.',
+  3: 'Running inside an interpreter that is itself running inside an interpreter. Both copies '
+     + 'are the same source file, relocated — a fixed memory base could never nest, because the '
+     + 'emulated machine’s address window would never reach back down to the interpreter’s own '
+     + 'origin. The innermost machine has ' + PLAN3.innerCells + ' cells, so only small programs fit.',
+};
+function setDepth(d) {
+  depth = d;
   [...$('exec-mode').children].forEach(b =>
-    b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
-  $('b-step').disabled = (m === 'hosted');
-  $('exec-note').textContent = m === 'native'
-    ? 'Running directly on the machine. Step to advance one instruction at a time.'
-    : 'Running inside interp.tasm — a tryte VM written in this assembly, executing on this '
-      + 'machine. The registers above are the emulated machine’s, read back out of the '
-      + 'interpreter’s state cells. Stepping is disabled because each emulated instruction '
-      + 'is roughly 25 real ones.';
+    b.setAttribute('aria-pressed', String(Number(b.dataset.depth) === d)));
+  $('b-step').disabled = (d !== 1);
+  $('exec-note').textContent = NOTE[d];
   resetMachine();
 }
 
 $('b-run').addEventListener('click', () => {
   try {
-    if (mode === 'native') { machine.run(); view = nativeView(machine); }
+    if (depth === 1) { machine.run(); view = nativeView(machine); }
     else {
-      const before = performance.now();
-      const vm = runHosted(PROGRAMS[sel.value], parseInputs());
-      const outer = vm.steps;
-      const nat = runNative(PROGRAMS[sel.value], parseInputs());
+      const started = performance.now();
+      const src = PROGRAMS[sel.value], inputs = parseInputs();
+      const vm = runHosted(src, inputs, { depth });
+      const nat = runNative(src, inputs);
       view = hostedView(vm);
+      const P = vm.plan;
       $('exec-note').textContent =
-        outer + ' host instructions ran ' + nat.steps + ' emulated ones ('
-        + (outer / nat.steps).toFixed(1) + '×). Output matches the native run'
-        + (vm.output.join() === nat.output.join() ? '.' : ' — MISMATCH.')
-        + '  Emulated memory: ' + LAY.innerCells + ' cells, addresses '
-        + LAY.innerLo + ' to ' + LAY.innerHi + '.'
-        + '  (' + Math.round(performance.now() - before) + ' ms)';
+        vm.steps.toLocaleString() + ' host instructions ran ' + nat.steps + ' emulated ones ('
+        + Math.round(vm.steps / nat.steps) + '×) through '
+        + (depth - 1) + (depth === 2 ? ' interpreter. ' : ' nested interpreters. ')
+        + (vm.output.join() === nat.output.join()
+            ? 'Output is identical to the native run.'
+            : 'MISMATCH against the native run.')
+        + '  Innermost memory: ' + P.innerCells + ' cells, addresses '
+        + P.innerLo + ' to ' + P.innerHi + '.'
+        + '  (' + Math.round(performance.now() - started) + ' ms)';
     }
-  } catch (e) { $('reg-state').textContent = e.message; }
+  } catch (e) {
+    $('reg-state').textContent = 'stopped';
+    $('exec-note').textContent = e.message;
+  }
   drawMachine();
 });
 $('b-step').addEventListener('click', () => {
@@ -976,7 +1064,7 @@ $('b-reset').addEventListener('click', resetMachine);
 sel.addEventListener('change', () => { $('prog-input').value = DEFAULT_INPUTS[sel.value] || ''; resetMachine(); });
 $('exec-mode').addEventListener('click', e => {
   const b = e.target.closest('button');
-  if (b && b.dataset.mode) setMode(b.dataset.mode);
+  if (b && b.dataset.depth) setDepth(Number(b.dataset.depth));
 });
 
 /* --- 03: TGATE ------------------------------------------------------------ */
@@ -1045,7 +1133,7 @@ Object.entries(OPS).forEach(([name, spec]) => {
 
 /* --- go ------------------------------------------------------------------- */
 drawNumber();
-setMode('native');
+setDepth(1);
 buildSwitches();
 drawTgate();
 </script>

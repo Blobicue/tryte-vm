@@ -113,9 +113,9 @@ const IDS = {
 };
 const { doc, byId } = makeDocument();
 for (const [id, tag] of Object.entries(IDS)) doc._register(id, tag);
-for (const m of ['native', 'hosted']) {
-  const b = new El('button'); b.dataset.mode = m;
-  b.setAttribute('aria-pressed', String(m === 'native'));
+for (const d of ['1', '2', '3']) {
+  const b = new El('button'); b.dataset.depth = d;
+  b.setAttribute('aria-pressed', String(d === '1'));
   byId['exec-mode'].appendChild(b);
 }
 byId['num-input'].value = '123';
@@ -175,9 +175,9 @@ byId['b-d3'].dispatch('click');
 check('Shift right rounds to nearest (5 -> 2, not 1)', Number(byId['num-input'].value) === 2);
 
 console.log('\n=== 3. THE MACHINE PANEL ===');
-for (const m of ['native', 'hosted']) {
-  const b = new El('button'); b.dataset.mode = m;
-  b.setAttribute('aria-pressed', String(m === 'native'));
+for (const d of ['1', '2', '3']) {
+  const b = new El('button'); b.dataset.depth = d;
+  b.setAttribute('aria-pressed', String(d === '1'));
   byId['exec-mode'].appendChild(b);
 }
 byId['num-input'].value = '123'; byId['num-input'].dispatch('input');
@@ -221,7 +221,7 @@ check('editing the data re-runs the unit', readOut() === T.neg(200));
 
 console.log('\n=== 5. RUNNING INSIDE THE EMULATOR, FROM THE PAGE ===');
 {
-  const modeBtn = m => byId['exec-mode'].children.filter(b => b.dataset.mode === m)[0];
+  const modeBtn = d => byId['exec-mode'].children.filter(b => b.dataset.depth === String(d))[0];
   const outputs = () => byId['out-tape'].children.map(c => c.textContent.split(' ')[0]).join(',');
 
   byId['prog-select'].value = 'multiply';
@@ -233,10 +233,10 @@ console.log('\n=== 5. RUNNING INSIDE THE EMULATOR, FROM THE PAGE ===');
   const nativeSteps = Number(byId['reg-steps'].textContent);
   check('native run of multiply gives 35', nativeOut === '35', nativeOut);
 
-  modeBtn('hosted').dispatch('click');
+  modeBtn(2).dispatch('click');
   check('the mode control marks emulated as selected',
-    modeBtn('hosted').getAttribute('aria-pressed') === 'true' &&
-    modeBtn('native').getAttribute('aria-pressed') === 'false');
+    modeBtn(2).getAttribute('aria-pressed') === 'true' &&
+    modeBtn(1).getAttribute('aria-pressed') === 'false');
   check('stepping is disabled while emulating', byId['b-step'].disabled === true);
 
   byId['prog-input'].value = '7, 5';
@@ -247,12 +247,37 @@ console.log('\n=== 5. RUNNING INSIDE THE EMULATOR, FROM THE PAGE ===');
     hostedSteps > nativeSteps * 5, `${hostedSteps} vs ${nativeSteps}`);
   check('the readout reports the ratio and confirms the match',
     /host instructions ran/.test(byId['exec-note'].textContent) &&
-    /Output matches the native run\./.test(byId['exec-note'].textContent),
+    /Output is identical to the native run\./.test(byId['exec-note'].textContent),
     byId['exec-note'].textContent);
   check('the registers shown are the EMULATED machine’s, not the host’s',
     Number(byId['reg-pc'].textContent) < 200);
 
-  modeBtn('native').dispatch('click');
+  // Depth 3: an interpreter inside an interpreter, driven from the page.
+  byId['prog-select'].value = 'threeway';
+  byId['prog-select'].dispatch('change');
+  byId['prog-input'].value = '7, -3, 0, 42, -100';
+  modeBtn(1).dispatch('click');
+  byId['b-run'].dispatch('click');
+  const nativeThree = outputs();
+  modeBtn(3).dispatch('click');
+  byId['prog-input'].value = '7, -3, 0, 42, -100';
+  byId['b-run'].dispatch('click');
+  check('threeway at depth 3 matches the native run', outputs() === nativeThree,
+    `${outputs()} vs ${nativeThree}`);
+  check('the readout names two nested interpreters',
+    /through 2 nested interpreters/.test(byId['exec-note'].textContent),
+    byId['exec-note'].textContent);
+
+  // A program that cannot fit two levels down must say so, not fail silently.
+  byId['prog-select'].value = 'multiply';
+  byId['prog-select'].dispatch('change');
+  byId['prog-input'].value = '7, 5';
+  byId['b-run'].dispatch('click');
+  check('a program too big for depth 3 reports why',
+    /outside the emulated machine's memory/.test(byId['exec-note'].textContent),
+    byId['exec-note'].textContent);
+
+  modeBtn(1).dispatch('click');
   check('switching back to native re-enables stepping', byId['b-step'].disabled === false);
 }
 

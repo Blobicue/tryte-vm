@@ -11,7 +11,8 @@ const fs = require('fs');
 const path = require('path');
 const T = require('../src/ternary.js');
 const { OPS } = require('../src/isa.js');
-const { runNative, runHosted, layout } = require('../src/selfhost.js');
+const { runNative, runHosted, layout, plan, maxDepth, interpSize,
+        interpSource, setInterpSource } = require('../src/selfhost.js');
 
 let pass = 0; const fails = [];
 const check = (name, cond, detail = '') => {
@@ -103,14 +104,93 @@ check('a program that will not fit is rejected with a clear message', (() => {
   try { runHosted(big); return false; }
   catch (e) { return /outside the emulated machine's memory/.test(e.message); }
 })());
-check('three levels of nesting is impossible in 729 cells, and the numbers say so',
-  L.interpCells > L.innerCells,
-  `interpreter ${L.interpCells} cells vs ${L.innerCells} available inside`);
+check('depth 3 is possible — an interpreter inside an interpreter',
+  maxDepth() >= 3, `maxDepth() = ${maxDepth()}`);
+check('depth 4 is not, and the pigeonhole says why',
+  maxDepth() === 3 && plan(3).innerCells < interpSize(),
+  `level-3 window ${plan(3).innerCells} cells vs interpreter ${interpSize()}`);
+check('plan(4) refuses with a message that names the shortfall', (() => {
+  try { plan(4); return false; }
+  catch (e) { return /impossible/.test(e.message) && /interpreter needs/.test(e.message); }
+})());
 {
   const a = runNative(prog('multiply.tasm'), [7, 5]);
   const b = runHosted(prog('multiply.tasm'), [7, 5]);
   const ratio = b.steps / a.steps;
   check(`emulation costs ${ratio.toFixed(1)}x the instructions (under 40x)`, ratio < 40, String(ratio));
+}
+
+console.log('\n=== 6. AN INTERPRETER INSIDE AN INTERPRETER ===');
+{
+  const P3 = plan(3);
+  check(`depth 3 lays out two interpreter layers`, P3.levels.length === 2);
+  check(`each layer relocates: origins ${P3.levels.map(l => l.origin).join(', ')}`,
+    P3.levels[0].origin !== P3.levels[1].origin);
+  check(`the innermost machine has ${P3.innerCells} cells (${P3.innerLo}..${P3.innerHi})`,
+    P3.innerCells > 40);
+
+  const src = prog('threeway.tasm');
+  const inp = [7, -3, 0, 42, -100];
+  const n = runNative(src, inp);
+  const d2 = runHosted(src, inp, { depth: 2 });
+  const d3 = runHosted(src, inp, { depth: 3 });
+  check('depth 1, 2 and 3 all produce the same output',
+    n.output.join() === d2.output.join() && d2.output.join() === d3.output.join(),
+    `${n.output} | ${d2.output} | ${d3.output}`);
+  check(`each level multiplies the work (${n.steps} -> ${d2.steps} -> ${d3.steps})`,
+    d3.steps > d2.steps && d2.steps > n.steps);
+  const r2 = d2.steps / n.steps, r3 = d3.steps / d2.steps;
+  check(`the per-level cost is roughly constant (${r2.toFixed(0)}x then ${r3.toFixed(0)}x)`,
+    Math.abs(r2 - r3) / r2 < 0.15, `${r2} vs ${r3}`);
+
+  // A different program, so depth 3 is not a one-program fluke.
+  const cd = 'IN\nSTORE n\nlp: LOAD n\nOUT\nADDI -1\nSTORE n\nBR3 t\nt: .table done, done, lp\ndone: HALT\n.org -6\nn: .word 0';
+  const a = runNative(cd, [4]), b = runHosted(cd, [4], { depth: 3 });
+  check('a countdown also agrees at depth 3', a.output.join() === b.output.join(),
+    `${a.output} vs ${b.output}`);
+  check('...and actually counted down', a.output.join() === '4,3,2,1', a.output.join());
+
+  check('a program too big for the innermost machine is refused', (() => {
+    try { runHosted(prog('multiply.tasm'), [7, 5], { depth: 3 }); return false; }
+    catch (e) { return /outside the emulated machine's memory/.test(e.message); }
+  })());
+}
+
+console.log('\n=== 7. DEEPER IS NOT STRICTLY STRONGER ===');
+{
+  // Found by mutation testing, and worth keeping as a property: an error that is
+  // an INVOLUTION on the emulated semantics cancels when applied an even number
+  // of times. Depth 3 runs two interpreter layers, so such a bug disappears at
+  // depth 3 while being obvious at depth 2. Agreement at the deepest level is
+  // therefore not a superset of agreement at shallower ones, and the acceptance
+  // test above compares depth 1, 2 AND 3 rather than just the deepest.
+  const good = interpSource();
+  const involution = good.replace('br_t:   .table br_n, br_z, br_p',
+                                  'br_t:   .table br_n, br_p, br_z');
+  const rotation  = good.replace('br_t:   .table br_n, br_z, br_p',
+                                 'br_t:   .table br_z, br_p, br_n');
+  check('both mutations apply cleanly', involution !== good && rotation !== good);
+
+  const src = prog('threeway.tasm'), inp = [7, -3, 0, 42, -100];
+  const want = runNative(src, inp).output.join();
+  const run = (source, depth) => {
+    setInterpSource(source);
+    try { return runHosted(src, inp, { depth }).output.join(); }
+    catch { return 'THREW'; }
+    finally { setInterpSource(good); }
+  };
+
+  check('an involution in the interpreter is caught at depth 2',
+    run(involution, 2) !== want);
+  check('...but MASKED at depth 3, where it is applied twice and cancels',
+    run(involution, 3) === want);
+  check('a three-cycle error does not cancel, and is caught at depth 2',
+    run(rotation, 2) !== want);
+  check('...and at depth 3 as well', run(rotation, 3) !== want);
+  check('the interpreter source was restored afterwards', interpSource() === good);
+  check('and the restored interpreter still agrees at every depth',
+    [1, 2, 3].map(d => (d === 1 ? runNative(src, inp) : runHosted(src, inp, { depth: d })).output.join())
+      .every(o => o === want));
 }
 
 console.log('\n' + '='.repeat(64));

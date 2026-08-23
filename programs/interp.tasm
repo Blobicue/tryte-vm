@@ -1,46 +1,59 @@
 ; interp.tasm — a tryte VM, running inside a tryte VM.
 ;
-; This program emulates the machine it is running on. The emulated ("inner")
-; machine has the same three registers, the same 23 opcodes and the same
-; two-cell instruction format; it differs only in having less memory, which is
-; unavoidable — 729 cells cannot hold 729 cells plus an interpreter.
+; The emulated ("inner") machine has the same three registers, the same 23
+; opcodes and the same two-cell instruction format. It differs only in having
+; less memory, which is unavoidable: 729 cells cannot hold 729 cells plus an
+; interpreter.
 ;
-; MEMORY MAP (outer addresses run -364 .. +364)
-;   -364 .. ~+35   this interpreter, its jump table, and its state
-;   IBASE + a      inner address `a`, so the inner machine gets ~329 cells
+; RELOCATABLE. There is deliberately no .org here and IBASE is rewritten at load
+; time, because a fixed layout can never nest. With one fixed base the emulated
+; machine's address window never reaches back down to the interpreter's own
+; origin, so no copy of this file could ever be loaded into a machine it was
+; running — see src/selfhost.js, which computes an origin and a base per level.
 ;
-; DISPATCH. An earlier draft used a three-level BR3 tree: 3 branches reach 27
-; destinations where binary needs 5, which is the prettier answer. Measured, it
-; cost 149 cells against 30 for the indexed jump below, so the indexed jump won.
-; The ternary advantage in branching is real but it is not free, and JMPX — added
-; for exactly this — makes the table cheaper. BR3 still does the work that suits
-; it: see h_br3, where the inner three-way branch is implemented by the outer one.
+; DECODE. The effective address of the operand (ea) and the value living there
+; (mval) are computed once during fetch rather than in each handler. That is
+; what makes the interpreter small enough to nest: it moved roughly ninety cells
+; of repeated address arithmetic out of twelve handlers and into one place. The
+; same pressure produced instruction decode in real machines, for the same reason.
+;
+; A consequence worth stating: opcodes whose operand is an immediate (LOADI,
+; ADDI, SETC, SHL, SHR, JMP) still have mval computed for them, reading a cell
+; that means nothing to them. This is harmless — every address wraps into range,
+; so the read can never fault — and those handlers simply ignore it.
+;
+; DISPATCH is an indexed jump through JMPX. A three-level BR3 tree reaches 27
+; destinations in 3 branches where binary needs 5, which is the prettier answer,
+; but measured it cost 149 cells against 30. BR3 still does the work that suits
+; it: in h_br3 the emulated three-way branch is the host's three-way branch.
 
-IBASE:  .equ  200          ; inner address a lives at outer cell IBASE + a
-
-        .org  -364
+IBASE:  .equ  200          ; rewritten per level; inner address a is at outer IBASE + a
 
 ; ---------------------------------------------------------------- fetch/decode
 fetch:  LOAD  ipc
         ADDI  IBASE
         STORE ptr
-        LOADX ptr          ; opcode
-        STORE opc
+        LOADX ptr
+        STORE opc          ; opcode
         LOAD  ptr
         ADDI  1
         STORE ptr
-        LOADX ptr          ; operand
-        STORE opd
+        LOADX ptr
+        STORE opd          ; operand
+        ADDI  IBASE
+        STORE ea           ; effective address, if the operand is an address
+        LOADX ea
+        STORE mval         ; and the value living there
         LOAD  ipc
         ADDI  2
-        STORE ipc          ; inner PC advances before the handler runs,
+        STORE ipc          ; the inner PC advances before the handler runs,
                            ; so jumps may overwrite it freely
         LOAD  opc
         ADDI  jtbl
-        STORE ptr          ; ptr = address of the table ENTRY
+        STORE ptr          ; ptr = address of the table entry
         LOADX ptr
         STORE ptr          ; ptr = the handler address held in that entry
-        JMPX  ptr          ; PC = jtbl[opcode]
+        JMPX  ptr
 
 ; ---------------------------------------------------------------- handlers
 h_halt: HALT
@@ -49,27 +62,16 @@ h_loadi:LOAD  opd
         STORE ia
         JMP   fetch
 
-h_load: LOAD  opd
-        ADDI  IBASE
-        STORE ptr
-        LOADX ptr
+h_load: LOAD  mval
         STORE ia
         JMP   fetch
 
-h_store:LOAD  opd
-        ADDI  IBASE
-        STORE ptr
-        LOAD  ia
-        STOREX ptr
+h_store:LOAD  ia
+        STOREX ea
         JMP   fetch
 
-h_add:  LOAD  opd
-        ADDI  IBASE
-        STORE ptr
-        LOADX ptr
-        STORE tmp
-        LOAD  ia
-        ADD   tmp
+h_add:  LOAD  ia
+        ADD   mval
         STORE ia
         JMP   fetch
 
@@ -78,13 +80,8 @@ h_addi: LOAD  ia
         STORE ia
         JMP   fetch
 
-h_sub:  LOAD  opd
-        ADDI  IBASE
-        STORE ptr
-        LOADX ptr
-        STORE tmp
-        LOAD  ia
-        SUB   tmp
+h_sub:  LOAD  ia
+        SUB   mval
         STORE ia
         JMP   fetch
 
@@ -93,33 +90,18 @@ h_neg:  LOAD  ia
         STORE ia
         JMP   fetch
 
-h_min:  LOAD  opd
-        ADDI  IBASE
-        STORE ptr
-        LOADX ptr
-        STORE tmp
-        LOAD  ia
-        MIN   tmp
+h_min:  LOAD  ia
+        MIN   mval
         STORE ia
         JMP   fetch
 
-h_max:  LOAD  opd
-        ADDI  IBASE
-        STORE ptr
-        LOADX ptr
-        STORE tmp
-        LOAD  ia
-        MAX   tmp
+h_max:  LOAD  ia
+        MAX   mval
         STORE ia
         JMP   fetch
 
-h_csum: LOAD  opd
-        ADDI  IBASE
-        STORE ptr
-        LOADX ptr
-        STORE tmp
-        LOAD  ia
-        CSUM  tmp
+h_csum: LOAD  ia
+        CSUM  mval
         STORE ia
         JMP   fetch
 
@@ -127,19 +109,13 @@ h_setc: LOAD  opd
         STORE ic
         JMP   fetch
 
-h_tgate:LOAD  opd
-        ADDI  IBASE
-        STORE ptr
-        LOADX ptr
-        STORE tmp
-        LDC   ic           ; the inner control register drives the outer gate
+h_tgate:LDC   ic           ; the inner control register drives the outer gate
         LOAD  ia
-        TGATE tmp
+        TGATE mval
         STORE ia
         JMP   fetch
 
-; SHL/SHR take an immediate shift count, so a variable count is done by
-; repeating a shift of one. Balanced ternary makes each step exact either way.
+; SHL/SHR take an immediate count, so a variable count repeats a shift of one.
 h_shl:  LOAD  opd
         STORE cnt
         LOAD  ia
@@ -180,19 +156,18 @@ h_jmp:  LOAD  opd
         STORE ipc
         JMP   fetch
 
-; The inner three-way branch, implemented by the outer three-way branch.
+; The emulated three-way branch, implemented by the host's three-way branch.
 h_br3:  LOAD  ia
         BR3   br_t
 br_t:   .table br_n, br_z, br_p
-br_n:   LOAD  opd
+br_n:   LOAD  ea
         ADDI  -1
         JMP   br_go
-br_z:   LOAD  opd
+br_z:   LOAD  ea
         JMP   br_go
-br_p:   LOAD  opd
+br_p:   LOAD  ea
         ADDI  1
-br_go:  ADDI  IBASE
-        STORE ptr
+br_go:  STORE ptr
         LOADX ptr
         STORE ipc
         JMP   fetch
@@ -205,39 +180,27 @@ h_in:   IN
         STORE ia
         JMP   fetch
 
-; The inner machine gets the indirect opcodes too, so it is a complete tryte VM
-; rather than a cut-down one — in principle it could host a third level.
-h_loadx:LOAD  opd
-        ADDI  IBASE
-        STORE ptr
-        LOADX ptr          ; inner pointer value
+; The emulated machine gets the indirect opcodes too, so it is a complete tryte
+; VM rather than a cut-down one — which is what lets it host another of itself.
+h_loadx:LOAD  mval
         ADDI  IBASE
         STORE ptr
         LOADX ptr
         STORE ia
         JMP   fetch
 
-h_stox: LOAD  opd
-        ADDI  IBASE
-        STORE ptr
-        LOADX ptr
+h_stox: LOAD  mval
         ADDI  IBASE
         STORE ptr
         LOAD  ia
         STOREX ptr
         JMP   fetch
 
-h_jmpx: LOAD  opd
-        ADDI  IBASE
-        STORE ptr
-        LOADX ptr
+h_jmpx: LOAD  mval
         STORE ipc
         JMP   fetch
 
-h_ldc:  LOAD  opd
-        ADDI  IBASE
-        STORE ptr
-        LOADX ptr
+h_ldc:  LOAD  mval
         STORE ic
         JMP   fetch
 
@@ -253,6 +216,8 @@ ia:     .word 0            ; inner accumulator
 ic:     .word 0            ; inner gate-control register
 opc:    .word 0            ; opcode being executed
 opd:    .word 0            ; its operand
+ea:     .word 0            ; operand read as an address
+mval:   .word 0            ; the value at that address
 ptr:    .word 0            ; scratch pointer for indirect access
 tmp:    .word 0
 cnt:    .word 0
