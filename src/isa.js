@@ -26,6 +26,16 @@ const OPS = {
   BR3:   { code: 16, operand: 'addr', doc: 'three-way branch: PC = mem[addr + sign(A)]' },
   OUT:   { code: 17, operand: 'none', doc: 'emit A to output' },
   IN:    { code: 18, operand: 'none', doc: 'A = next input value' },
+
+  // --- indirect addressing -------------------------------------------------
+  // Added because writing an interpreter for this machine is impossible without
+  // it: an interpreter must read memory at an address it COMPUTES, and every
+  // instruction above bakes its address in at assembly time. Indirection goes
+  // through a pointer CELL rather than an index register, so one instruction
+  // does one access instead of two.
+  LOADX:  { code: 19, operand: 'addr', doc: 'A = mem[mem[addr]]  (load through a pointer cell)' },
+  STOREX: { code: 20, operand: 'addr', doc: 'mem[mem[addr]] = A  (store through a pointer cell)' },
+  JMPX:   { code: 21, operand: 'addr', doc: 'PC = mem[addr]      (computed jump)' },
 };
 
 const BY_CODE = {};

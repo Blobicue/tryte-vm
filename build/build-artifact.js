@@ -2,48 +2,20 @@
 /* build-artifact.js — inline the real emulator source into a single HTML page.
  *
  * The page must never contain a second, hand-written copy of the arithmetic.
- * This script takes src/*.js verbatim, strips the CommonJS wiring, concatenates
- * the result into one scope, and injects it into the template. After building it
- * re-runs the demo programs through the BUNDLED code and compares against the
- * module code, so a divergence fails the build instead of shipping.
+ * This script takes src/*.js verbatim (via build/bundle.js), strips the CommonJS
+ * wiring, concatenates the result into one scope, and injects it into the
+ * template. After building it re-runs the demo programs through the BUNDLED code
+ * and compares against the module code, so a divergence fails the build instead
+ * of shipping.
  */
 
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const { buildBundle, readPrograms, ROOT, read } = require('./bundle.js');
 
-const ROOT = path.join(__dirname, '..');
-const read = p => fs.readFileSync(path.join(ROOT, p), 'utf8');
-
-/** Strip 'use strict', require() lines, and module.exports from a module. */
-function strip(source, exposeAs) {
-  let s = source
-    .replace(/^'use strict';\s*$/m, '')
-    .replace(/^const .*= require\(.*\);\s*$/gm, '')
-    .replace(/^const \{[^}]*\} = require\(.*\);\s*$/gm, '');
-
-  const m = s.match(/module\.exports\s*=\s*\{([\s\S]*?)\};/);
-  if (!m) throw new Error('no module.exports found');
-  const names = m[1]
-    .split(',')
-    .map(x => x.split(':')[0].trim())
-    .filter(Boolean);
-  s = s.replace(/module\.exports\s*=\s*\{[\s\S]*?\};/, '');
-  // Only the ternary module is consumed through a namespace object (T.*).
-  return exposeAs ? `${s}\nconst ${exposeAs} = { ${names.join(', ')} };\n` : s;
-}
-
-const bundle = [
-  '/* --- src/ternary.js --- */',   strip(read('src/ternary.js'), 'T'),
-  '/* --- src/isa.js --- */',       strip(read('src/isa.js')),
-  '/* --- src/vm.js --- */',        strip(read('src/vm.js')),
-  '/* --- src/assembler.js --- */', strip(read('src/assembler.js')),
-].join('\n');
-
-const programs = {};
-for (const f of fs.readdirSync(path.join(ROOT, 'programs'))) {
-  if (f.endsWith('.tasm')) programs[f.replace(/\.tasm$/, '')] = read(path.join('programs', f));
-}
+const bundle = buildBundle();
+const programs = readPrograms();
 
 /* --- anti-divergence gate ------------------------------------------------ */
 const sandbox = { console };

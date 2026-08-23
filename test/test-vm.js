@@ -127,6 +127,39 @@ console.log('\n=== 5. SOURCE MAP (for listings) ===');
   check('loadInto exposes the source map on the VM', vm2.lineOf instanceof Map && vm2.lineOf.size === 6);
 }
 
+
+console.log('\n=== 6. INDIRECT ADDRESSING (added for self-hosting) ===');
+check('LOADX reads through a pointer cell', (() => {
+  const vm3 = runSrc('LOADI 42\nSTORE cell\nLOADI 0\nLOADX ptr\nOUT\nHALT\n.org -6\nptr: .word cell\ncell: .word 0');
+  return vm3.output[0] === 42;
+})());
+check('STOREX writes through a pointer cell', (() => {
+  const vm3 = runSrc('LOADI 99\nSTOREX ptr\nLOADI 0\nLOAD cell\nOUT\nHALT\n.org -6\nptr: .word cell\ncell: .word 0');
+  return vm3.output[0] === 99;
+})());
+check('JMPX jumps to a computed address', (() => {
+  const vm3 = runSrc('JMPX tgt\nLOADI 1\nOUT\nHALT\nlate: LOADI 7\nOUT\nHALT\n.org -6\ntgt: .word late');
+  return vm3.output.join() === '7';
+})());
+check('a pointer can be computed at run time, not just assembled', (() => {
+  // walk a three-cell table by incrementing the pointer
+  const vm3 = runSrc([
+    'LOADI d0', 'STORE p',
+    'lp: LOADX p', 'OUT',
+    'LOAD p', 'ADDI 1', 'STORE p',
+    'LOADI d2', 'SUB p', 'BR3 t',
+    't: .table done, last, lp',
+    'last: LOADX p', 'OUT',
+    'done: HALT',
+    '.org -8', 'p: .word 0', 'd0: .word 11', '.word 22', 'd2: .word 33',
+  ].join('\n'));
+  return vm3.output.join() === '11,22,33';
+})(), 'pointer walk');
+check('indirection composes: mem[mem[mem[x]]] via two steps', (() => {
+  const vm3 = runSrc('LOADX pp\nSTORE q\nLOADX q\nOUT\nHALT\n.org -8\npp: .word p\np: .word v\nq: .word 0\nv: .word 55');
+  return vm3.output[0] === 55;
+})());
+
 console.log('\n' + '='.repeat(64));
 console.log(fails.length ? `FAILED (${fails.length}): ${fails.join(', ')}` : `ALL ${pass} CHECKS PASSED`);
 console.log('='.repeat(64));

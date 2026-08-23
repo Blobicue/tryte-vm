@@ -295,9 +295,14 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; fl
   <section>
     <div class="sec-head">
       <span class="eyebrow">04 — instruction set</span>
-      <h2>Nineteen instructions</h2>
+      <h2>Twenty-two instructions</h2>
       <p><span class="mono">BR3</span> is the one with no binary equivalent: it inspects the accumulator once
         and lands on one of three addresses. No flags register, no chain of compares.</p>
+      <p class="note">The last three &mdash; <span class="mono">LOADX</span>, <span class="mono">STOREX</span>,
+        <span class="mono">JMPX</span> &mdash; were added only when the machine was asked to emulate itself.
+        An interpreter must read memory at an address it <em>computes</em>, and every other instruction here
+        bakes its address in when the program is assembled. Nineteen instructions and a full test suite said
+        nothing about the gap; trying to bootstrap found it in the first five minutes.</p>
     </div>
     <div class="panel scroll-x">
       <table class="ops"><thead><tr><th>Op</th><th>Operand</th><th>Effect</th></tr></thead>
@@ -480,6 +485,16 @@ const OPS = {
   BR3:   { code: 16, operand: 'addr', doc: 'three-way branch: PC = mem[addr + sign(A)]' },
   OUT:   { code: 17, operand: 'none', doc: 'emit A to output' },
   IN:    { code: 18, operand: 'none', doc: 'A = next input value' },
+
+  // --- indirect addressing -------------------------------------------------
+  // Added because writing an interpreter for this machine is impossible without
+  // it: an interpreter must read memory at an address it COMPUTES, and every
+  // instruction above bakes its address in at assembly time. Indirection goes
+  // through a pointer CELL rather than an index register, so one instruction
+  // does one access instead of two.
+  LOADX:  { code: 19, operand: 'addr', doc: 'A = mem[mem[addr]]  (load through a pointer cell)' },
+  STOREX: { code: 20, operand: 'addr', doc: 'mem[mem[addr]] = A  (store through a pointer cell)' },
+  JMPX:   { code: 21, operand: 'addr', doc: 'PC = mem[addr]      (computed jump)' },
 };
 
 const BY_CODE = {};
@@ -556,6 +571,10 @@ class TryteVM {
       case 'BR3':   nextPC = this.read(T.wrap(operand + T.sign(this.A))); break;
       case 'OUT':   this.output.push(this.A); break;
       case 'IN':    this.A = this.input.length ? T.wrap(this.input.shift()) : 0; break;
+      // Indirect forms: the operand names a cell that HOLDS the address.
+      case 'LOADX':  this.A = this.read(this.read(operand)); break;
+      case 'STOREX': this.write(this.read(operand), this.A); break;
+      case 'JMPX':   nextPC = T.wrap(this.read(operand)); break;
       default: throw new Error(`unimplemented op ${op.name}`);
     }
 

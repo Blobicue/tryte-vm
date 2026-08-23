@@ -67,6 +67,10 @@ class TryteVM {
       case 'BR3':   nextPC = this.read(T.wrap(operand + T.sign(this.A))); break;
       case 'OUT':   this.output.push(this.A); break;
       case 'IN':    this.A = this.input.length ? T.wrap(this.input.shift()) : 0; break;
+      // Indirect forms: the operand names a cell that HOLDS the address.
+      case 'LOADX':  this.A = this.read(this.read(operand)); break;
+      case 'STOREX': this.write(this.read(operand), this.A); break;
+      case 'JMPX':   nextPC = T.wrap(this.read(operand)); break;
       default: throw new Error(`unimplemented op ${op.name}`);
     }
 

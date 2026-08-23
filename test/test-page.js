@@ -109,10 +109,28 @@ vm.createContext(sandbox);
 vm.runInContext(html.split('<script>')[1].split('</script>')[0] + '\nglobalThis.__T = T;', sandbox);
 const T = sandbox.__T;
 
+console.log('\n=== 0. THE BUILT PAGE IS NOT STALE ===');
+{
+  // Without this, every check below can pass against a page built from an older
+  // src/. That is not hypothetical: adding LOADX/STOREX/JMPX left the page on the
+  // previous 19-opcode ISA and the whole suite stayed green.
+  const { buildBundle, bundleInPage, readPrograms } = require('../build/bundle.js');
+  check('the page embeds the CURRENT src/ (rebuild with `npm run build` if this fails)',
+    bundleInPage() === buildBundle().trimEnd());
+  const inPage = html.split('const PROGRAMS = ')[1].split('\n};')[0] + '\n}';
+  check('the page embeds the CURRENT programs/', (() => {
+    try { return JSON.stringify(JSON.parse(inPage)) === JSON.stringify(readPrograms()); }
+    catch { return false; }
+  })());
+}
+
 console.log('\n=== 1. THE PAGE LOADS AND WIRES UP ===');
+const { OPS } = require('../src/isa.js');
 check('the page script runs without throwing', true);
 check('the number strip renders six trits', byId['num-strip'].children.length === 6);
-check('the instruction table lists all 19 opcodes', byId['ops-body'].children.length === 19);
+check(`the instruction table lists every opcode (${Object.keys(OPS).length})`,
+  byId['ops-body'].children.length === Object.keys(OPS).length,
+  `page has ${byId['ops-body'].children.length}`);
 check('the TGATE panel builds six three-state switches', byId['tg-switches'].children.length === 6);
 check('the program picker offers every demo program',
   byId['prog-select'].children.length === 3);
