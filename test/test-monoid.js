@@ -175,6 +175,53 @@ console.log('\n=== 7. WHAT BREAKS THE POSITIONWISE CEILING ===');
     pw.total === 27 ** 2 && pwWide.total === 27 ** 2);
 }
 
+console.log('\n=== 8. THE TOPC CEILING — the last rung of the ladder ===');
+{
+  const { arena, audit, topSinglePos, topcSample, topcAddGens } = require('../tools/monoid-lib.js');
+  // Depth 16 and a 300k cap are both too small for this arena, and an earlier
+  // run reported a false verdict because of it. The full convergence sweep
+  // (40 tables against 80) lives in `npm run audit:topc`; this pins the ladder.
+  const DEPTH = 60, CAP = 1200000;
+  const A1 = arena(1), A2 = arena(2);
+  const pw = topSinglePos(A2);
+
+  check('V1 — at width 1 the carry is inert: TOPC reaches 27, exactly like TOP',
+    audit(topcSample(A1, 40), A1.N, DEPTH, CAP).total === 27);
+  check('V2 — at width 2 TOPC alone passes the 729 ceiling',
+    audit(topcSample(A2, 8), A2.N, DEPTH, CAP).total > 729);
+
+  const alone = audit(pw, A2.N, DEPTH, CAP);
+  const withAdd = audit(pw.concat(topcAddGens(A2)), A2.N, DEPTH, CAP);
+  const withAny = audit(pw.concat(topcSample(A2, 40)), A2.N, DEPTH, CAP);
+
+  check('the ladder: positionwise closes at 729', alone.saturated && alone.total === 729);
+  check('   + one carry (ADD) closes at 251,505',
+    withAdd.saturated && withAdd.total === 251505, String(withAdd.total));
+  check('V3 — + arbitrary carries closes at 531,441, 2.11x further',
+    withAny.saturated && withAny.total === 531441, String(withAny.total));
+  check('   so freedom in the CARRY buys reach, where freedom in the table did not',
+    withAny.total > withAdd.total);
+
+  // Measurement discipline. The first run of this audit reported V3 as FAILED,
+  // because at depth 16 the sampled vocabulary was still growing while the ADD
+  // one had already closed. Running out of depth is not a smaller reach, and the
+  // three outcomes must stay distinguishable.
+  const shallow = audit(pw.concat(topcSample(A2, 8)), A2.N, 5, CAP);
+  check('a depth-limited run is distinguishable from a closed one',
+    shallow.exhausted && !shallow.saturated && shallow.total < withAny.total,
+    `${shallow.total} at depth ${shallow.sizes.length}`);
+  check('   and a capped run from both',
+    audit(pw.concat(topcSample(A2, 8)), A2.N, DEPTH, 5000).capped);
+
+  // A coincidence, flagged so nobody reads it as a vindication.
+  check('531,441 is 729^2 — the source conversation\'s figure — and 9^6, and 3^12',
+    531441 === 729 ** 2 && 531441 === 9 ** 6 && 531441 === 3 ** 12);
+  check('   the conversation counted two-stage CONFIGURATIONS of 6-trit trytes',
+    729 * 729 === 531441);
+  check('   this counts ELEMENTS of a monoid on 9 points; same number, unrelated reasons',
+    9 ** 6 === 3 ** 12);
+}
+
 console.log('\n' + '='.repeat(64));
 console.log(fails.length ? `FAILED (${fails.length}): ${fails.join(', ')}` : `ALL ${pass} CHECKS PASSED`);
 console.log('='.repeat(64));

@@ -65,19 +65,28 @@ function vocabularies(A) {
 }
 
 /* --- the audit ------------------------------------------------------------ */
-function audit(gens, N, maxdepth = 16) {
-  const seen = new Set([ident(N).join(',')]);
+function audit(gens, N, maxdepth = 16, cap = CAP) {
+  /* Keys. A map on N points is an N-tuple of values under N, so for small N the
+   * whole tuple packs into one integer and the Set holds numbers instead of
+   * strings. N=9 needs 9^9 = 387,420,489, comfortably inside a double. Above
+   * that, fall back to joining. This is the difference between the width-2
+   * ladder taking twenty seconds and taking one. */
+  const packable = N ** N <= Number.MAX_SAFE_INTEGER;
+  const keyOf = packable
+    ? t => { let k = 0; for (let i = t.length - 1; i >= 0; i--) k = k * N + t[i]; return k; }
+    : t => t.join(',');
+  const seen = new Set([keyOf(ident(N))]);
   let frontier = [ident(N)];
   const sizes = []; let rules = 0, capped = false, shortest = null;
   for (let d = 0; d < maxdepth; d++) {
     const fresh = new Map();
     for (const t of frontier) {
       for (const g of gens) {
-        const nt = compose(t, g), key = nt.join(',');
+        const nt = compose(t, g), key = keyOf(nt);
         if (seen.has(key) || fresh.has(key)) {
           rules++;
           if (shortest === null) shortest = d + 1;
-        } else if (seen.size + fresh.size >= CAP) {
+        } else if (seen.size + fresh.size >= cap) {
           capped = true;
         } else {
           fresh.set(key, nt);
@@ -90,7 +99,11 @@ function audit(gens, N, maxdepth = 16) {
     sizes.push(seen.size);
   }
   const saturated = !capped && sizes.length >= 2 && sizes[sizes.length - 1] === sizes[sizes.length - 2];
-  return { sizes, rules, total: seen.size, capped, shortest, saturated };
+  // Running out of DEPTH is not the same as hitting the cap, and neither is the
+  // same as closing. An earlier run reported "unsaturated" for a vocabulary that
+  // was simply still growing at depth 16, and the comparison it fed was wrong.
+  const exhausted = !capped && !saturated;
+  return { sizes, rules, total: seen.size, capped, shortest, saturated, exhausted };
 }
 
 /** Audit one vocabulary at one width. */

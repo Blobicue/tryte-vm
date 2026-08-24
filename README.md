@@ -2,11 +2,11 @@
 
 A working emulator for a computer that counts in **three states instead of two**.
 Core arithmetic, an instruction set, a virtual machine, an assembler, and demo
-programs. 369 tests, all passing, including exhaustive sweeps over the machine's
+programs. 380 tests, all passing, including exhaustive sweeps over the machine's
 entire value space.
 
 ```bash
-npm test                      # 369 checks
+npm test                      # 380 checks  (~50s: the monoid sweeps are real)
 node src/run.js programs/multiply.tasm 7 5
 npm run selfhost              # the machine emulating itself
 ```
@@ -488,6 +488,48 @@ would leave **9 cells**, less than any program. The split is a measured decision
 Complete coverage and maximum depth turn out to be the two ends of one budget, and
 at 729 cells you cannot have both.
 
+## The ladder of ceilings
+
+Six audits, each registering its predictions before running. What they found is a
+ladder — and every rung is a fact about the **vocabulary**, not about the machine:
+
+| vocabulary | reach | |
+|---|---|---|
+| `TGATE`, all 729 controls | 77,687 at width 6 | closed |
+| any positionwise vocabulary | 27^w | closed — `TOP` sits exactly on it |
+| positionwise + **one** carry (`ADD`) | 251,505 at width 2 | closed |
+| positionwise + **arbitrary** carries (`TOPC`) | **531,441** | closed |
+| every map on 9 points | 387,420,489 | — |
+
+**Freedom in the carry buys reach; freedom in the table did not.** 19,683 `TOP`
+tables collapsed to 27. 27 extra positionwise generators bought +0. But making the
+*carry* data doubles the reach over the single carry the machine shipped with —
+2.11× — and the whole thing still closes at 0.14% of the maps on 9 points.
+
+And at width 1 the carry is **inert**: `TOPC` reaches 27, exactly what `TOP`
+reaches. A carry needs a neighbour before it is worth anything.
+
+### The instrument lied first, and the fix is in the record
+
+The first run of this audit reported V3 **failed**. It hadn't: at depth 16 the
+sampled vocabulary was still growing while the `ADD` one had already closed, so a
+smaller number was being read as a smaller reach. Running out of depth, hitting
+the cap, and closing are three different outcomes, and the auditor now
+distinguishes them — with a test asserting all three stay distinguishable.
+
+*(Keys were also packed into integers for small arenas, which is what makes a
+531,441-element sweep affordable enough to pin in the suite at all.)*
+
+### A coincidence, flagged as one
+
+The ladder's top rung is **531,441** — numerically the exact figure the source
+conversation claimed for "unique cascading logic networks". It is a coincidence,
+and the arithmetic says why: the conversation multiplied 729 × 729 to count
+two-stage *configurations* of 6-trit trytes; this counts *elements* of a monoid on
+9 points, which is 9^6. Both are 3^12, for entirely unrelated reasons. The
+conversation's number was still wrong about what it claimed to count — that
+remains 77,687 versus 531,441 — and a matching digit string is not a vindication.
+
 ## Is any of it actually worth it?
 
 Everything above checks that ternary is *correct*. `npm run bench` checks whether
@@ -573,10 +615,10 @@ programs/          threeway.tasm, multiply.tasm, tgate.tasm, kleene.tasm,
                    countdown.tasm, fold.tasm,
                    interp.tasm (23 opcodes), interp-core.tasm (14, self-sufficient)
 test/              test-core.js (27), test-vm.js (41), test-selfhost.js (83),
-                   test-bench.js (15), test-logic.js (25), test-monoid.js (44), test-fold.js (53),
+                   test-bench.js (15), test-logic.js (25), test-monoid.js (55), test-fold.js (53),
                    test-page.js (43), test-style.js (28), run-all.js
 tools/             monoid-audit.js, top-audit.js, carry-audit.js,
-                   fold-audit.js, carryop-audit.js
+                   fold-audit.js, carryop-audit.js, topc-audit.js
 bench/             the three-way vs two-way branching benchmark
 build/             inlines src/ into a single interactive HTML page
 docs/tryte-vm.html the built page

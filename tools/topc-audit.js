@@ -42,30 +42,34 @@
 const { arena, audit, topSinglePos, topcSample, topcAddGens } = require('./monoid-lib.js');
 
 const line = '='.repeat(78);
-const SAMPLE = 300;
+const SAMPLE = 40;          // 40 and 80 give the same answer, so this has converged
+const DEPTH = 100;          // NOT 16: at 16 these vocabularies are still growing
+const CAP = 1200000;        // NOT 300k: the interesting closure sits above it
+
+const state = r => r.saturated ? 'CLOSED' : r.capped ? 'hit the cap' : `still growing at depth ${r.sizes.length}`;
 console.log('TOPC CEILING AUDIT — the carry as data, and whether the ladder has another rung.\n');
 
 console.log('--- V1  at width 1 the carry is inert ---');
 {
   const A = arena(1);
-  const t = audit(topcSample(A, SAMPLE), A.N);
+  const t = audit(topcSample(A, SAMPLE), A.N, DEPTH, CAP);
   console.log(`      TOPC sample, width 1: reached ${t.total}   ${t.total === 27 ? 'HOLDS (= 27, same as TOP)' : 'FAILS'}`);
   console.log('      one position has no neighbour, so the third input does nothing');
 }
 
 console.log('\n--- V2  at width 2 TOPC alone passes the positionwise ceiling ---');
 const A2 = arena(2);
-const topcOnly = audit(topcSample(A2, SAMPLE), A2.N);
+const topcOnly = audit(topcSample(A2, SAMPLE), A2.N, DEPTH, CAP);
 console.log(`      TOPC sample alone: reached ${topcOnly.total}   ceiling 27^2 = 729`);
 console.log(`      ${topcOnly.total > 729 ? 'HOLDS' : 'FAILS'}`);
 
 console.log('\n--- V3  does table freedom in the carry buy reach beyond ADD? ---');
 {
   const pw = topSinglePos(A2);
-  const withAdd = audit(pw.concat(topcAddGens(A2)), A2.N);
-  const withAny = audit(pw.concat(topcSample(A2, SAMPLE)), A2.N);
-  console.log(`      positionwise + TOPC carrying ADD : ${withAdd.total}${withAdd.saturated ? ' (closed)' : ''}`);
-  console.log(`      positionwise + ${SAMPLE} sampled TOPC : ${withAny.total}${withAny.saturated ? ' (closed)' : ' (unsaturated at the cap)'}`);
+  const withAdd = audit(pw.concat(topcAddGens(A2)), A2.N, DEPTH, CAP);
+  const withAny = audit(pw.concat(topcSample(A2, SAMPLE)), A2.N, DEPTH, CAP);
+  console.log(`      positionwise + TOPC carrying ADD : ${withAdd.total.toLocaleString()}  ${state(withAdd)}`);
+  console.log(`      positionwise + ${SAMPLE} sampled TOPC : ${withAny.total.toLocaleString()}  ${state(withAny)}`);
   if (withAny.total > withAdd.total) {
     console.log(`      V3 HOLDS — freedom buys ${(withAny.total - withAdd.total).toLocaleString()} more elements`
       + `, ${(withAny.total / withAdd.total).toFixed(2)}x`);
