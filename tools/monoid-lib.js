@@ -172,6 +172,62 @@ function topSinglePos(A) {
   return gens;
 }
 
-module.exports = { CAP, arena, compose, ident, tgateTable, addTable,
+/* --- TOPC vocabularies ------------------------------------------------------ */
+/* With the second operand pinned to 0, a TOPC table's behaviour is fixed by nine
+ * (out, carry) pairs -- one per (x, carry-in). That is 3^18 = 387,420,489
+ * distinct behaviours, far too many to enumerate, so these are SAMPLED with a
+ * fixed seed and whatever they reach is a LOWER bound on the real reach. */
+
+/** One TOPC generator at y = 0, given its output and carry functions. */
+function topcAtZero(A, outFn, carryFn) {
+  return Array.from({ length: A.N }, (_, i) => {
+    const xs = A.trits(A.val(i));
+    const out = [];
+    let c = 0;
+    for (let k = 0; k < A.w; k++) { const x = xs[k]; out.push(outFn(x, c)); c = carryFn(x, c); }
+    return A.idx(A.fromTrits(out));
+  });
+}
+
+/** k sampled TOPC tables, deterministic for a given seed. */
+function topcSample(A, k, seed = 20260823) {
+  let state = seed >>> 0;
+  const next = () => { state = (state * 1103515245 + 12345) >>> 0; return (state >>> 16) % 3; };
+  const gens = [];
+  for (let s = 0; s < k; s++) {
+    const o = {}, cy = {};
+    for (const x of [-1, 0, 1]) for (const c of [-1, 0, 1]) {
+      o[`${x},${c}`] = next() - 1;
+      cy[`${x},${c}`] = next() - 1;
+    }
+    gens.push(topcAtZero(A, (x, c) => o[`${x},${c}`], (x, c) => cy[`${x},${c}`]));
+  }
+  return gens;
+}
+
+/** TOPC carrying the balanced-ternary addition table, over every second operand. */
+function topcAddGens(A) {
+  const half = (A.N - 1) / 2;
+  const sgnRound = v => Math.sign(v) * Math.round(Math.abs(v) / 3);
+  const gens = [];
+  for (let y = -half; y <= half; y++) {
+    const ys = A.trits(y);
+    gens.push(Array.from({ length: A.N }, (_, i) => {
+      const xs = A.trits(A.val(i));
+      const out = [];
+      let c = 0;
+      for (let k = 0; k < A.w; k++) {
+        const sum = xs[k] + ys[k] + c;
+        const carry = sgnRound(sum);
+        out.push(sum - 3 * carry);
+        c = carry;
+      }
+      return A.idx(A.fromTrits(out));
+    }));
+  }
+  return gens;
+}
+
+module.exports = { topcAtZero, topcSample, topcAddGens, CAP, arena, compose, ident, tgateTable, addTable,
                    vocabularies, audit, reach, perTritDepths, reachByLaw,
                    allUnary, positionwise, topFixed, topSinglePos };
