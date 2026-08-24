@@ -2,11 +2,11 @@
 
 A working emulator for a computer that counts in **three states instead of two**.
 Core arithmetic, an instruction set, a virtual machine, an assembler, and demo
-programs. 302 tests, all passing, including exhaustive sweeps over the machine's
+programs. 311 tests, all passing, including exhaustive sweeps over the machine's
 entire value space.
 
 ```bash
-npm test                      # 302 checks
+npm test                      # 311 checks
 node src/run.js programs/multiply.tasm 7 5
 npm run selfhost              # the machine emulating itself
 ```
@@ -313,6 +313,40 @@ is reachable, the program fits the window, *and* the variant implements the
 opcodes the program uses — falling back to the core, and naming every reason when
 nothing fits. The regression was caught by the suite, not by inspection.
 
+## What breaks the ceiling: the carry, not the gates
+
+27^w bounds *any* positionwise vocabulary. So the last audit asks what escapes it,
+and the candidate is an operation whose output at one position depends on trits at
+**other** positions — a carry. Five predictions, registered before the run, all
+held. At width 2, where the ceiling is 27² = 729 and there are 387,420,489 maps
+in total:
+
+| vocabulary | generators added | reach | gain |
+|---|---|---|---|
+| positionwise | — | 729 | — |
+| **+ 27 more positionwise** | 27 | **729** | **+0** |
+| + one shift (`v → 3v`) | 1 | 801 | +72 |
+| **+ one translation (`v → v+1`)** | **1** | **251,505** | **+250,776** |
+
+Twenty-seven extra tables bought **nothing**. One carrying instruction bought a
+345× larger monoid. That is `table-audit`'s `wide16` reproduced in this arena, with
+the control and the treatment side by side in one table — which is the only way
+"we added a generator and reach went up" means anything.
+
+**Not all coupling is equal, and that wasn't predicted.** Both `ADD` and `SHL`
+touch other positions, yet the carry buys **3,483×** what the shift does. A shift
+is a fixed relabelling; a carry is *data-dependent* — which trits move depends on
+the values. Coupling has to be conditional to generate.
+
+**And even then the machine closes.** With the carry the vocabulary still
+saturates, at 251,505 — **0.065%** of the maps on 9 points. Escaping the
+positionwise ceiling is not the same as becoming universal.
+
+The conclusion is about this machine rather than the audit: **`TGATE` and `TOP`
+are bounded by 27^w however many tables they carry. What makes this a general
+computer is `ADD`, `SUB`, `SHL` and `SHR` — the arithmetic, not the gates.** The
+source conversation spent its length on the gates.
+
 ## Is any of it actually worth it?
 
 Everything above checks that ternary is *correct*. `npm run bench` checks whether
@@ -397,9 +431,9 @@ src/run.js         CLI runner
 programs/          threeway.tasm, multiply.tasm, tgate.tasm, kleene.tasm,
                    interp.tasm (23 opcodes), interp-core.tasm (14, self-sufficient)
 test/              test-core.js (27), test-vm.js (41), test-selfhost.js (83),
-                   test-bench.js (15), test-logic.js (25), test-monoid.js (35),
+                   test-bench.js (15), test-logic.js (25), test-monoid.js (44),
                    test-page.js (42), test-style.js (28), run-all.js
-tools/             monoid-audit.js, top-audit.js — what each vocabulary generates
+tools/             monoid-audit.js, top-audit.js, carry-audit.js
 bench/             the three-way vs two-way branching benchmark
 build/             inlines src/ into a single interactive HTML page
 docs/tryte-vm.html the built page

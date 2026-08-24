@@ -12,7 +12,9 @@
     "selfhost": "node test/test-selfhost.js",
     "bench": "node test/test-bench.js",
     "logic": "node test/test-logic.js",
-    "audit": "node tools/monoid-audit.js"
+    "audit": "node tools/monoid-audit.js",
+    "audit:top": "node tools/top-audit.js",
+    "audit:carry": "node tools/carry-audit.js"
   },
   "license": "MIT",
   "private": true

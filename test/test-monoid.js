@@ -135,6 +135,46 @@ console.log('\n=== 6. TOP — richness per instruction is not reach ===');
     Math.abs(531441 / 77687 - 6.84) < 0.01);
 }
 
+console.log('\n=== 7. WHAT BREAKS THE POSITIONWISE CEILING ===');
+{
+  const { arena, audit, topSinglePos, topFixed, addTable } = require('../tools/monoid-lib.js');
+  const A = arena(2);
+  const shl = Array.from({ length: A.N }, (_, i) => A.idx(A.val(i) * 3));
+  const at = gens => audit(gens, A.N);
+
+  const pw = at(topSinglePos(A));
+  const pwWide = at(topSinglePos(A).concat(topFixed(A)));
+  const pwAdd = at(topSinglePos(A).concat([addTable(A, 1)]));
+  const pwShl = at(topSinglePos(A).concat([shl]));
+
+  check('R1 — the positionwise vocabulary saturates at exactly 27^2 = 729',
+    pw.saturated && pw.total === 729, String(pw.total));
+  check('R2 — 27 MORE positionwise generators reach the same 729: +0 elements',
+    pwWide.saturated && pwWide.total === 729, String(pwWide.total));
+  check('R3 — ONE translation reaches 251,505 — 345x more',
+    pwAdd.total === 251505, String(pwAdd.total));
+  check('R4 — one shift also escapes, reaching 801', pwShl.total === 801, String(pwShl.total));
+
+  check('R5 — the escape is coupling, not generator count',
+    pwWide.total - pw.total === 0 && pwAdd.total - pw.total > 250000);
+
+  // Beyond the registered predictions. Both ADD and SHL couple trits, yet the
+  // translation buys 250,776 elements and the shift buys 72. Carry is
+  // data-dependent — which trits move depends on the values — while the shift is
+  // a fixed relabelling. Coupling alone is not enough; it has to be conditional.
+  check('NOT ALL COUPLING IS EQUAL: the carry buys ~3,483x what the shift does',
+    Math.round((pwAdd.total - pw.total) / (pwShl.total - pw.total)) === 3483,
+    String(Math.round((pwAdd.total - pw.total) / (pwShl.total - pw.total))));
+
+  check('and even with the carry the machine closes, rather than reaching every map',
+    pwAdd.saturated && pwAdd.total < 9 ** 9);
+  check('   251,505 is 0.065% of the 387,420,489 maps on 9 points',
+    Math.abs(100 * pwAdd.total / 9 ** 9 - 0.0649) < 0.001);
+
+  check('so TGATE and TOP are bounded by 27^w however many tables they carry',
+    pw.total === 27 ** 2 && pwWide.total === 27 ** 2);
+}
+
 console.log('\n' + '='.repeat(64));
 console.log(fails.length ? `FAILED (${fails.length}): ${fails.join(', ')}` : `ALL ${pass} CHECKS PASSED`);
 console.log('='.repeat(64));
