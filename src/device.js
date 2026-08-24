@@ -79,7 +79,15 @@ class Net {
       return d.kind === 'n' ? (g >= d.vt) : (g <= d.vt);
     };
 
-    /** Nodes reachable from a rail, following edges the predicate accepts. */
+    /**
+     * Nodes reachable from a rail, following edges the predicate accepts.
+     *
+     * DRIVEN NODES ARE TERMINALS. A rail or an input is an ideal source: signal
+     * stops there, it does not pass through. Without this, a path from vmid that
+     * happens to touch vss and then continues out of vss makes every node vss
+     * drives look contended with vmid, and correct circuits resolve to X. That
+     * was a real bug here, and the composition test is what caught it.
+     */
     const reach = (rail, accept) => {
       const seen = new Set([rail]);
       const stack = [rail];
@@ -88,7 +96,9 @@ class Net {
         for (const d of this.devices) {
           if (!accept(d)) continue;
           const other = d.a === at ? d.b : d.b === at ? d.a : null;
-          if (other !== null && !seen.has(other)) { seen.add(other); stack.push(other); }
+          if (other === null || seen.has(other)) continue;
+          seen.add(other);
+          if (!driven.has(other)) stack.push(other);       // do not expand through a source
         }
       }
       return seen;

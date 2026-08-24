@@ -4,10 +4,10 @@ A working computer that counts in **three states instead of two** — core
 arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
 assembly, and six audits establishing exactly what its instruction set can reach.
 
-**414 checks**, all passing. Every number below is recomputed by one of them.
+**441 checks**, all passing. Every number below is recomputed by one of them.
 
 ```bash
-npm test              # everything (~50s; the monoid sweeps are real work)
+npm test              # everything (~55s; the monoid and switch sweeps are real work)
 npm run build         # rebuild the interactive page from src/
 node src/run.js programs/multiply.tasm 7 5
 ```
@@ -33,7 +33,8 @@ node src/run.js programs/multiply.tasm 7 5
 | Instructions | 25 (`src/isa.js`) |
 
 ```
-src/         ternary.js (arithmetic + gates), isa.js, vm.js, assembler.js,
+src/         device.js (switch-level transistors -- the layer BELOW the arithmetic),
+             ternary.js (arithmetic + gates), isa.js, vm.js, assembler.js,
              selfhost.js (run a program inside the emulated machine), run.js
 programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
@@ -60,6 +61,7 @@ registering commits and the tests that assert each one, in
 | **S1–S4** | folding a chain of tables into one | all held |
 | **U1–U3** | `TOPC`, the carry as a table | all held |
 | **V1–V4** | whether the ceiling ladder has another rung | all held |
+| **W1–W3** | the gates rebuilt from switches, and what they cost | all held |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:
@@ -72,6 +74,45 @@ pre-registration record is not inflated by facts that were never at risk:
 - **Three-way branching wins about half an instruction** per decision point, and nothing when the decision is binary.
 
 ---
+
+## Built from switches, not asserted from the top
+
+Everything above `src/ternary.js` is built on it. `src/device.js` is the layer
+**below** it: transistors as threshold switches, nodes resolved by which rail they
+can reach. `MIN`, `MAX` and `NEG` are constructed from those switches and checked
+against the same functions the rest of the suite is written against.
+
+```bash
+npm run audit:device          # exhaustive: all 531,441 pairs per gate, ~90s
+```
+
+| gate | switches | mid-rail taps |
+|---|---|---|
+| STI (= `NEG`) | 4 | 1 |
+| NTI / PTI | 2 each | 0 |
+| MIN / MAX | 8 each | 1 |
+
+Six slices side by side make a six-trit datapath that matches `T.tMIN`, `T.tMAX`
+and `T.neg` **exhaustively**, and gates compose without degrading.
+
+**This is switch-level, not SPICE**, and the header of `src/device.js` lists what
+that means it assumes away. The largest by far: **the middle rail is free here.**
+Real ternary logic must *generate* its mid level — dividers that burn static
+power, or dual supplies — so switch counts report mid-rail taps in a separate
+column. A comparison that folds that in is not a comparison.
+
+Which is why the cost result is reported the way it is:
+
+| at equal representable range | switches | mid-rail taps | rails |
+|---|---|---|---|
+| ternary `MIN`, 6 trits (729 values) | **48** | 6 | 3 |
+| binary `AND`, 10 bits (1024 values) | 60 | 0 | 2 |
+
+The raw ratio is **0.80 — it favours ternary**, and that was predicted along with
+the prediction that it should not be believed. Six trits carry what ten bits do,
+so the ternary side gets fewer, wider slices; but it also taps a rail this model
+hands out free. Separately, the radix-economy bar computed earlier was **3.08×
+per digit** — a different currency from switches per gate, and not settled by it.
 
 ## The idea, without the jargon
 

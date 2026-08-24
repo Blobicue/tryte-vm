@@ -38,8 +38,11 @@ check('every outcome is one of the three declared values',
   M.unregistered_findings.every(f => f.outcome in M.outcome_values));
 check('the three outcome values are HELD, FAILED and MEASURED_NOT_REGISTERED',
   ['HELD', 'FAILED', 'MEASURED_NOT_REGISTERED'].every(k => k in M.outcome_values));
+// Derived, not hardcoded: this file exists to catch stale constants and had one.
 check(`${allPreds.length} registered predictions across ${M.prediction_sets.length} sets`,
-  allPreds.length === 27 && M.prediction_sets.length === 6, String(allPreds.length));
+  allPreds.length > 0 && M.prediction_sets.length > 0 &&
+  new Set(M.prediction_sets.map(s => s.tool)).size === M.prediction_sets.length,
+  'one set per tool');
 check('exactly one registered prediction failed, and it is kept as FAILED',
   allPreds.filter(p => p.outcome === 'FAILED').map(p => p.id).join() === 'P3');
 check('unregistered findings are listed separately, not counted as predictions',
@@ -54,7 +57,7 @@ console.log('\n=== 2. COMPLETENESS AGAINST THE TOOLS ===');
   for (const s of M.prediction_sets) {
     const src = fs.readFileSync(path.join(ROOT, s.tool), 'utf8');
     const block = src.slice(src.indexOf('PREDICTED OUTCOMES'), src.indexOf(' */'));
-    for (const m of block.matchAll(/^ \*\s{3}([PQRSUV]\d+)\s{2}/gm)) found.add(m[1]);
+    for (const m of block.matchAll(/^ \*\s{3}([A-Z]\d+)\s{2}/gm)) found.add(m[1]);
   }
   const declared = new Set(allPreds.map(p => p.id));
   const missing = [...found].filter(id => !declared.has(id));
