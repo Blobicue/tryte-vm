@@ -11,7 +11,8 @@
     "tgate": "node src/run.js programs/tgate.tasm 123 -45",
     "selfhost": "node test/test-selfhost.js",
     "bench": "node test/test-bench.js",
-    "logic": "node test/test-logic.js"
+    "logic": "node test/test-logic.js",
+    "audit": "node tools/monoid-audit.js"
   },
   "license": "MIT",
   "private": true

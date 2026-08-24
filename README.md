@@ -2,11 +2,11 @@
 
 A working emulator for a computer that counts in **three states instead of two**.
 Core arithmetic, an instruction set, a virtual machine, an assembler, and demo
-programs. 261 tests, all passing, including exhaustive sweeps over the machine's
+programs. 287 tests, all passing, including exhaustive sweeps over the machine's
 entire value space.
 
 ```bash
-npm test                      # 261 checks
+npm test                      # 287 checks
 node src/run.js programs/multiply.tasm 7 5
 npm run selfhost              # the machine emulating itself
 ```
@@ -188,6 +188,65 @@ cost of representing a number is roughly the radix times the digits needed. For 
 million values, base 2 costs 40, **base 3 costs 39**, base 4 costs 40. Base 3
 wins because the continuous optimum is *e* = 2.718…, and 3 is the nearest integer.
 
+## The 531,441 claim, settled
+
+The source conversation claimed that cascading two 6-trit `TGATE` stages gives
+**"531,441 unique cascading logic networks."** The first audit in
+`docs/origin/REPORT.md` called that overcounting and demonstrated it at toy scale.
+This measures it properly.
+
+```bash
+npm run audit
+```
+
+Fix `TGATE`'s second operand and each of the 3^w controls becomes a unary map on
+trytes — a **table**. A vocabulary of k tables on N points generates a **monoid**
+under composition, and chaining stages, however many, cannot leave it. So the
+right question is not how many configurations exist but how many *elements* the
+vocabulary reaches.
+
+| width | controls | reach |
+|---|---|---|
+| 1 | 3 | 7 |
+| 2 | 9 | 47 |
+| 3 | 27 | 307 |
+| 4 | 81 | 1,967 |
+| 5 | 243 | 12,427 |
+| **6** | **729** | **77,687** |
+
+**531,441 = 729² counts configurations of two stages. 77,687 is every function
+reachable by any number of stages.** The claim overstates by **6.84×**, and
+cascading past that point adds nothing at all.
+
+**A prediction failed, and the failure was the finding.** Six predictions were
+registered in `tools/monoid-audit.js` and committed *before* the run, so git
+supplies the ordering an editable file cannot. Five held. **P3 — that the reach
+would be the full direct product, 7^w — failed**: 47 not 49, 307 not 343. The
+reason is that one composition step applies *one* control across *all* trit
+positions, so after d steps every position carries a word of length exactly d.
+The positions must agree on word length, which is strictly weaker than a direct
+product:
+
+> reach(w) = │ ⋃_d (M_d)^w │
+
+That corrected law is labelled post-hoc throughout, validated against all five
+measured widths, and only then used at width 6. The failed prediction is kept as
+a test — a project that keeps only its successful predictions is not making
+predictions.
+
+**One contrast worth the trip.** The instrument comes from a sister tool whose
+headline result is `wide16`: sixteen tables reaching exactly the same 20,160
+elements as six, because all sixteen were drawn from one linear group — ten more
+tables bought **+0**. Here the opposite holds. Three uniform controls reach 7 at
+every width; all 729 reach 77,687. The tables are independent per trit position
+rather than drawn from a single group, so they genuinely buy reach. *Whether more
+tables help is a property of the vocabulary, not of the count.*
+
+*Instrument borrowed from `tools/table-audit.py` in the gameladder repo, which
+credits `unit:braid_relation_miner` for the shape. Ported to JavaScript rather
+than reimplemented in Python so that `T.tgate` has exactly one definition — the
+audit imports the semantics it is auditing, and a test asserts the agreement.*
+
 ## Is any of it actually worth it?
 
 Everything above checks that ternary is *correct*. `npm run bench` checks whether
@@ -272,8 +331,9 @@ src/run.js         CLI runner
 programs/          threeway.tasm, multiply.tasm, tgate.tasm, kleene.tasm,
                    interp.tasm (23 opcodes), interp-core.tasm (14, self-sufficient)
 test/              test-core.js (27), test-vm.js (41), test-selfhost.js (83),
-                   test-bench.js (15), test-logic.js (25), test-page.js (42),
-                   test-style.js (28), run-all.js
+                   test-bench.js (15), test-logic.js (25), test-monoid.js (26),
+                   test-page.js (42), test-style.js (28), run-all.js
+tools/             monoid-audit.js — what the TGATE vocabulary actually generates
 bench/             the three-way vs two-way branching benchmark
 build/             inlines src/ into a single interactive HTML page
 docs/tryte-vm.html the built page
