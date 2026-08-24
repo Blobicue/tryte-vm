@@ -2,11 +2,11 @@
 
 A working emulator for a computer that counts in **three states instead of two**.
 Core arithmetic, an instruction set, a virtual machine, an assembler, and demo
-programs. 311 tests, all passing, including exhaustive sweeps over the machine's
+programs. 334 tests, all passing, including exhaustive sweeps over the machine's
 entire value space.
 
 ```bash
-npm test                      # 311 checks
+npm test                      # 334 checks
 node src/run.js programs/multiply.tasm 7 5
 npm run selfhost              # the machine emulating itself
 ```
@@ -347,6 +347,55 @@ are bounded by 27^w however many tables they carry. What makes this a general
 computer is `ADD`, `SUB`, `SHL` and `SHR` — the arithmetic, not the gates.** The
 source conversation spent its length on the gates.
 
+## Routing a chain through one table
+
+Closure is not just a counting fact; it is a licence to **fold**. If the composite
+of two `TOP`s is again a `TOP`, a whole chain collapses at build time into one
+table applied by one instruction:
+
+> **T3[a][b] = T2[ T1[a][b] ][b]**
+
+Column-wise composition — and notice what the formula omits: the second operand.
+One fold stays correct for every input the program will ever meet.
+
+A four-stage chain, measured:
+
+| | unfolded | folded | saved |
+|---|---|---|---|
+| Cells | 97 | 34 | 63 |
+| Instructions, native | 29 | 11 | 18 |
+| Instructions, emulated (depth 2) | 772 | 289 | **483** |
+
+**The saving multiplies with depth — 26.8× more at depth 2.** Folding is worth
+most precisely where execution is dearest, because every guest instruction removed
+takes ~27 host instructions with it per level.
+
+Identical folded tables are **content addressed**, so a composite used twice costs
+nine cells rather than eighteen.
+
+**Foldability is a property `TOP` has and `TGATE` does not.** `TOP`'s columns are
+arbitrary, so the family is closed. `TGATE`'s three modes generate a seven-element
+per-trit monoid — **six of its eight two-stage composites are not any `TGATE`
+mode**, so a `TGATE` chain has nothing to fold into. That is the same 3-versus-27
+gap the audits measured, showing up as an optimisation that exists or doesn't.
+
+**And the fold stops at a carry.** Insert one `ADD` between two `TOP`s and the
+folded table stops agreeing, because the chain is no longer positionwise. The
+optimisation's boundary is exactly the boundary the carry audit found by counting —
+one arrived at by algebra, the other by enumeration, meeting at the same place.
+
+*One limit, stated: `TOP` programs emulate two levels deep, not three, because the
+core interpreter deliberately drops `TOP`.*
+
+### A silent bug this turned up
+
+`LOADI t0` assembled as the **value zero** rather than the address of label `t0`,
+because `t0` is also valid trit-literal syntax. No diagnostic, just a wrong
+program — and it only surfaced because the folded and unfolded versions were being
+compared against each other. The assembler now refuses such labels outright rather
+than resolving them by precedence, which would have moved the surprise instead of
+removing it.
+
 ## Is any of it actually worth it?
 
 Everything above checks that ternary is *correct*. `npm run bench` checks whether
@@ -431,9 +480,9 @@ src/run.js         CLI runner
 programs/          threeway.tasm, multiply.tasm, tgate.tasm, kleene.tasm,
                    interp.tasm (23 opcodes), interp-core.tasm (14, self-sufficient)
 test/              test-core.js (27), test-vm.js (41), test-selfhost.js (83),
-                   test-bench.js (15), test-logic.js (25), test-monoid.js (44),
+                   test-bench.js (15), test-logic.js (25), test-monoid.js (44), test-fold.js (23),
                    test-page.js (42), test-style.js (28), run-all.js
-tools/             monoid-audit.js, top-audit.js, carry-audit.js
+tools/             monoid-audit.js, top-audit.js, carry-audit.js, fold-audit.js
 bench/             the three-way vs two-way branching benchmark
 build/             inlines src/ into a single interactive HTML page
 docs/tryte-vm.html the built page

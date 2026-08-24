@@ -44,6 +44,20 @@ function tokenize(src) {
   }).filter(Boolean);
 }
 
+/* A label like `t0` or `t+-` is also valid trit-literal syntax, so `LOADI t0`
+ * would silently assemble as the VALUE zero rather than the ADDRESS of t0. That
+ * is a wrong program with no diagnostic, so such names are refused outright
+ * rather than resolved by precedence, which would only move the surprise. */
+const TRIT_LITERAL = /^t[+\-0]+$/i;
+function checkLabelName(name, lineNo) {
+  if (TRIT_LITERAL.test(name)) {
+    throw new Error(
+      `label '${name}' (line ${lineNo}) is also trit-literal syntax, so uses of it ` +
+      `would assemble as a value instead of an address; rename it`);
+  }
+  return name;
+}
+
 function assemble(src, origin = 0) {
   const lines = tokenize(src);
   const labels = {};
@@ -51,6 +65,7 @@ function assemble(src, origin = 0) {
   // --- pass 1: sizes and label addresses -----------------------------------
   let pc = origin;
   for (const L of lines) {
+    if (L.label) checkLabelName(L.label, L.lineNo);
     if (L.mnemonic === '.ORG') { pc = parseNumber(L.args[0], labels, `line ${L.lineNo}`); if (L.label) labels[L.label] = pc; continue; }
     if (L.mnemonic === '.EQU') {
       if (!L.label) throw new Error(`.equ needs a label (line ${L.lineNo})`);

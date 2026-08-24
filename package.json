@@ -14,7 +14,8 @@
     "logic": "node test/test-logic.js",
     "audit": "node tools/monoid-audit.js",
     "audit:top": "node tools/top-audit.js",
-    "audit:carry": "node tools/carry-audit.js"
+    "audit:carry": "node tools/carry-audit.js",
+    "audit:fold": "node tools/fold-audit.js"
   },
   "license": "MIT",
   "private": true

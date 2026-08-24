@@ -50,10 +50,10 @@ function chainProgram(tables, folded) {
   const use = folded ? [T.foldTables(...tables)] : tables;
   const lines = ['IN', 'STORE xv'];
   use.forEach((_, i) => {
-    lines.push(`LOADI t${i}`, 'STORE cp', 'LDC cp', 'LOAD xv', 'TOP yv', 'STORE xv');
+    lines.push(`LOADI tb${i}`, 'STORE cp', 'LDC cp', 'LOAD xv', 'TOP yv', 'STORE xv');
   });
   lines.push('LOAD xv', 'OUT', 'HALT', '.org -60', 'cp: .word 0', 'yv: .word -45', 'xv: .word 0');
-  use.forEach((t, i) => lines.push(`t${i}: .word ${t.map(T.lowTrit).join(', ')}`));
+  use.forEach((t, i) => lines.push(`tb${i}: .word ${t.map(T.lowTrit).join(', ')}`));
   return lines.join('\n');
 }
 
@@ -73,8 +73,11 @@ const uSteps = runNative(unfolded, [123]).steps, fSteps = runNative(folded, [123
 console.log(`      identical output on ${probes.length} probes: ${exact ? 'HOLDS' : 'FAILS'}`);
 console.log(`      cells       ${cells(unfolded)} -> ${cells(folded)}`);
 console.log(`      instructions ${uSteps} -> ${fSteps}   saved ${uSteps - fSteps}`);
-console.log(`      S1 predicted (N-1)=3 instructions saved per application: `
-  + `${uSteps - fSteps === 3 * 6 ? 'see note' : ''}${(uSteps - fSteps) === 18 ? 'HOLDS (3 stages x 6 instructions each)' : (uSteps - fSteps) === 3 ? 'HOLDS' : 'measured ' + (uSteps - fSteps)}`);
+// Each stage is six instructions (point C at the table, load, apply, store), so
+// folding three of the four stages away saves 3 x 6 = 18. S1 said (N-1) STAGES;
+// the per-stage cost turns that into 18 instructions and 63 cells.
+console.log(`      S1: 3 stages folded away, 6 instructions each -> `
+  + `${uSteps - fSteps === 18 ? 'HOLDS (18 instructions, 63 cells)' : 'measured ' + (uSteps - fSteps)}`);
 
 console.log('\n--- S2  the saving multiplies with emulation depth ---');
 const rows = [];
@@ -84,7 +87,13 @@ for (const d of [1, 2, 3]) {
     const u = run(unfolded).steps, f = run(folded).steps;
     rows.push({ d, u, f, saved: u - f });
     console.log(`      depth ${d}: unfolded ${u.toLocaleString()}  folded ${f.toLocaleString()}  saved ${(u - f).toLocaleString()}`);
-  } catch (e) { console.log(`      depth ${d}: ${e.message.split('\n')[0]}`); }
+  } catch (e) {
+    // Not a failure of folding. Depth 3 needs the core interpreter, and the core
+    // deliberately does not implement TOP — so TOP programs emulate two levels
+    // deep, not three. Stated rather than silently omitted.
+    console.log(`      depth ${d}: unavailable — ${e.message.split('\n')[1] || e.message.split('\n')[0]}`);
+    console.log(`               (the core interpreter drops TOP, so TOP programs stop at depth 2)`);
+  }
 }
 if (rows.length >= 2) {
   for (let i = 1; i < rows.length; i++) {
