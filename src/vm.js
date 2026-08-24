@@ -72,6 +72,13 @@ class TryteVM {
       case 'STOREX': this.write(this.read(operand), this.A); break;
       case 'JMPX':   nextPC = T.wrap(this.read(operand)); break;
       case 'LDC':    this.C = this.read(operand); break;
+      // C addresses a nine-entry truth table; the operand is the second input.
+      case 'TOP': {
+        const tbl = [];
+        for (let i = 0; i < 9; i++) tbl.push(this.read(T.wrap(this.C + i)));
+        this.A = T.ttable(tbl, this.A, this.read(operand));
+        break;
+      }
       default: throw new Error(`unimplemented op ${op.name}`);
     }
 

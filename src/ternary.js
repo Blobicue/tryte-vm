@@ -127,9 +127,47 @@ function tgate(control, x, y) {
   }));
 }
 
+/**
+ * TTABLE — apply an arbitrary two-input ternary truth table, tritwise.
+ *
+ * A two-input trit function is nine rows, so nine entries fully specify one of
+ * the 3^9 = 19,683 such functions. Row order is x-major:
+ *
+ *      index = (x + 1) * 3 + (y + 1)      x, y in {-1, 0, +1}
+ *
+ * Only the LOWEST TRIT of each entry is used, which is this machine's own idiom
+ * for reading a trit out of a tryte (v - 3*(v>>1)) and makes the operation total:
+ * no table can be malformed enough to fault.
+ *
+ * TGATE is the special case where the table is chosen per position from three
+ * fixed candidates; this chooses one table for all positions but allows any of
+ * the 19,683.
+ */
+function ttable(table, x, y) {
+  const xs = toTrits(x), ys = toTrits(y);
+  return fromTrits(xs.map((xt, i) => lowTrit(table[(xt + 1) * 3 + (ys[i] + 1)])));
+}
+
+/** The least significant trit of a value. Exact because shiftRight rounds. */
+function lowTrit(v) {
+  const w = wrap(v);
+  return w - 3 * shiftRight(w, 1);
+}
+
+/** The nine-entry table equivalent to one TGATE mode, for a fixed y-trit. */
+function tgateModeTable(mode) {
+  const out = [];
+  for (let x = -1; x <= 1; x++) {
+    for (let y = -1; y <= 1; y++) {
+      out.push(mode === -1 ? -x : mode === 0 ? Math.min(x, y) : Math.max(x, y));
+    }
+  }
+  return out;
+}
+
 module.exports = {
   TRITS_PER_TRYTE, RADIX, TRYTE_STATES, TRYTE_MAX, TRYTE_MIN,
   wrap, toTrits, fromTrits, tritString, parseTritString,
   add, sub, mul, neg, sign, shiftLeft, shiftRight,
-  tMIN, tMAX, tCLAMPSUM, tNEG, tgate,
+  tMIN, tMAX, tCLAMPSUM, tNEG, tgate, ttable, lowTrit, tgateModeTable,
 };

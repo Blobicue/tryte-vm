@@ -132,5 +132,46 @@ function reachByLaw(w) {
   return seen.size;
 }
 
+/* --- TOP vocabularies ------------------------------------------------------ */
+/* A TOP table has three COLUMNS, one per value of the second operand's trit.
+ * Column j is a unary map on trits. So one TOP instruction picks three arbitrary
+ * unary maps and assigns one to each position according to the second operand.
+ * TGATE is the same shape with the three columns nailed to NEG / MIN / MAX. */
+
+/** Every unary map on {-1,0,+1}: all 27 of them, as index triples. */
+function allUnary() {
+  const out = [];
+  for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) for (let c = 0; c < 3; c++) out.push([a, b, c]);
+  return out;
+}
+
+/** Apply a per-position tuple of unary trit maps, as a table over arena indices. */
+function positionwise(A, maps) {
+  return Array.from({ length: A.N }, (_, i) =>
+    A.idx(A.fromTrits(A.trits(A.val(i)).map((t, p) => maps[p][t + 1] - 1))));
+}
+
+/** TOP with the second operand pinned to 0: one table, so every position gets
+ *  the SAME column. The generators are diagonal however many tables exist. */
+function topFixed(A) {
+  return allUnary().map(m => positionwise(A, Array.from({ length: A.w }, () => m)));
+}
+
+/** TOP with the second operand free, restricted to SINGLE-POSITION updates:
+ *  one position takes an arbitrary map while the rest take the identity column.
+ *  A strict SUBSET of what TOP+free-y can do, so whatever it reaches is a lower
+ *  bound on the real reach. Used with the positionwise ceiling to pin equality. */
+function topSinglePos(A) {
+  const ID = [0, 1, 2];
+  const gens = [];
+  for (let p = 0; p < A.w; p++) {
+    for (const m of allUnary()) {
+      gens.push(positionwise(A, Array.from({ length: A.w }, (_, q) => (q === p ? m : ID))));
+    }
+  }
+  return gens;
+}
+
 module.exports = { CAP, arena, compose, ident, tgateTable, addTable,
-                   vocabularies, audit, reach, perTritDepths, reachByLaw };
+                   vocabularies, audit, reach, perTritDepths, reachByLaw,
+                   allUnary, positionwise, topFixed, topSinglePos };

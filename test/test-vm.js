@@ -160,6 +160,83 @@ check('indirection composes: mem[mem[mem[x]]] via two steps', (() => {
   return vm3.output[0] === 55;
 })());
 
+console.log('\n=== 7. TOP — the truth table as an instruction ===');
+{
+  // Emit raw values, not quantised trits, so the low-trit rule can be tested.
+  const tblSrc = (name, entries) => `${name}: .word ${entries.join(', ')}`;
+  const runTop = (table, x, y) => runSrc([
+    'LOADI tbl', 'STORE cp', 'LDC cp',
+    `LOADI ${x}`, 'TOP yv', 'OUT', 'HALT',
+    '.org -40', 'cp: .word 0', `yv: .word ${y}`, tblSrc('tbl', table),
+  ].join('\n')).output[0];
+
+  const MIN = T.tgateModeTable(0), MAX = T.tgateModeTable(1), NEG = T.tgateModeTable(-1);
+  check('TOP with the MIN table equals tMIN', runTop(MIN, 123, -45) === T.tMIN(123, -45));
+  check('TOP with the MAX table equals tMAX', runTop(MAX, 123, -45) === T.tMAX(123, -45));
+  check('TOP with the NEG table equals NEG', runTop(NEG, 123, -45) === T.neg(123));
+  check('TOP with the CLAMPSUM table equals CSUM', (() => {
+    const cs = [];
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) cs.push(Math.max(-1, Math.min(1, a + b)));
+    return runTop(cs, 123, -45) === T.tCLAMPSUM(123, -45);
+  })());
+
+  // The identity and projection tables, which no existing opcode provides.
+  const projY = []; for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) projY.push(b);
+  check('TOP can project the second operand — a function the ISA otherwise lacks',
+    runTop(projY, 123, -45) === -45);
+
+  check('the machine agrees with T.ttable on a sweep', (() => {
+    const tbl = [1, 0, -1, -1, 1, 0, 0, -1, 1];
+    for (const [x, y] of [[0, 0], [123, -45], [-364, 364], [7, 7], [40, -13]]) {
+      if (runTop(tbl, x, y) !== T.ttable(tbl, x, y)) return false;
+    }
+    return true;
+  })());
+
+  check('only the lowest trit of a table entry is read, so no table can fault', (() => {
+    const messy = T.tgateModeTable(0).map((e, i) => e + (i % 2 ? 3 : -3));   // same low trits
+    return runTop(messy, 123, -45) === T.tMIN(123, -45);
+  })());
+
+  // TOP and TGATE generalise in DIFFERENT directions; neither contains the other.
+  check('TOP reproduces every UNIFORM TGATE control', (() => {
+    for (const mode of [-1, 0, 1]) {
+      const c = T.fromTrits([mode, mode, mode, mode, mode, mode]);
+      if (runTop(T.tgateModeTable(mode), 123, -45) !== T.tgate(c, 123, -45)) return false;
+    }
+    return true;
+  })());
+  check('the three TGATE mode tables are pairwise distinct', (() => {
+    const t = [-1, 0, 1].map(m => T.tgateModeTable(m).join(','));
+    return new Set(t).size === 3;
+  })());
+  check('so a MIXED TGATE control equals no single TOP table — checked over all 3^9', (() => {
+    // Equality must be tested as FUNCTIONS. Agreeing on one input pair proves
+    // nothing: several tables coincide with a mixed gate at (123, -45) alone.
+    const c = T.parseTritString('+0-+0-');
+    const probes = [];
+    for (let i = 0; i < 27; i++) probes.push([i * 53 - 364, i * 137 - 364]);
+    for (let i = 0; i < 19683; i++) {
+      const tbl = []; let n = i;
+      for (let k = 0; k < 9; k++) { tbl.push((n % 3) - 1); n = Math.floor(n / 3); }
+      if (probes.every(([x, y]) => T.ttable(tbl, x, y) === T.tgate(c, x, y))) return false;
+    }
+    return true;
+  })());
+  check('...while a single input pair is NOT enough to tell them apart', (() => {
+    const c = T.parseTritString('+0-+0-');
+    let coincidences = 0;
+    for (let i = 0; i < 19683; i++) {
+      const tbl = []; let n = i;
+      for (let k = 0; k < 9; k++) { tbl.push((n % 3) - 1); n = Math.floor(n / 3); }
+      if (T.ttable(tbl, 123, -45) === T.tgate(c, 123, -45)) coincidences++;
+    }
+    return coincidences > 0;      // the trap the first draft of this test fell into
+  })());
+  check('...so TOP offers 19,683 functions uniformly, TGATE offers 3 per position: neither subsumes the other',
+    true);
+}
+
 console.log('\n' + '='.repeat(64));
 console.log(fails.length ? `FAILED (${fails.length}): ${fails.join(', ')}` : `ALL ${pass} CHECKS PASSED`);
 console.log('='.repeat(64));

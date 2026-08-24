@@ -37,6 +37,13 @@ const OPS = {
   STOREX: { code: 20, operand: 'addr', doc: 'mem[mem[addr]] = A  (store through a pointer cell)' },
   JMPX:   { code: 21, operand: 'addr', doc: 'PC = mem[addr]      (computed jump)' },
   LDC:    { code: 22, operand: 'addr', doc: 'C = mem[addr]       (SETC takes an immediate; this takes a variable)' },
+
+  // --- the table-driven operation ------------------------------------------
+  // TGATE offers three choices per trit. TOP offers all 3^9 = 19,683 two-input
+  // trit functions, because the function is DATA: C holds the address of a nine
+  // entry truth table and TOP applies it tritwise. Every TGATE mode is one
+  // particular table, so this generalises it rather than sitting beside it.
+  TOP:    { code: 23, operand: 'addr', doc: 'A = truth table at C applied tritwise to (A, mem[addr])' },
 };
 
 const BY_CODE = {};
