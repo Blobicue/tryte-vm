@@ -125,6 +125,13 @@ function runHosted(src, input = [], opts = {}) {
     for (const [a, v] of asm.cells) vm.write(off + a, v);
     // Each interpreter's emulated PC points at whatever it is running: the next
     // interpreter down, or (at the innermost layer) the program itself at 0.
+    // Writing through a missing label would silently address NaN and do nothing,
+    // which is how the core ran for a while with no `ic` cell at all.
+    for (const req of ['ipc', 'ia', 'ic']) {
+      if (typeof asm.labels[req] !== 'number') {
+        throw new Error(`${FILES[variant]} has no '${req}' cell; the interpreter cannot be initialised`);
+      }
+    }
     vm.write(off + asm.labels.ipc, k < depth - 2 ? P.levels[k + 1].origin : 0);
     vm.write(off + asm.labels.ia, 0);
     vm.write(off + asm.labels.ic, 0);

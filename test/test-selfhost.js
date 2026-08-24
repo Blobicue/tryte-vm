@@ -12,7 +12,7 @@ const path = require('path');
 const T = require('../src/ternary.js');
 const { OPS } = require('../src/isa.js');
 const { runNative, runHosted, layout, plan, maxDepth, fits, interpSize,
-        interpSource, setInterpSource } = require('../src/selfhost.js');
+        interpSource, setInterpSource, supportedOpcodes } = require('../src/selfhost.js');
 
 let pass = 0; const fails = [];
 const check = (name, cond, detail = '') => {
@@ -159,8 +159,10 @@ console.log('\n=== 6. AN INTERPRETER INSIDE AN INTERPRETER ===');
 
 console.log('\n=== 8. THREE NESTED INTERPRETERS ===');
 {
-  const CORE_OPS = ['HALT', 'LOADI', 'LOAD', 'STORE', 'ADD', 'ADDI', 'SUB',
-                    'JMP', 'BR3', 'OUT', 'IN', 'LOADX', 'STOREX', 'JMPX'];
+  // Derived from the core's own jump table, not hardcoded. An earlier version
+  // listed the 14 opcodes literally and went stale the moment LDC and TOP were
+  // added for cross-layer coverage — the list said 14 while the file said 16.
+  const CORE_OPS = [...supportedOpcodes('core')];
   const coreSrc = interpSource('core');
 
   check(`the core interpreter is smaller than the full one (${interpSize('core')} vs ${interpSize('full')} cells)`,
@@ -179,6 +181,8 @@ console.log('\n=== 8. THREE NESTED INTERPRETERS ===');
     leaks.length === 0, `leaks: ${leaks.join(' ')}`);
   check(`it executes ${mnemonics.size} distinct opcodes, all inside its ${CORE_OPS.length}-opcode set`,
     mnemonics.size > 10 && mnemonics.size <= CORE_OPS.length);
+  check('the core implements LDC and TOP, so every layer runs the same programs',
+    CORE_OPS.includes('LDC') && CORE_OPS.includes('TOP'));
 
   // The dropped opcodes really are dropped, and the table really does route them away.
   const dropped = Object.keys(OPS).filter(o => !CORE_OPS.includes(o));
@@ -191,16 +195,34 @@ console.log('\n=== 8. THREE NESTED INTERPRETERS ===');
 
   const src = prog('threeway.tasm'), inp = [7, -3, 0, 42, -100];
   const want = runNative(src, inp).output.join();
-  const runs = [2, 3, 4].map(d => runHosted(src, inp, { depth: d, maxSteps: 5e7 }));
-  check('depth 4 — three nested interpreters — produces the same output',
-    runs[2].output.join() === want, runs[2].output.join());
-  check('depth 4 really used the core interpreter', runs[2].plan.variant === 'core');
-  check('depth 4 really laid out three interpreter layers', runs[2].layers.length === 3);
-  check(`the cost compounds as expected (${runs.map(r => r.steps.toLocaleString()).join(' -> ')})`,
-    runs[2].steps > runs[1].steps && runs[1].steps > runs[0].steps);
+  const runs = [2, 3].map(d => runHosted(src, inp, { depth: d, maxSteps: 5e7 }));
+  check('threeway agrees at depths 2 and 3',
+    runs.every(r => r.output.join() === want), runs.map(r => r.output.join()).join(' | '));
+
+  // COVERAGE COST DEPTH-4 CAPACITY, and the numbers say exactly how much.
+  // Giving the core LDC and TOP took it from 200 cells to 223, which shrank the
+  // depth-4 window from 132 cells to 60. threeway reaches address +39 and no
+  // longer fits. Depth 4 still works — for programs that fit in 60 cells.
+  check('threeway no longer fits at depth 4, and the refusal names the window', (() => {
+    try { runHosted(src, inp, { depth: 4, maxSteps: 5e7 }); return false; }
+    catch (e) { return /window is -30\.\.29/.test(e.message); }
+  })());
+  check(`the depth-4 window is ${plan(4, 'core').innerCells} cells, down from 132`,
+    plan(4, 'core').innerCells === 60, String(plan(4, 'core').innerCells));
+
+  // A smaller program still reaches three nested interpreters.
+  const cd = 'IN\nSTORE n\nlp: LOAD n\nOUT\nADDI -1\nSTORE n\nBR3 t\nt: .table done, done, lp\ndone: HALT\n.org -6\nn: .word 0';
+  const cdWant = runNative(cd, [4]).output.join();
+  const deep = [2, 3, 4].map(d => runHosted(cd, [4], { depth: d, maxSteps: 5e7 }));
+  check('a countdown agrees at depths 2, 3 and 4',
+    deep.every(r => r.output.join() === cdWant), deep.map(r => r.output.join()).join(' | '));
+  check('depth 4 really used the core interpreter', deep[2].plan.variant === 'core');
+  check('depth 4 really laid out three interpreter layers', deep[2].layers.length === 3);
+  check(`the cost compounds (${deep.map(r => r.steps.toLocaleString()).join(' -> ')})`,
+    deep[2].steps > deep[1].steps && deep[1].steps > deep[0].steps);
 
   // The core on its own, at every depth it supports.
-  for (const d of [2, 3, 4]) {
+  for (const d of [2, 3]) {
     const r = runHosted(src, inp, { depth: d, variant: 'core', maxSteps: 5e7 });
     check(`the core alone agrees at depth ${d}`, r.output.join() === want, r.output.join());
   }
@@ -231,7 +253,10 @@ console.log('\n=== 9. A BUG OF ORDER k IS INVISIBLE AT k LAYERS ===');
   };
   check('both mutations apply', Object.values(mutants).every(m => m !== good));
 
-  const src = prog('threeway.tasm'), inp = [7, -3, 0, 42, -100];
+  // Uses the countdown, not threeway: threeway no longer fits at depth 4 since
+  // the core gained LDC and TOP, and this section needs all three layer counts.
+  const src = 'IN\nSTORE n\nlp: LOAD n\nOUT\nADDI -1\nSTORE n\nBR3 t\nt: .table done, done, lp\ndone: HALT\n.org -6\nn: .word 0';
+  const inp = [4];
   const want = runNative(src, inp).output.join();
   const masked = (mutant, layers) => {
     setInterpSource(mutant, 'core');

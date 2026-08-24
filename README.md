@@ -2,11 +2,11 @@
 
 A working emulator for a computer that counts in **three states instead of two**.
 Core arithmetic, an instruction set, a virtual machine, an assembler, and demo
-programs. 334 tests, all passing, including exhaustive sweeps over the machine's
+programs. 342 tests, all passing, including exhaustive sweeps over the machine's
 entire value space.
 
 ```bash
-npm test                      # 334 checks
+npm test                      # 342 checks
 node src/run.js programs/multiply.tasm 7 5
 npm run selfhost              # the machine emulating itself
 ```
@@ -84,13 +84,44 @@ verifies it by reading the source rather than trusting the comment.
 
 | | full | core |
 |---|---|---|
-| Opcodes | 23 | 14 |
-| Size | 324 cells | **199 cells** |
+| Opcodes | 24 | 16 |
+| Size | 341 cells | **223 cells** |
 | Stacks | 2 deep | **3 deep** |
-| Runs | every demo | anything in the arithmetic subset |
+| Runs | every demo | the arithmetic subset, plus TOP and LDC |
 
 Programs needing a dropped opcode halt rather than misbehaving — `multiply` needs
 shifts and `tgate` needs the gate control, so neither runs on the core.
+
+### Coverage across layers, and what it cost
+
+`TOP` and `LDC` were added to the core so that no layer refuses a program the
+layer below would accept. `h_top` executes `LDC` and `TOP`, so implementing one
+without the other would have broken the closure the core exists to have — the
+subset went from 14 opcodes to 16, not 15.
+
+It was not free, and the numbers say exactly what it cost:
+
+| | before | after |
+|---|---|---|
+| Core interpreter | 199 cells | 223 |
+| Max depth | 4 | 4 — unchanged |
+| Depth-4 window | 132 cells | **60** |
+
+`threeway.tasm` reaches address +39 and no longer fits at depth 4. Depth 4 still
+works, for programs that fit in 60 cells — `countdown.tasm` does. The suite
+asserts the refusal *and* names the window, rather than quietly dropping the case.
+
+**Folding buys a depth level.** That 60-cell window turns the fold from an
+optimisation into a capability: the four-stage `TOP` chain needs 93 cells
+unfolded and is refused at depth 4; folded it needs 30 and runs. Same source,
+same output, one more layer of emulation.
+
+Two silent failures showed up while doing this. The closure test listed its 14
+opcodes literally and went stale the moment the core gained two — it now derives
+the set from the core's own jump table. And `selfhost` initialised the emulated
+registers through label lookups that returned `undefined`, addressing `NaN` and
+doing nothing at all; the core ran for a while with no `ic` cell and no complaint.
+Both are now guarded.
 
 ```bash
 npm run selfhost
@@ -478,10 +509,11 @@ src/assembler.js   text -> trytes, two passes, labels and directives
 src/selfhost.js    run a program natively, or inside the emulated machine
 src/run.js         CLI runner
 programs/          threeway.tasm, multiply.tasm, tgate.tasm, kleene.tasm,
+                   countdown.tasm,
                    interp.tasm (23 opcodes), interp-core.tasm (14, self-sufficient)
 test/              test-core.js (27), test-vm.js (41), test-selfhost.js (83),
-                   test-bench.js (15), test-logic.js (25), test-monoid.js (44), test-fold.js (23),
-                   test-page.js (42), test-style.js (28), run-all.js
+                   test-bench.js (15), test-logic.js (25), test-monoid.js (44), test-fold.js (27),
+                   test-page.js (43), test-style.js (28), run-all.js
 tools/             monoid-audit.js, top-audit.js, carry-audit.js, fold-audit.js
 bench/             the three-way vs two-way branching benchmark
 build/             inlines src/ into a single interactive HTML page

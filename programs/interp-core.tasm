@@ -14,7 +14,8 @@
 ; trusting the comment.
 ;
 ;   kept    HALT LOADI LOAD STORE ADD ADDI SUB JMP BR3 OUT IN LOADX STOREX JMPX
-;   dropped NEG MIN MAX CSUM SETC TGATE SHL SHR LDC TOP -> h_bad, which halts
+;           LDC TOP
+;   dropped NEG MIN MAX CSUM SETC TGATE SHL SHR      -> h_bad, which halts
 ;
 ; A program using a dropped opcode stops rather than misbehaving. multiply.tasm
 ; needs SHL/SHR and tgate.tasm needs SETC/TGATE, so neither runs on the core;
@@ -127,15 +128,37 @@ h_jmpx: LOAD  mval
         STORE ipc
         JMP   fetch
 
+; LDC and TOP are here for COVERAGE: without them a TOP program could be run by
+; the full interpreter but not by this one, so it emulated two levels deep and
+; stopped. They pay for themselves in closure too -- h_top executes LDC and TOP,
+; so implementing one without the other would break the property this file exists
+; to have.
+h_ldc:  LOAD  mval
+        STORE ic
+        JMP   fetch
+
+; The guest's TOP is performed by the HOST's TOP: the guest's nine-entry table
+; occupies consecutive guest addresses, which are consecutive host addresses, so
+; pointing the host's C at IBASE+ic makes the host instruction read it directly.
+h_top:  LOAD  ic
+        ADDI  IBASE
+        STORE ptr
+        LDC   ptr
+        LOAD  ia
+        TOP   mval
+        STORE ia
+        JMP   fetch
+
 ; ---------------------------------------------------------------- dispatch table
 ; Indexed by opcode, so the dropped opcodes still need a slot; they get h_bad.
 jtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_bad
         .word h_bad, h_bad, h_bad, h_bad, h_bad, h_bad, h_bad, h_jmp
-        .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_bad, h_bad
+        .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_ldc, h_top
 
 ; ---------------------------------------------------------------- state
 ipc:    .word 0
 ia:     .word 0
+ic:     .word 0            ; table/gate control register, needed by LDC and TOP
 opc:    .word 0
 opd:    .word 0
 ea:     .word 0

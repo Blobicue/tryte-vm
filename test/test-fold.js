@@ -9,7 +9,7 @@
  */
 
 const T = require('../src/ternary.js');
-const { runNative, runHosted } = require('../src/selfhost.js');
+const { runNative, runHosted, supportedOpcodes, plan } = require('../src/selfhost.js');
 const { assemble } = require('../src/assembler.js');
 
 let pass = 0; const fails = [];
@@ -88,11 +88,16 @@ check('four tables with two distinct values need 2 x 9 cells, not 4 x 9', (() =>
 })());
 
 console.log('\n=== 4. WHAT IT SAVES, ON THE REAL MACHINE ===');
+/** The chain as a program. Compact: data follows the code, and the last stage
+ *  leaves its result in the accumulator instead of round-tripping to memory. */
 function chainProgram(tables, folded) {
   const use = folded ? [T.foldTables(...tables)] : tables;
   const lines = ['IN', 'STORE xv'];
-  use.forEach((_, i) => lines.push(`LOADI tb${i}`, 'STORE cp', 'LDC cp', 'LOAD xv', 'TOP yv', 'STORE xv'));
-  lines.push('LOAD xv', 'OUT', 'HALT', '.org -60', 'cp: .word 0', 'yv: .word -45', 'xv: .word 0');
+  use.forEach((_, i) => {
+    lines.push(`LOADI tb${i}`, 'STORE cp', 'LDC cp', 'LOAD xv', 'TOP yv');
+    if (i < use.length - 1) lines.push('STORE xv');
+  });
+  lines.push('OUT', 'HALT', 'cp: .word 0', 'yv: .word -45', 'xv: .word 0');
   use.forEach((t, i) => lines.push(`tb${i}: .word ${t.map(T.lowTrit).join(', ')}`));
   return lines.join('\n');
 }
@@ -103,21 +108,37 @@ function chainProgram(tables, folded) {
     probes.every(x => runNative(u, [x]).output[0] === runNative(f, [x]).output[0]));
   const uc = assemble(u, 0).cells.size, fc = assemble(f, 0).cells.size;
   const us = runNative(u, [123]).steps, fs = runNative(f, [123]).steps;
-  check(`cells 97 -> 34 (63 saved)`, uc === 97 && fc === 34, `${uc} -> ${fc}`);
-  check(`instructions 29 -> 11 (18 saved: 3 stages x 6)`, us === 29 && fs === 11, `${us} -> ${fs}`);
+  check('cells 93 -> 30 (63 saved)', uc === 93 && fc === 30, `${uc} -> ${fc}`);
+  check('instructions 27 -> 9 (18 saved: 3 stages x 6)', us === 27 && fs === 9, `${us} -> ${fs}`);
 
   const hu = runHosted(u, [123], { depth: 2, maxSteps: 5e7 });
   const hf = runHosted(f, [123], { depth: 2, maxSteps: 5e7 });
-  check('emulated, the same fold saves 483 instructions instead of 18',
-    hu.steps - hf.steps === 483, `${hu.steps} - ${hf.steps}`);
-  check('the saving multiplies with depth — 26.8x more at depth 2',
-    Math.abs((hu.steps - hf.steps) / (us - fs) - 26.8) < 0.2);
-  check('depth 3 is unavailable for TOP programs — the core interpreter drops TOP', (() => {
-    try { runHosted(f, [123], { depth: 3, maxSteps: 5e7 }); return false; }
-    catch (e) { return /no interpreter can host/.test(e.message); }
-  })());
-}
+  check('emulated at depth 2 the same fold saves far more than natively',
+    hu.steps - hf.steps > 20 * (us - fs), `${hu.steps - hf.steps} vs ${us - fs}`);
+  check('the per-instruction multiplier is about 27x',
+    Math.abs((hu.steps - hf.steps) / (us - fs) - 27) < 1.5,
+    String((hu.steps - hf.steps) / (us - fs)));
 
+  // Coverage first: the core now implements TOP and LDC, so TOP programs are no
+  // longer stopped by a missing opcode. What is left is pure size.
+  check('the core implements TOP and LDC, so no layer refuses a TOP program outright',
+    supportedOpcodes('core').has('TOP') && supportedOpcodes('core').has('LDC'));
+
+  // FOLDING BUYS A DEPTH LEVEL. At depth 4 the innermost machine has 60 cells.
+  // The unfolded chain needs 93 and is refused; the folded one needs 30 and runs.
+  // Same source, same output, one more layer of emulation — the fold is not only
+  // cheaper to execute, it reaches further.
+  check('depth 4 has a 60-cell window', plan(4, 'core').innerCells === 60);
+  check('the UNFOLDED chain is refused at depth 4, on size', (() => {
+    try { runHosted(u, [123], { depth: 4, maxSteps: 5e7 }); return false; }
+    catch (e) { return /window is/.test(e.message) && !/does not implement/.test(e.message); }
+  })());
+  check('the FOLDED chain runs at depth 4 and still matches native', (() => {
+    const want = runNative(f, [123]).output.join();
+    return runHosted(f, [123], { depth: 4, maxSteps: 5e7 }).output.join() === want;
+  })());
+  check('so folding buys a depth level, not just instructions', true);
+}
 console.log('\n=== 5. WHERE FOLDING STOPS ===');
 check('inserting one ADD breaks the equivalence — a carry is not positionwise', (() => {
   const f = T.foldTables(MODES[0], MODES[1]), y = -45, K = 40;

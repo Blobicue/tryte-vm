@@ -275,15 +275,30 @@ console.log('\n=== 5. RUNNING INSIDE THE EMULATOR, FROM THE PAGE ===');
   byId['prog-select'].value = 'threeway';
   byId['prog-select'].dispatch('change');
   byId['prog-input'].value = '7, -3, 0, 42, -100';
+  // threeway reaches address +39 and the depth-4 window is 60 cells, so it is
+  // refused there since the core grew to cover TOP. The page must say so clearly.
   modeBtn(4).dispatch('click');
   byId['prog-input'].value = '7, -3, 0, 42, -100';
   byId['b-run'].dispatch('click');
-  check('threeway at depth 4 matches the native run', outputs() === nativeThree,
-    `${outputs()} vs ${nativeThree}`);
+  check('threeway at depth 4 is refused, and the page names the window',
+    /window is/.test(byId['exec-note'].textContent), byId['exec-note'].textContent);
+
+  // countdown fits, so depth 4 is still reachable from the page.
+  byId['prog-select'].value = 'countdown';
+  byId['prog-select'].dispatch('change');
+  modeBtn(1).dispatch('click');
+  byId['prog-input'].value = '5';
+  byId['b-run'].dispatch('click');
+  const nativeCount = outputs();
+  modeBtn(4).dispatch('click');
+  byId['prog-input'].value = '5';
+  byId['b-run'].dispatch('click');
+  check('countdown at depth 4 matches the native run', outputs() === nativeCount,
+    `${outputs()} vs ${nativeCount}`);
   check('the readout names three nested interpreters',
     /through 3 nested interpreters/.test(byId['exec-note'].textContent),
     byId['exec-note'].textContent);
-  check('depth 4 costs far more than depth 3',
+  check('depth 4 costs far more than depth 1',
     Number(byId['reg-steps'].textContent) > 100000,
     byId['reg-steps'].textContent);
 

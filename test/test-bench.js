@@ -31,7 +31,8 @@ const check = (name, cond, detail = '') => {
   if (cond) { pass++; console.log(`  [PASS] ${name}`); }
   else { fails.push(name); console.log(`  [FAIL] ${name}  ${detail}`); }
 };
-const src = f => fs.readFileSync(path.join(__dirname, '..', 'bench', f), 'utf8');
+const src = f => fs.readFileSync(
+  path.join(__dirname, '..', f === 'countdown.tasm' ? 'programs' : 'bench', f), 'utf8');
 const cells = s => assemble(s, 0).cells.size;
 
 /* --- the sweeps -------------------------------------------------------------- */
