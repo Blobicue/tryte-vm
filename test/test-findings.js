@@ -1,0 +1,186 @@
+'use strict';
+/* test-findings.js — FINDINGS.json must agree with the repository.
+ *
+ * The manifest exists so an agent can ingest every claim this repo makes without
+ * reading 600 lines of prose. That is only worth anything if the manifest cannot
+ * drift, so this checks four things:
+ *
+ *   1. COMPLETENESS   every prediction registered in a tool's docstring appears
+ *                     in the manifest, and nothing appears that is not registered
+ *   2. NUMBERS        the cheap measured values are recomputed from the same
+ *                     library the suites use
+ *   3. CHRONOLOGY     each registering commit really precedes its results commit,
+ *                     which is what makes "registered before the run" checkable
+ *   4. REFERENCES     each named test file exists and mentions the finding
+ *
+ * The expensive sweeps are NOT re-run here. test-monoid.js already pins them;
+ * this checks the manifest agrees with the pinned constants.
+ */
+
+const fs = require('fs');
+const path = require('path');
+const { execFileSync } = require('child_process');
+const ROOT = path.join(__dirname, '..');
+
+let pass = 0; const fails = [];
+const check = (name, cond, detail = '') => {
+  if (cond) { pass++; console.log(`  [PASS] ${name}`); }
+  else { fails.push(name); console.log(`  [FAIL] ${name}  ${detail}`); }
+};
+
+const M = JSON.parse(fs.readFileSync(path.join(ROOT, 'FINDINGS.json'), 'utf8'));
+const allPreds = M.prediction_sets.flatMap(s => s.predictions.map(p => ({ ...p, set: s })));
+
+console.log('\n=== 1. STRUCTURE ===');
+check('the manifest declares its schema', M.schema === 'tryte-vm/findings@1');
+check('every outcome is one of the three declared values',
+  allPreds.every(p => p.outcome in M.outcome_values) &&
+  M.unregistered_findings.every(f => f.outcome in M.outcome_values));
+check('the three outcome values are HELD, FAILED and MEASURED_NOT_REGISTERED',
+  ['HELD', 'FAILED', 'MEASURED_NOT_REGISTERED'].every(k => k in M.outcome_values));
+check(`${allPreds.length} registered predictions across ${M.prediction_sets.length} sets`,
+  allPreds.length === 27 && M.prediction_sets.length === 6, String(allPreds.length));
+check('exactly one registered prediction failed, and it is kept as FAILED',
+  allPreds.filter(p => p.outcome === 'FAILED').map(p => p.id).join() === 'P3');
+check('unregistered findings are listed separately, not counted as predictions',
+  M.unregistered_findings.length > 0 &&
+  M.unregistered_findings.every(f => f.outcome === 'MEASURED_NOT_REGISTERED'));
+
+console.log('\n=== 2. COMPLETENESS AGAINST THE TOOLS ===');
+{
+  // Read the ids straight out of each tool's registration block. If a prediction
+  // is added to a tool and not to the manifest, or vice versa, this fails.
+  const found = new Set();
+  for (const s of M.prediction_sets) {
+    const src = fs.readFileSync(path.join(ROOT, s.tool), 'utf8');
+    const block = src.slice(src.indexOf('PREDICTED OUTCOMES'), src.indexOf(' */'));
+    for (const m of block.matchAll(/^ \*\s{3}([PQRSUV]\d+)\s{2}/gm)) found.add(m[1]);
+  }
+  const declared = new Set(allPreds.map(p => p.id));
+  const missing = [...found].filter(id => !declared.has(id));
+  const extra = [...declared].filter(id => !found.has(id));
+  check(`every id registered in a tool is in the manifest (${found.size} found)`,
+    missing.length === 0, `missing: ${missing.join(' ')}`);
+  check('the manifest invents no predictions the tools never registered',
+    extra.length === 0, `extra: ${extra.join(' ')}`);
+}
+
+console.log('\n=== 3. THE NUMBERS, RECOMPUTED ===');
+{
+  const { arena, audit, reach, reachByLaw, vocabularies, topSinglePos, topFixed, addTable } =
+    require('../tools/monoid-lib.js');
+  const T = require('../src/ternary.js');
+  const { interpSize, maxDepth } = require('../src/selfhost.js');
+  const get = id => allPreds.find(p => p.id === id).measured;
+
+  check('P2 — TGATE reach at widths 1..3', (() => {
+    const m = get('P2');
+    return reach('all', 1).total === m.reach_w1 && reach('all', 2).total === m.reach_w2
+      && reach('all', 3).total === m.reach_w3;
+  })());
+  check('P3 — the failure is still a failure', (() => {
+    const m = get('P3');
+    return reach('all', 2).total === m.actual_w2 && m.actual_w2 !== m.predicted_w2;
+  })());
+  check('P5 — width-6 reach is 77,687 and the claim was 531,441', (() => {
+    const m = get('P5');
+    return reachByLaw(6) === m.actual && m.claimed_by_source_conversation === 531441;
+  })());
+  check('Q1 — pinned TOP reaches 27 at every width', (() => {
+    const m = get('Q1');
+    return [1, 2, 3].every(w => audit(topFixed(arena(w)), arena(w).N).total === m.reach_any_width);
+  })());
+  check('Q3 — free TOP reaches 27^w', (() => {
+    const m = get('Q3');
+    return [['reach_w1', 1], ['reach_w2', 2], ['reach_w3', 3]]
+      .every(([k, w]) => audit(topSinglePos(arena(w)), arena(w).N).total === m[k]);
+  })());
+  check('Q5 — the width-6 positionwise ceiling', get('Q5').ceiling === 27 ** 6);
+  check('R2 — 27 more positionwise generators buy nothing', (() => {
+    const A = arena(2), m = get('R2');
+    return audit(topSinglePos(A).concat(topFixed(A)), A.N).total === m.reach_w2 && m.elements_bought === 0;
+  })());
+  check('R4 — one shift reaches 801', (() => {
+    const A = arena(2), m = get('R4');
+    const shl = Array.from({ length: A.N }, (_, i) => A.idx(A.val(i) * 3));
+    return audit(topSinglePos(A).concat([shl]), A.N).total === m.reach_w2;
+  })());
+  check('R3 and U2 agree on 251,505', get('R3').reach_w2 === get('U2').reach_w2);
+  check('V3 — 531,441, matching the constant test-monoid pins',
+    get('V3').reach_w2 === 531441 && 531441 === 9 ** 6);
+  check('U1 — 81 tables match ADD at one input pair', (() => {
+    let c = 0;
+    for (let i = 0; i < 19683; i++) {
+      const tbl = []; let n = i;
+      for (let k = 0; k < 9; k++) { tbl.push((n % 3) - 1); n = Math.floor(n / 3); }
+      if (T.ttable(tbl, 123, -45) === T.add(123, -45)) c++;
+    }
+    return c === get('U1').tables_matching_at_one_input_pair;
+  })());
+  check('U3 — the core interpreter cell count', get('U3').core_cells === interpSize('core'));
+  check('   and the core still reaches depth 4', maxDepth('core') === 4);
+  check('F-ADD-IS-A-TABLE — ADD really is TOPC with the addition table', (() => {
+    const t = T.addCarryTable();
+    for (let x = T.TRYTE_MIN; x <= T.TRYTE_MAX; x += 13) {
+      for (let y = T.TRYTE_MIN; y <= T.TRYTE_MAX; y += 17) {
+        if (T.ttableC(t, x, y) !== T.add(x, y)) return false;
+      }
+    }
+    return true;
+  })());
+}
+
+console.log('\n=== 4. CHRONOLOGY — registration really came first ===');
+{
+  let git = true;
+  const run = a => execFileSync('git', a, { cwd: ROOT, encoding: 'utf8' }).trim();
+  try { run(['rev-parse', '--git-dir']); } catch { git = false; }
+  if (!git) {
+    check('git history unavailable, chronology unchecked (not a pass)', false, 'no .git');
+  } else {
+    for (const s of M.prediction_sets) {
+      let ok = false, why = '';
+      try {
+        run(['cat-file', '-e', `${s.registered_at}^{commit}`]);
+        run(['cat-file', '-e', `${s.results_at}^{commit}`]);
+        execFileSync('git', ['merge-base', '--is-ancestor', s.registered_at, s.results_at], { cwd: ROOT });
+        ok = true;
+      } catch (e) { why = e.message.split('\n')[0]; }
+      check(`set ${s.id}: ${s.registered_at} precedes ${s.results_at}`, ok, why);
+    }
+    check('no registration commit contains its own result', (() => {
+      // The registering commit for the P set must not mention the number it went
+      // on to measure; that is what "no measurement in this commit" means.
+      const body = run(['show', '-s', '--format=%B', M.prediction_sets[0].registered_at]);
+      return !/77,?687/.test(body);
+    })());
+  }
+}
+
+console.log('\n=== 5. REFERENCES ===');
+{
+  const targets = [...M.prediction_sets.map(s => [s.id, s.asserted_in, s.tool]),
+    ...M.unregistered_findings.map(f => [f.id, f.asserted_in, null])];
+  let missingFile = null, missingMention = null;
+  for (const [id, file, tool] of targets) {
+    if (!fs.existsSync(path.join(ROOT, file))) { missingFile = `${id} -> ${file}`; break; }
+    if (tool && !fs.existsSync(path.join(ROOT, tool))) { missingFile = `${id} -> ${tool}`; break; }
+  }
+  check('every asserted_in and tool path exists', missingFile === null, missingFile || '');
+  for (const s of M.prediction_sets) {
+    const body = fs.readFileSync(path.join(ROOT, s.asserted_in), 'utf8');
+    const absent = s.predictions.filter(p => !body.includes(p.id));
+    if (absent.length) { missingMention = `${s.id}: ${absent.map(p => p.id).join(' ')} not mentioned in ${s.asserted_in}`; break; }
+  }
+  check('every prediction id is mentioned in the test that asserts it',
+    missingMention === null, missingMention || '');
+  check('every trap has a description and a count',
+    M.traps_encountered.every(t => t.id && t.description && typeof t.count === 'number'));
+  check('the one-point trap is recorded as having bitten three times',
+    M.traps_encountered.find(t => t.id === 'T-ONE-POINT').count === 3);
+}
+
+console.log('\n' + '='.repeat(64));
+console.log(fails.length ? `FAILED (${fails.length}): ${fails.join(', ')}` : `ALL ${pass} CHECKS PASSED`);
+console.log('='.repeat(64));
+process.exit(fails.length ? 1 : 0);

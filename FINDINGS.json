@@ -1,0 +1,172 @@
+{
+  "schema": "tryte-vm/findings@1",
+  "purpose": "Machine-readable index of every claim this repository makes, with its evidence. Validated by test/test-findings.js, which checks the numbers against the same library the suites use, checks that each registering commit precedes its results commit, and checks that each named test file exists and mentions the finding.",
+  "outcome_values": {
+    "HELD": "Registered as a prediction before the run, and the run confirmed it.",
+    "FAILED": "Registered as a prediction before the run, and the run refuted it. Kept, not corrected away.",
+    "MEASURED_NOT_REGISTERED": "Measured during design rather than predicted. Listed separately so the pre-registration record is not inflated by facts that were never at risk."
+  },
+  "prediction_sets": [
+    {
+      "id": "P",
+      "subject": "What the TGATE control vocabulary generates",
+      "tool": "tools/monoid-audit.js",
+      "registered_at": "fd1af75",
+      "results_at": "950a508",
+      "asserted_in": "test/test-monoid.js",
+      "predictions": [
+        { "id": "P1", "claim": "addi saturates at exactly 3^w", "outcome": "HELD",
+          "measured": { "reach_w1": 3, "reach_w2": 9, "reach_w3": 27 } },
+        { "id": "P2", "claim": "the full control vocabulary saturates rather than growing freely", "outcome": "HELD",
+          "measured": { "reach_w1": 7, "reach_w2": 47, "reach_w3": 307 } },
+        { "id": "P3", "claim": "reach(all, w) = reach(all, 1)^w, a direct product across trit positions", "outcome": "FAILED",
+          "measured": { "predicted_w2": 49, "actual_w2": 47, "predicted_w3": 343, "actual_w3": 307 },
+          "note": "The failure produced the real law. One composition step applies one control to ALL positions, so after d steps every position carries a word of length exactly d; the positions must agree on word LENGTH, which is weaker than a direct product. reach(w) = |union over d of (M_d)^w|, validated on five widths before being used at width 6." },
+        { "id": "P4", "claim": "more controls buy elements here, unlike table-audit's wide16", "outcome": "HELD",
+          "measured": { "pure_any_width": 7, "all_w3": 307 } },
+        { "id": "P5", "claim": "reach(all, 6) is not 531441", "outcome": "HELD",
+          "measured": { "actual": 77687, "claimed_by_source_conversation": 531441, "overstatement_factor": 6.84 } },
+        { "id": "P6", "claim": "the shift vocabulary saturates", "outcome": "HELD",
+          "measured": { "reach_w1": 3, "reach_w2": 11, "reach_w3": 29 } }
+      ]
+    },
+    {
+      "id": "Q",
+      "subject": "What TOP buys, once the truth table is data",
+      "tool": "tools/top-audit.js",
+      "registered_at": "b524f4f",
+      "results_at": "0812cf6",
+      "asserted_in": "test/test-monoid.js",
+      "predictions": [
+        { "id": "Q1", "claim": "TOP with the second operand pinned reaches 27 at every width", "outcome": "HELD",
+          "measured": { "reach_any_width": 27, "tables_available": 19683 },
+          "note": "19,683 tables collapse to 27 maps: one column is in play, so every position gets the same map." },
+        { "id": "Q2", "claim": "pinned TOP reaches fewer elements than TGATE for width >= 2", "outcome": "HELD",
+          "measured": { "top_w2": 27, "tgate_w2": 47, "top_w3": 27, "tgate_w3": 307 } },
+        { "id": "Q3", "claim": "TOP with a free second operand reaches exactly 27^w", "outcome": "HELD",
+          "measured": { "reach_w1": 27, "reach_w2": 729, "reach_w3": 19683 },
+          "note": "And it explains why P3 failed: TOP can express the IDENTITY as a column, so positions idle while others advance, dissolving the equal-word-length constraint. TGATE has no identity mode." },
+        { "id": "Q4", "claim": "27^w is the ceiling for any positionwise vocabulary", "outcome": "HELD",
+          "measured": { "lower_bound_meets_upper_bound_at_widths": [1, 2, 3] } },
+        { "id": "Q5", "claim": "the width-6 ceiling 27^6 exceeds 531441", "outcome": "HELD",
+          "measured": { "ceiling": 387420489, "understatement_factor": 729 } }
+      ]
+    },
+    {
+      "id": "R",
+      "subject": "What breaks the positionwise ceiling",
+      "tool": "tools/carry-audit.js",
+      "registered_at": "a2c320d",
+      "results_at": "7d5de05",
+      "asserted_in": "test/test-monoid.js",
+      "predictions": [
+        { "id": "R1", "claim": "the positionwise vocabulary saturates at exactly 27^w", "outcome": "HELD",
+          "measured": { "reach_w2": 729 } },
+        { "id": "R2", "claim": "27 more positionwise generators reach the same number", "outcome": "HELD",
+          "measured": { "reach_w2": 729, "elements_bought": 0 } },
+        { "id": "R3", "claim": "one translation exceeds 27^w at width 2 by at least 10x", "outcome": "HELD",
+          "measured": { "reach_w2": 251505, "factor": 345 } },
+        { "id": "R4", "claim": "one shift also escapes at width 2", "outcome": "HELD",
+          "measured": { "reach_w2": 801, "elements_bought": 72 } },
+        { "id": "R5", "claim": "the escape is cross-trit coupling, not generator count", "outcome": "HELD",
+          "measured": { "positionwise_gain": 0, "carry_gain": 250776 },
+          "note": "Not all coupling is equal, and this was NOT predicted: the carry buys 3,483x what the shift does, because a carry is data-dependent and a shift is a fixed relabelling." }
+      ]
+    },
+    {
+      "id": "S",
+      "subject": "Folding a chain of TOP tables into one",
+      "tool": "tools/fold-audit.js",
+      "registered_at": "9d08c3e",
+      "results_at": "2c71e89",
+      "asserted_in": "test/test-fold.js",
+      "predictions": [
+        { "id": "S1", "claim": "an N-stage chain folds to one instruction, saving (N-1) stages", "outcome": "HELD",
+          "measured": { "stages_folded_away": 3, "instructions_per_stage": 6, "cells_before": 93, "cells_after": 25, "instructions_before": 27, "instructions_after": 7 },
+          "note": "Held, with an accounting correction: S1 was written in STAGES, and each stage is six instructions, so the saving reads as 18-20 instructions rather than 3. The prose in the first run also mis-rendered this line before it was cleaned up." },
+        { "id": "S2", "claim": "the saving multiplies with emulation depth", "outcome": "HELD",
+          "measured": { "multiplier_per_level": 27 } },
+        { "id": "S3", "claim": "hash-consing pays exactly 9 cells per duplicate table", "outcome": "HELD",
+          "measured": { "cells_per_duplicate": 9 } },
+        { "id": "S4", "claim": "the fold does not survive a carry", "outcome": "HELD",
+          "measured": { "equivalence_broken_by": "one ADD between two TOPs" } }
+      ]
+    },
+    {
+      "id": "U",
+      "subject": "TOPC, the carry as a table",
+      "tool": "tools/carryop-audit.js",
+      "registered_at": "ab2a867",
+      "results_at": "a1b295d",
+      "asserted_in": "test/test-fold.js",
+      "predictions": [
+        { "id": "U1", "claim": "no TOP table equals ADD, over all 19683, compared as functions", "outcome": "HELD",
+          "measured": { "tables_matching_on_40_probes": 0, "tables_matching_at_one_input_pair": 81 },
+          "note": "The 81 is the point: a single-point comparison would have reported 81 false matches." },
+        { "id": "U2", "claim": "positionwise + TOPC carrying ADD reaches 251505 at width 2", "outcome": "HELD",
+          "measured": { "reach_w2": 251505, "same_monoid_as_plain_translation": true } },
+        { "id": "U3", "claim": "TOPC in the core would end depth 4", "outcome": "HELD",
+          "measured": { "core_cells": 224, "handler_cells": 16, "resulting_depth4_window": 9, "smallest_demo_span": 24 } }
+      ]
+    },
+    {
+      "id": "V",
+      "subject": "Whether the ceiling ladder has another rung",
+      "tool": "tools/topc-audit.js",
+      "registered_at": "317d152",
+      "results_at": "513f988",
+      "asserted_in": "test/test-monoid.js",
+      "predictions": [
+        { "id": "V1", "claim": "at width 1 the carry is inert; TOPC reaches 27 like TOP", "outcome": "HELD",
+          "measured": { "reach_w1": 27 } },
+        { "id": "V2", "claim": "at width 2 TOPC alone exceeds the 729 ceiling", "outcome": "HELD",
+          "measured": { "exceeds": true } },
+        { "id": "V3", "claim": "arbitrary carries reach more than the 251505 that ADD alone reaches", "outcome": "HELD",
+          "measured": { "reach_w2": 531441, "factor": 2.11 },
+          "note": "The first run reported this as FAILED. It had not failed: at depth 16 the sampled vocabulary was still growing while the ADD one had closed, so a smaller number was read as a smaller reach. The auditor now distinguishes closed, capped and depth-exhausted, and a test asserts all three stay distinguishable." },
+        { "id": "V4", "claim": "the sample is a lower bound and no upper bound is claimed", "outcome": "HELD",
+          "measured": { "sample_converged_at": [40, 80] } }
+      ]
+    }
+  ],
+  "unregistered_findings": [
+    { "id": "F-ADD-IS-A-TABLE", "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "ADD equals TOPC with the 27-row addition table, exactly.",
+      "evidence": "checked over every operand pair", "asserted_in": "test/test-fold.js" },
+    { "id": "F-ORDER-K-MASKING", "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "An interpreter bug that permutes the emulated semantics has an ORDER, and is invisible at layer counts divisible by it. Order 2 is masked at 2 layers; order 3 at 3.",
+      "consequence": "No single depth is a safe place to test; the acceptance tests compare every depth.",
+      "asserted_in": "test/test-selfhost.js" },
+    { "id": "F-FOLD-BUYS-DEPTH", "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "Folding buys a level of emulation depth, not just instructions: the unfolded chain is refused at depth 4 and the folded one runs.",
+      "asserted_in": "test/test-fold.js" },
+    { "id": "F-TGATE-NOT-CLOSED", "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "TGATE's three modes are not closed under composition: 6 of its 8 two-stage composites are not any TGATE mode. This is why TOP folds and TGATE cannot.",
+      "asserted_in": "test/test-fold.js" },
+    { "id": "F-KLEENE", "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "Reading -1/0/+1 as false/unknown/true, MIN, MAX and NEG are exactly the connectives of Kleene's strong three-valued logic. Excluded middle and non-contradiction both fail at unknown.",
+      "precision": "For these three connectives K3 and Lukasiewicz's L3 are identical; they diverge only at implication, which this machine has no operator for.",
+      "asserted_in": "test/test-logic.js" },
+    { "id": "F-RADIX-ECONOMY", "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "Base 3 is the cheapest integer radix by the radix-economy measure: representing a million values costs 40 in base 2, 39 in base 3, 40 in base 4.",
+      "asserted_in": "test/test-logic.js" },
+    { "id": "F-BRANCH-BENEFIT", "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "Three-way dispatch beats two-way on the same machine by about half an instruction and a fifth of the code per decision point, and nothing at all when the decision is genuinely binary. Deep dispatch loses outright to an indexed jump: 149 cells against 30.",
+      "asserted_in": "test/test-bench.js" },
+    { "id": "F-531441-COINCIDENCE", "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "The top rung of the ladder is 531,441, numerically identical to the source conversation's figure, by coincidence. That figure counted two-stage configurations of 6-trit trytes (729^2); this counts elements of a monoid on 9 points (9^6). Both are 3^12 for unrelated reasons, and the conversation's claim about what it counted remains wrong.",
+      "asserted_in": "test/test-monoid.js" }
+  ],
+  "traps_encountered": [
+    { "id": "T-ONE-POINT", "count": 3,
+      "description": "Comparing two functions at a single input and concluding they are equal. Bit the mixed-TGATE test, the folded-vs-unfolded programs, and the TOP-vs-ADD comparison, where 81 of 19,683 tables matched at one pair." },
+    { "id": "T-STALE-CONSTANT", "count": 2,
+      "description": "A hardcoded count in a test going stale when the thing it counted grew. The closure test's opcode list, and several depth-window numbers. Both now derive their values." },
+    { "id": "T-SILENT-NAN", "count": 1,
+      "description": "Writing through a missing label produced an undefined address, so the write silently did nothing. The core interpreter ran with no control register and no complaint." },
+    { "id": "T-ADJACENCY", "count": 1,
+      "description": ".fold reading nine cells from a table that was shorter, silently borrowing whatever followed it." },
+    { "id": "T-EXHAUSTED-NOT-CLOSED", "count": 1,
+      "description": "Reading depth exhaustion as saturation, which produced a false FAILED verdict for V3." }
+  ]
+}

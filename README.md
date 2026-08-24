@@ -1,548 +1,311 @@
-# tryte-vm — a balanced ternary computer emulator
+# tryte-vm
 
-A working emulator for a computer that counts in **three states instead of two**.
-Core arithmetic, an instruction set, a virtual machine, an assembler, and demo
-programs. 380 tests, all passing, including exhaustive sweeps over the machine's
-entire value space.
+A working computer that counts in **three states instead of two** — core
+arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
+assembly, and six audits establishing exactly what its instruction set can reach.
+
+**414 checks**, all passing. Every number below is recomputed by one of them.
 
 ```bash
-npm test                      # 380 checks  (~50s: the monoid sweeps are real)
+npm test              # everything (~50s; the monoid sweeps are real work)
+npm run build         # rebuild the interactive page from src/
 node src/run.js programs/multiply.tasm 7 5
-npm run selfhost              # the machine emulating itself
 ```
+
+| | |
+|---|---|
+| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + vocabulary audits |
+| **Read next** | [`FINDINGS.json`](FINDINGS.json) — every claim, machine-readable, validated by `test/test-findings.js` |
+| **Before changing it** | [`AGENTS.md`](AGENTS.md) — pre-registration protocol, test standards, and the traps this repo has fallen into |
+| **Where it came from** | [`docs/origin/`](docs/origin/) — append-only provenance |
+
+---
+
+## The machine
+
+| | |
+|---|---|
+| Trit | −1, 0, +1 |
+| Tryte | 6 trits — 729 values, **−364 … +364** |
+| Memory | 729 cells, addressed **−364 … +364**; address 0 is the *centre* |
+| Registers | `A` accumulator, `C` gate/table control, `PC` |
+| Instruction | two cells: opcode, operand |
+| Instructions | 25 (`src/isa.js`) |
+
+```
+src/         ternary.js (arithmetic + gates), isa.js, vm.js, assembler.js,
+             selfhost.js (run a program inside the emulated machine), run.js
+programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
+bench/       benchmark pairs: one task, two implementations
+tools/       the six audits, each with its registered predictions
+test/        one suite per concern; run-all.js runs them all
+docs/origin/ the source conversation, its audit, and its 16 code artifacts
+build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
+```
+
+---
+
+## Findings at a glance
+
+Six prediction sets, registered before their runs. **26 held, 1 failed** — the
+failure is kept, and produced the most useful result here. Full detail, with
+registering commits and the tests that assert each one, in
+[`FINDINGS.json`](FINDINGS.json).
+
+| | claim | outcome |
+|---|---|---|
+| **P1–P6** | what the `TGATE` control vocabulary generates | 5 held, **P3 failed** |
+| **Q1–Q5** | what `TOP` buys once the truth table is data | all held |
+| **R1–R5** | what breaks the positionwise ceiling | all held |
+| **S1–S4** | folding a chain of tables into one | all held |
+| **U1–U3** | `TOPC`, the carry as a table | all held |
+| **V1–V4** | whether the ceiling ladder has another rung | all held |
+
+Measured but never registered as predictions — listed separately so the
+pre-registration record is not inflated by facts that were never at risk:
+
+- **`ADD` is one particular `TOPC` table.** The machine's arithmetic is a 27-cell lookup.
+- **A bug of order *k* is invisible at *k* layers** of nested emulation.
+- **Folding buys a depth level**, not just instructions.
+- **`MIN`/`MAX`/`NEG` are exactly Kleene's three-valued logic.**
+- **Base 3 is the cheapest integer radix**, by the measure Setun was argued on.
+- **Three-way branching wins about half an instruction** per decision point, and nothing when the decision is binary.
 
 ---
 
 ## The idea, without the jargon
 
-A normal computer digit is a light switch: **off or on**, 0 or 1. To write a
-negative number you have to sacrifice one switch to mean "this whole thing is
-negative", and then bolt on machinery to handle it.
+A normal computer digit is a light switch: **off or on**. To write a negative
+number you sacrifice one switch to mean "this whole thing is negative", then bolt
+on machinery to handle it.
 
-A balanced ternary digit — a **trit** — is a **balance scale**. It can tip left,
-sit level, or tip right: **−1, 0, +1**. Weights go on *either* pan, so negative
-numbers aren't a special case that needs its own rules. They're just weights on
-the other side.
+A balanced ternary digit — a **trit** — is a **balance scale**. It tips left, sits
+level, or tips right: **−1, 0, +1**. Weights go on *either* pan, so negative
+numbers are not a special case.
 
-Four things fall out of that, and they're the whole reason this number system is
-interesting. All four are asserted as tests, not claimed in prose:
+Four things fall out, and all four are asserted as tests:
 
-| Property | What it means |
+| property | what it means |
 |---|---|
-| **Negation is flipping every digit** | To get −5 from 5, tip every scale the other way. No two's complement. |
-| **There is no sign bit** | `5` is `000+--` and `−5` is `000-++` — an exact mirror. No digit is wasted on sign. |
-| **Subtraction is not a separate operation** | `a − b` is just `a + (−b)`, and negation is free. One adder does both. |
-| **Rounding is free** | Chopping off low digits lands on the *nearest* value automatically. No rounding logic anywhere. |
+| **Negation is flipping every digit** | −5 from 5 by tipping every scale. No two's complement. |
+| **There is no sign bit** | `5` is `000+--`, `−5` is `000-++` — an exact mirror. |
+| **Subtraction is not separate** | `a − b` is `a + (−b)`, and negation is free. |
+| **Rounding is free** | chopping low digits lands on the *nearest* value. |
 
-That last one isn't a curiosity. The multiplication program in `programs/`
-extracts one digit at a time using `v − 3 × (v >> 1)`, which only works because
-the shift rounds. Break the rounding and the multiply demo fails — the test suite
-demonstrates exactly that.
+That last one is load-bearing, not decorative. `programs/multiply.tasm` extracts
+one trit at a time with `v − 3 × (v ≫ 1)`, which only works because the shift
+rounds — break the rounding and the multiply demo fails.
 
----
+### The instruction with no binary equivalent
 
-## The instruction with no binary equivalent
-
-Every ordinary CPU compares two numbers and gets one bit back: *was it true?*
-Asking "is this negative, zero, or positive?" therefore takes at least two tests.
-
-This machine has **`BR3`** — one test, **three destinations**:
+Every ordinary CPU compares two numbers and gets one bit back. Asking "negative,
+zero, or positive?" therefore takes two tests. This machine has **`BR3`** — one
+test, **three destinations**:
 
 ```
         BR3   sgn          ; look at the accumulator once
 sgn:    .table neg, zero, pos
 ```
 
-Negative goes one way, zero goes another, positive goes a third. No flags
-register, no chain of compares. It's the instruction a three-state machine gets
-for free and a two-state machine cannot have, and it's tested against all 729
-possible accumulator values.
+No flags register, no chain of compares. Tested against all 729 possible
+accumulator values.
 
 ---
 
-## It emulates itself
+## It emulates itself, three deep
 
 `programs/interp.tasm` is a tryte VM written in this assembly, running on this
-machine. Load a program into it and the same source file, given the same inputs,
-produces the same output whether run natively or emulated. That equality is the
-acceptance test, not a demo — `test-selfhost.js` checks it for **all 23 opcodes**
-and for every demo program.
-
-It nests **three deep**. A program can run on a machine emulated by a machine
-emulated by a machine, still producing identical output, for about 19,000× the
-instructions.
-
-Getting past two required a second interpreter. The full one implements all 23
-opcodes in 324 cells and two of those fit in 729; three do not. But the full
-interpreter *executes* `MIN`, `MAX`, `CSUM`, `NEG`, `SHL`, `SHR`, `TGATE` and
-`LDC` in exactly one place each — the handler that implements them. Delete those
-handlers and it stops needing those instructions. What remains,
-`interp-core.tasm`, is 14 opcodes and **199 cells**, and it is **closed under
-self-interpretation**: every instruction it executes is an instruction it
-implements. That closure is the property that lets copies stack, and the suite
-verifies it by reading the source rather than trusting the comment.
-
-| | full | core |
-|---|---|---|
-| Opcodes | 25 | 16 |
-| Size | 358 cells | **224 cells** |
-| Stacks | 2 deep | **3 deep** |
-| Runs | every demo | the arithmetic subset, plus TOP and LDC |
-
-Programs needing a dropped opcode halt rather than misbehaving — `multiply` needs
-shifts and `tgate` needs the gate control, so neither runs on the core.
-
-### Coverage across layers, and what it cost
-
-`TOP` and `LDC` were added to the core so that no layer refuses a program the
-layer below would accept. `h_top` executes `LDC` and `TOP`, so implementing one
-without the other would have broken the closure the core exists to have — the
-subset went from 14 opcodes to 16, not 15.
-
-It was not free, and the numbers say exactly what it cost:
-
-| | before | after |
-|---|---|---|
-| Core interpreter | 199 cells | 223 |
-| Max depth | 4 | 4 — unchanged |
-| Depth-4 window | 132 cells | **60** |
-
-`threeway.tasm` reaches address +39 and no longer fits at depth 4. Depth 4 still
-works, for programs that fit in 60 cells — `countdown.tasm` does. The suite
-asserts the refusal *and* names the window, rather than quietly dropping the case.
-
-**Folding buys a depth level.** That 60-cell window turns the fold from an
-optimisation into a capability: the four-stage `TOP` chain needs 93 cells
-unfolded and is refused at depth 4; folded it needs 30 and runs. Same source,
-same output, one more layer of emulation.
-
-Two silent failures showed up while doing this. The closure test listed its 14
-opcodes literally and went stale the moment the core gained two — it now derives
-the set from the core's own jump table. And `selfhost` initialised the emulated
-registers through label lookups that returned `undefined`, addressing `NaN` and
-doing nothing at all; the core ran for a while with no `ic` cell and no complaint.
-Both are now guarded.
+machine. Same source, same inputs, **same output** — asserted for all 25 opcodes
+and every demo program, not just demonstrated.
 
 ```bash
 npm run selfhost
 ```
 
-Two things came out of building it, both worth more than the emulator itself.
+Two interpreters exist, and the split is a measured decision rather than an
+oversight:
 
-**The instruction set was missing something, and only bootstrapping found it.**
-An interpreter must read memory at an address it *computes*. Every one of the
-original 19 instructions bakes its address in when the program is assembled. So
-the machine could not host an interpreter at all — and 117 passing tests had said
-nothing about it, because no demo program ever needed to. `LOADX`, `STOREX` and
-`JMPX` exist for that reason and no other.
+| | full | core |
+|---|---|---|
+| Opcodes | 25 | 16 |
+| Size | 358 cells | **224** |
+| Stacks | 2 deep | **3 deep** |
+| Carries (`TOPC`) | yes | no |
 
-**729 cells cannot hold 729 cells**, so the emulated machine is deliberately
-smaller. At first that capped the nesting at one level — and then it didn't:
+The core implements exactly the 16 opcodes it needs to interpret **itself** —
+**closed under self-interpretation**, which is the property that lets a copy run
+inside a copy. The suite verifies that closure by reading the core's own jump
+table, not by trusting the comment.
 
-| | first version | after decode moved to fetch | with the core |
-|---|---|---|---|
-| Interpreter | 412 cells | 324 cells | **199 cells** |
-| Cost per level | ~27× | ~27× | ~27× |
-| Depth 3 | impossible | **works** | works |
-| Depth 4 | impossible | impossible | **works** — 132 cells at the bottom |
-| Depth 5 | impossible | impossible | impossible |
+```
+threeway.tasm, native         58 instructions
+              1 interpreter    1,568   (27×)
+              2 interpreters  41,874   (722×)
+              3 interpreters 1,118,514 (19,285×)   identical output
+```
 
-What bought the 88 cells was moving the operand decode — the effective address
-and the value living there — out of twelve handlers and into `fetch`, where it
-happens once. That is instruction decode arriving for exactly the reason it
-arrived in real machines: the same work was being repeated in every handler.
+**Coverage and depth are one budget.** Adding an opcode to the core costs about
+16 cells, and the depth-4 window is 729 − 3×(core size) — so each opcode costs
+roughly 48 cells of innermost memory. At 729 cells total you can have complete
+coverage or maximum depth, not both. `TOPC` is in the full interpreter only,
+because putting it in the core would leave a depth-4 window of 9 cells.
 
-Nesting also forced the interpreter to become **relocatable**. A single fixed
-memory base can never nest, and the arithmetic is unambiguous: each level
-addresses memory as `base + a`, so the usable window shifts by the base at every
-level — away from the interpreter's own origin. No copy of `interp.tasm` could
-ever be loaded into a machine `interp.tasm` was running. Each level now picks its
-own origin and base, chosen to keep the next window centred.
+### A bug of order *k* is invisible at *k* layers
 
-**A bug of order k is invisible at k layers.** This started as "deeper is not
-strictly stronger" and sharpened into something exact. An interpreter bug that
-permutes the emulated semantics has an *order* — how many applications return it
-to the identity. Stacking n interpreters applies the bug n times, so it vanishes
-whenever its order divides n:
+Found by mutation testing, kept as a property test. An interpreter bug that
+permutes the emulated semantics has an **order** — how many applications return it
+to the identity. Stacking *n* interpreters applies it *n* times, so it vanishes
+whenever its order divides *n*:
 
 | | 1 layer | 2 layers | 3 layers |
 |---|---|---|---|
 | Swap two branch arms (order 2) | caught | **masked** | caught |
 | Rotate all three (order 3) | caught | caught | **masked** |
 
-Every depth is blind to bugs whose order divides its layer count, so no single
-depth is a safe place to test. The acceptance tests compare *every* depth, and
-the table above is itself a test — both maskings are asserted, not just noted.
+**No single depth is a safe place to test.** The acceptance tests compare every
+depth, and the table above is itself a test.
 
-The dispatch loop is worth a look. A three-level `BR3` tree reaches 27
-destinations in 3 branches where binary needs 5 — the prettier answer, and the
-one this project was built to show off. Measured, it cost **149 cells against 30**
-for an indexed jump through `JMPX`, so the indexed jump won. The ternary advantage
-in branching is real but it is not free. `BR3` still does the work that suits it:
-in `h_br3` the emulated three-way branch is implemented by the host's three-way
-branch, one for one.
+---
 
 ## The gates are three-valued logic, exactly
 
-Read the three trit states as truth values —
-
-> **−1 = false  ·  0 = unknown  ·  +1 = true**
-
-— and `MIN`, `MAX` and `NEG` stop being *analogies* for AND, OR and NOT. They
-**are** the connectives of Kleene's strong three-valued logic, on all twelve
-rows. That is the same logic SQL uses for `NULL`: unknown AND false is false
-(settled either way), unknown AND true is unknown (it still depends).
+Read the three states as truth values — **−1 = false, 0 = unknown, +1 = true** —
+and `MIN`, `MAX` and `NEG` stop being *analogies* for AND, OR and NOT. They **are**
+the connectives of Kleene's strong three-valued logic, on all twelve rows. That is
+the logic SQL uses for `NULL`.
 
 ```bash
 npm run logic
 node src/run.js programs/kleene.tasm 0 1
 ```
 
-The tests that carry the claim are the ones that **fail** classically. In
-two-valued logic `a OR NOT a` is always true. Here, when `a` is unknown, it comes
-back **unknown** — the law of the excluded middle breaks, and so does
-non-contradiction. If they held, this would be binary logic with a spare state
-lying around. De Morgan, double negation, absorption and associativity all
-survive; the suite checks each.
-
-Two consequences worth noting. One `MIN` evaluates **six independent conjunctions
-at once**, because the gates were always tritwise. And `TGATE` can run a
-*different* connective in each of the six positions — the source conversation's
-original idea, which turns out to describe a small three-valued-logic vector unit.
+The tests that carry the claim are the ones that **fail** classically: `a OR NOT a`
+comes back **unknown**, so the excluded middle breaks, and so does
+non-contradiction. Had they held, this would be binary logic with a spare state.
+De Morgan, double negation, absorption and associativity all survive.
 
 *A precision:* for these three connectives Kleene's K3 and Łukasiewicz's Ł3 are
-identical. They diverge only at implication, which this machine has no operator
-for, so either name is fair.
+identical, diverging only at implication, which this machine has no operator for.
 
-**And why base three at all?** The historical argument for Setun, checked: the
-cost of representing a number is roughly the radix times the digits needed. For a
-million values, base 2 costs 40, **base 3 costs 39**, base 4 costs 40. Base 3
-wins because the continuous optimum is *e* = 2.718…, and 3 is the nearest integer.
+**And why base three at all?** The historical argument for Setun, checked:
+representing a million values costs **40** in base 2, **39** in base 3, **40** in
+base 4. Base 3 wins because the continuous optimum is *e*.
 
-## The 531,441 claim, settled
+---
 
-The source conversation claimed that cascading two 6-trit `TGATE` stages gives
-**"531,441 unique cascading logic networks."** The first audit in
-`docs/origin/REPORT.md` called that overcounting and demonstrated it at toy scale.
-This measures it properly.
+## The vocabulary ladder
 
-```bash
-npm run audit
-```
+The central result, and the reason the audits exist. The source conversation
+claimed that cascading two `TGATE` stages gives **"531,441 unique cascading logic
+networks."** Measuring that properly took six audits and produced a ladder — where
+**every rung is a fact about the vocabulary, not about the machine.**
 
-Fix `TGATE`'s second operand and each of the 3^w controls becomes a unary map on
-trytes — a **table**. A vocabulary of k tables on N points generates a **monoid**
-under composition, and chaining stages, however many, cannot leave it. So the
-right question is not how many configurations exist but how many *elements* the
-vocabulary reaches.
+A vocabulary of *k* tables on *N* points generates a **monoid** under composition,
+and chaining stages, however many, cannot leave it. So the question is never how
+many configurations exist but how many **elements** the vocabulary reaches.
 
-| width | controls | reach |
+| vocabulary | reach | |
 |---|---|---|
-| 1 | 3 | 7 |
-| 2 | 9 | 47 |
-| 3 | 27 | 307 |
-| 4 | 81 | 1,967 |
-| 5 | 243 | 12,427 |
-| **6** | **729** | **77,687** |
+| `TGATE`, all 729 controls | **77,687** at width 6 | closed |
+| any positionwise vocabulary | **27^w** | closed — `TOP` sits exactly on it |
+| positionwise + **one** carry (`ADD`) | **251,505** at width 2 | closed |
+| positionwise + **arbitrary** carries (`TOPC`) | **531,441** | closed |
+| every map on 9 points | 387,420,489 | — |
 
-**531,441 = 729² counts configurations of two stages. 77,687 is every function
+**531,441 = 729² counted configurations of two stages. 77,687 is every function
 reachable by any number of stages.** The claim overstates by **6.84×**, and
-cascading past that point adds nothing at all.
+cascading past two stages adds nothing at all.
 
-**A prediction failed, and the failure was the finding.** Six predictions were
-registered in `tools/monoid-audit.js` and committed *before* the run, so git
-supplies the ordering an editable file cannot. Five held. **P3 — that the reach
-would be the full direct product, 7^w — failed**: 47 not 49, 307 not 343. The
-reason is that one composition step applies *one* control across *all* trit
-positions, so after d steps every position carries a word of length exactly d.
-The positions must agree on word length, which is strictly weaker than a direct
-product:
+### More tables do not mean more reach
+
+The lesson that recurs at every rung:
+
+- 19,683 `TOP` tables, second operand pinned, collapse to **27** maps.
+- 27 extra positionwise generators buy **+0** elements.
+- One shift buys **+72**. One *carry* buys **+250,776**.
+
+**Not all coupling is equal**, and that part was not predicted: both `ADD` and
+`SHL` touch other positions, but the carry buys **3,483×** what the shift does. A
+shift is a fixed relabelling; a carry is **data-dependent**. Coupling has to be
+conditional to generate.
+
+### The prediction that failed
+
+**P3** predicted the reach would be the full direct product, 7^w. It is 47 not 49,
+307 not 343. One composition step applies *one* control across *all* trit
+positions, so after *d* steps every position carries a word of length exactly *d* —
+the positions must agree on word **length**, which is strictly weaker:
 
 > reach(w) = │ ⋃_d (M_d)^w │
 
-That corrected law is labelled post-hoc throughout, validated against all five
-measured widths, and only then used at width 6. The failed prediction is kept as
-a test — a project that keeps only its successful predictions is not making
-predictions.
+Labelled post-hoc throughout, validated on five widths before being used at the
+sixth. **Q3 later explained the failure**: `TOP` *can* express the identity as a
+column, so positions idle while others advance — dissolving exactly the constraint
+that bound `TGATE`, which has no identity mode.
 
-**One contrast worth the trip.** The instrument comes from a sister tool whose
-headline result is `wide16`: sixteen tables reaching exactly the same 20,160
-elements as six, because all sixteen were drawn from one linear group — ten more
-tables bought **+0**. Here the opposite holds. Three uniform controls reach 7 at
-every width; all 729 reach 77,687. The tables are independent per trit position
-rather than drawn from a single group, so they genuinely buy reach. *Whether more
-tables help is a property of the vocabulary, not of the count.*
+### The instrument lied first
 
-*Instrument borrowed from `tools/table-audit.py` in the gameladder repo, which
-credits `unit:braid_relation_miner` for the shape. Ported to JavaScript rather
-than reimplemented in Python so that `T.tgate` has exactly one definition — the
-audit imports the semantics it is auditing, and a test asserts the agreement.*
+The last audit initially reported **V3 failed**. It had not: at depth 16 the
+sampled vocabulary was still *growing* while the comparison vocabulary had already
+*closed*, so a smaller number was read as a smaller reach. Running out of depth,
+hitting the cap, and closing are three different outcomes; the auditor now reports
+them separately, and a test asserts all three stay distinguishable.
 
-## Making the truth table an instruction
+### A coincidence, flagged as one
 
-The audit above said the `TGATE` vocabulary reaches 77,687 of the 729^729 maps on
-a tryte. So the base machine gained one opcode:
+The ladder's top rung is **531,441** — numerically the exact figure the source
+conversation claimed. It is a coincidence: that figure was 729² counting two-stage
+configurations of 6-trit trytes; this is 9⁶ counting elements of a monoid on 9
+points. Both are 3¹² for unrelated reasons, and the conversation's claim about
+what it counted remains wrong.
 
-    TOP addr    A = the nine-entry truth table at C, applied tritwise to
-                (A, mem[addr])
+---
 
-Nine entries specify one of the **19,683** two-input trit functions, so the
-function becomes data. `MIN`, `MAX`, `CSUM` and `NEG` are each one particular
-table; projecting the second operand — which the ISA had no way to express — is
-another.
+## Routing: folding a chain into one table
 
-**Neither opcode subsumes the other**, and that is tested: `TOP` applies *one*
-table to all six positions and offers 19,683 of them; `TGATE` applies *three*
-fixed modes and picks per position. `TOP` reproduces every uniform `TGATE`
-control and no mixed one.
-
-Then the same instrument, on the new vocabulary. Five predictions, registered
-before the run, all held:
-
-| | reach |
-|---|---|
-| `TOP`, second operand pinned | **27 at every width** |
-| `TGATE`, all controls | 47, 307, 1967 … |
-| `TOP`, second operand free | **27^w** |
-
-**More tables, less reach.** With the second operand pinned there is one column in
-play, so every position gets the same map and 19,683 tables collapse to 27 —
-fewer than `TGATE` reaches with three. Richness per instruction is not reach under
-composition.
-
-**And it explains why P3 failed.** Freed, `TOP` reaches exactly 27^w — the full
-direct product that P3 wrongly predicted for `TGATE`. The difference is the
-**identity**: `TOP` can put it in a column, so positions idle while others
-advance, dissolving the equal-word-length constraint. `TGATE` has no identity
-mode — `NEG`, `MIN(·,0)` and `MAX(·,0)` all move something — which is exactly why
-its reach was 47 and not 49. The suite asserts both halves of that.
-
-27^w is also the **ceiling for any positionwise vocabulary**: an operation
-computing out_p from (x_p, y_p) alone induces at most 27 maps per position.
-Beating it requires cross-trit interaction — a carry. At width 6 that ceiling is
-27^6 = 387,420,489 = 3^18, so the conversation's 531,441 flips from a **6.84×
-overstatement** of what `TGATE` reaches to a **729× understatement** of what
-`TOP` can.
-
-### What it cost the layers above
-
-Implementing the emulated `TOP` inside the interpreter takes seven instructions,
-not a lookup loop: the guest's table lives at consecutive host addresses, so
-pointing the host's own `C` at it makes the host's `TOP` do the work.
-
-| | before | after |
-|---|---|---|
-| Full interpreter | 324 cells | 341 |
-| Core interpreter | 199 cells | 200 |
-| Max depth | 3 / 4 | 3 / 4 — unchanged |
-| Depth-3 window | 81 cells | **47** |
-
-Seventeen cells cost no nesting depth but shrank the depth-3 window enough that
-`threeway.tasm` no longer fits with the full interpreter. So the harness now
-picks an interpreter by the **program**, not just the depth: it checks the depth
-is reachable, the program fits the window, *and* the variant implements the
-opcodes the program uses — falling back to the core, and naming every reason when
-nothing fits. The regression was caught by the suite, not by inspection.
-
-## What breaks the ceiling: the carry, not the gates
-
-27^w bounds *any* positionwise vocabulary. So the last audit asks what escapes it,
-and the candidate is an operation whose output at one position depends on trits at
-**other** positions — a carry. Five predictions, registered before the run, all
-held. At width 2, where the ceiling is 27² = 729 and there are 387,420,489 maps
-in total:
-
-| vocabulary | generators added | reach | gain |
-|---|---|---|---|
-| positionwise | — | 729 | — |
-| **+ 27 more positionwise** | 27 | **729** | **+0** |
-| + one shift (`v → 3v`) | 1 | 801 | +72 |
-| **+ one translation (`v → v+1`)** | **1** | **251,505** | **+250,776** |
-
-Twenty-seven extra tables bought **nothing**. One carrying instruction bought a
-345× larger monoid. That is `table-audit`'s `wide16` reproduced in this arena, with
-the control and the treatment side by side in one table — which is the only way
-"we added a generator and reach went up" means anything.
-
-**Not all coupling is equal, and that wasn't predicted.** Both `ADD` and `SHL`
-touch other positions, yet the carry buys **3,483×** what the shift does. A shift
-is a fixed relabelling; a carry is *data-dependent* — which trits move depends on
-the values. Coupling has to be conditional to generate.
-
-**And even then the machine closes.** With the carry the vocabulary still
-saturates, at 251,505 — **0.065%** of the maps on 9 points. Escaping the
-positionwise ceiling is not the same as becoming universal.
-
-The conclusion is about this machine rather than the audit: **`TGATE` and `TOP`
-are bounded by 27^w however many tables they carry. What makes this a general
-computer is `ADD`, `SUB`, `SHL` and `SHR` — the arithmetic, not the gates.** The
-source conversation spent its length on the gates.
-
-## Routing a chain through one table
-
-Closure is not just a counting fact; it is a licence to **fold**. If the composite
-of two `TOP`s is again a `TOP`, a whole chain collapses at build time into one
-table applied by one instruction:
+Closure is a licence to **fold**. If the composite of two `TOP`s is again a `TOP`,
+a chain collapses at build time into a single table:
 
 > **T3[a][b] = T2[ T1[a][b] ][b]**
 
-Column-wise composition — and notice what the formula omits: the second operand.
-One fold stays correct for every input the program will ever meet.
-
-A four-stage chain, measured:
-
-| | unfolded | folded | saved |
-|---|---|---|---|
-| Cells | 97 | 34 | 63 |
-| Instructions, native | 29 | 11 | 18 |
-| Instructions, emulated (depth 2) | 772 | 289 | **483** |
-
-**The saving multiplies with depth — 26.8× more at depth 2.** Folding is worth
-most precisely where execution is dearest, because every guest instruction removed
-takes ~27 host instructions with it per level.
-
-Identical folded tables are **content addressed**, so a composite used twice costs
-nine cells rather than eighteen.
-
-Folding is a **language feature**, not just a tool: the assembler has a `.fold`
-directive, so a program can name a chain and get one table.
+Column-wise composition — and the formula never mentions the second operand, so one
+fold serves every input. It is a **language feature**, not a tool-only trick:
 
 ```
 allT:   .fold minT, negT, maxT, negT     ; nine cells, composed at build time
 ```
 
-It resolves in its own pass, so a fold may name tables declared after it, and a
-fold may name another fold. `programs/fold.tasm` computes the same chain twice —
-four stages the long way, one instruction the short way — and emits both results
-so the program checks the fold against itself.
+A fold may name tables declared after it, or another fold. `programs/fold.tasm`
+computes the same chain both ways and emits both results, so the program checks
+the fold against itself.
 
-A table shorter than nine cells is **refused**, because reading past it would
-silently pick up whatever happened to follow and the fold would succeed with the
-wrong data.
-
-**Foldability is a property `TOP` has and `TGATE` does not.** `TOP`'s columns are
-arbitrary, so the family is closed. `TGATE`'s three modes generate a seven-element
-per-trit monoid — **six of its eight two-stage composites are not any `TGATE`
-mode**, so a `TGATE` chain has nothing to fold into. That is the same 3-versus-27
-gap the audits measured, showing up as an optimisation that exists or doesn't.
-
-**And the fold stops at a carry.** Insert one `ADD` between two `TOP`s and the
-folded table stops agreeing, because the chain is no longer positionwise. The
-optimisation's boundary is exactly the boundary the carry audit found by counting —
-one arrived at by algebra, the other by enumeration, meeting at the same place.
-
-*One limit, stated: `TOP` programs emulate two levels deep, not three, because the
-core interpreter deliberately drops `TOP`.*
-
-### A silent bug this turned up
-
-`LOADI t0` assembled as the **value zero** rather than the address of label `t0`,
-because `t0` is also valid trit-literal syntax. No diagnostic, just a wrong
-program — and it only surfaced because the folded and unfolded versions were being
-compared against each other. The assembler now refuses such labels outright rather
-than resolving them by precedence, which would have moved the surprise instead of
-removing it.
-
-## Widening the routing space: the carry as a table
-
-27^w bounds any operation that computes each output trit from its own position.
-`TOP` already sits at that ceiling, so no further table instruction can widen it —
-unless the table couples positions. `TOPC` does:
-
-    TOPC addr    A = the 27-row carry table at C, applied to (A, mem[addr])
-
-27 rows indexed by **(x, y, carry-in)**, each one cell packing both outputs as
-`out + 3 × carry` — a two-trit number, so the machine's own arithmetic unpacks it
-and no new encoding is invented. Positions run least significant first, the carry
-starts at zero, the final one is dropped.
-
-**Which makes `ADD` one particular table.** Verified over every operand pair: the
-machine's arithmetic is a 27-cell lookup. Three predictions were registered before
-the audit; all three held.
-
-| vocabulary at width 2 | reach |
-|---|---|
-| positionwise alone | 729 (the 27² ceiling) |
-| **+ `TOPC` carrying the ADD table** | **251,505** |
-| + a plain translation | 251,505 |
-
-The bottom two rows are the same monoid — reached by **one instruction** where the
-carry audit needed two. And no `TOP` table equals `ADD`: checked over all 19,683,
-compared as *functions*. Comparing at a single input pair would have reported
-**81 false matches**, which is the third time in this project that a one-point
-comparison would have lied.
-
-### Where it goes, and why not everywhere
-
-`TOPC` is in the full interpreter and **deliberately not** in the core. The core is
-224 cells, a handler costs ~16, and the depth-4 window is 729 − 3I — so adding it
-would leave **9 cells**, less than any program. The split is a measured decision:
-
-| | full | core |
+| four-stage chain | unfolded | folded |
 |---|---|---|
-| Opcodes | 25 | 16 |
-| Size | 358 cells | 224 |
-| Stacks | 2 deep | **3 deep** |
-| Carries | `TOPC` | — |
+| Cells | 93 | **25** |
+| Instructions, native | 27 | **7** |
+| At emulation depth 4 | refused — too big | **runs** |
 
-Complete coverage and maximum depth turn out to be the two ends of one budget, and
-at 729 cells you cannot have both.
+**Folding buys a depth level, not just instructions**, and the saving multiplies
+by ~27× per level of emulation — it is worth most exactly where execution is
+dearest.
 
-## The ladder of ceilings
+**Foldability is a property `TOP` has and `TGATE` does not.** `TGATE`'s three modes
+generate a seven-element per-trit monoid, so six of its eight two-stage composites
+are not any `TGATE` mode; a `TGATE` chain has nothing to fold into.
 
-Six audits, each registering its predictions before running. What they found is a
-ladder — and every rung is a fact about the **vocabulary**, not about the machine:
+**And the fold stops at a carry** — insert one `ADD` and the folded table stops
+agreeing, because the chain is no longer positionwise. The optimisation's boundary
+is exactly the boundary the carry audit found by counting.
 
-| vocabulary | reach | |
-|---|---|---|
-| `TGATE`, all 729 controls | 77,687 at width 6 | closed |
-| any positionwise vocabulary | 27^w | closed — `TOP` sits exactly on it |
-| positionwise + **one** carry (`ADD`) | 251,505 at width 2 | closed |
-| positionwise + **arbitrary** carries (`TOPC`) | **531,441** | closed |
-| every map on 9 points | 387,420,489 | — |
+---
 
-**Freedom in the carry buys reach; freedom in the table did not.** 19,683 `TOP`
-tables collapsed to 27. 27 extra positionwise generators bought +0. But making the
-*carry* data doubles the reach over the single carry the machine shipped with —
-2.11× — and the whole thing still closes at 0.14% of the maps on 9 points.
+## Is the ternary part actually worth it?
 
-And at width 1 the carry is **inert**: `TOPC` reaches 27, exactly what `TOP`
-reaches. A carry needs a neighbour before it is worth anything.
-
-### The instrument lied first, and the fix is in the record
-
-The first run of this audit reported V3 **failed**. It hadn't: at depth 16 the
-sampled vocabulary was still growing while the `ADD` one had already closed, so a
-smaller number was being read as a smaller reach. Running out of depth, hitting
-the cap, and closing are three different outcomes, and the auditor now
-distinguishes them — with a test asserting all three stay distinguishable.
-
-*(Keys were also packed into integers for small arenas, which is what makes a
-531,441-element sweep affordable enough to pin in the suite at all.)*
-
-### A coincidence, flagged as one
-
-The ladder's top rung is **531,441** — numerically the exact figure the source
-conversation claimed for "unique cascading logic networks". It is a coincidence,
-and the arithmetic says why: the conversation multiplied 729 × 729 to count
-two-stage *configurations* of 6-trit trytes; this counts *elements* of a monoid on
-9 points, which is 9^6. Both are 3^12, for entirely unrelated reasons. The
-conversation's number was still wrong about what it claimed to count — that
-remains 77,687 versus 531,441 — and a matching digit string is not a vindication.
-
-## Is any of it actually worth it?
-
-Everything above checks that ternary is *correct*. `npm run bench` checks whether
-it is *worth it* — the claim the source conversation made loudest and never
-measured. It compares **three-way against two-way dispatch on the same machine**:
-a two-way branch is `BR3` with two arms pointing at the same place, which is
-exactly what a binary machine's conditional branch does. Same hardware, same
-instruction set, same memory. Only the branch structure differs.
-
-The two-way baseline is written to be as good as the machine allows — `BR3` leaves
-the accumulator untouched, so it retests the value already in it and pays no
-store/reload tax. A baseline the reader could improve would make the whole
-exercise worthless.
+Every other suite checks that ternary is *correct*. `npm run bench` checks whether
+it is *worth it* — comparing **three-way against two-way dispatch on the same
+machine**, since a two-way branch is `BR3` with two arms merged. The two-way
+baseline pays no store/reload tax, because `BR3` leaves the accumulator untouched;
+a baseline the reader could improve would make the exercise worthless.
 
 | | three-way | two-way | |
 |---|---|---|---|
@@ -551,107 +314,53 @@ exercise worthless.
 | A genuinely binary decision | — | — | **identical; no benefit exists** |
 | Deep dispatch (27 ways) | 149 cells | 30 cells (indexed jump) | **three-way loses** |
 
-**The three-way branch is a real win, and a modest one:** about half an
-instruction and a fifth of the code per decision point, and only where the
-decision genuinely has three outcomes. When the question is yes-or-no, the
-two-way version of the program *is* the program. And when the dispatch gets deep,
-the elegant `BR3` tree loses decisively to a boring indexed jump table.
-
-Averaged over every tryte value the saving is 0.50 instructions per decision,
-which is what the theory predicts: a negative value is settled by the first
-two-way test, so only the other two outcomes save anything.
-
-## Where this came from
-
-This project is the unfinished half of a Google AI Mode conversation
-(`docs/origin/`). That conversation designed a "tryte ALU" and offered three
-separate times to *"implement balanced ternary arithmetic, treating trits as
-numerical values"* — and never did. Every artifact it actually produced was
-ordinary binary logic wearing ternary vocabulary; its own Verilog encoded the
-"trit" as two binary wires.
-
-`docs/origin/REPORT.md` is the audit of that conversation: every piece of its
-logic is correct, and its framing oversells a conventional ALU. **This project is
-the part it kept promising.** Here the trits are real — data, arithmetic,
-branching and all.
-
-The one idea worth rescuing from it was the self-reconfiguring unit, which
-appears here as **`TGATE`**: a control tryte whose six trits each select what
-that slice of the machine does (negate / min / max). One control value names one
-of 729 distinct circuits. On binary data with AND/OR/NOT that idea is just an
-opcode driving a multiplexer; on ternary data it is a genuine three-way choice
-per position.
-
-**Prior art:** *Setun*, built in 1958 at Moscow State University under Sergei
-Sobolev and Nikolay Brusentsov, was the first modern ternary computer and used
-this same balanced ternary system, with digits −1, 0, +1. It was built from
-ferrite cores and diodes; roughly 50 machines were produced between 1959 and
-1965 and used for teaching at more than thirty universities. This emulator is
-inspired by that lineage, not a reimplementation of it.
+**A real win, and a modest one:** about half an instruction and a fifth of the code
+per decision point, and only where the decision genuinely has three outcomes. When
+the dispatch gets deep, the elegant `BR3` tree loses decisively to a boring indexed
+jump table.
 
 ---
 
-## Machine summary
+## Where this came from
 
-| | |
-|---|---|
-| Trit | −1, 0, +1 |
-| Tryte | 6 trits — 729 values, **−364 … +364** |
-| Memory | 729 cells, addressed **−364 … +364**; address 0 is the *centre* |
-| Registers | `A` accumulator, `C` gate control, `PC` |
-| Instruction | two cells: opcode, operand |
-| Instructions | 25 (`src/isa.js`) |
+This project is the unfinished half of a Google AI Mode conversation, preserved in
+[`docs/origin/`](docs/origin/). That conversation designed a "tryte ALU" and
+offered three separate times to *"implement balanced ternary arithmetic, treating
+trits as numerical values"* — and never did. Every artifact it produced was
+ordinary binary logic wearing ternary vocabulary; its own Verilog encoded the
+"trit" as two binary wires.
 
-## Layout
+`docs/origin/REPORT.md` is the audit of that conversation: every piece of its logic
+is correct, and its framing oversells a conventional ALU.
 
-```
-src/ternary.js     trit/tryte arithmetic and the tritwise gates
-src/isa.js         the 23 opcodes
-src/vm.js          fetch, decode, execute
-src/assembler.js   text -> trytes, two passes, labels and directives
-src/selfhost.js    run a program natively, or inside the emulated machine
-src/run.js         CLI runner
-programs/          threeway.tasm, multiply.tasm, tgate.tasm, kleene.tasm,
-                   countdown.tasm, fold.tasm,
-                   interp.tasm (23 opcodes), interp-core.tasm (14, self-sufficient)
-test/              test-core.js (27), test-vm.js (41), test-selfhost.js (83),
-                   test-bench.js (15), test-logic.js (25), test-monoid.js (55), test-fold.js (53),
-                   test-page.js (43), test-style.js (28), run-all.js
-tools/             monoid-audit.js, top-audit.js, carry-audit.js,
-                   fold-audit.js, carryop-audit.js, topc-audit.js
-bench/             the three-way vs two-way branching benchmark
-build/             inlines src/ into a single interactive HTML page
-docs/tryte-vm.html the built page
-docs/origin/       the source conversation, its audit, and its code artifacts
-```
+The audits since have sharpened the verdict into something more interesting than
+"it was wrong". **`TGATE` and `TOP` are bounded by 27^w however many tables they
+carry. What makes this a general computer is `ADD`, `SUB`, `SHL` and `SHR` — the
+arithmetic, not the gates.** The conversation spent its entire length on the gates
+and skipped the arithmetic three times.
+
+**Prior art:** *Setun*, built in 1958 at Moscow State University under Sergei
+Sobolev and Nikolay Brusentsov, was the first modern ternary computer and used
+this same balanced system. Around 50 were built between 1959 and 1965 from ferrite
+cores and diodes, and used for teaching at more than thirty universities. This
+emulator is inspired by that lineage, not a reimplementation of it.
+
+---
 
 ## Testing standard
 
-The suite checks itself before it checks anything else, then sweeps exhaustively
-where exhaustive is possible: all 729 values for representation and sign, all
-**531,441** tryte pairs for add, subtract, multiply and each tritwise gate, all
-729 accumulator values for the three-way branch, and all 1,521 in-range operand
-pairs for the multiplication program.
+The short version: exhaustive where possible, mutation-tested, constants derived
+rather than hardcoded, and the manifest validated against the repository. Full
+conventions and the list of traps this codebase has actually fallen into are in
+[`AGENTS.md`](AGENTS.md).
 
-Two further layers exist because inspection alone proved unreliable here:
+Three checks are worth naming here because they are unusual:
 
-- **The interactive page is tested, not eyeballed.** `test-page.js` runs the published
-  page's own script against a small DOM shim and drives the controls — pressing Run
-  really runs the program, Negate really negates, the trit strips really render the
-  value they claim. 26 checks.
-- **The build cannot ship a divergence.** `build-artifact.js` inlines `src/` into the
-  page, then re-runs the demo programs through the *bundled* copy and compares against
-  the modules. If the page ever drifts from the tested code, the build fails.
-- **The emulator is mutation-tested through its own acceptance test.** Making the
-  interpreter subtract instead of add, swap two dispatch-table entries, reverse the
-  three-way branch arms, or advance the emulated program counter by one instead of
-  two each produces immediate failures. Without that, "identical output" could be
-  vacuously true.
-- **Both themes are checked arithmetically.** `test-style.js` computes WCAG contrast
-  for every text/background pair in light and dark. This exists because three real
-  defects shipped past visual inspection: a Cyrillic character inside a dark-mode hex
-  literal, and two pairs below AA.
-
-The whole suite has also been **mutation-tested**: deliberately breaking the shift
-rounding, the three-way branch, the gate control, and a dark-theme colour each produced
-immediate, specific failures. Tests that cannot fail are worse than no tests.
+- **`test-findings.js`** validates `FINDINGS.json` against the repo — recomputing
+  the cheap numbers, verifying each registering commit really precedes its results
+  commit, and confirming every prediction id appears in the test that asserts it.
+- **`build-artifact.js`** re-runs the demo programs through the *bundled* copy of
+  `src/` and fails the build on any divergence, so the published page cannot drift
+  from the tested code.
+- **`test-style.js`** computes WCAG contrast for every colour pair in both themes,
+  because three real defects shipped past visual inspection.

@@ -82,7 +82,7 @@ check('identical tables share one content address',
   T.tableKey(MODES[0]) !== T.tableKey(MODES[1]));
 check('entries differing only above the lowest trit address identically',
   T.tableKey(MODES[0]) === T.tableKey(MODES[0].map((e, i) => e + (i % 2 ? 3 : -3))));
-check('four tables with two distinct values need 2 x 9 cells, not 4 x 9', (() => {
+check('S3 — four tables with two distinct values need 2 x 9 cells, not 4 x 9', (() => {
   const dup = [MODES[0], MODES[1], MODES[0], MODES[1]];
   return new Set(dup.map(T.tableKey)).size * 9 === 18;
 })());
@@ -117,14 +117,14 @@ function chainProgram(tables, folded) {
     probes.every(x => runNative(u, [x]).output[0] === runNative(f, [x]).output[0]));
   const uc = assemble(u, 0).cells.size, fc = assemble(f, 0).cells.size;
   const us = runNative(u, [123]).steps, fs = runNative(f, [123]).steps;
-  check(`cells ${uc} -> ${fc} (${uc - fc} saved)`, uc === 93 && fc === 25, `${uc} -> ${fc}`);
-  check(`instructions ${us} -> ${fs} (${us - fs} saved)`, us === 27 && fs === 7, `${us} -> ${fs}`);
+  check(`S1 — cells ${uc} -> ${fc} (${uc - fc} saved)`, uc === 93 && fc === 25, `${uc} -> ${fc}`);
+  check(`S1 — instructions ${us} -> ${fs} (${us - fs} saved)`, us === 27 && fs === 7, `${us} -> ${fs}`);
 
   const hu = runHosted(u, [123], { depth: 2, maxSteps: 5e7 });
   const hf = runHosted(f, [123], { depth: 2, maxSteps: 5e7 });
-  check('emulated at depth 2 the same fold saves far more than natively',
+  check('S2 — emulated at depth 2 the same fold saves far more than natively',
     hu.steps - hf.steps > 20 * (us - fs), `${hu.steps - hf.steps} vs ${us - fs}`);
-  check('the per-instruction multiplier is about 27x',
+  check('S2 — the per-instruction multiplier is about 27x',
     Math.abs((hu.steps - hf.steps) / (us - fs) - 27) < 1.5,
     String((hu.steps - hf.steps) / (us - fs)));
 
@@ -150,7 +150,7 @@ function chainProgram(tables, folded) {
   check('so folding buys a depth level, not just instructions', true);
 }
 console.log('\n=== 5. WHERE FOLDING STOPS ===');
-check('inserting one ADD breaks the equivalence — a carry is not positionwise', (() => {
+check('S4 — inserting one ADD breaks the equivalence — a carry is not positionwise', (() => {
   const f = T.foldTables(MODES[0], MODES[1]), y = -45, K = 40;
   return ALL.some(x => T.ttable(MODES[1], T.wrap(T.ttable(MODES[0], x, y) + K), y) !== T.ttable(f, x, y));
 })());

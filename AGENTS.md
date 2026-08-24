@@ -1,0 +1,128 @@
+# Working in this repository
+
+Conventions for anyone — human or agent — changing this code. Deliberately free of
+numbers: counts, sizes and measured values live in `FINDINGS.json`, which a test
+validates, so nothing here can go stale.
+
+Read `README.md` for what the project is. Read this before changing it.
+
+---
+
+## The one rule
+
+**Nothing is claimed that is not checked.** Every number in the README, in a
+commit message, or in a comment is either recomputed by a test or recorded in
+`FINDINGS.json` with a pointer to the test that recomputes it. If you write a
+number you cannot point at a check for, you have added a liability.
+
+---
+
+## Pre-registration protocol
+
+Empirical claims about this machine follow a fixed order, because a prediction
+written after the run is not a prediction:
+
+1. **Write the predictions** into the audit tool's docstring, in a block headed
+   `PREDICTED OUTCOMES`, each with a short id (`P1`, `Q3`, …).
+2. **Commit that alone.** The commit must contain no measurement. Its message
+   says so. Git then supplies the ordering an editable file cannot.
+3. **Run the audit.**
+4. **Commit the results separately**, reporting each prediction as held or
+   failed.
+5. **Add the outcomes to `FINDINGS.json`** and assert them in a test, using the
+   prediction's id in the check name so the manifest validator can find it.
+
+Two things this protocol exists to prevent, both of which have been tempting here:
+
+- **Backdating.** If a fact was measured during design, it is not a prediction.
+  Record it under `unregistered_findings` with outcome `MEASURED_NOT_REGISTERED`.
+  Inflating the registered set with facts that were never at risk turns the
+  discipline into decoration.
+- **Quiet correction.** A failed prediction stays failed. Keep it in the manifest,
+  keep a test asserting it still fails, and write down what the failure taught.
+  The most useful result this repository has produced came from a prediction that
+  was wrong.
+
+## Tests
+
+- **Exhaustive where exhaustive is possible.** The value space is small; sweep it
+  rather than sampling it. Where sampling is unavoidable, say so and state which
+  direction the bound goes.
+- **Check the instrument before trusting it.** Each suite opens by asserting
+  hand-computed values and demonstrating that the harness can report a failure.
+- **Mutation-test new checks.** Break the thing deliberately and confirm the test
+  notices. A test that cannot fail is worse than no test, because it reads as
+  coverage.
+- **Derive constants, never hardcode them.** Read the opcode set from the ISA, the
+  window size from the layout, the prediction ids from the tool. Hardcoded counts
+  go stale silently and assert against a past version of the code.
+- **State limits rather than dropping cases.** If something no longer fits, assert
+  the refusal *and* that the error names the reason.
+
+## Commit messages
+
+Long, and load-bearing. They carry the reasoning that does not belong in code:
+what was predicted, what happened, what it cost, what was rejected and why. Assume
+the reader has the diff and needs the argument. End with the `Co-Authored-By`
+trailer.
+
+---
+
+## Traps this repository has actually fallen into
+
+Each of these produced a wrong result that looked right. They are listed because
+the next one will look right too.
+
+**Comparing functions at a single point.** Two functions agreeing on one input are
+not equal. This has bitten three separate times, most sharply where dozens of
+distinct tables all matched the target at one chosen pair. Compare over a probe
+set, or prove equality structurally.
+
+**Hardcoding a count that the code can change.** A test listing the opcodes
+literally kept passing against a number the source no longer had. Derive it.
+
+**Writing through a label that does not exist.** A missing label yields an
+undefined address; the write silently does nothing and the program runs on with
+uninitialised state. Assert the label exists before writing through it.
+
+**Reading past the end of a datum.** A short table borrowed the cells that
+happened to follow it and produced a plausible wrong answer. Track how much space
+a datum spans and refuse to over-read it.
+
+**Confusing "ran out of budget" with "finished".** A search that exhausts its
+depth limit, one that hits its size cap, and one that genuinely closes are three
+different outcomes. Conflating them produced a false negative verdict on a
+prediction. Report them separately.
+
+**Trusting a build artifact that was not rebuilt.** The published page embeds the
+source; after changing the source it will still pass its own tests until rebuilt.
+There is a staleness check for exactly this — do not remove it.
+
+---
+
+## Layout, and why it is shaped this way
+
+- `src/` — the machine. One definition of each thing; nothing here is duplicated
+  elsewhere, including in the published page, which inlines these files verbatim.
+- `programs/` — demo programs and the two interpreters. Anything here is a program
+  a user might run.
+- `bench/` — programs that exist only as benchmark *pairs*, solving one task two
+  ways. Separated from `programs/` because they are measurements, not demos.
+- `tools/` — the audits. Each has a registration block and is runnable on its own.
+- `test/` — one suite per concern, plus `run-all.js`. `test-findings.js` validates
+  the manifest against the repository.
+- `docs/origin/` — **append-only provenance.** The conversation this project came
+  from, its audit, and its code artifacts. Do not edit or reorganise it; it is
+  evidence, and its value depends on being untouched.
+- `build/` — inlines `src/` into the published page and fails if the two diverge.
+
+## Before you commit
+
+```bash
+npm test          # everything, including the manifest validator
+npm run build     # rebuild the page if src/ or programs/ changed
+```
+
+Work on a branch, merge only when the suite is green on `main`, and re-run it
+after merging — line-ending normalisation on checkout has broken the build
+artifact more than once.

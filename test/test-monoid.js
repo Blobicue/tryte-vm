@@ -79,7 +79,8 @@ check('the law is not vacuous — it differs from the direct product it replaced
 console.log('\n=== 5. WHAT THE SOURCE CONVERSATION CLAIMED ===');
 {
   const six = reachByLaw(6);
-  check(`reach(all, 6) = ${six.toLocaleString()} distinct functions`, six === 77687, String(six));
+  check(`P5 — reach(all, 6) = ${six.toLocaleString()} distinct functions, not 531,441`,
+    six === 77687, String(six));
   check('the claim was 531,441 = 729^2, a count of two-stage CONFIGURATIONS', 729 * 729 === 531441);
   check(`it overstates the reachable functions by ${(531441 / six).toFixed(2)}x`,
     531441 > six && Math.abs(531441 / six - 6.84) < 0.01);
@@ -201,6 +202,12 @@ console.log('\n=== 8. THE TOPC CEILING — the last rung of the ladder ===');
     withAny.saturated && withAny.total === 531441, String(withAny.total));
   check('   so freedom in the CARRY buys reach, where freedom in the table did not',
     withAny.total > withAdd.total);
+
+  // V4: the sample is one-sided. A superset of generators can never reach LESS,
+  // so any sample's reach is a lower bound on the full vocabulary's. The full
+  // convergence sweep (40 tables against 80) lives in `npm run audit:topc`.
+  check('V4 — the sample is a LOWER bound: more generators never reach less',
+    audit(pw.concat(topcSample(A2, 8)), A2.N, DEPTH, CAP).total <= withAny.total);
 
   // Measurement discipline. The first run of this audit reported V3 as FAILED,
   // because at depth 16 the sampled vocabulary was still growing while the ADD

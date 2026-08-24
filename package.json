@@ -17,7 +17,8 @@
     "audit:carry": "node tools/carry-audit.js",
     "audit:fold": "node tools/fold-audit.js",
     "audit:carryop": "node tools/carryop-audit.js",
-    "audit:topc": "node tools/topc-audit.js"
+    "audit:topc": "node tools/topc-audit.js",
+    "findings": "node test/test-findings.js"
   },
   "license": "MIT",
   "private": true
