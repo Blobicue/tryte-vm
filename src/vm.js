@@ -79,6 +79,13 @@ class TryteVM {
         this.A = T.ttable(tbl, this.A, this.read(operand));
         break;
       }
+      // 27 rows, each packing an output trit and a carry trit into one cell.
+      case 'TOPC': {
+        const tbl = [];
+        for (let i = 0; i < 27; i++) tbl.push(this.read(T.wrap(this.C + i)));
+        this.A = T.ttableC(tbl, this.A, this.read(operand));
+        break;
+      }
       default: throw new Error(`unimplemented op ${op.name}`);
     }
 

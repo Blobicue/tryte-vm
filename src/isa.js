@@ -44,6 +44,13 @@ const OPS = {
   // entry truth table and TOP applies it tritwise. Every TGATE mode is one
   // particular table, so this generalises it rather than sitting beside it.
   TOP:    { code: 23, operand: 'addr', doc: 'A = truth table at C applied tritwise to (A, mem[addr])' },
+
+  // Every operation above computes each output trit from its own position alone,
+  // which caps the whole family at 27^w however many tables it owns. TOPC takes a
+  // third input -- the carry out of the position below -- and emits one upward, so
+  // a single instruction can express functions no positionwise table can. ADD is
+  // one particular TOPC table.
+  TOPC:   { code: 24, operand: 'addr', doc: 'A = carry-chained table at C applied to (A, mem[addr])' },
 };
 
 const BY_CODE = {};

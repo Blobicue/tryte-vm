@@ -15,7 +15,7 @@
 ;
 ;   kept    HALT LOADI LOAD STORE ADD ADDI SUB JMP BR3 OUT IN LOADX STOREX JMPX
 ;           LDC TOP
-;   dropped NEG MIN MAX CSUM SETC TGATE SHL SHR      -> h_bad, which halts
+;   dropped NEG MIN MAX CSUM SETC TGATE SHL SHR TOPC -> h_bad, which halts
 ;
 ; A program using a dropped opcode stops rather than misbehaving. multiply.tasm
 ; needs SHL/SHR and tgate.tasm needs SETC/TGATE, so neither runs on the core;
@@ -154,6 +154,7 @@ h_top:  LOAD  ic
 jtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_bad
         .word h_bad, h_bad, h_bad, h_bad, h_bad, h_bad, h_bad, h_jmp
         .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_ldc, h_top
+        .word h_bad                ; TOPC: see tools/carryop-audit.js, U3 -- it would end depth 4
 
 ; ---------------------------------------------------------------- state
 ipc:    .word 0

@@ -221,11 +221,23 @@ h_top:  LOAD  ic
         STORE ia
         JMP   fetch
 
+; The same trick again: the guest's 27-row carry table is contiguous in host
+; memory, so the host's own TOPC reads it directly.
+h_topc: LOAD  ic
+        ADDI  IBASE
+        STORE ptr
+        LDC   ptr
+        LOAD  ia
+        TOPC  mval
+        STORE ia
+        JMP   fetch
+
 ; ---------------------------------------------------------------- dispatch table
 ; One entry per opcode, in opcode order. JMPX indexes straight into it.
 jtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_neg
         .word h_min, h_max, h_csum, h_setc, h_tgate, h_shl, h_shr, h_jmp
         .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_ldc, h_top
+        .word h_topc
 
 ; ---------------------------------------------------------------- state
 ipc:    .word 0            ; inner program counter

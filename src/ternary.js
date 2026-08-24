@@ -196,6 +196,55 @@ function foldTables(...tables) {
   });
 }
 
+/**
+ * TTABLEC — a table-driven operation WITH A CARRY, so one instruction can reach
+ * past the positionwise ceiling.
+ *
+ * Every table-driven operation so far computes out_p from (x_p, y_p) alone, which
+ * caps the whole family at 27^w however many tables it owns. This one takes a
+ * third input, the carry out of the position below, and emits a carry to the
+ * position above. That is the cross-trit coupling the carry audit identified as
+ * the only escape.
+ *
+ * 27 rows, indexed x-major:
+ *
+ *      index = (x + 1) * 9 + (y + 1) * 3 + (c + 1)
+ *
+ * Each row is ONE cell holding both outputs packed as  out + 3 * carry, which is
+ * just a two-trit number: the low trit is the output, the next is the carry. The
+ * machine's own arithmetic does the unpacking, so no new encoding is invented.
+ *
+ * Positions are processed least significant first, carry starts at 0, and the
+ * final carry is dropped — exactly ADD's wrapping semantics, which is why ADD
+ * turns out to be one particular table.
+ */
+function ttableC(table, x, y) {
+  const xs = toTrits(x), ys = toTrits(y);
+  const out = [];
+  let c = 0;
+  for (let i = 0; i < TRITS_PER_TRYTE; i++) {
+    const cell = wrap(table[(xs[i] + 1) * 9 + (ys[i] + 1) * 3 + (c + 1)]);
+    out.push(lowTrit(cell));
+    c = shiftRight(cell, 1);
+  }
+  return fromTrits(out);
+}
+
+/** The 27-row table for balanced ternary addition. ADD is a table. */
+function addCarryTable() {
+  const t = [];
+  for (let x = -1; x <= 1; x++) {
+    for (let y = -1; y <= 1; y++) {
+      for (let c = -1; c <= 1; c++) {
+        const sum = x + y + c;
+        const carry = Math.sign(sum) * Math.round(Math.abs(sum) / 3);
+        t.push((sum - 3 * carry) + 3 * carry);      // out in the low trit, carry in the next
+      }
+    }
+  }
+  return t;
+}
+
 /** Content address for a table, so identical ones can share one copy of the cells. */
 function tableKey(table) {
   return table.map(lowTrit).join(',');
@@ -213,5 +262,5 @@ module.exports = {
   wrap, toTrits, fromTrits, tritString, parseTritString,
   add, sub, mul, neg, sign, shiftLeft, shiftRight,
   tMIN, tMAX, tCLAMPSUM, tNEG, tgate, ttable, lowTrit, tgateModeTable,
-  foldTables, tableKey, identityTable,
+  foldTables, tableKey, identityTable, ttableC, addCarryTable,
 };
