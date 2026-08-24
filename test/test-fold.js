@@ -274,6 +274,66 @@ console.log('\n=== 8. U2 — ONE INSTRUCTION PAST THE CEILING ===');
     Math.abs(100 * withTopc / 9 ** 9 - 0.0649) < 0.001);
 }
 
+console.log('\n=== 9. .fold — routing as a language feature ===');
+{
+  const fs2 = require('fs'), path2 = require('path');
+  const MIN = T.tgateModeTable(0), NEG = T.tgateModeTable(-1), MAX = T.tgateModeTable(1);
+  const tbl = (n, t) => `${n}: .word ${t.join(', ')}`;
+  const read9 = (cells, base) => Array.from({ length: 9 }, (_, i) => cells.get(base + i));
+
+  check('.fold emits the composite the library computes', (() => {
+    const { cells, labels } = assemble([tbl('aT', MIN), tbl('bT', NEG), 'x: .fold aT, bT'].join('\n'), 0);
+    return read9(cells, labels.x).join() === T.foldTables(MIN, NEG).join();
+  })());
+  check('a fold may name a table declared AFTER it', (() => {
+    const { cells, labels } = assemble(['x: .fold aT, bT', tbl('aT', MIN), tbl('bT', NEG)].join('\n'), 0);
+    return read9(cells, labels.x).join() === T.foldTables(MIN, NEG).join();
+  })());
+  check('a fold may name another fold', (() => {
+    const { cells, labels } = assemble(
+      [tbl('aT', MIN), tbl('bT', NEG), tbl('cT', MAX), 'ab: .fold aT, bT', 'abc: .fold ab, cT'].join('\n'), 0);
+    return read9(cells, labels.abc).join() === T.foldTables(MIN, NEG, MAX).join();
+  })());
+  check('three tables fold in one directive', (() => {
+    const { cells, labels } = assemble(
+      [tbl('aT', MIN), tbl('bT', NEG), tbl('cT', MAX), 'x: .fold aT, bT, cT'].join('\n'), 0);
+    return read9(cells, labels.x).join() === T.foldTables(MIN, NEG, MAX).join();
+  })());
+
+  // A short table would silently borrow whatever cells follow it, and the fold
+  // would succeed with the wrong data. Refused instead.
+  check('a table shorter than nine cells is refused, not silently extended', (() => {
+    try { assemble('aT: .word 1,2\nx: .fold aT, aT', 0); return false; }
+    catch (e) { return /spans 2 cells, not 9/.test(e.message); }
+  })());
+  check('eight cells is still refused', (() => {
+    try { assemble('aT: .word 1,2,3,4,5,6,7,8\nx: .fold aT, aT', 0); return false; }
+    catch (e) { return /spans 8 cells, not 9/.test(e.message); }
+  })());
+  check('a fold of one table is refused', (() => {
+    try { assemble([tbl('aT', MIN), 'x: .fold aT'].join('\n'), 0); return false; }
+    catch (e) { return /at least two tables/.test(e.message); }
+  })());
+
+  // The demo program computes the chain both ways and must agree with itself.
+  const demo = fs2.readFileSync(path2.join(__dirname, '..', 'programs', 'fold.tasm'), 'utf8');
+  check('fold.tasm agrees with itself over a sweep', (() => {
+    for (let x = T.TRYTE_MIN; x <= T.TRYTE_MAX; x += 11) {
+      const o = runNative(demo, [x]).output;
+      if (o.length !== 2 || o[0] !== o[1]) return false;
+    }
+    return true;
+  })());
+  check('...and its result is the folded chain the library predicts', (() => {
+    const f = T.foldTables(MIN, NEG, MAX, NEG);
+    return [-364, -7, 0, 123, 364].every(x => runNative(demo, [x]).output[0] === T.ttable(f, x, -45));
+  })());
+  check('fold.tasm still agrees with itself emulated', (() => {
+    const o = runHosted(demo, [123], { depth: 2, maxSteps: 5e7 }).output;
+    return o.length === 2 && o[0] === o[1] && o[0] === runNative(demo, [123]).output[0];
+  })());
+}
+
 console.log('\n' + '='.repeat(64));
 console.log(fails.length ? `FAILED (${fails.length}): ${fails.join(', ')}` : `ALL ${pass} CHECKS PASSED`);
 console.log('='.repeat(64));

@@ -1,0 +1,63 @@
+; fold.tasm — the same chain computed twice, and made to agree with itself.
+;
+; The assembler folds four truth tables into one at build time with .fold, so the
+; second half of this program does in ONE instruction what the first half does in
+; four stages. Both results are emitted; they must match, and the test asserts it.
+;
+; Folding is sound because positionwise operations are closed under composition:
+;     T3[a][b] = T2[ T1[a][b] ][b]
+; and the formula never mentions the second operand, so one fold serves every
+; input. It stops at a carry — see programs/carry.tasm.
+
+        IN
+        STORE x0           ; keep the input; both halves need it
+        STORE xv
+
+; ---- the long way: four TOP stages, each pointing C at its own table ----
+        LOADI minT
+        STORE cp
+        LDC   cp
+        LOAD  xv
+        TOP   yv
+        STORE xv
+        LOADI negT
+        STORE cp
+        LDC   cp
+        LOAD  xv
+        TOP   yv
+        STORE xv
+        LOADI maxT
+        STORE cp
+        LDC   cp
+        LOAD  xv
+        TOP   yv
+        STORE xv
+        LOADI negT
+        STORE cp
+        LDC   cp
+        LOAD  xv
+        TOP   yv
+        STORE xv
+        LOAD  xv
+        OUT                ; chained result
+
+; ---- the short way: one stage, one table, folded at assembly time ----
+        LOADI allT
+        STORE cp
+        LDC   cp
+        LOAD  x0
+        TOP   yv
+        OUT                ; folded result — must equal the one above
+        HALT
+
+        .org  -80
+cp:     .word 0
+yv:     .word -45          ; the second operand, fixed
+x0:     .word 0
+xv:     .word 0
+minT:   .word -1, -1, -1, -1, 0, 0, -1, 0, 1
+negT:   .word 1, 1, 1, 0, 0, 0, -1, -1, -1
+maxT:   .word -1, 0, 1, 0, 0, 1, 1, 1, 1
+
+; nine cells, computed by the assembler from the four above
+allT:   .fold minT, negT, maxT, negT

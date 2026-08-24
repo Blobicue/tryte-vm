@@ -2,11 +2,11 @@
 
 A working emulator for a computer that counts in **three states instead of two**.
 Core arithmetic, an instruction set, a virtual machine, an assembler, and demo
-programs. 359 tests, all passing, including exhaustive sweeps over the machine's
+programs. 369 tests, all passing, including exhaustive sweeps over the machine's
 entire value space.
 
 ```bash
-npm test                      # 359 checks
+npm test                      # 369 checks
 node src/run.js programs/multiply.tasm 7 5
 npm run selfhost              # the machine emulating itself
 ```
@@ -404,6 +404,22 @@ takes ~27 host instructions with it per level.
 Identical folded tables are **content addressed**, so a composite used twice costs
 nine cells rather than eighteen.
 
+Folding is a **language feature**, not just a tool: the assembler has a `.fold`
+directive, so a program can name a chain and get one table.
+
+```
+allT:   .fold minT, negT, maxT, negT     ; nine cells, composed at build time
+```
+
+It resolves in its own pass, so a fold may name tables declared after it, and a
+fold may name another fold. `programs/fold.tasm` computes the same chain twice —
+four stages the long way, one instruction the short way — and emits both results
+so the program checks the fold against itself.
+
+A table shorter than nine cells is **refused**, because reading past it would
+silently pick up whatever happened to follow and the fold would succeed with the
+wrong data.
+
 **Foldability is a property `TOP` has and `TGATE` does not.** `TOP`'s columns are
 arbitrary, so the family is closed. `TGATE`'s three modes generate a seven-element
 per-trit monoid — **six of its eight two-stage composites are not any `TGATE`
@@ -554,10 +570,10 @@ src/assembler.js   text -> trytes, two passes, labels and directives
 src/selfhost.js    run a program natively, or inside the emulated machine
 src/run.js         CLI runner
 programs/          threeway.tasm, multiply.tasm, tgate.tasm, kleene.tasm,
-                   countdown.tasm,
+                   countdown.tasm, fold.tasm,
                    interp.tasm (23 opcodes), interp-core.tasm (14, self-sufficient)
 test/              test-core.js (27), test-vm.js (41), test-selfhost.js (83),
-                   test-bench.js (15), test-logic.js (25), test-monoid.js (44), test-fold.js (43),
+                   test-bench.js (15), test-logic.js (25), test-monoid.js (44), test-fold.js (53),
                    test-page.js (43), test-style.js (28), run-all.js
 tools/             monoid-audit.js, top-audit.js, carry-audit.js,
                    fold-audit.js, carryop-audit.js

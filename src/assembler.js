@@ -7,6 +7,7 @@
  *   choose: .table neg, zero, pos     ; 3 cells; the label names the MIDDLE one
  *   value:  .word 17, -3, t+-0++0     ; raw data cells ('t' prefix = trit literal)
  *   BASE:   .equ  200                 ; a named constant; occupies no memory
+ *   both:   .fold  minT, negT          ; the 9 cells of minT composed with negT
  *           .org  -100                ; continue assembling at this address
  */
 
@@ -61,11 +62,21 @@ function checkLabelName(name, lineNo) {
 function assemble(src, origin = 0) {
   const lines = tokenize(src);
   const labels = {};
+  const span = {};                       // label -> cells emitted for its datum
 
   // --- pass 1: sizes and label addresses -----------------------------------
   let pc = origin;
   for (const L of lines) {
     if (L.label) checkLabelName(L.label, L.lineNo);
+    // How many cells the labelled datum spans, so .fold can refuse a table that
+    // is too short. Without this a 2-cell .word silently borrows the seven cells
+    // that happen to follow it, and the fold succeeds with the wrong table.
+    if (L.label && L.mnemonic) {
+      span[L.label] = L.mnemonic === '.WORD' ? L.args.length
+        : L.mnemonic === '.FOLD' ? 9
+          : L.mnemonic === '.TABLE' ? 3
+            : L.mnemonic.startsWith('.') ? 0 : 2;
+    }
     if (L.mnemonic === '.ORG') { pc = parseNumber(L.args[0], labels, `line ${L.lineNo}`); if (L.label) labels[L.label] = pc; continue; }
     if (L.mnemonic === '.EQU') {
       if (!L.label) throw new Error(`.equ needs a label (line ${L.lineNo})`);
@@ -75,6 +86,7 @@ function assemble(src, origin = 0) {
     if (L.label) labels[L.label] = (L.mnemonic === '.TABLE') ? pc + 1 : pc;
     if (!L.mnemonic) continue;
     if (L.mnemonic === '.WORD') pc += L.args.length;
+    else if (L.mnemonic === '.FOLD') pc += 9;         // one composed truth table
     else if (L.mnemonic === '.TABLE') {
       if (L.args.length !== 3) throw new Error(`.table needs exactly 3 targets (line ${L.lineNo})`);
       pc += 3;
@@ -86,6 +98,7 @@ function assemble(src, origin = 0) {
 
   // --- pass 2: emit --------------------------------------------------------
   const cells = new Map();
+  const folds = [];
   const lineOf = new Map();          // address -> source line number, for listings
   pc = origin;
   let curLine = 0;
@@ -98,6 +111,12 @@ function assemble(src, origin = 0) {
     if (L.mnemonic === '.EQU') continue;
     if (!L.mnemonic) continue;
     if (L.mnemonic === '.WORD') { L.args.forEach(a => emit(parseNumber(a, labels, where))); continue; }
+    if (L.mnemonic === '.FOLD') {
+      if (L.args.length < 2) throw new Error(`.fold needs at least two tables (${where})`);
+      folds.push({ at: T.wrap(pc), args: L.args, where });
+      for (let i = 0; i < 9; i++) emit(0);            // filled in once every table exists
+      continue;
+    }
     if (L.mnemonic === '.TABLE') { L.args.forEach(a => emit(parseNumber(a, labels, where))); continue; }
 
     const spec = OPS[L.mnemonic];
@@ -111,7 +130,33 @@ function assemble(src, origin = 0) {
     }
   }
 
-  return { cells, labels, origin, lineOf };
+  /* --- pass 3: resolve .fold ----------------------------------------------
+   * Deferred to its own pass so a fold may name tables declared after it. The
+   * composite is computed from the emitted CELLS, not from the source text, so
+   * a fold of a fold works with no special case. */
+  for (const f of folds) {
+    const tables = f.args.map(a => {
+      if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(a) && span[a] !== undefined && span[a] < 9) {
+        throw new Error(
+          `.fold: '${a}' spans ${span[a]} cells, not 9 — a truth table needs nine ` +
+          `entries, and reading past it would silently pick up whatever follows (${f.where})`);
+      }
+      const base = parseNumber(a, labels, f.where);
+      const t = [];
+      for (let i = 0; i < 9; i++) {
+        const v = cells.get(T.wrap(base + i));
+        if (v === undefined) {
+          throw new Error(`.fold: '${a}' does not name 9 emitted cells (${f.where})`);
+        }
+        t.push(v);
+      }
+      return t;
+    });
+    const composed = T.foldTables(...tables);
+    composed.forEach((v, i) => cells.set(T.wrap(f.at + i), v));
+  }
+
+  return { cells, labels, origin, lineOf, folds: folds.length };
 }
 
 /** Assemble and load straight into a VM instance. */
