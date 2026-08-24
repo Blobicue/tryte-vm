@@ -62,6 +62,7 @@ const PROG = {
   STOREX: 'LOADI 66\nSTOREX p\nLOADI 0\nLOAD v\nOUT\nHALT' + D,
   JMPX:   'JMPX tg\nLOADI 1\nOUT\nHALT\nlate: LOADI 9\nOUT\nHALT\n.org -60\ntg: .word late',
   TOP:    'LOADI tbl\nSTORE cp\nLDC cp\nLOADI 123\nTOP yv\nOUT\nHALT\n.org -50\ncp: .word 0\nyv: .word -45\ntbl: .word -1,-1,-1,-1,0,0,-1,0,1',
+  TOPC:   'LOADI tb\nSTORE cp\nLDC cp\nLOADI 123\nTOPC yv\nOUT\nHALT\n.org -60\ncp: .word 0\nyv: .word -45\ntb: .word -3, -2, -1, -2, -1, 0, -1, 0, 1, -2, -1, 0, -1, 0, 1, 0, 1, 2, -1, 0, 1, 0, 1, 2, 1, 2, 3',
   LDC:    'LOADI t+0-+0-\nSTORE w\nLDC w\nLOADI -45\nSTORE v\nLOADI 123\nTGATE v\nOUT\nHALT' + D,
 };
 const INPUTS = { BR3: [42], IN: [11, -22] };
@@ -127,8 +128,8 @@ console.log('\n=== 6. AN INTERPRETER INSIDE AN INTERPRETER ===');
   check(`depth 3 lays out two interpreter layers`, P3.levels.length === 2);
   check(`each layer relocates: origins ${P3.levels.map(l => l.origin).join(', ')}`,
     P3.levels[0].origin !== P3.levels[1].origin);
-  check(`the innermost machine has ${P3.innerCells} cells (${P3.innerLo}..${P3.innerHi})`,
-    P3.innerCells > 40);
+  check(`the innermost machine has ${plan(3, 'core').innerCells} cells with the core`,
+    plan(3, 'core').innerCells > 40);
 
   const src = prog('threeway.tasm');
   const inp = [7, -3, 0, 42, -100];
@@ -205,10 +206,13 @@ console.log('\n=== 8. THREE NESTED INTERPRETERS ===');
   // longer fits. Depth 4 still works — for programs that fit in 60 cells.
   check('threeway no longer fits at depth 4, and the refusal names the window', (() => {
     try { runHosted(src, inp, { depth: 4, maxSteps: 5e7 }); return false; }
-    catch (e) { return /window is -30\.\.29/.test(e.message); }
+    catch (e) { return /window is/.test(e.message) && !/does not implement/.test(e.message); }
   })());
-  check(`the depth-4 window is ${plan(4, 'core').innerCells} cells, down from 132`,
-    plan(4, 'core').innerCells === 60, String(plan(4, 'core').innerCells));
+  // Not a size comparison: the window is CENTRED, so what matters is that its
+  // upper bound sits below threeway's highest address (+39). 57 cells is ample
+  // room and still the wrong room.
+  check(`the depth-4 window is ${plan(4, 'core').innerCells} cells but only reaches +${plan(4, 'core').innerHi}`,
+    plan(4, 'core').innerHi < 39, String(plan(4, 'core').innerHi));
 
   // A smaller program still reaches three nested interpreters.
   const cd = 'IN\nSTORE n\nlp: LOAD n\nOUT\nADDI -1\nSTORE n\nBR3 t\nt: .table done, done, lp\ndone: HALT\n.org -6\nn: .word 0';

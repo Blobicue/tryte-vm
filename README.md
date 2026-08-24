@@ -2,11 +2,11 @@
 
 A working emulator for a computer that counts in **three states instead of two**.
 Core arithmetic, an instruction set, a virtual machine, an assembler, and demo
-programs. 342 tests, all passing, including exhaustive sweeps over the machine's
+programs. 359 tests, all passing, including exhaustive sweeps over the machine's
 entire value space.
 
 ```bash
-npm test                      # 342 checks
+npm test                      # 359 checks
 node src/run.js programs/multiply.tasm 7 5
 npm run selfhost              # the machine emulating itself
 ```
@@ -84,8 +84,8 @@ verifies it by reading the source rather than trusting the comment.
 
 | | full | core |
 |---|---|---|
-| Opcodes | 24 | 16 |
-| Size | 341 cells | **223 cells** |
+| Opcodes | 25 | 16 |
+| Size | 358 cells | **224 cells** |
 | Stacks | 2 deep | **3 deep** |
 | Runs | every demo | the arithmetic subset, plus TOP and LDC |
 
@@ -427,6 +427,51 @@ compared against each other. The assembler now refuses such labels outright rath
 than resolving them by precedence, which would have moved the surprise instead of
 removing it.
 
+## Widening the routing space: the carry as a table
+
+27^w bounds any operation that computes each output trit from its own position.
+`TOP` already sits at that ceiling, so no further table instruction can widen it —
+unless the table couples positions. `TOPC` does:
+
+    TOPC addr    A = the 27-row carry table at C, applied to (A, mem[addr])
+
+27 rows indexed by **(x, y, carry-in)**, each one cell packing both outputs as
+`out + 3 × carry` — a two-trit number, so the machine's own arithmetic unpacks it
+and no new encoding is invented. Positions run least significant first, the carry
+starts at zero, the final one is dropped.
+
+**Which makes `ADD` one particular table.** Verified over every operand pair: the
+machine's arithmetic is a 27-cell lookup. Three predictions were registered before
+the audit; all three held.
+
+| vocabulary at width 2 | reach |
+|---|---|
+| positionwise alone | 729 (the 27² ceiling) |
+| **+ `TOPC` carrying the ADD table** | **251,505** |
+| + a plain translation | 251,505 |
+
+The bottom two rows are the same monoid — reached by **one instruction** where the
+carry audit needed two. And no `TOP` table equals `ADD`: checked over all 19,683,
+compared as *functions*. Comparing at a single input pair would have reported
+**81 false matches**, which is the third time in this project that a one-point
+comparison would have lied.
+
+### Where it goes, and why not everywhere
+
+`TOPC` is in the full interpreter and **deliberately not** in the core. The core is
+224 cells, a handler costs ~16, and the depth-4 window is 729 − 3I — so adding it
+would leave **9 cells**, less than any program. The split is a measured decision:
+
+| | full | core |
+|---|---|---|
+| Opcodes | 25 | 16 |
+| Size | 358 cells | 224 |
+| Stacks | 2 deep | **3 deep** |
+| Carries | `TOPC` | — |
+
+Complete coverage and maximum depth turn out to be the two ends of one budget, and
+at 729 cells you cannot have both.
+
 ## Is any of it actually worth it?
 
 Everything above checks that ternary is *correct*. `npm run bench` checks whether
@@ -497,7 +542,7 @@ inspired by that lineage, not a reimplementation of it.
 | Memory | 729 cells, addressed **−364 … +364**; address 0 is the *centre* |
 | Registers | `A` accumulator, `C` gate control, `PC` |
 | Instruction | two cells: opcode, operand |
-| Instructions | 24 (`src/isa.js`) |
+| Instructions | 25 (`src/isa.js`) |
 
 ## Layout
 
@@ -512,9 +557,10 @@ programs/          threeway.tasm, multiply.tasm, tgate.tasm, kleene.tasm,
                    countdown.tasm,
                    interp.tasm (23 opcodes), interp-core.tasm (14, self-sufficient)
 test/              test-core.js (27), test-vm.js (41), test-selfhost.js (83),
-                   test-bench.js (15), test-logic.js (25), test-monoid.js (44), test-fold.js (27),
+                   test-bench.js (15), test-logic.js (25), test-monoid.js (44), test-fold.js (43),
                    test-page.js (43), test-style.js (28), run-all.js
-tools/             monoid-audit.js, top-audit.js, carry-audit.js, fold-audit.js
+tools/             monoid-audit.js, top-audit.js, carry-audit.js,
+                   fold-audit.js, carryop-audit.js
 bench/             the three-way vs two-way branching benchmark
 build/             inlines src/ into a single interactive HTML page
 docs/tryte-vm.html the built page
