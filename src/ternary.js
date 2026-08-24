@@ -165,9 +165,53 @@ function tgateModeTable(mode) {
   return out;
 }
 
+/**
+ * Fold a chain of TOP tables into ONE table that does the same job.
+ *
+ *      T3[a][b] = T2[ T1[a][b] ][b]
+ *
+ * Column-wise composition, and notice what is missing: y. The formula does not
+ * mention the second operand, so a chain folds once at build time and stays
+ * correct for every input it will ever see.
+ *
+ * This works because TOP's columns are arbitrary, so the family is CLOSED under
+ * composition. TGATE's are not: its three modes generate a seven-element per-trit
+ * monoid, so most composites of two TGATEs are not any TGATE. Being foldable is a
+ * property TOP has and TGATE does not.
+ *
+ * The fold stops at a carry. ADD couples trit positions, so a chain broken by one
+ * is not positionwise any more and no single table can stand for it — the same
+ * boundary the carry audit measured.
+ */
+function foldTables(...tables) {
+  return tables.reduce((t1, t2) => {
+    const out = [];
+    for (let a = -1; a <= 1; a++) {
+      for (let b = -1; b <= 1; b++) {
+        const mid = lowTrit(t1[(a + 1) * 3 + (b + 1)]);
+        out.push(lowTrit(t2[(mid + 1) * 3 + (b + 1)]));
+      }
+    }
+    return out;
+  });
+}
+
+/** Content address for a table, so identical ones can share one copy of the cells. */
+function tableKey(table) {
+  return table.map(lowTrit).join(',');
+}
+
+/** The identity table: passes x through untouched, whatever y is. */
+function identityTable() {
+  const out = [];
+  for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) out.push(x);
+  return out;
+}
+
 module.exports = {
   TRITS_PER_TRYTE, RADIX, TRYTE_STATES, TRYTE_MAX, TRYTE_MIN,
   wrap, toTrits, fromTrits, tritString, parseTritString,
   add, sub, mul, neg, sign, shiftLeft, shiftRight,
   tMIN, tMAX, tCLAMPSUM, tNEG, tgate, ttable, lowTrit, tgateModeTable,
+  foldTables, tableKey, identityTable,
 };
