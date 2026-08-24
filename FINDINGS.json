@@ -330,6 +330,56 @@
           }
         }
       ]
+    },
+    {
+      "id": "W",
+      "subject": "The switch-level device layer beneath the arithmetic",
+      "tool": "tools/device-audit.js",
+      "registered_at": "87ed30b",
+      "results_at": "9d825a2",
+      "asserted_in": "test/test-device.js",
+      "predictions": [
+        {
+          "id": "W1",
+          "claim": "six per-trit gates side by side compute the six-trit function, exhaustively",
+          "outcome": "HELD",
+          "measured": {
+            "min_pairs": 531441,
+            "max_pairs": 531441,
+            "neg_values": 729,
+            "mismatches": 0
+          }
+        },
+        {
+          "id": "W2",
+          "claim": "gates compose: a pass network driving a pass network does not degrade",
+          "outcome": "HELD",
+          "measured": {
+            "chain": "STI -> MIN",
+            "inputs_checked": 9,
+            "mismatches": 0
+          },
+          "note": "The first run reported this FAILED. The circuit was correct; the SOLVER was wrong -- reachability traversed through rails, so correct circuits resolved to X. Driven nodes are terminals now. Second time an instrument here produced a false verdict on its own prediction; the first was V3."
+        },
+        {
+          "id": "W3",
+          "claim": "at equal representable range the naive switch count favours ternary, and should not be believed",
+          "outcome": "HELD",
+          "measured": {
+            "ternary_switches": 48,
+            "ternary_trits": 6,
+            "ternary_mid_rail_taps": 6,
+            "ternary_rails": 3,
+            "binary_switches": 60,
+            "binary_bits": 10,
+            "binary_mid_rail_taps": 0,
+            "binary_rails": 2,
+            "raw_ratio": 0.8,
+            "radix_economy_bar_per_digit": 3.077
+          },
+          "note": "The ternary side taps a third rail this model hands out free; real ternary logic must generate its mid level with dividers that burn static power. Switch count per gate is also a different currency from the 3.08x per-digit bar."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -390,6 +440,13 @@
       "claim": "The standard ternary inverter computes NEG on all three inputs; MIN and MAX are correct on all nine rows. Switch counts: STI 4, NTI 2, PTI 2, MIN 8, MAX 8.",
       "note": "Established while designing the gates, so not registered as a prediction.",
       "asserted_in": "test/test-device.js"
+    },
+    {
+      "id": "F-GATES-FROM-SWITCHES",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "The standard ternary inverter computes NEG on all three inputs; MIN and MAX are correct on all nine rows. Switch counts: STI 4, NTI 2, PTI 2, MIN 8, MAX 8.",
+      "note": "Established while designing the gates, so not registered as a prediction.",
+      "asserted_in": "test/test-device.js"
     }
   ],
   "traps_encountered": [
@@ -422,6 +479,11 @@
       "id": "T-SOURCE-NOT-TERMINAL",
       "count": 1,
       "description": "Switch-level reachability traversing THROUGH a driven node. A path from one rail that touches another rail and continues out of it makes correct circuits look contended. Rails and inputs are ideal sources and must terminate a path."
+    },
+    {
+      "id": "T-SOURCE-NOT-TERMINAL",
+      "count": 1,
+      "description": "Switch-level reachability traversing THROUGH a driven node. A path from one rail that touches another and continues out of it makes correct circuits look contended. Rails and inputs are ideal sources and must terminate a path."
     }
   ]
 }
