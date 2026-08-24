@@ -14,7 +14,7 @@
 ; trusting the comment.
 ;
 ;   kept    HALT LOADI LOAD STORE ADD ADDI SUB JMP BR3 OUT IN LOADX STOREX JMPX
-;   dropped NEG MIN MAX CSUM SETC TGATE SHL SHR LDC   -> h_bad, which halts
+;   dropped NEG MIN MAX CSUM SETC TGATE SHL SHR LDC TOP -> h_bad, which halts
 ;
 ; A program using a dropped opcode stops rather than misbehaving. multiply.tasm
 ; needs SHL/SHR and tgate.tasm needs SETC/TGATE, so neither runs on the core;
@@ -131,7 +131,7 @@ h_jmpx: LOAD  mval
 ; Indexed by opcode, so the dropped opcodes still need a slot; they get h_bad.
 jtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_bad
         .word h_bad, h_bad, h_bad, h_bad, h_bad, h_bad, h_bad, h_jmp
-        .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_bad
+        .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_bad, h_bad
 
 ; ---------------------------------------------------------------- state
 ipc:    .word 0

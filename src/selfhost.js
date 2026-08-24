@@ -19,6 +19,7 @@
  */
 
 const { TryteVM } = require('./vm.js');
+const { OPS } = require('./isa.js');
 const { assemble } = require('./assembler.js');
 
 const MEM_LO = -364, MEM_HI = 364;
@@ -112,7 +113,7 @@ function runHosted(src, input = [], opts = {}) {
   if (depth < 2) return runNative(src, input, opts);
   // Prefer the full 23-opcode interpreter; fall back to the self-sufficient core
   // when the full one cannot be stacked that deep.
-  const variant = opts.variant || (fits(depth, 'full') ? 'full' : 'core');
+  const variant = opts.variant || pickVariant(src, depth);
   const P = plan(depth, variant);
   const vm = new TryteVM({ input: input.slice(), maxSteps: opts.maxSteps || 20000000 });
 
@@ -149,6 +150,55 @@ function runHosted(src, input = [], opts = {}) {
   return vm;
 }
 
+/** Which opcodes a variant actually implements, read from its jump table. */
+function supportedOpcodes(variant = 'full') {
+  const src = interpSource(variant);
+  const block = src.slice(src.indexOf('jtbl:'));
+  const handlers = [...block.matchAll(/h_[a-z0-9_]+/g)].map(m => m[0]);
+  const names = Object.keys(OPS).sort((a, b) => OPS[a].code - OPS[b].code);
+  const out = new Set();
+  handlers.forEach((h, code) => { if (h !== 'h_bad' && names[code]) out.add(names[code]); });
+  return out;
+}
+
+/** The opcodes a program uses. */
+function programOpcodes(src) {
+  const out = new Set();
+  for (const line of src.split(/\r?\n/)) {
+    const m = line.replace(/[;#].*/, '').trim()
+      .replace(/^[A-Za-z_][A-Za-z0-9_]*:\s*/, '').split(/\s+/)[0];
+    if (m && m.toUpperCase() in OPS) out.add(m.toUpperCase());
+  }
+  return out;
+}
+
+/**
+ * Choose an interpreter for this program at this depth. Three things must hold,
+ * and picking on depth alone is not enough: adding TOP grew the full interpreter
+ * by 17 cells, which left depth 3 still reachable but shrank its innermost window
+ * from 81 cells to 47 — enough to stop threeway.tasm fitting while `fits(3)`
+ * still said yes.
+ */
+function pickVariant(src, depth) {
+  const prog = assemble(src, 0);
+  const addrs = [...prog.cells.keys()];
+  const lo = Math.min(...addrs), hi = Math.max(...addrs);
+  const used = programOpcodes(src);
+  const reasons = [];
+  for (const v of ['full', 'core']) {
+    if (!fits(depth, v)) { reasons.push(`${v}: too big to stack ${depth} deep`); continue; }
+    const P = plan(depth, v);
+    if (lo < P.innerLo || hi > P.innerHi) {
+      reasons.push(`${v}: program spans ${lo}..${hi}, window is ${P.innerLo}..${P.innerHi}`);
+      continue;
+    }
+    const missing = [...used].filter(o => !supportedOpcodes(v).has(o));
+    if (missing.length) { reasons.push(`${v}: does not implement ${missing.join(' ')}`); continue; }
+    return v;
+  }
+  throw new Error(`no interpreter can host this program at depth ${depth}:\n  ` + reasons.join('\n  '));
+}
+
 /** Can `depth` levels of this interpreter variant be stacked at all? */
 function fits(depth, variant = 'full') {
   try { plan(depth, variant); return true; } catch { return false; }
@@ -163,5 +213,6 @@ function maxDepth(variant = 'full') {
 
 module.exports = {
   runNative, runHosted, layout, plan, maxDepth, fits, interpSize,
+  supportedOpcodes, programOpcodes, pickVariant,
   setInterpSource, interpSource, interpFor, FILES, MEM_LO, MEM_HI,
 };

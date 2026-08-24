@@ -204,11 +204,28 @@ h_ldc:  LOAD  mval
         STORE ic
         JMP   fetch
 
+; The emulated TOP is performed by the HOST's TOP. The guest's nine-entry table
+; sits at guest addresses ic..ic+8, and consecutive guest addresses are
+; consecutive host addresses, so pointing the host's C at IBASE+ic makes the host
+; instruction read exactly the guest's table. Seven instructions instead of a
+; six-iteration lookup loop — which is why adding TOP cost fifteen cells rather
+; than a hundred, and so cost no nesting depth.
+;   (Edge case, stated: a table straddling the guest address wrap would not be
+;    contiguous in host memory. Programs keep their tables clear of it.)
+h_top:  LOAD  ic
+        ADDI  IBASE
+        STORE ptr
+        LDC   ptr
+        LOAD  ia
+        TOP   mval
+        STORE ia
+        JMP   fetch
+
 ; ---------------------------------------------------------------- dispatch table
 ; One entry per opcode, in opcode order. JMPX indexes straight into it.
 jtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_neg
         .word h_min, h_max, h_csum, h_setc, h_tgate, h_shl, h_shr, h_jmp
-        .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_ldc
+        .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_ldc, h_top
 
 ; ---------------------------------------------------------------- state
 ipc:    .word 0            ; inner program counter

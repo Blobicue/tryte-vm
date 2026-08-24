@@ -186,7 +186,7 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; display: flex; fl
       a light switch but a balance scale: it tips left, sits level, or tips right — <span class="mono">−1, 0, +1</span>.
       Weights go on either pan, so negative numbers stop being a special case.</p>
     <p class="note">Everything below runs the actual emulator source, inlined from the same files the
-      287-test suite checks &mdash; including 42 that drive these very controls headlessly. Nothing here is a mock-up.</p>
+      302-test suite checks &mdash; including 42 that drive these very controls headlessly. Nothing here is a mock-up.</p>
   </header>
 
   <!-- 1 ------------------------------------------------------------------ -->
@@ -474,9 +474,47 @@ function tgate(control, x, y) {
   }));
 }
 
+/**
+ * TTABLE — apply an arbitrary two-input ternary truth table, tritwise.
+ *
+ * A two-input trit function is nine rows, so nine entries fully specify one of
+ * the 3^9 = 19,683 such functions. Row order is x-major:
+ *
+ *      index = (x + 1) * 3 + (y + 1)      x, y in {-1, 0, +1}
+ *
+ * Only the LOWEST TRIT of each entry is used, which is this machine's own idiom
+ * for reading a trit out of a tryte (v - 3*(v>>1)) and makes the operation total:
+ * no table can be malformed enough to fault.
+ *
+ * TGATE is the special case where the table is chosen per position from three
+ * fixed candidates; this chooses one table for all positions but allows any of
+ * the 19,683.
+ */
+function ttable(table, x, y) {
+  const xs = toTrits(x), ys = toTrits(y);
+  return fromTrits(xs.map((xt, i) => lowTrit(table[(xt + 1) * 3 + (ys[i] + 1)])));
+}
+
+/** The least significant trit of a value. Exact because shiftRight rounds. */
+function lowTrit(v) {
+  const w = wrap(v);
+  return w - 3 * shiftRight(w, 1);
+}
+
+/** The nine-entry table equivalent to one TGATE mode, for a fixed y-trit. */
+function tgateModeTable(mode) {
+  const out = [];
+  for (let x = -1; x <= 1; x++) {
+    for (let y = -1; y <= 1; y++) {
+      out.push(mode === -1 ? -x : mode === 0 ? Math.min(x, y) : Math.max(x, y));
+    }
+  }
+  return out;
+}
 
 
-const T = { TRITS_PER_TRYTE, RADIX, TRYTE_STATES, TRYTE_MAX, TRYTE_MIN, wrap, toTrits, fromTrits, tritString, parseTritString, add, sub, mul, neg, sign, shiftLeft, shiftRight, tMIN, tMAX, tCLAMPSUM, tNEG, tgate };
+
+const T = { TRITS_PER_TRYTE, RADIX, TRYTE_STATES, TRYTE_MAX, TRYTE_MIN, wrap, toTrits, fromTrits, tritString, parseTritString, add, sub, mul, neg, sign, shiftLeft, shiftRight, tMIN, tMAX, tCLAMPSUM, tNEG, tgate, ttable, lowTrit, tgateModeTable };
 
 /* --- src/isa.js --- */
 
@@ -518,6 +556,13 @@ const OPS = {
   STOREX: { code: 20, operand: 'addr', doc: 'mem[mem[addr]] = A  (store through a pointer cell)' },
   JMPX:   { code: 21, operand: 'addr', doc: 'PC = mem[addr]      (computed jump)' },
   LDC:    { code: 22, operand: 'addr', doc: 'C = mem[addr]       (SETC takes an immediate; this takes a variable)' },
+
+  // --- the table-driven operation ------------------------------------------
+  // TGATE offers three choices per trit. TOP offers all 3^9 = 19,683 two-input
+  // trit functions, because the function is DATA: C holds the address of a nine
+  // entry truth table and TOP applies it tritwise. Every TGATE mode is one
+  // particular table, so this generalises it rather than sitting beside it.
+  TOP:    { code: 23, operand: 'addr', doc: 'A = truth table at C applied tritwise to (A, mem[addr])' },
 };
 
 const BY_CODE = {};
@@ -599,6 +644,13 @@ class TryteVM {
       case 'STOREX': this.write(this.read(operand), this.A); break;
       case 'JMPX':   nextPC = T.wrap(this.read(operand)); break;
       case 'LDC':    this.C = this.read(operand); break;
+      // C addresses a nine-entry truth table; the operand is the second input.
+      case 'TOP': {
+        const tbl = [];
+        for (let i = 0; i < 9; i++) tbl.push(this.read(T.wrap(this.C + i)));
+        this.A = T.ttable(tbl, this.A, this.read(operand));
+        break;
+      }
       default: throw new Error(`unimplemented op ${op.name}`);
     }
 
@@ -750,6 +802,7 @@ function loadInto(vm, src, origin = 0) {
 
 
 
+
 const MEM_LO = -364, MEM_HI = 364;
 
 /* The interpreter source is injected rather than read at load time, so this
@@ -841,7 +894,7 @@ function runHosted(src, input = [], opts = {}) {
   if (depth < 2) return runNative(src, input, opts);
   // Prefer the full 23-opcode interpreter; fall back to the self-sufficient core
   // when the full one cannot be stacked that deep.
-  const variant = opts.variant || (fits(depth, 'full') ? 'full' : 'core');
+  const variant = opts.variant || pickVariant(src, depth);
   const P = plan(depth, variant);
   const vm = new TryteVM({ input: input.slice(), maxSteps: opts.maxSteps || 20000000 });
 
@@ -878,6 +931,55 @@ function runHosted(src, input = [], opts = {}) {
   return vm;
 }
 
+/** Which opcodes a variant actually implements, read from its jump table. */
+function supportedOpcodes(variant = 'full') {
+  const src = interpSource(variant);
+  const block = src.slice(src.indexOf('jtbl:'));
+  const handlers = [...block.matchAll(/h_[a-z0-9_]+/g)].map(m => m[0]);
+  const names = Object.keys(OPS).sort((a, b) => OPS[a].code - OPS[b].code);
+  const out = new Set();
+  handlers.forEach((h, code) => { if (h !== 'h_bad' && names[code]) out.add(names[code]); });
+  return out;
+}
+
+/** The opcodes a program uses. */
+function programOpcodes(src) {
+  const out = new Set();
+  for (const line of src.split(/\r?\n/)) {
+    const m = line.replace(/[;#].*/, '').trim()
+      .replace(/^[A-Za-z_][A-Za-z0-9_]*:\s*/, '').split(/\s+/)[0];
+    if (m && m.toUpperCase() in OPS) out.add(m.toUpperCase());
+  }
+  return out;
+}
+
+/**
+ * Choose an interpreter for this program at this depth. Three things must hold,
+ * and picking on depth alone is not enough: adding TOP grew the full interpreter
+ * by 17 cells, which left depth 3 still reachable but shrank its innermost window
+ * from 81 cells to 47 — enough to stop threeway.tasm fitting while `fits(3)`
+ * still said yes.
+ */
+function pickVariant(src, depth) {
+  const prog = assemble(src, 0);
+  const addrs = [...prog.cells.keys()];
+  const lo = Math.min(...addrs), hi = Math.max(...addrs);
+  const used = programOpcodes(src);
+  const reasons = [];
+  for (const v of ['full', 'core']) {
+    if (!fits(depth, v)) { reasons.push(`${v}: too big to stack ${depth} deep`); continue; }
+    const P = plan(depth, v);
+    if (lo < P.innerLo || hi > P.innerHi) {
+      reasons.push(`${v}: program spans ${lo}..${hi}, window is ${P.innerLo}..${P.innerHi}`);
+      continue;
+    }
+    const missing = [...used].filter(o => !supportedOpcodes(v).has(o));
+    if (missing.length) { reasons.push(`${v}: does not implement ${missing.join(' ')}`); continue; }
+    return v;
+  }
+  throw new Error(`no interpreter can host this program at depth ${depth}:\n  ` + reasons.join('\n  '));
+}
+
 /** Can `depth` levels of this interpreter variant be stacked at all? */
 function fits(depth, variant = 'full') {
   try { plan(depth, variant); return true; } catch { return false; }
@@ -893,8 +995,8 @@ function maxDepth(variant = 'full') {
 
 
 const PROGRAMS = {
-  "interp-core": "; interp-core.tasm — the smallest interpreter that can still interpret itself.\n;\n; programs/interp.tasm implements all 23 opcodes, and is 324 cells. Two of those\n; fit inside 729; three do not. This one implements 14 and is small enough to\n; stack three deep.\n;\n; THE SUBSET IS NOT ARBITRARY. The full interpreter executes MIN, MAX, CSUM, NEG,\n; SHL, SHR, TGATE and LDC in exactly one place each: the handler that implements\n; that opcode. Delete those handlers and the interpreter stops needing those\n; instructions — so what is left is CLOSED UNDER SELF-INTERPRETATION. Every\n; instruction this file executes is an instruction this file implements, which is\n; the property that lets a copy run inside a copy, to any depth memory allows.\n; test-selfhost.js checks that closure by reading this source, rather than\n; trusting the comment.\n;\n;   kept    HALT LOADI LOAD STORE ADD ADDI SUB JMP BR3 OUT IN LOADX STOREX JMPX\n;   dropped NEG MIN MAX CSUM SETC TGATE SHL SHR LDC   -> h_bad, which halts\n;\n; A program using a dropped opcode stops rather than misbehaving. multiply.tasm\n; needs SHL/SHR and tgate.tasm needs SETC/TGATE, so neither runs on the core;\n; threeway.tasm and anything built from the arithmetic subset do.\n;\n; Relocatable, and decodes the operand once in fetch, exactly as interp.tasm does.\n\nIBASE:  .equ  200          ; rewritten per level; inner address a is at outer IBASE + a\n\n; ---------------------------------------------------------------- fetch/decode\nfetch:  LOAD  ipc\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE opc\n        LOAD  ptr\n        ADDI  1\n        STORE ptr\n        LOADX ptr\n        STORE opd\n        ADDI  IBASE\n        STORE ea\n        LOADX ea\n        STORE mval\n        LOAD  ipc\n        ADDI  2\n        STORE ipc\n        LOAD  opc\n        ADDI  jtbl\n        STORE ptr\n        LOADX ptr\n        STORE ptr\n        JMPX  ptr\n\n; ---------------------------------------------------------------- handlers\nh_halt: HALT\n\nh_bad:  HALT               ; an opcode this core does not implement\n\nh_loadi:LOAD  opd\n        STORE ia\n        JMP   fetch\n\nh_load: LOAD  mval\n        STORE ia\n        JMP   fetch\n\nh_store:LOAD  ia\n        STOREX ea\n        JMP   fetch\n\nh_add:  LOAD  ia\n        ADD   mval\n        STORE ia\n        JMP   fetch\n\nh_addi: LOAD  ia\n        ADD   opd\n        STORE ia\n        JMP   fetch\n\nh_sub:  LOAD  ia\n        SUB   mval\n        STORE ia\n        JMP   fetch\n\nh_jmp:  LOAD  opd\n        STORE ipc\n        JMP   fetch\n\n; The emulated three-way branch, implemented by the host's three-way branch.\nh_br3:  LOAD  ia\n        BR3   br_t\nbr_t:   .table br_n, br_z, br_p\nbr_n:   LOAD  ea\n        ADDI  -1\n        JMP   br_go\nbr_z:   LOAD  ea\n        JMP   br_go\nbr_p:   LOAD  ea\n        ADDI  1\nbr_go:  STORE ptr\n        LOADX ptr\n        STORE ipc\n        JMP   fetch\n\nh_out:  LOAD  ia\n        OUT\n        JMP   fetch\n\nh_in:   IN\n        STORE ia\n        JMP   fetch\n\nh_loadx:LOAD  mval\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE ia\n        JMP   fetch\n\nh_stox: LOAD  mval\n        ADDI  IBASE\n        STORE ptr\n        LOAD  ia\n        STOREX ptr\n        JMP   fetch\n\nh_jmpx: LOAD  mval\n        STORE ipc\n        JMP   fetch\n\n; ---------------------------------------------------------------- dispatch table\n; Indexed by opcode, so the dropped opcodes still need a slot; they get h_bad.\njtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_bad\n        .word h_bad, h_bad, h_bad, h_bad, h_bad, h_bad, h_bad, h_jmp\n        .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_bad\n\n; ---------------------------------------------------------------- state\nipc:    .word 0\nia:     .word 0\nopc:    .word 0\nopd:    .word 0\nea:     .word 0\nmval:   .word 0\nptr:    .word 0\n",
-  "interp": "; interp.tasm — a tryte VM, running inside a tryte VM.\n;\n; The emulated (\"inner\") machine has the same three registers, the same 23\n; opcodes and the same two-cell instruction format. It differs only in having\n; less memory, which is unavoidable: 729 cells cannot hold 729 cells plus an\n; interpreter.\n;\n; RELOCATABLE. There is deliberately no .org here and IBASE is rewritten at load\n; time, because a fixed layout can never nest. With one fixed base the emulated\n; machine's address window never reaches back down to the interpreter's own\n; origin, so no copy of this file could ever be loaded into a machine it was\n; running — see src/selfhost.js, which computes an origin and a base per level.\n;\n; DECODE. The effective address of the operand (ea) and the value living there\n; (mval) are computed once during fetch rather than in each handler. That is\n; what makes the interpreter small enough to nest: it moved roughly ninety cells\n; of repeated address arithmetic out of twelve handlers and into one place. The\n; same pressure produced instruction decode in real machines, for the same reason.\n;\n; A consequence worth stating: opcodes whose operand is an immediate (LOADI,\n; ADDI, SETC, SHL, SHR, JMP) still have mval computed for them, reading a cell\n; that means nothing to them. This is harmless — every address wraps into range,\n; so the read can never fault — and those handlers simply ignore it.\n;\n; DISPATCH is an indexed jump through JMPX. A three-level BR3 tree reaches 27\n; destinations in 3 branches where binary needs 5, which is the prettier answer,\n; but measured it cost 149 cells against 30. BR3 still does the work that suits\n; it: in h_br3 the emulated three-way branch is the host's three-way branch.\n\nIBASE:  .equ  200          ; rewritten per level; inner address a is at outer IBASE + a\n\n; ---------------------------------------------------------------- fetch/decode\nfetch:  LOAD  ipc\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE opc          ; opcode\n        LOAD  ptr\n        ADDI  1\n        STORE ptr\n        LOADX ptr\n        STORE opd          ; operand\n        ADDI  IBASE\n        STORE ea           ; effective address, if the operand is an address\n        LOADX ea\n        STORE mval         ; and the value living there\n        LOAD  ipc\n        ADDI  2\n        STORE ipc          ; the inner PC advances before the handler runs,\n                           ; so jumps may overwrite it freely\n        LOAD  opc\n        ADDI  jtbl\n        STORE ptr          ; ptr = address of the table entry\n        LOADX ptr\n        STORE ptr          ; ptr = the handler address held in that entry\n        JMPX  ptr\n\n; ---------------------------------------------------------------- handlers\nh_halt: HALT\n\nh_loadi:LOAD  opd\n        STORE ia\n        JMP   fetch\n\nh_load: LOAD  mval\n        STORE ia\n        JMP   fetch\n\nh_store:LOAD  ia\n        STOREX ea\n        JMP   fetch\n\nh_add:  LOAD  ia\n        ADD   mval\n        STORE ia\n        JMP   fetch\n\nh_addi: LOAD  ia\n        ADD   opd\n        STORE ia\n        JMP   fetch\n\nh_sub:  LOAD  ia\n        SUB   mval\n        STORE ia\n        JMP   fetch\n\nh_neg:  LOAD  ia\n        NEG\n        STORE ia\n        JMP   fetch\n\nh_min:  LOAD  ia\n        MIN   mval\n        STORE ia\n        JMP   fetch\n\nh_max:  LOAD  ia\n        MAX   mval\n        STORE ia\n        JMP   fetch\n\nh_csum: LOAD  ia\n        CSUM  mval\n        STORE ia\n        JMP   fetch\n\nh_setc: LOAD  opd\n        STORE ic\n        JMP   fetch\n\nh_tgate:LDC   ic           ; the inner control register drives the outer gate\n        LOAD  ia\n        TGATE mval\n        STORE ia\n        JMP   fetch\n\n; SHL/SHR take an immediate count, so a variable count repeats a shift of one.\nh_shl:  LOAD  opd\n        STORE cnt\n        LOAD  ia\n        STORE tmp\nshl_lp: LOAD  cnt\n        BR3   shl_t\nshl_t:  .table shl_end, shl_end, shl_go\nshl_go: LOAD  tmp\n        SHL   1\n        STORE tmp\n        LOAD  cnt\n        ADDI  -1\n        STORE cnt\n        JMP   shl_lp\nshl_end:LOAD  tmp\n        STORE ia\n        JMP   fetch\n\nh_shr:  LOAD  opd\n        STORE cnt\n        LOAD  ia\n        STORE tmp\nshr_lp: LOAD  cnt\n        BR3   shr_t\nshr_t:  .table shr_end, shr_end, shr_go\nshr_go: LOAD  tmp\n        SHR   1\n        STORE tmp\n        LOAD  cnt\n        ADDI  -1\n        STORE cnt\n        JMP   shr_lp\nshr_end:LOAD  tmp\n        STORE ia\n        JMP   fetch\n\nh_jmp:  LOAD  opd\n        STORE ipc\n        JMP   fetch\n\n; The emulated three-way branch, implemented by the host's three-way branch.\nh_br3:  LOAD  ia\n        BR3   br_t\nbr_t:   .table br_n, br_z, br_p\nbr_n:   LOAD  ea\n        ADDI  -1\n        JMP   br_go\nbr_z:   LOAD  ea\n        JMP   br_go\nbr_p:   LOAD  ea\n        ADDI  1\nbr_go:  STORE ptr\n        LOADX ptr\n        STORE ipc\n        JMP   fetch\n\nh_out:  LOAD  ia\n        OUT\n        JMP   fetch\n\nh_in:   IN\n        STORE ia\n        JMP   fetch\n\n; The emulated machine gets the indirect opcodes too, so it is a complete tryte\n; VM rather than a cut-down one — which is what lets it host another of itself.\nh_loadx:LOAD  mval\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE ia\n        JMP   fetch\n\nh_stox: LOAD  mval\n        ADDI  IBASE\n        STORE ptr\n        LOAD  ia\n        STOREX ptr\n        JMP   fetch\n\nh_jmpx: LOAD  mval\n        STORE ipc\n        JMP   fetch\n\nh_ldc:  LOAD  mval\n        STORE ic\n        JMP   fetch\n\n; ---------------------------------------------------------------- dispatch table\n; One entry per opcode, in opcode order. JMPX indexes straight into it.\njtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_neg\n        .word h_min, h_max, h_csum, h_setc, h_tgate, h_shl, h_shr, h_jmp\n        .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_ldc\n\n; ---------------------------------------------------------------- state\nipc:    .word 0            ; inner program counter\nia:     .word 0            ; inner accumulator\nic:     .word 0            ; inner gate-control register\nopc:    .word 0            ; opcode being executed\nopd:    .word 0            ; its operand\nea:     .word 0            ; operand read as an address\nmval:   .word 0            ; the value at that address\nptr:    .word 0            ; scratch pointer for indirect access\ntmp:    .word 0\ncnt:    .word 0\n",
+  "interp-core": "; interp-core.tasm — the smallest interpreter that can still interpret itself.\n;\n; programs/interp.tasm implements all 23 opcodes, and is 324 cells. Two of those\n; fit inside 729; three do not. This one implements 14 and is small enough to\n; stack three deep.\n;\n; THE SUBSET IS NOT ARBITRARY. The full interpreter executes MIN, MAX, CSUM, NEG,\n; SHL, SHR, TGATE and LDC in exactly one place each: the handler that implements\n; that opcode. Delete those handlers and the interpreter stops needing those\n; instructions — so what is left is CLOSED UNDER SELF-INTERPRETATION. Every\n; instruction this file executes is an instruction this file implements, which is\n; the property that lets a copy run inside a copy, to any depth memory allows.\n; test-selfhost.js checks that closure by reading this source, rather than\n; trusting the comment.\n;\n;   kept    HALT LOADI LOAD STORE ADD ADDI SUB JMP BR3 OUT IN LOADX STOREX JMPX\n;   dropped NEG MIN MAX CSUM SETC TGATE SHL SHR LDC TOP -> h_bad, which halts\n;\n; A program using a dropped opcode stops rather than misbehaving. multiply.tasm\n; needs SHL/SHR and tgate.tasm needs SETC/TGATE, so neither runs on the core;\n; threeway.tasm and anything built from the arithmetic subset do.\n;\n; Relocatable, and decodes the operand once in fetch, exactly as interp.tasm does.\n\nIBASE:  .equ  200          ; rewritten per level; inner address a is at outer IBASE + a\n\n; ---------------------------------------------------------------- fetch/decode\nfetch:  LOAD  ipc\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE opc\n        LOAD  ptr\n        ADDI  1\n        STORE ptr\n        LOADX ptr\n        STORE opd\n        ADDI  IBASE\n        STORE ea\n        LOADX ea\n        STORE mval\n        LOAD  ipc\n        ADDI  2\n        STORE ipc\n        LOAD  opc\n        ADDI  jtbl\n        STORE ptr\n        LOADX ptr\n        STORE ptr\n        JMPX  ptr\n\n; ---------------------------------------------------------------- handlers\nh_halt: HALT\n\nh_bad:  HALT               ; an opcode this core does not implement\n\nh_loadi:LOAD  opd\n        STORE ia\n        JMP   fetch\n\nh_load: LOAD  mval\n        STORE ia\n        JMP   fetch\n\nh_store:LOAD  ia\n        STOREX ea\n        JMP   fetch\n\nh_add:  LOAD  ia\n        ADD   mval\n        STORE ia\n        JMP   fetch\n\nh_addi: LOAD  ia\n        ADD   opd\n        STORE ia\n        JMP   fetch\n\nh_sub:  LOAD  ia\n        SUB   mval\n        STORE ia\n        JMP   fetch\n\nh_jmp:  LOAD  opd\n        STORE ipc\n        JMP   fetch\n\n; The emulated three-way branch, implemented by the host's three-way branch.\nh_br3:  LOAD  ia\n        BR3   br_t\nbr_t:   .table br_n, br_z, br_p\nbr_n:   LOAD  ea\n        ADDI  -1\n        JMP   br_go\nbr_z:   LOAD  ea\n        JMP   br_go\nbr_p:   LOAD  ea\n        ADDI  1\nbr_go:  STORE ptr\n        LOADX ptr\n        STORE ipc\n        JMP   fetch\n\nh_out:  LOAD  ia\n        OUT\n        JMP   fetch\n\nh_in:   IN\n        STORE ia\n        JMP   fetch\n\nh_loadx:LOAD  mval\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE ia\n        JMP   fetch\n\nh_stox: LOAD  mval\n        ADDI  IBASE\n        STORE ptr\n        LOAD  ia\n        STOREX ptr\n        JMP   fetch\n\nh_jmpx: LOAD  mval\n        STORE ipc\n        JMP   fetch\n\n; ---------------------------------------------------------------- dispatch table\n; Indexed by opcode, so the dropped opcodes still need a slot; they get h_bad.\njtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_bad\n        .word h_bad, h_bad, h_bad, h_bad, h_bad, h_bad, h_bad, h_jmp\n        .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_bad, h_bad\n\n; ---------------------------------------------------------------- state\nipc:    .word 0\nia:     .word 0\nopc:    .word 0\nopd:    .word 0\nea:     .word 0\nmval:   .word 0\nptr:    .word 0\n",
+  "interp": "; interp.tasm — a tryte VM, running inside a tryte VM.\n;\n; The emulated (\"inner\") machine has the same three registers, the same 23\n; opcodes and the same two-cell instruction format. It differs only in having\n; less memory, which is unavoidable: 729 cells cannot hold 729 cells plus an\n; interpreter.\n;\n; RELOCATABLE. There is deliberately no .org here and IBASE is rewritten at load\n; time, because a fixed layout can never nest. With one fixed base the emulated\n; machine's address window never reaches back down to the interpreter's own\n; origin, so no copy of this file could ever be loaded into a machine it was\n; running — see src/selfhost.js, which computes an origin and a base per level.\n;\n; DECODE. The effective address of the operand (ea) and the value living there\n; (mval) are computed once during fetch rather than in each handler. That is\n; what makes the interpreter small enough to nest: it moved roughly ninety cells\n; of repeated address arithmetic out of twelve handlers and into one place. The\n; same pressure produced instruction decode in real machines, for the same reason.\n;\n; A consequence worth stating: opcodes whose operand is an immediate (LOADI,\n; ADDI, SETC, SHL, SHR, JMP) still have mval computed for them, reading a cell\n; that means nothing to them. This is harmless — every address wraps into range,\n; so the read can never fault — and those handlers simply ignore it.\n;\n; DISPATCH is an indexed jump through JMPX. A three-level BR3 tree reaches 27\n; destinations in 3 branches where binary needs 5, which is the prettier answer,\n; but measured it cost 149 cells against 30. BR3 still does the work that suits\n; it: in h_br3 the emulated three-way branch is the host's three-way branch.\n\nIBASE:  .equ  200          ; rewritten per level; inner address a is at outer IBASE + a\n\n; ---------------------------------------------------------------- fetch/decode\nfetch:  LOAD  ipc\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE opc          ; opcode\n        LOAD  ptr\n        ADDI  1\n        STORE ptr\n        LOADX ptr\n        STORE opd          ; operand\n        ADDI  IBASE\n        STORE ea           ; effective address, if the operand is an address\n        LOADX ea\n        STORE mval         ; and the value living there\n        LOAD  ipc\n        ADDI  2\n        STORE ipc          ; the inner PC advances before the handler runs,\n                           ; so jumps may overwrite it freely\n        LOAD  opc\n        ADDI  jtbl\n        STORE ptr          ; ptr = address of the table entry\n        LOADX ptr\n        STORE ptr          ; ptr = the handler address held in that entry\n        JMPX  ptr\n\n; ---------------------------------------------------------------- handlers\nh_halt: HALT\n\nh_loadi:LOAD  opd\n        STORE ia\n        JMP   fetch\n\nh_load: LOAD  mval\n        STORE ia\n        JMP   fetch\n\nh_store:LOAD  ia\n        STOREX ea\n        JMP   fetch\n\nh_add:  LOAD  ia\n        ADD   mval\n        STORE ia\n        JMP   fetch\n\nh_addi: LOAD  ia\n        ADD   opd\n        STORE ia\n        JMP   fetch\n\nh_sub:  LOAD  ia\n        SUB   mval\n        STORE ia\n        JMP   fetch\n\nh_neg:  LOAD  ia\n        NEG\n        STORE ia\n        JMP   fetch\n\nh_min:  LOAD  ia\n        MIN   mval\n        STORE ia\n        JMP   fetch\n\nh_max:  LOAD  ia\n        MAX   mval\n        STORE ia\n        JMP   fetch\n\nh_csum: LOAD  ia\n        CSUM  mval\n        STORE ia\n        JMP   fetch\n\nh_setc: LOAD  opd\n        STORE ic\n        JMP   fetch\n\nh_tgate:LDC   ic           ; the inner control register drives the outer gate\n        LOAD  ia\n        TGATE mval\n        STORE ia\n        JMP   fetch\n\n; SHL/SHR take an immediate count, so a variable count repeats a shift of one.\nh_shl:  LOAD  opd\n        STORE cnt\n        LOAD  ia\n        STORE tmp\nshl_lp: LOAD  cnt\n        BR3   shl_t\nshl_t:  .table shl_end, shl_end, shl_go\nshl_go: LOAD  tmp\n        SHL   1\n        STORE tmp\n        LOAD  cnt\n        ADDI  -1\n        STORE cnt\n        JMP   shl_lp\nshl_end:LOAD  tmp\n        STORE ia\n        JMP   fetch\n\nh_shr:  LOAD  opd\n        STORE cnt\n        LOAD  ia\n        STORE tmp\nshr_lp: LOAD  cnt\n        BR3   shr_t\nshr_t:  .table shr_end, shr_end, shr_go\nshr_go: LOAD  tmp\n        SHR   1\n        STORE tmp\n        LOAD  cnt\n        ADDI  -1\n        STORE cnt\n        JMP   shr_lp\nshr_end:LOAD  tmp\n        STORE ia\n        JMP   fetch\n\nh_jmp:  LOAD  opd\n        STORE ipc\n        JMP   fetch\n\n; The emulated three-way branch, implemented by the host's three-way branch.\nh_br3:  LOAD  ia\n        BR3   br_t\nbr_t:   .table br_n, br_z, br_p\nbr_n:   LOAD  ea\n        ADDI  -1\n        JMP   br_go\nbr_z:   LOAD  ea\n        JMP   br_go\nbr_p:   LOAD  ea\n        ADDI  1\nbr_go:  STORE ptr\n        LOADX ptr\n        STORE ipc\n        JMP   fetch\n\nh_out:  LOAD  ia\n        OUT\n        JMP   fetch\n\nh_in:   IN\n        STORE ia\n        JMP   fetch\n\n; The emulated machine gets the indirect opcodes too, so it is a complete tryte\n; VM rather than a cut-down one — which is what lets it host another of itself.\nh_loadx:LOAD  mval\n        ADDI  IBASE\n        STORE ptr\n        LOADX ptr\n        STORE ia\n        JMP   fetch\n\nh_stox: LOAD  mval\n        ADDI  IBASE\n        STORE ptr\n        LOAD  ia\n        STOREX ptr\n        JMP   fetch\n\nh_jmpx: LOAD  mval\n        STORE ipc\n        JMP   fetch\n\nh_ldc:  LOAD  mval\n        STORE ic\n        JMP   fetch\n\n; The emulated TOP is performed by the HOST's TOP. The guest's nine-entry table\n; sits at guest addresses ic..ic+8, and consecutive guest addresses are\n; consecutive host addresses, so pointing the host's C at IBASE+ic makes the host\n; instruction read exactly the guest's table. Seven instructions instead of a\n; six-iteration lookup loop — which is why adding TOP cost fifteen cells rather\n; than a hundred, and so cost no nesting depth.\n;   (Edge case, stated: a table straddling the guest address wrap would not be\n;    contiguous in host memory. Programs keep their tables clear of it.)\nh_top:  LOAD  ic\n        ADDI  IBASE\n        STORE ptr\n        LDC   ptr\n        LOAD  ia\n        TOP   mval\n        STORE ia\n        JMP   fetch\n\n; ---------------------------------------------------------------- dispatch table\n; One entry per opcode, in opcode order. JMPX indexes straight into it.\njtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_neg\n        .word h_min, h_max, h_csum, h_setc, h_tgate, h_shl, h_shr, h_jmp\n        .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_ldc, h_top\n\n; ---------------------------------------------------------------- state\nipc:    .word 0            ; inner program counter\nia:     .word 0            ; inner accumulator\nic:     .word 0            ; inner gate-control register\nopc:    .word 0            ; opcode being executed\nopd:    .word 0            ; its operand\nea:     .word 0            ; operand read as an address\nmval:   .word 0            ; the value at that address\nptr:    .word 0            ; scratch pointer for indirect access\ntmp:    .word 0\ncnt:    .word 0\n",
   "kleene": "; kleene.tasm — the machine as a three-valued logic processor.\n;\n; Map the three trit states onto truth values:\n;\n;       -1 = false      0 = unknown      +1 = true\n;\n; Then MIN, MAX and NEG are not merely \"like\" AND, OR and NOT — they ARE Kleene's\n; strong three-valued logic, exactly, on all twelve rows. That is the same logic\n; SQL uses for NULL: unknown AND false is false (the answer is settled either\n; way), but unknown AND true is unknown (it still depends).\n;\n; Inputs: two truth values. Outputs: NOT a, a AND b, a OR b, and a OR NOT a.\n;\n; That last one is the interesting output. In two-valued logic a OR NOT a is\n; always true — the law of the excluded middle. Here, when a is unknown, it comes\n; back UNKNOWN. The law fails, which is what makes this a genuinely three-valued\n; logic rather than binary logic with a spare state lying around.\n\n        IN\n        STORE a\n        IN\n        STORE b\n\n        LOAD  a\n        NEG\n        OUT                ; NOT a\n\n        LOAD  a\n        MIN   b\n        OUT                ; a AND b\n\n        LOAD  a\n        MAX   b\n        OUT                ; a OR b\n\n        LOAD  a\n        NEG\n        STORE na\n        LOAD  a\n        MAX   na\n        OUT                ; a OR NOT a  — not always true\n\n        HALT\n\n        .org  -6\na:      .word 0\nb:      .word 0\nna:     .word 0\n",
   "multiply": "; multiply.tasm — shift-and-add multiplication, done the balanced-ternary way.\n;\n; The machine has no multiply instruction. It builds one from shifts and adds.\n;\n; The interesting part is extracting one trit at a time. In balanced ternary,\n; shifting right ROUNDS TO NEAREST rather than truncating toward zero, so\n;\n;       lowest_trit(v)  =  v - 3 * (v >> 1)\n;\n; falls out of the shift itself. No masking, no sign correction, no special\n; case for negative numbers — the same six steps handle every sign combination.\n\n        IN                 ; first input  -> multiplicand\n        STORE mult\n        IN                 ; second input -> multiplier\n        STORE rem\n        LOADI 0\n        STORE result\n        LOADI 6            ; six trits in a tryte\n        STORE count\n\nloop:   LOAD  rem\n        SHR   1\n        STORE remhi        ; remhi = round(rem / 3)\n        SHL   1\n        STORE tmp          ; tmp   = 3 * remhi\n        LOAD  rem\n        SUB   tmp          ; A     = lowest trit of rem\n        BR3   pick\npick:   .table minus, skip, plus\n\nplus:   LOAD  result\n        ADD   mult\n        STORE result\n        JMP   next\nminus:  LOAD  result\n        SUB   mult\n        STORE result\n        JMP   next\nskip:   JMP   next\n\nnext:   LOAD  mult\n        SHL   1\n        STORE mult         ; multiplicand climbs one trit\n        LOAD  remhi\n        STORE rem          ; multiplier drops one trit\n        LOAD  count\n        ADDI  -1\n        STORE count\n        BR3   again\nagain:  .table fin, fin, loop\n\nfin:    LOAD  result\n        OUT\n        HALT\n\n        .org  -20\nmult:   .word 0\nrem:    .word 0\nremhi:  .word 0\nresult: .word 0\ncount:  .word 0\ntmp:    .word 0\n",
   "tgate": "; tgate.tasm — the source conversation's idea, made real and made ternary.\n;\n; The original wanted a data word whose own digits ARE the logic gates, so the\n; unit reconfigures itself as data passes through. On binary data with AND/OR/NOT\n; that is just an opcode driving a multiplexer. On ternary data it is a genuinely\n; three-way choice per trit position:\n;\n;       control trit -  ->  NEG(x)       (ignores y)\n;       control trit 0  ->  MIN(x, y)    (the AND analog)\n;       control trit +  ->  MAX(x, y)    (the OR analog)\n;\n; One control tryte therefore names one of 729 distinct six-slice circuits.\n; Below, the SAME two data values run through three different circuits.\n\n        IN\n        STORE x\n        IN\n        STORE y\n\n        SETC  t000000      ; every trit MIN  -> the whole unit becomes MIN\n        LOAD  x\n        TGATE y\n        OUT\n\n        SETC  t++++++      ; every trit MAX  -> the whole unit becomes MAX\n        LOAD  x\n        TGATE y\n        OUT\n\n        SETC  t------      ; every trit NEG  -> the whole unit becomes negate\n        LOAD  x\n        TGATE y\n        OUT\n\n        SETC  t+0-+0-      ; a MIXED circuit: MAX, MIN, NEG, MAX, MIN, NEG\n        LOAD  x\n        TGATE y\n        OUT\n\n        HALT\n\n        .org  -10\nx:      .word 0\ny:      .word 0\n",

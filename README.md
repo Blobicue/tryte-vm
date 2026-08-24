@@ -2,11 +2,11 @@
 
 A working emulator for a computer that counts in **three states instead of two**.
 Core arithmetic, an instruction set, a virtual machine, an assembler, and demo
-programs. 287 tests, all passing, including exhaustive sweeps over the machine's
+programs. 302 tests, all passing, including exhaustive sweeps over the machine's
 entire value space.
 
 ```bash
-npm test                      # 287 checks
+npm test                      # 302 checks
 node src/run.js programs/multiply.tasm 7 5
 npm run selfhost              # the machine emulating itself
 ```
@@ -247,6 +247,72 @@ credits `unit:braid_relation_miner` for the shape. Ported to JavaScript rather
 than reimplemented in Python so that `T.tgate` has exactly one definition — the
 audit imports the semantics it is auditing, and a test asserts the agreement.*
 
+## Making the truth table an instruction
+
+The audit above said the `TGATE` vocabulary reaches 77,687 of the 729^729 maps on
+a tryte. So the base machine gained one opcode:
+
+    TOP addr    A = the nine-entry truth table at C, applied tritwise to
+                (A, mem[addr])
+
+Nine entries specify one of the **19,683** two-input trit functions, so the
+function becomes data. `MIN`, `MAX`, `CSUM` and `NEG` are each one particular
+table; projecting the second operand — which the ISA had no way to express — is
+another.
+
+**Neither opcode subsumes the other**, and that is tested: `TOP` applies *one*
+table to all six positions and offers 19,683 of them; `TGATE` applies *three*
+fixed modes and picks per position. `TOP` reproduces every uniform `TGATE`
+control and no mixed one.
+
+Then the same instrument, on the new vocabulary. Five predictions, registered
+before the run, all held:
+
+| | reach |
+|---|---|
+| `TOP`, second operand pinned | **27 at every width** |
+| `TGATE`, all controls | 47, 307, 1967 … |
+| `TOP`, second operand free | **27^w** |
+
+**More tables, less reach.** With the second operand pinned there is one column in
+play, so every position gets the same map and 19,683 tables collapse to 27 —
+fewer than `TGATE` reaches with three. Richness per instruction is not reach under
+composition.
+
+**And it explains why P3 failed.** Freed, `TOP` reaches exactly 27^w — the full
+direct product that P3 wrongly predicted for `TGATE`. The difference is the
+**identity**: `TOP` can put it in a column, so positions idle while others
+advance, dissolving the equal-word-length constraint. `TGATE` has no identity
+mode — `NEG`, `MIN(·,0)` and `MAX(·,0)` all move something — which is exactly why
+its reach was 47 and not 49. The suite asserts both halves of that.
+
+27^w is also the **ceiling for any positionwise vocabulary**: an operation
+computing out_p from (x_p, y_p) alone induces at most 27 maps per position.
+Beating it requires cross-trit interaction — a carry. At width 6 that ceiling is
+27^6 = 387,420,489 = 3^18, so the conversation's 531,441 flips from a **6.84×
+overstatement** of what `TGATE` reaches to a **729× understatement** of what
+`TOP` can.
+
+### What it cost the layers above
+
+Implementing the emulated `TOP` inside the interpreter takes seven instructions,
+not a lookup loop: the guest's table lives at consecutive host addresses, so
+pointing the host's own `C` at it makes the host's `TOP` do the work.
+
+| | before | after |
+|---|---|---|
+| Full interpreter | 324 cells | 341 |
+| Core interpreter | 199 cells | 200 |
+| Max depth | 3 / 4 | 3 / 4 — unchanged |
+| Depth-3 window | 81 cells | **47** |
+
+Seventeen cells cost no nesting depth but shrank the depth-3 window enough that
+`threeway.tasm` no longer fits with the full interpreter. So the harness now
+picks an interpreter by the **program**, not just the depth: it checks the depth
+is reachable, the program fits the window, *and* the variant implements the
+opcodes the program uses — falling back to the core, and naming every reason when
+nothing fits. The regression was caught by the suite, not by inspection.
+
 ## Is any of it actually worth it?
 
 Everything above checks that ternary is *correct*. `npm run bench` checks whether
@@ -317,7 +383,7 @@ inspired by that lineage, not a reimplementation of it.
 | Memory | 729 cells, addressed **−364 … +364**; address 0 is the *centre* |
 | Registers | `A` accumulator, `C` gate control, `PC` |
 | Instruction | two cells: opcode, operand |
-| Instructions | 23 (`src/isa.js`) |
+| Instructions | 24 (`src/isa.js`) |
 
 ## Layout
 
@@ -331,9 +397,9 @@ src/run.js         CLI runner
 programs/          threeway.tasm, multiply.tasm, tgate.tasm, kleene.tasm,
                    interp.tasm (23 opcodes), interp-core.tasm (14, self-sufficient)
 test/              test-core.js (27), test-vm.js (41), test-selfhost.js (83),
-                   test-bench.js (15), test-logic.js (25), test-monoid.js (26),
+                   test-bench.js (15), test-logic.js (25), test-monoid.js (35),
                    test-page.js (42), test-style.js (28), run-all.js
-tools/             monoid-audit.js — what the TGATE vocabulary actually generates
+tools/             monoid-audit.js, top-audit.js — what each vocabulary generates
 bench/             the three-way vs two-way branching benchmark
 build/             inlines src/ into a single interactive HTML page
 docs/tryte-vm.html the built page

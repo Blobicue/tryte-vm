@@ -293,8 +293,9 @@ console.log('\n=== 5. RUNNING INSIDE THE EMULATOR, FROM THE PAGE ===');
   byId['prog-select'].dispatch('change');
   byId['prog-input'].value = '7, 5';
   byId['b-run'].dispatch('click');
-  check('a program too big for depth 3 reports why',
-    /outside the emulated machine's memory/.test(byId['exec-note'].textContent),
+  check('a program too big for depth 3 reports why, naming each interpreter it tried',
+    /no interpreter can host this program/.test(byId['exec-note'].textContent) &&
+    /window is/.test(byId['exec-note'].textContent),
     byId['exec-note'].textContent);
 
   modeBtn(1).dispatch('click');

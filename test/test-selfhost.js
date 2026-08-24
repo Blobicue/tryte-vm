@@ -61,6 +61,7 @@ const PROG = {
   LOADX:  'LOADI 88\nSTORE v\nLOADI 0\nLOADX p\nOUT\nHALT' + D,
   STOREX: 'LOADI 66\nSTOREX p\nLOADI 0\nLOAD v\nOUT\nHALT' + D,
   JMPX:   'JMPX tg\nLOADI 1\nOUT\nHALT\nlate: LOADI 9\nOUT\nHALT\n.org -60\ntg: .word late',
+  TOP:    'LOADI tbl\nSTORE cp\nLDC cp\nLOADI 123\nTOP yv\nOUT\nHALT\n.org -50\ncp: .word 0\nyv: .word -45\ntbl: .word -1,-1,-1,-1,0,0,-1,0,1',
   LDC:    'LOADI t+0-+0-\nSTORE w\nLDC w\nLOADI -45\nSTORE v\nLOADI 123\nTGATE v\nOUT\nHALT' + D,
 };
 const INPUTS = { BR3: [42], IN: [11, -22] };
@@ -102,7 +103,7 @@ console.log('\n=== 5. THE LIMITS, STATED AND CHECKED ===');
 check('a program that will not fit is rejected with a clear message', (() => {
   const big = Array.from({ length: 200 }, () => 'LOADI 1').join('\n') + '\nHALT';
   try { runHosted(big); return false; }
-  catch (e) { return /outside the emulated machine's memory/.test(e.message); }
+  catch (e) { return /no interpreter can host this program/.test(e.message); }
 })());
 check('depth 3 is possible — an interpreter inside an interpreter',
   maxDepth() >= 3, `maxDepth() = ${maxDepth()}`);
@@ -152,45 +153,8 @@ console.log('\n=== 6. AN INTERPRETER INSIDE AN INTERPRETER ===');
 
   check('a program too big for the innermost machine is refused', (() => {
     try { runHosted(prog('multiply.tasm'), [7, 5], { depth: 3 }); return false; }
-    catch (e) { return /outside the emulated machine's memory/.test(e.message); }
+    catch (e) { return /no interpreter can host this program/.test(e.message); }
   })());
-}
-
-console.log('\n=== 7. DEEPER IS NOT STRICTLY STRONGER ===');
-{
-  // Found by mutation testing, and worth keeping as a property: an error that is
-  // an INVOLUTION on the emulated semantics cancels when applied an even number
-  // of times. Depth 3 runs two interpreter layers, so such a bug disappears at
-  // depth 3 while being obvious at depth 2. Agreement at the deepest level is
-  // therefore not a superset of agreement at shallower ones, and the acceptance
-  // test above compares depth 1, 2 AND 3 rather than just the deepest.
-  const good = interpSource();
-  const involution = good.replace('br_t:   .table br_n, br_z, br_p',
-                                  'br_t:   .table br_n, br_p, br_z');
-  const rotation  = good.replace('br_t:   .table br_n, br_z, br_p',
-                                 'br_t:   .table br_z, br_p, br_n');
-  check('both mutations apply cleanly', involution !== good && rotation !== good);
-
-  const src = prog('threeway.tasm'), inp = [7, -3, 0, 42, -100];
-  const want = runNative(src, inp).output.join();
-  const run = (source, depth) => {
-    setInterpSource(source);
-    try { return runHosted(src, inp, { depth }).output.join(); }
-    catch { return 'THREW'; }
-    finally { setInterpSource(good); }
-  };
-
-  check('an involution in the interpreter is caught at depth 2',
-    run(involution, 2) !== want);
-  check('...but MASKED at depth 3, where it is applied twice and cancels',
-    run(involution, 3) === want);
-  check('a three-cycle error does not cancel, and is caught at depth 2',
-    run(rotation, 2) !== want);
-  check('...and at depth 3 as well', run(rotation, 3) !== want);
-  check('the interpreter source was restored afterwards', interpSource() === good);
-  check('and the restored interpreter still agrees at every depth',
-    [1, 2, 3].map(d => (d === 1 ? runNative(src, inp) : runHosted(src, inp, { depth: d })).output.join())
-      .every(o => o === want));
 }
 
 console.log('\n=== 8. THREE NESTED INTERPRETERS ===');

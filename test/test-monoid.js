@@ -87,6 +87,54 @@ console.log('\n=== 5. WHAT THE SOURCE CONVERSATION CLAIMED ===');
     six < 531441);
 }
 
+console.log('\n=== 6. TOP — richness per instruction is not reach ===');
+{
+  const { topFixed, topSinglePos, arena, audit } = require('../tools/monoid-lib.js');
+  const fixedAt = w => audit(topFixed(arena(w)), arena(w).N).total;
+  const singleAt = w => audit(topSinglePos(arena(w)), arena(w).N).total;
+
+  // Q1 — pinning the second operand leaves one column in play, so every position
+  // gets the same map and 19,683 tables collapse to 27.
+  check('Q1 — topFixed reaches 27 at every width, however many tables exist',
+    [1, 2, 3].every(w => fixedAt(w) === 27));
+
+  // Q2 — the richer instruction reaches LESS than TGATE under composition.
+  check('Q2 — topFixed (27) reaches fewer than TGATE all (47, 307) for w >= 2',
+    fixedAt(2) < reach('all', 2).total && fixedAt(3) < reach('all', 3).total,
+    `${fixedAt(2)} vs ${reach('all', 2).total}, ${fixedAt(3)} vs ${reach('all', 3).total}`);
+
+  // Q3 — with the second operand free, TOP can put the IDENTITY in a column, so
+  // positions idle while others advance. That is exactly what TGATE cannot do,
+  // and exactly why P3's direct product failed for TGATE but holds here.
+  check('Q3 — topSinglePos reaches exactly 27^w',
+    [1, 2, 3].every(w => singleAt(w) === 27 ** w),
+    [1, 2, 3].map(w => `${singleAt(w)}/${27 ** w}`).join(' '));
+  check('   the identity IS available to TOP as a column', (() => {
+    const id = [];
+    for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) id.push(x);
+    return [0, 7, -45, 123, 364].every(v => T.ttable(id, v, 91) === v);
+  })());
+  check('   ...and is NOT available to TGATE — every mode moves something', (() => {
+    for (const mode of [-1, 0, 1]) {
+      const tbl = T.tgateModeTable(mode);
+      if ([0, 7, -45, 123, 364].every(v => T.ttable(tbl, v, 91) === v)) return false;
+    }
+    return true;
+  })());
+
+  // Q4 — lower bound (measured) meets upper bound (positionwise argument).
+  check('Q4 — 27^w is pinned: a measured subset reaches the positionwise ceiling',
+    [1, 2, 3].every(w => singleAt(w) === 27 ** w));
+
+  // Q5 — the conversation's number, from the other side.
+  check('Q5 — the TOP ceiling at width 6 is 27^6 = 387,420,489 = 3^18',
+    27 ** 6 === 387420489 && 3 ** 18 === 387420489);
+  check('   so 531,441 UNDERSTATES the TOP ceiling by 729x',
+    27 ** 6 / 531441 === 729);
+  check('   while it OVERSTATED the TGATE reach of 77,687 by 6.84x',
+    Math.abs(531441 / 77687 - 6.84) < 0.01);
+}
+
 console.log('\n' + '='.repeat(64));
 console.log(fails.length ? `FAILED (${fails.length}): ${fails.join(', ')}` : `ALL ${pass} CHECKS PASSED`);
 console.log('='.repeat(64));
