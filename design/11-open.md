@@ -63,9 +63,12 @@ Stated so that it can be, which is the point.
 - If a driven handshake settles, `Q3` becomes available and the concession in
   [`09-sequencing.md`](09-sequencing.md) — that the sequencer is JavaScript —
   stops being necessary.
-- If a register read and write in the same solve *do* race, `R4` is required, the
-  register file doubles, and [`05-registers.md`](05-registers.md)'s prediction was
-  wrong.
+- ~~If a register read and write in the same solve do race, `R4` is required and
+  the register file doubles.~~ **They do.** A read during a write sees the new
+  value on every case tried, because the write holds the feedback loop open and
+  the cell is transparent. `R4` is required, the register file doubles, and
+  [`05-registers.md`](05-registers.md)'s prediction was wrong — as this line
+  anticipated it might be. `MEASURED`
 - If the address decoder and the read mux turn out to be the same structure, the
   address path halves and [`07-memory.md`](07-memory.md) was double-counting.
 - ~~If a 4,374-node solve is too slow, everything above is moot.~~ It is not too

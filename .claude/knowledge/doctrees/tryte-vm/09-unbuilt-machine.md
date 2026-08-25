@@ -45,8 +45,10 @@ switch level. Owner: [`design/`](../../../../design/), twelve documents.
   outside the method used on everything else.
 - Does the seeded discipline compose across 4,374 state nodes? One missing seed
   poisons whatever it gates, and nothing would catch it but a wrong answer.
-- Do a register read and write in the same solve race? If not, master-slave cells
-  are unnecessary and the register file halves.
+- ~~Do a register read and write in the same solve race?~~ **Yes** (`J4`). The
+  cell is a transparent latch — the write holds its feedback open — so a read
+  during a write sees the new value. Master-slave is required and the register file
+  doubles.
 - Is `T5` going to bite a third time? Three axioms have surfaced this way already.
 
 ## Related pillars
@@ -57,5 +59,7 @@ switch level. Owner: [`design/`](../../../../design/), twelve documents.
 
 ## Depth status
 
-**Stub** (2026-08-25). The design space is enumerated in `design/`; nothing is
-chosen and nothing is built. This pillar fills in as the machine does.
+**Stub** (2026-08-25). The design space is enumerated in `design/`. The first
+piece is now **built and checked**: a six-trit register, 114 switches on primary
+inputs and 66 in place, holding all 729 trytes and leaking on none (`J1`-`J3`).
+The pillar stays a stub until there is a machine rather than a part of one.

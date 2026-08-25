@@ -33,7 +33,7 @@ back; and while enable is low, prove that changing the write data moves nothing.
 
 | # | register | mechanism | switches (6 trits) | status |
 |---|---|---|---|---|
-| **R0** | six independent S0 cells, one shared enable | the obvious one | **~66–114** depending on the buffer question | DERIVED from `04` |
+| **R0** | six independent S0 cells, one shared enable | the obvious one | **114** on primary inputs, **66** in place | MEASURED (`J2`) |
 | **R1** | six cells, enable **decoded** once and distributed | one detector shared across the register instead of per cell — the same trick that beat the selector tree | ~66 + one decoder | PROPOSED |
 | **R2** | six S3 dynamic cells | needs `M1` | **~12** | PROPOSED |
 | **R3** | no register circuit — the tryte lives in the solve's seed | `S7` at register scale | **0** | PROPOSED |
@@ -45,12 +45,19 @@ this project's best circuit: pay for a decode once per *signal* rather than once
 per *consumer*. Whether it applies here depends on whether the hold gating can be
 driven from a decoded node, which is untested.
 
-**R4 exists because of a problem nobody has hit yet.** If an instruction reads `A`
-and writes `A` in the same machine step, a single-cell register has the new value
-racing the old one through the datapath. Under seeded semantics that race may be
-invisible — the seed is fixed for the whole solve — which would make R4
-unnecessary. That is a genuine open question and it is the kind that only shows up
-when the machine is assembled.
+**R4 is REQUIRED, and this file predicted the opposite.** The question was whether
+a register read in the same solve as its write sees the old value or the new one.
+Predicted here: the old one, because the seed is fixed for the whole solve. It sees
+the **new** value, on every case tried (`J4`).
+
+The mechanism is exact and obvious in hindsight. While `we` is asserted the
+feedback loop is held *open* — that is the whole trick that makes the write
+possible at all — so the cell is driven straight from its input and the seeded
+value has nothing holding it. **`S0` is a transparent latch, not a flip-flop**, and
+a transparent latch is see-through by definition.
+
+Which is why master-slave pairs exist, and it means the register file is **double**
+what the rest of this file budgets for it. `MEASURED`
 
 ## Interactions
 
@@ -71,10 +78,10 @@ when the machine is assembled.
 2. **The no-disturb property**: with enable low, sweep the write data over all 729
    values and confirm the held value never moves. This is the check most likely to
    catch a write path that leaks.
-3. **Read-while-write**: whether a register read in the same solve as its write
-   sees the old value, the new one, or `X`. Predicted — under seeded semantics —
-   to see the *old* value deterministically, which would make R4 unnecessary and
-   is worth registering before it is assumed.
+3. ~~**Read-while-write**: predicted to see the old value.~~ **Answered, and the
+   prediction was wrong** — it sees the new one, every time. `S0` is transparent
+   while being written. `R4` master-slave is required and the register file
+   doubles. `MEASURED` (`J4`)
 4. **R1's decoded enable**, against R0, on switches — predicted to win only when
    the register is wider than the decoder is expensive, which for six trits it may
    not be.
