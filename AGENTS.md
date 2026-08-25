@@ -68,6 +68,24 @@ trailer.
 
 ---
 
+## The method, generalised
+
+This file is the operating manual for *this* repository. The loop it describes —
+register, run, record, antibody — is written up on its own terms in
+[`METHOD.md`](METHOD.md), including which parts parallelise, which cannot, and what
+the whole thing depends on that might not hold elsewhere. Read that if you are
+running the loop somewhere else. Read this if you are changing code here.
+
+One finding from it belongs at the top of this file, because it constrains how you
+should use yourself. The defects in this repository sorted almost perfectly into
+two kinds. Mechanical ones — wrong arithmetic, broken instruments, stale constants
+— were caught by automated checks. Semantic ones — sentences claiming more than
+was measured — were caught almost entirely by a reader who had not written them,
+and essentially never by re-reading. **An overclaim is invisible from inside the
+sentence that made it.** If you are working alone, treat every universal quantifier
+you write ("never", "always", "at any price", "in this model") as a defect until
+you have named the set it ranges over and confirmed your measurement visited it.
+
 ## Traps this repository has actually fallen into
 
 Each of these produced a wrong result that looked right. They are listed because

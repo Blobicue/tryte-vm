@@ -1,11 +1,20 @@
 # tryte-vm
 
-A working computer that counts in **three states instead of two** — core
-arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
-assembly, and twelve audits establishing exactly what its instruction set can reach
-and what the device model beneath it rests on.
+**This repository is two things.**
 
-**607 checks**, all passing. Every number below is recomputed by one of them.
+**A working computer that counts in three states instead of two** — core
+arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
+assembly, transistors underneath it, and twelve audits establishing exactly what
+its instruction set can reach and what the device model beneath it rests on.
+
+**And a record of how it was found out about.** Every claim here was registered
+before it was measured, in its own commit, and every failed prediction was kept.
+Fifty-four predictions, forty-nine held, five failed — and the five produced more
+than the forty-nine. That loop is written up separately in
+[`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
+
+**610 checks**, all passing. Every number below is recomputed by one of them,
+including the numbers in `METHOD.md` about the method itself.
 
 ```bash
 npm test              # everything (~55s; the monoid and switch sweeps are real work)
@@ -15,8 +24,9 @@ node src/run.js programs/multiply.tasm 7 5
 
 | | |
 |---|---|
-| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + vocabulary audits |
-| **Read next** | [`FINDINGS.json`](FINDINGS.json) — every claim, machine-readable, validated by `test/test-findings.js` |
+| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + twelve audits |
+| **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
+| **Every claim** | [`FINDINGS.json`](FINDINGS.json) — machine-readable, validated by `test/test-findings.js` |
 | **Before changing it** | [`AGENTS.md`](AGENTS.md) — pre-registration protocol, test standards, and the traps this repo has fallen into |
 | **Where it came from** | [`docs/origin/`](docs/origin/) — append-only provenance |
 

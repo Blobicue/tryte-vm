@@ -209,7 +209,8 @@ console.log('\n=== 5. REFERENCES ===');
     // because the README also says the ceiling ladder took six audits, which is
     // a different and still-true number.
     const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
-      'eight', 'nine', 'ten', 'eleven', 'twelve'];
+      'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
+      'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
     const onDisk = fs.readdirSync(path.join(ROOT, 'tools')).filter(f => /-audit\.js$/.test(f));
     // Sets must all have tools; tools need not yet have sets. Between registering
     // a tool's predictions and recording its results the counts differ by one on
@@ -228,6 +229,35 @@ console.log('\n=== 5. REFERENCES ===');
       README.includes(`${word} audits establishing`)
       && README.includes(`the ${word} audits, each with its registered predictions`),
       'one of the two mentions has drifted');
+
+    // METHOD.md describes the loop that produced all of this, and quotes its own
+    // totals to argue that the failures were worth more than the successes. A
+    // document about not letting numbers drift is the last place a number should
+    // drift, so its figures are checked against the manifest too.
+    const METHOD = fs.readFileSync(path.join(ROOT, 'METHOD.md'), 'utf8');
+    const failedIds = allPreds.filter(p => p.outcome === 'FAILED').map(p => p.id);
+    const bites = M.traps_encountered.reduce((a, t) => a + t.count, 0);
+    const claims = [
+      [`${allPreds.length} registered predictions, ${held} held, ${failedCount} failed`, 'the tally'],
+      [`${WORDS[M.prediction_sets.length]} prediction sets`, 'the set count'],
+      [`**${bites} times**`, 'the total trap bites'],
+      [`${WORDS[M.unregistered_findings.length]} findings measured but never registered`,
+        'the unregistered count'],
+    ];
+    // Case-insensitive, and whitespace-normalised: prose wraps, and a claim
+    // straddling a line break is still the claim.
+    const lower = METHOD.toLowerCase().replace(/\s+/g, ' ');
+    const missing = claims.filter(([text]) => !lower.includes(text.toLowerCase()));
+    check('METHOD.md quotes the manifest correctly, or the build fails',
+      missing.length === 0, missing.map(([t, why]) => `${why}: expected "${t}"`).join('; '));
+    // Plain substring, not a regex: the first version built one out of `\*\*`,
+    // which in a JS string is just `**` — an invalid pattern, and it threw.
+    const named = id => METHOD.includes(`**${id}**`);
+    check('   and it names every failed prediction, since its argument rests on them',
+      failedIds.every(named), `missing: ${failedIds.filter(id => !named(id)).join(' ')}`);
+    check('   and it counts the trap classes the manifest actually holds',
+      lower.includes(`${WORDS[M.traps_encountered.length]} distinct failure classes`),
+      `expected ${WORDS[M.traps_encountered.length]}`);
   }
   check('the one-point trap is recorded as having bitten three times',
     M.traps_encountered.find(t => t.id === 'T-ONE-POINT').count === 3);
