@@ -4,7 +4,7 @@
 
 **A working computer that counts in three states instead of two** — core
 arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
-assembly, transistors underneath it, and twelve audits establishing exactly what
+assembly, transistors underneath it, and thirteen audits establishing exactly what
 its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
@@ -24,7 +24,7 @@ node src/run.js programs/multiply.tasm 7 5
 
 | | |
 |---|---|
-| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + twelve audits |
+| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + thirteen audits |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
 | **Every claim** | [`FINDINGS.json`](FINDINGS.json) — machine-readable, validated by `test/test-findings.js` |
 | **Before changing it** | [`AGENTS.md`](AGENTS.md) — pre-registration protocol, test standards, and the traps this repo has fallen into |
@@ -49,7 +49,7 @@ src/         device.js (switch-level transistors -- the layer BELOW the arithmet
              selfhost.js (run a program inside the emulated machine), run.js
 programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
-tools/       the twelve audits, each with its registered predictions
+tools/       the thirteen audits, each with its registered predictions
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
 build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
@@ -108,6 +108,7 @@ npm run audit:adder           # every operand pair, both adder variants, ~32 min
 npm run audit:midrail         # price the free mid rail and the missing restoration
 npm run audit:decoded         # the decoded-selector adder, every operand pair, ~35 min
 npm run audit:passcount       # derive 128/243 from the carry table, ~30 min
+npm run audit:collision       # is the same six-digit number twice a coincidence?
 ```
 
 | gate | switches | mid-rail taps |

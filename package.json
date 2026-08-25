@@ -24,6 +24,7 @@
     "audit:midrail": "node tools/midrail-audit.js",
     "audit:decoded": "node tools/decoded-audit.js",
     "audit:passcount": "node tools/passcount-audit.js",
+    "audit:collision": "node tools/collision-audit.js",
     "findings": "node test/test-findings.js"
   },
   "license": "MIT",
