@@ -6,7 +6,7 @@
  * rippled, checked against `T.add`.
  *
  * The exhaustive sweep (every operand pair, twice, for both circuit variants) is
- * `npm run audit:adder` and takes about three quarters of an hour. This pins a
+ * `npm run audit:adder` and takes about thirty-two minutes. This pins a
  * sampled sweep, every structural property, and the cost figures.
  *
  * SWITCH-LEVEL, NOT SPICE. src/device.js lists what that assumes away. Two of
@@ -185,6 +185,30 @@ console.log('\n=== 5. Y5 — THE COST REVERSAL, AT EVERY WIDTH ===');
     return t.cost().midRailConnections === 168 && b.cost().midRailConnections === 0
       && t.cost().rails === 3 && b.cost().rails === 2;
   })());
+
+  // Per digit, which is the currency the radix-economy argument is stated in --
+  // and a unit trap worth pinning, because the two numbers look comparable and
+  // are not. Radix economy charges a digit of radix b a cost of b, so its 3.077
+  // already contains a factor of two on the binary side. The switch-currency
+  // break-even is log2(3): a trit carries that many bits, so its circuit may cost
+  // that much more before ternary stops paying.
+  {
+    const cell = new D.Net(); D.tAdderCell(cell, 'a', 'b', 'c', 's', 'co', 'A');
+    const cellShared = new D.Net(); D.tAdderCell(cellShared, 'a', 'b', 'c', 's', 'co', 'A', true);
+    const bit = D.binaryNet(); D.bRippleAdder(bit, 1, false);
+    const bitShared = D.binaryNet(); D.bRippleAdder(bitShared, 1, true);
+    const perDigit = cell.cost().switches / bit.cost().switches;
+    const perDigitShared = cellShared.cost().switches / bitShared.cost().switches;
+    check(`per digit: a ternary adder cell is 104 switches against a binary 28 — ${perDigit.toFixed(2)}x`,
+      cell.cost().switches === 104 && bit.cost().switches === 28
+      && Math.abs(perDigit - 3.714) < 0.001, `${cell.cost().switches} vs ${bit.cost().switches}`);
+    check(`   shared, 64 against 22 — ${perDigitShared.toFixed(2)}x, still over the break-even of log2(3) = 1.585`,
+      cellShared.cost().switches === 64 && bitShared.cost().switches === 22
+      && perDigitShared > Math.log2(3) && perDigit > Math.log2(3));
+    check('   and log2(3) is the bar, NOT the radix-economy 3.077, which is in another unit',
+      Math.abs(Math.log2(3) - 1.585) < 0.001 && Math.abs(40 / 13 - 3.077) < 0.001
+      && Math.abs((40 / 13) / 2 - 20 / 13) < 1e-12);
+  }
 
   // The control: comparing against a binary adder that does not work is not a
   // comparison. Exhaustive at five bits.

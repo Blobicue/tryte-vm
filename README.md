@@ -5,7 +5,7 @@ arithmetic, a 25-instruction machine, an assembler, an emulator written in its o
 assembly, and nine audits establishing exactly what its instruction set can reach
 and what the device model beneath it rests on.
 
-**510 checks**, all passing. Every number below is recomputed by one of them.
+**513 checks**, all passing. Every number below is recomputed by one of them.
 
 ```bash
 npm test              # everything (~55s; the monoid and switch sweeps are real work)
@@ -161,7 +161,7 @@ carry-in, three by one operand, one by the other — and the tree is a full-adde
 cell. Nobody designed the circuit; the table did.
 
 ```bash
-npm run audit:adder           # every operand pair, both circuit variants, ~45 min
+npm run audit:adder           # every operand pair, both circuit variants, ~32 min
 ```
 
 | | switches | mid-rail taps |
@@ -208,6 +208,25 @@ ten bits: sweeping one trit to six against the matching bit width, the ratio nev
 drops below **1.46**. Registered alongside it, and checked, that the binary adder
 being compared against is itself correct — a cost comparison against a circuit
 that does not work is not a comparison.
+
+#### Per digit, which is the currency the radix argument uses
+
+| | switches per digit |
+|---|---|
+| one ternary full-adder cell | **104** (64 with leaves shared) |
+| one binary full-adder cell | **28** (22 shared) |
+| ratio | **3.71×** (2.91× shared) |
+
+**Mind the units.** The radix-economy bar quoted above as 3.08× is *not* this
+number and must not be compared to it. That measure charges a digit of radix *b*
+a cost of *b*, so the binary side of it already carries a factor of two. In switch
+currency the break-even is **log₂3 ≈ 1.58** — a trit's circuit may cost about
+1.58× a bit's before ternary stops paying, because a trit carries about 1.58 bits.
+
+Measured, a ternary adder digit costs **3.71×** a binary one, or **2.91×** with
+leaves shared. Both are more than double the budget. And this is the *generous*
+reading: the mid rail is still free in this model, and 168 of those 624 switches
+touch it.
 
 ## The idea, without the jargon
 
