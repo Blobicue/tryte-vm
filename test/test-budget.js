@@ -40,9 +40,28 @@ console.log('\n=== 1. UNIT COSTS COME FROM THE BUILDERS ===');
   check(`the decoded selector is ${B.U.dmux} and the detector ${B.U.detector}`,
     B.U.dmux === built(n => D.dmux(n, 's', 'sm', 'l', 'm', 'h', 'o'))
     && B.U.detector === built(n => D.isMid(n, 's', 'o')));
-  check('a master-slave register in place is K2\'s 132', B.U.msRegister === 132);
-  check('a loop-breaking cell in place is J2\'s 11 per trit', B.U.cellLoopBreaking === 11);
-  check('a retained cell is H4\'s 1 per trit', B.U.cellRetained === 1);
+  // These three cannot come from a builder — `latch` and the master-slave pair are
+  // local to their audits, not device.js exports — so budget.js reads them from the
+  // ledger by id. Compare tool against LEDGER, not against the same literal twice:
+  // the first version of this check asserted `B.U.msRegister === 132` while
+  // budget.js also had 132 typed in, which compares a number to itself and cannot
+  // fail. A tautology inside the suite whose job is catching stale constants.
+  const M = require('../FINDINGS.json');
+  const measured = (setId, predId) =>
+    M.prediction_sets.find(s => s.id === setId).predictions.find(p => p.id === predId).measured;
+  check(`a master-slave register in place is K2's ${B.U.msRegister}, read from the ledger`,
+    B.U.msRegister === measured('K', 'K2').without);
+  check(`a loop-breaking cell is J2's ${B.U.cellLoopBreaking} per trit, read from the ledger`,
+    B.U.cellLoopBreaking === measured('J', 'J2').without / 6);
+  check(`a retained cell is H4's ${B.U.cellRetained} per trit, read from the ledger`,
+    B.U.cellRetained === measured('H', 'H4').dynamic_cell_switches);
+  check('   and if the ledger changed, the tool would move with it — not a literal'
+    + ' compared to itself', (() => {
+      const fake = { prediction_sets: [{ id: 'K', predictions: [{ id: 'K2', measured: { without: 999 } }] }] };
+      const read = fake.prediction_sets.find(s => s.id === 'K').predictions
+        .find(p => p.id === 'K2').measured.without;
+      return read === 999 && read !== B.U.msRegister;
+    })());
 }
 
 console.log('\n=== 2. THE ROADMAP\'S COST LADDER MATCHES THE TOOL ===');
@@ -122,6 +141,28 @@ console.log('\n=== 4. THE CLAIM THE PLAN ACTUALLY RESTS ON ===');
       const c = B.CONFIGS.find(x => x.W === 243 && x.model === 'M1');
       return c.lines[1][1] > c.lines[0][1] * 3;
     })());
+}
+
+console.log('\n=== 4b. THE README STATES THESE NUMBERS TOO ===');
+{
+  // The README says this test "fails the build if this README, that roadmap and
+  // that tool disagree". It did not read README.md at all — the sentence described
+  // an enforcement that did not exist, which is worse than no sentence, because the
+  // repo's whole claim is that its prose is checked. So: read it.
+  const README = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
+  const target = B.CONFIGS.find(c => c.W === 81 && c.model === 'M1');
+  const big = B.CONFIGS.find(c => c.W === 243 && c.model === 'M1');
+  check(`the README's ~${target.total.toLocaleString()} for the target machine is the tool's`,
+    README.includes(`~${target.total.toLocaleString()} switches`), String(target.total));
+  check(`   and its ${big.lines[1][1].toLocaleString()} against ${big.lines[0][1].toLocaleString()}`
+    + ' address-path claim matches too',
+    README.includes(String(big.lines[1][1].toLocaleString()))
+    && README.includes(String(big.lines[0][1].toLocaleString())));
+  check('   and it names 81 words under retention as the one configuration',
+    /81 words of memory under\s+charge retention/.test(README));
+  check('   and the sweep budget it quotes is H2\'s',
+    README.includes(`~${(Math.round(B.SWEEP_DEVICE_BUDGET / 100) * 100).toLocaleString()} devices`),
+    String(B.SWEEP_DEVICE_BUDGET));
 }
 
 console.log('\n=== 5. STATUS PROPAGATION HAS TEETH ===');

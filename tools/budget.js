@@ -40,12 +40,26 @@ const U = {
   detector: built(n => D.isMid(n, 's', 'o')),
   inverter: built(n => D.sti(n, 'a', 'o')),
 };
-// A master-slave register in place is K2's 132; a loop-breaking storage cell in
-// place is J2's 66/6 = 11 per trit. Both measured, both re-derived here from the
-// builders rather than typed, so a change in device.js moves this file.
-U.msRegister = 132;                                // K2, in place (no input buffers)
-U.cellLoopBreaking = 11;                           // J2 in place, per trit
-U.cellRetained = 1;                                // H4, per trit, needs M1
+// The register and cell costs cannot be re-derived from a builder here: `latch`
+// and the master-slave pair are local functions inside their audits, not exports
+// of device.js. So they come from the LEDGER instead — the recorded measurement,
+// read by id — which is the next best source and the only other one that is not a
+// typed literal.
+//
+// The first version of this file typed them as constants under a comment claiming
+// they were re-derived. They were not, and `test-budget.js` "checked" them against
+// the same literals, so the check compared a number to itself and could never
+// fire. `T-STALE-CONSTANT` inside the tool written to prevent it.
+const M = require('../FINDINGS.json');
+const measured = (setId, predId) => {
+  const set = M.prediction_sets.find(s => s.id === setId);
+  const p = set && set.predictions.find(x => x.id === predId);
+  if (!p || !p.measured) throw new Error(`no measured record for ${predId}`);
+  return p.measured;
+};
+U.msRegister = measured('K', 'K2').without;              // 132, in place
+U.cellLoopBreaking = measured('J', 'J2').without / 6;    // 66 / 6 trits = 11
+U.cellRetained = measured('H', 'H4').dynamic_cell_switches;   // 1, needs M1
 
 // --- The sweep budget, from H2 ---------------------------------------------
 // H2 measured 4,806 devices as the largest network for which a full 531,441-pair

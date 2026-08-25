@@ -203,8 +203,15 @@ console.log('\n=== 5. REFERENCES ===');
     const unwritten = M.traps_encountered.filter(t => !AGENTS.includes('`' + t.id + '`'));
     check(`all ${M.traps_encountered.length} trap classes are written up in AGENTS.md`,
       unwritten.length === 0, `no prose for: ${unwritten.map(t => t.id).join(' ')}`);
-    check('   and a class in the ledger with no paragraph would be caught',
-      !AGENTS.includes('`T-NOT-A-REAL-TRAP`'));
+    // Teeth: run the actual filter over the manifest plus a class that is not
+    // written up, and assert it comes back non-empty. The first version asserted
+    // `!AGENTS.includes('T-NOT-A-REAL-TRAP')`, which is true of any file that does
+    // not happen to contain that string — it demonstrated nothing about whether the
+    // detector fires on a real omission.
+    check('   and a class in the ledger with no paragraph would be caught', (() => {
+      const withGap = [...M.traps_encountered, { id: 'T-NOT-A-REAL-TRAP' }];
+      return withGap.filter(t => !AGENTS.includes('`' + t.id + '`')).length === 1;
+    })());
   }
 
   // The README's summary of this manifest went stale, twice. Derive it instead.
@@ -293,6 +300,58 @@ console.log('\n=== 5. REFERENCES ===');
     }
     check('   and every OTHER restatement of those counts agrees too',
       wrong.length === 0, wrong.join('; '));
+
+    // A count can be the right WORD over the wrong LIST. METHOD.md's catalogue says
+    // "the fourteen classes that actually bit" and then tabulates them; the sweep
+    // above would happily pass if the table held twelve rows. Count the list.
+    const section = /## The failure catalogue[\s\S]*?(?=\n## )/.exec(METHOD);
+    const rows = section ? (section[0].match(/^\| \*\*/gm) || []).length : -1;
+    check(`   and the catalogue TABLE holds ${rows} rows, matching the ${M.traps_encountered.length} classes`,
+      rows === M.traps_encountered.length, `${rows} rows vs ${M.traps_encountered.length} classes`);
+
+    // The same drift, one directory over. The doctree's own doctrine is "pillars
+    // link, they do not copy" — and pillar 11 copied, then went stale in FIVE
+    // places at once while every doctree check passed, because those checks test
+    // structure (depth vocabulary, required sections) and not arithmetic. Any
+    // document that restates a manifest count is subject to the same sweep.
+    const DOCTREE = path.join(ROOT, '.claude', 'knowledge', 'doctrees', 'tryte-vm');
+    const COUNTED = { classes: M.traps_encountered.length, sets: M.prediction_sets.length,
+      occurrences: bites, bites };
+    const drifted = [];
+    for (const f of ['11-failure-catalogue.md', '_overview.md', '09-unbuilt-machine.md']) {
+      const text = fs.readFileSync(path.join(DOCTREE, f), 'utf8')
+        .toLowerCase().replace(/\s+/g, ' ');
+      for (const [, word, noun] of text.matchAll(/(\w+)[- ](classes|sets|occurrences|bites)\b/g)) {
+        if (!WORDSET.has(word)) continue;
+        const right = WORDS[COUNTED[noun]];
+        if (right && word !== right.toLowerCase()) drifted.push(`${f}: "${word} ${noun}" -> "${right}"`);
+      }
+    }
+    check('   and the doctree pillars that restate these counts agree as well',
+      drifted.length === 0, drifted.join('; '));
+
+    // The sweep above needs the noun ("thirteen classes"). Run against pillar 11's
+    // actual stale text it caught two of five: "about nine of the thirteen",
+    // "whether the thirteen really are one" and "the nine-of-thirteen reduction"
+    // all name the count with no noun attached, and all three survived.
+    //
+    // That file is the one document here whose subject IS a manifest count, so it
+    // gets the stricter rule rather than a cleverer regex: inside it, a number-word
+    // introduced by "the" or joined by "-of-" refers to the class count and must
+    // equal it. Bare numbers elsewhere in the prose ("about nine of...") stay free,
+    // because they are sub-counts and genuinely differ.
+    const cat = fs.readFileSync(path.join(DOCTREE, '11-failure-catalogue.md'), 'utf8')
+      .toLowerCase().replace(/\s+/g, ' ');
+    const right = WORDS[M.traps_encountered.length].toLowerCase();
+    const bare = [...cat.matchAll(/(?:\bthe (?!\w+-of-)|-of-)(\w+)\b/g)]
+      .map(m => m[1]).filter(w => WORDSET.has(w) && w !== right);
+    check(`   and bare references in the catalogue pillar all say "${right}"`,
+      bare.length === 0, `stale: ${[...new Set(bare)].join(' ')}`);
+    check('      (and that stricter rule catches what the noun sweep missed)', (() => {
+      const old = 'about nine of the thirteen reduce; the nine-of-thirteen reduction';
+      return [...old.matchAll(/(?:\bthe (?!\w+-of-)|-of-)(\w+)\b/g)]
+        .map(m => m[1]).filter(w => WORDSET.has(w) && w !== right).length === 2;
+    })());
     check('      (and that sweep would catch a wrong one)', (() => {
       const doctored = 'trace the two sets and the two classes';
       return [...doctored.matchAll(/(\w+) (classes|sets)\b/g)]

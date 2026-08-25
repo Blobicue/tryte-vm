@@ -27,6 +27,19 @@ a third rail. Owner: `src/device.js`.
   a 624-switch adder; an adjacency map built once per solve brought it to 1.8ms -
   the difference between an eight-hour sweep and a sixteen-minute one.
 
+- **It scales linearly, which two design documents denied.** Both asserted the
+  solver was superlinear in practice; neither had measured it. It is linear in
+  devices x passes -- measured exponent 0.92 across 8 to 50,000 devices -- and
+  50,000 devices solve in about 70ms. What that buys is *running* a machine. What
+  it does not buy is **sweeping** one: a full 531,441-pair sweep stays inside an
+  hour only to roughly 4,800 devices. `H1`, `H2`.
+- **Charge retention is a one-rule patch and it changes nothing measurable.** Make
+  an isolated node keep its previous value instead of becoming `Z`, and across
+  every gate, every input, and the adder swept -- 221,938 node values compared --
+  **zero differ**. It also makes a trit cell one switch instead of eleven. The
+  model would become one where `Z` retains, which is a real change to what the
+  model *is*, and that is a person's call rather than a measurement. `H3`, `H4`.
+
 ## Sub-topics (the rabbit hole)
 
 - Why `Z` and `X` are conflated at the device level, and what that costs

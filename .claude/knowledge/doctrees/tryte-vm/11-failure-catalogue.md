@@ -1,6 +1,6 @@
 ---
 name: failure-catalogue
-description: Thirteen defect classes, twenty-two bites, each now a permanent check. Substrate - the classes are not about ternary.
+description: Fourteen defect classes, twenty-three bites, each now a permanent check. Substrate - the classes are not about ternary.
 type: reference
 last_updated: 2026-08-25
 ---
@@ -12,7 +12,7 @@ last_updated: 2026-08-25
 
 ## What is established
 
-Thirteen classes, twenty-two occurrences. The ones that recurred after being
+Fourteen classes, twenty-three occurrences. The ones that recurred after being
 named are the interesting ones, because naming a thing is supposed to prevent it:
 
 - **one point is not a function** - bit three times
@@ -22,7 +22,7 @@ named are the interesting ones, because naming a thing is supposed to prevent it
 - **out of budget is not finished** - twice; the second produced no wrong number, only an unverified one
 - and eight others, each bitten once
 
-**Most of them are arguably one class.** About nine of the thirteen reduce to *the
+**Most of them are arguably one class.** About nine of the fourteen reduce to *the
 thing measured is narrower than the thing claimed* - a sample versus a function, a
 parse versus a document, a budget versus a completion, one design versus a class,
 a corpus minus itself versus a corpus. Four do not fit. That reduction is an
@@ -37,11 +37,11 @@ rule: not a fix, a *check*.
 - Why checks only guard what they parse - a tally check missed a wrong word one
   token away from the number it verified
 - The census that counted itself, which is the newest class
-- Whether the thirteen really are one
+- Whether the fourteen really are one
 
 ## Open questions
 
-- Is the nine-of-thirteen reduction real? It would need testing against defects
+- Is the nine-of-fourteen reduction real? It would need testing against defects
   from a different project.
 - Which classes are specific to *this* model and which generalise?
 - No class has ever been retired. Are any of them obsolete?

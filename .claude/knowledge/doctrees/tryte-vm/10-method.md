@@ -39,6 +39,20 @@ should stay cross-linked rather than pasted in. Owner:
 - The status vocabulary (MEASURED / DERIVED / PROPOSED) and why prose needs one
 - Preconditions: an exhaustible domain and cheap ground truth
 
+- **The exhaustibility precondition has a size limit, and this project reached
+  it.** The loop's authority comes from sweeping every case; `H2` measured that the
+  machine the method was built to study can be *run* and cannot be *swept*. So the
+  subject outgrew the method, which is a general shape worth carrying: **a method
+  that draws its force from exhaustion will meet a subject too large for it, and
+  the failure mode is not noticing** -- continuing to write "checked" in the tone
+  earned by sweeps while actually sampling.
+- **What replaces it is a stated verification contract**, not a quieter version of
+  the same sentence. Name which dimensions are exhaustive and which are sampled, in
+  the claim itself. "The machine is verified" becomes unavailable; "the machine
+  agrees with the reference on every opcode against every value of one register,
+  and on every step of one bounded program" is smaller and true. See
+  [`design/12-roadmap.md`](../../../../design/12-roadmap.md), which had to pick one.
+
 ## Open questions
 
 - **Whether the protocol caused any of the results.** There was no control arm. It
@@ -46,7 +60,9 @@ should stay cross-linked rather than pasted in. Owner:
   work.
 - Is the critic's useful property being *stronger*, or having *uncorrelated*
   errors? The record supports only the first; the second is speculation.
-- Does any of this transfer to a domain that cannot be swept exhaustively?
+- Does any of this transfer to a domain that cannot be swept exhaustively? **This
+  is no longer hypothetical** -- the next phase of this very project is that
+  domain, so the answer will be observed rather than argued.
 
 ## Related pillars
 

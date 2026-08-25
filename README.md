@@ -13,7 +13,7 @@ Seventy-eight predictions, seventy-one held, seven failed — and the five produ
 than the forty-nine. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**771 checks**, all passing. Every number below is recomputed by one of them,
+**780 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -525,7 +525,8 @@ that order from two measured ladders rather than from taste. The short version:
   machine that runs a real program and one that runs a relocated toy.
 - **And removing the dominant cost promotes the next one.** Under retention,
   storage stops being 93% of the machine and the **address path** — which nobody
-  has built — becomes the largest single term.
+  has built — becomes the largest single term: at 243 words it is **4,745**
+  switches against storage's **1,458**.
 
 The costs come from [`tools/budget.js`](tools/budget.js) rather than being typed
 into the table, because a number in prose stops tracking the code that made it;
