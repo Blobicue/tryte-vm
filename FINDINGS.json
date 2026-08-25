@@ -1520,6 +1520,102 @@
           "note": "A counting argument, and it decides 243 words. A 27-way read mux has 13 internal nodes and a write path needs 27 one-hot word selects, one per word; 13 < 27, so D0 survives in the write path no matter what D1 does. design/07 suspected the two were one structure seen from both ends. They share 2.3%, not half. 243 words stays out of the sweep budget and the target machine is 81. The 2.3% figure is against the 525-switch address path as budgeted at the time of the run; the read path then moved to tmux (see B1a), so the tool re-run today reports the same 12 shared switches as 2.0% of a 603-switch path. The share changed because the basis did, not the sharing."
         }
       ]
+    },
+    {
+      "id": "C",
+      "subject": "A 27-word addressed memory, built \u2014 and three errors in the budget formula",
+      "tool": "tools/memory-audit.js",
+      "registered_at": "8720a5c",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-memory.js",
+      "predictions": [
+        {
+          "id": "C1",
+          "claim": "the address-path formula is wrong three ways, and net too high",
+          "outcome": "HELD",
+          "measured": {
+            "built_decoder": 105,
+            "predicted_decoder": "~105",
+            "old_formula_decoder": 129,
+            "built_read": 312,
+            "built_write": 102,
+            "old_formula_write": 162,
+            "built_address_path": 519,
+            "predicted": "~519",
+            "old_formula_total": 603,
+            "storage_162_cells": 1782,
+            "whole_memory": 2301
+          },
+          "note": "All three errors confirmed and the derived total hit within rounding. (a) the decoder term charged one 3-way selector per output LINE where a node makes three, (b) it charged a bare routing tree, which C2 shows is not a decoder, so each node needs 4 pull-downs on top of 3 route-in legs -- and \"not MID\" costs two of them because it is two thresholds, (c) the write term charged 6xW for a per-cell write switch that J2's 11-switch cell already contains. Plus two omissions: the complement plane and the T5 data buffers. The overcounts win, so the target machine got CHEAPER: 81 words under M1 moves 3,916 to 3,562."
+        },
+        {
+          "id": "C2",
+          "claim": "a bare routing tree is not a decoder, and the failure is silent",
+          "outcome": "HELD",
+          "measured": {
+            "bare_tree": {
+              "writes_landed": "0/4",
+              "other_word_disturbances": 104
+            },
+            "with_pulldowns": {
+              "writes_landed": "4/4",
+              "other_word_disturbances": 0
+            },
+            "pulldown_cost": "4 switches per node, 52 of the decoder's 105"
+          },
+          "note": "The defect was produced, not asserted. With route-in legs only, an unselected select line is Z; a Z on a write-enable gate is unknown conduction, which by N6 poisons the cell it gates. Not one write landed and 104 words were corrupted across four attempts. With pull-downs added, 4 of 4 land and nothing else moves."
+        },
+        {
+          "id": "C3",
+          "claim": "a write lands in one word and nowhere else, at every pass of the solve",
+          "outcome": "HELD",
+          "measured": {
+            "writes": 135,
+            "words": 27,
+            "values_per_word": 5,
+            "wrong": 0,
+            "other_word_disturbances": 0,
+            "never_settled": 0,
+            "trajectory": {
+              "intermediate_states_inspected": 14,
+              "passes_with_a_disturbed_word": 0,
+              "settles_within_passes": 4
+            }
+          },
+          "note": "Checked along the path, not only at the fixed point, because that distinction has cost this project twice. Nothing is disturbed at any intermediate pass either."
+        },
+        {
+          "id": "C4",
+          "claim": "and it reads back through the address path",
+          "outcome": "HELD",
+          "measured": {
+            "round_trips": 108,
+            "words": 27,
+            "values": [
+              0,
+              5,
+              -5,
+              121
+            ],
+            "wrong": 0,
+            "never_settled": 0
+          },
+          "note": "The first round trip through an address in this project: write word k, drop the write enable, read word k back through the tmux tree. 108 of 108."
+        },
+        {
+          "id": "C5",
+          "claim": "and every state node is seeded, by construction",
+          "outcome": "HELD",
+          "measured": {
+            "state_nodes": 1225,
+            "unseeded": 0,
+            "cell_state_nodes": 324,
+            "left_at_Z": 0,
+            "withheld_seed_detectable": true
+          },
+          "note": "The roadmap said a seed-completeness check should exist BEFORE the array rather than after it. This is the array, and it does. A deliberately withheld seed stays at Z and is detectable rather than absorbed."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -1659,8 +1755,8 @@
     },
     {
       "id": "T-INSTRUMENT-FALSE-VERDICT",
-      "count": 5,
-      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument."
+      "count": 6,
+      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit."
     },
     {
       "id": "T-PREMISE-NOT-ANSWER",
@@ -1674,8 +1770,8 @@
     },
     {
       "id": "T-CHECK-FORBIDS-HEALTHY-STATE",
-      "count": 1,
-      "description": "A consistency check that treated a legitimate intermediate state as a defect. It demanded that tools/ and the manifest prediction sets be equal in number; they are equal only between phases, because registering a tool predictions and recording its results are deliberately separate commits. During a registration there is one more tool than there are sets, and that is the protocol working. The check now names the pending tool instead of failing on it."
+      "count": 2,
+      "description": "A consistency check that treated a legitimate intermediate state as a defect. It demanded that tools/ and the manifest prediction sets be equal in number; they are equal only between phases, because registering a tool predictions and recording its results are deliberately separate commits. During a registration there is one more tool than there are sets, and that is the protocol working. The check now names the pending tool instead of failing on it. Second bite: the design-folder status-marker check scanned for bare vocabulary words with a word boundary, and a new trap id -- T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE -- contains UNKNOWN between hyphens. The check failed a document whose vocabulary was entirely correct, because an identifier is not a marker."
     },
     {
       "id": "T-SEARCH-WHERE-A-CHECK-WOULD-DO",
@@ -1701,6 +1797,11 @@
       "id": "T-TRANSCRIBED-TABLE",
       "count": 1,
       "description": "A fact that could have been RUN was hand-copied instead. The terminal audit seeded a detector output from its truth table as written in a comment. The comment was right; the transcription inverted it, putting an n-type gate above its threshold so a selector leg conducted on exactly the addresses where it must be off. The result was not noise: 36 of 54 cases failed, every one of them a case where the middle word disagreed with the selected word and none where they agreed -- the exact mechanistic signature real contention would produce, and a plausible headline finding. A wrong instrument does not look wrong. When a value is derivable by running a two-line network, run it rather than copying it."
+    },
+    {
+      "id": "T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE",
+      "count": 2,
+      "description": "A control signal that is a COMPUTED node rather than a primary input is unknown on the first pass of the fixed point, and unknown conduction is treated as possible -- so on pass one it bridges or breaks everything it gates. Bit twice. In B1a a decoded selector's middle leg, gated by a detector output, bridged the selected word to a second word's rail and the network never settled. In C the whole memory array's hold gates are driven by decoder outputs, and every unaddressed word went to X on every write -- the cells hold perfectly when hold is a primary input and not at all when it is a decoder output. The fix is the same both times and it is not a workaround: solve the control cone on its own and seed it. The general shape is that a circuit correct at its fixed point can be unreachable from a cold start, and the larger the control fan-out the more it takes with it."
     }
   ]
 }

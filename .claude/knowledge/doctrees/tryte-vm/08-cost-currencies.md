@@ -44,7 +44,7 @@ that is not a stylistic preference - it is a measured fact. Owner:
 Switch count has always been the currency that decided things here, and within it
 the assumption was that **storage** dominates — 93% of the machine, which is true
 under the unchanged model. Under charge retention it is not: storage falls by 11x
-and the **address path** becomes the largest single term. At 243 words it is 5,471
+and the **address path** becomes the largest single term. At 243 words it is 4,307
 switches against storage's 1,458.
 
 The general form is worth keeping: *a decision that removes the dominant cost does

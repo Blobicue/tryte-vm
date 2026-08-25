@@ -58,12 +58,12 @@ largest network a full 531,441-pair sweep clears inside an hour.
 
 | words | trits | model | storage | address path | rest | total | sweepable |
 |---|---|---|---|---|---|---|---|
-| 27 | 3 | `M0` | 1,782 | 603 | 1,608 | **3,993** | yes |
-| 27 | 3 | `M1` | 162 | 603 | 1,608 | **2,373** | yes |
-| 81 | 4 | `M0` | 5,346 | 1,822 | 1,608 | **8,776** | no |
-| **81** | **4** | **`M1`** | **486** | **1,822** | **1,608** | **3,916** | **yes** |
-| 243 | 5 | `M1` | 1,458 | 5,471 | 1,608 | **8,537** | no |
-| 729 | 6 | `M0` | 48,114 | 16,410 | 1,608 | **66,132** | no |
+| 27 | 3 | `M0` | 1,782 | 519 | 1,608 | **3,909** | yes |
+| 27 | 3 | `M1` | 162 | 519 | 1,608 | **2,289** | yes |
+| 81 | 4 | `M0` | 5,346 | 1,468 | 1,608 | **8,422** | no |
+| **81** | **4** | **`M1`** | **486** | **1,468** | **1,608** | **3,562** | **yes** |
+| 243 | 5 | `M1` | 1,458 | 4,307 | 1,608 | **7,373** | no |
+| 729 | 6 | `M0` | 48,114 | 12,816 | 1,608 | **62,538** | no |
 
 `PROPOSED` — the storage and register terms are `MEASURED`, the address path and
 decode terms are formulas nobody has built. The **comparison** survives errors in
@@ -99,13 +99,13 @@ already wrote. That is the target.
 3. **The bottleneck moves rather than disappearing.** [`10-integration.md`](10-integration.md)
    says memory is 93% of the machine, which is true under `M0`. Under `M1` storage
    nearly vanishes and **the address path becomes the largest single term** — at
-   243 words it is 5,471 against storage's 1,458, nearly four times bigger. Retention
+   243 words it is 4,307 against storage's 1,458, nearly three times bigger. Retention
    does not make the machine cheap; it *relocates* what makes it expensive, from a
    part with a known fix to a part nobody has built.
 
    This also means [`10-integration.md`](10-integration.md)'s address-path estimate
    of ~1,000–3,000 for 729 words is very likely low: the formula in `budget.js`
-   gives 16,410, and unlike the estimate it is written down and can be argued with.
+   gives 12,816, and unlike the estimate it is written down and can be argued with.
    Corrected there, with the disagreement noted rather than quietly replaced.
 
 ---
@@ -193,7 +193,7 @@ discipline listed under *What would stop it* below as the most likely way this
 machine produces a plausible wrong answer — one missed seed, and nothing catches it
 but the answer being wrong. Paying 4 switches instead of 3 removes the failure mode
 instead of documenting it. Price: **+240 switches at the target size, 3,640 to
-3,916, against a budget of 4,806.** The safer structure fits, so at this scale it
+3,562, against a budget of 4,806.** The safer structure fits, so at this scale it
 is not a trade.
 
 `B3` also put a number on the budget itself: a 27-way one-trit read mux builds to
@@ -218,7 +218,7 @@ selects**, one per word. 13 < 27, so the mux cannot supply them and `D0` survive
 in the write path whatever `D1` does. The two share the MID detectors and nothing
 else — **12 switches out of a 603-switch address path, about 2%.**
 
-**So 243 words is decided: it stays out of reach**, at 8,537 against a 4,806
+**So 243 words is decided: it stays out of reach**, at 7,373 against a 4,806
 budget, and there is no structural saving left that would bring it back. The
 target machine is 81 words, and the six-program configuration is not available at
 any price this folder knows about.
@@ -228,10 +228,57 @@ write-enable terms are still `PROPOSED` formulas, and they are now the largest
 unmeasured numbers in the budget. Building a 27-word decoder would settle them the
 way `B3` settled the read term.
 
-### Phase 3 — the memory array, at 81 words
+### Phase 3 — the memory array  ← **built at 27 words, set `C`**
 
-Depends on 1, 2, and on the retention decision being made. Builds the target
-configuration. Registers the assembled cost against this file's 3,916.
+**A 27-word addressed memory exists.** 2,301 switches: a decoder, a complement
+plane, buffered write data, 162 loop-breaking cells and a `tmux` read tree. A write
+lands in its word and disturbs none of the other 26 — at every pass of the solve,
+not only at the end — and a write-then-read round trip through the address path
+works for every word tried. The first round trip through an address in this
+project.
+
+`C1` also rebuilt the cost model, and **the old formula was wrong three ways at
+once**, two of them upward:
+
+| | old formula | built |
+|---|---|---|
+| decoder | 129 | **105** |
+| read tree | 312 | 312 |
+| write path | 162 | **102** |
+| **address path** | **603** | **519** |
+
+The decoder term charged one 3-way selector per output *line* where a node makes
+three; it charged a bare routing tree, which `C2` measured is not a decoder at all;
+and the write term charged a per-cell write switch that `J2`'s 11-switch cell
+already contains. Against that, it omitted the complement plane and the `T5` data
+buffers. The overcounts win, so **the target machine got cheaper: 81 words under
+`M1` is now 3,562.**
+
+What remains of this phase is building it at 81 rather than 27. Nothing measured
+here suggests that changes anything but the counts.
+
+### The two things `C` found that were not on this list
+
+**A bare routing tree is not a decoder, and it fails silently and totally.** With
+route-in legs only, an unselected word's select line floats. A floating write-enable
+is unknown conduction, which by `N6` poisons the cell it gates: not one write landed
+and 104 words were corrupted across four attempts. Four pull-down switches per node
+fix it — "not LOW" and "not HIGH" cost one each, and **"not MID" costs two, because
+it is two separate thresholds.** That asymmetry is the middle level's price, and it
+is the same shape as everything else the middle level has cost in this project.
+
+**And the array does not start.** Every `hold` gate in it is a decoder output — a
+*computed* node, `Z` on pass one, hence unknown conduction, hence by `N6` every cell
+poisoned at once. All 26 unaddressed words go to `X` on every write. The cells hold
+perfectly when `hold` is a primary input and not at all when it is a decoder output:
+**same circuit, different reachability.**
+
+That is `B1a` one layer up and much larger, and it is now a named class —
+`T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE`. The fix is the same both times and it is
+not a workaround: solve the control cone on its own and seed it. But it means the
+seeding discipline listed under *What would stop it* below is no longer a
+hypothetical risk — **it is a load-bearing requirement of the design**, and it
+scales with control fan-out rather than with anything the budget counts.
 
 ### Phase 4 — decode `C1`, and the `C5` search
 

@@ -123,13 +123,23 @@ function decoder(net, definite) {
   net.n('wr', D.HIGH, 'vdd', 'root');
   net.p('wr', D.MID, 'vss', 'root');
   for (let i = 0; i < ADDR; i++) D.isMid(net, `a${i}`, `a${i}m`);
-  let level = ['root'];
+  // The output index must use `a0` as the LEAST significant trit, because that is
+  // what the read tree does — it groups leaves in consecutive threes and selects
+  // among them with `a0`. The first version indexed the decoder's outputs as
+  // `j * 3 + k`, which makes `a0` the MOST significant, so the write landed in a
+  // different word than the read fetched for 18 of the 27 addresses. Two halves of
+  // one address path, each internally consistent, disagreeing about endianness.
+  let level = [{ name: 'root', idx: 0 }];
   for (let i = 0; i < ADDR; i++) {
+    const stride = 3 ** i;
     const next = [];
-    for (let j = 0; j < level.length; j++) {
-      const outs = [0, 1, 2].map(k => (i === ADDR - 1 ? `sel${j * 3 + k}` : `d${i}_${j * 3 + k}`));
-      decodeNode(net, level[j], `a${i}`, `a${i}m`, outs, definite);
-      next.push(...outs);
+    for (const node of level) {
+      const outs = [0, 1, 2].map(k => {
+        const idx = node.idx + k * stride;
+        return i === ADDR - 1 ? `sel${idx}` : `d${i}_${idx}`;
+      });
+      decodeNode(net, node.name, `a${i}`, `a${i}m`, outs, definite);
+      outs.forEach((name, k) => next.push({ name, idx: node.idx + k * stride }));
     }
     level = next;
   }
@@ -170,13 +180,45 @@ const inputsFor = (k, value, wr) => {
   return inp;
 };
 
-/** Seed every state node. Returns the init and the list it covered. */
-function seedAll(net, inputs, contents, skip = null) {
+/**
+ * The select cone, solved on its own so its settled values can be seeded.
+ *
+ * WHY THIS IS NECESSARY, and it is the sharpest thing this phase found. Every
+ * word's `hold` gate is driven by `nsel_k`, a COMPUTED node. On pass one it is `Z`,
+ * so every hold switch in the array has unknown conduction, and by `N6` that
+ * poisons every cell at once — all 26 unaddressed words go to `X` on every write,
+ * while the addressed one lands correctly. The cells hold perfectly when `hold` is
+ * a primary input and not at all when it is a decoder output.
+ *
+ * This is `B1a` again, one layer up and much larger: a computed control that is
+ * unknown at pass one bridges or breaks whatever it gates. Seeding it from a solve
+ * of the cone itself is the same fix, and never a transcription.
+ */
+function selectCone(inputs, definite) {
+  const dec = new D.Net();
+  decoder(dec, definite);
+  for (let k = 0; k < W; k++) D.bInv(dec, `sel${k}`, `nsel${k}`);
+  const inp = {};
+  for (const k of ['wr', 'a0', 'a1', 'a2']) inp[k] = inputs[k];
+  const nodes = new Set();
+  for (const d of dec.devices) { nodes.add(d.a); nodes.add(d.b); nodes.add(d.gate); }
+  const driven = new Set([...Object.keys(dec.rails), ...Object.keys(inp)]);
+  const init = {};
+  for (const x of nodes) if (!driven.has(x)) init[x] = 'Z';
+  try { return dec.solve(inp, 80, init); } catch (e) { return null; }
+}
+
+/** Seed every state node: the cells' contents, and the resolved select cone. */
+function seedAll(net, inputs, contents, skip = null, definite = true) {
   const nodes = new Set();
   for (const d of net.devices) { nodes.add(d.a); nodes.add(d.b); nodes.add(d.gate); }
   const driven = new Set([...Object.keys(net.rails), ...Object.keys(inputs)]);
   const init = {};
   for (const x of nodes) if (!driven.has(x)) init[x] = 'Z';
+  const cone = selectCone(inputs, definite);
+  if (cone) for (const x of nodes) {
+    if (!driven.has(x) && cone[x] !== undefined && !(x in net.rails)) init[x] = cone[x];
+  }
   for (let k = 0; k < W; k++) {
     for (let t = 0; t < TRITS; t++) {
       if (skip === `q${k}_${t}`) continue;
@@ -222,7 +264,7 @@ console.log('\n--- C2  is a bare routing tree a decoder? ---');
     for (const k of [0, 7, 13, 26]) {
       const inp = inputsFor(k, 100, D.HIGH);
       let sol = null;
-      try { sol = net.solve(inp, 80, seedAll(net, inp, contents)); } catch (e) { stuck++; continue; }
+      try { sol = net.solve(inp, 80, seedAll(net, inp, contents, null, definite)); } catch (e) { stuck++; continue; }
       if (readWord(sol, k) === T.wrap(100)) wrote++;
       for (let j = 0; j < W; j++) if (j !== k && readWord(sol, j) !== contents[j]) disturbed++;
     }
@@ -251,6 +293,46 @@ console.log('\n--- C3  does a write land in one word and nowhere else? ---');
   console.log(`      ${n} writes across all ${W} words`);
   console.log(`      wrong: ${wrong}   other-word disturbances: ${disturbed}   never settled: ${stuck}`);
   if (first) console.log(`      first: ${first}`);
+}
+
+console.log('\n--- C3 (trajectory)  are the other 26 words intact at EVERY pass? ---');
+{
+  // The endpoint check above is not what C3 registered. A fixed point hides the
+  // path: 481 checks once passed while a false sentence about intermediate states
+  // went unnoticed, and `B2` had to be re-cut for the same reason. So: re-run the
+  // solve pass by pass and inspect all 27 words at each one.
+  const net = memory(true);
+  const contents = Array.from({ length: W }, (_, k) => (k * 7) % 61 - 30);
+  const STEP = 4;                                   // stated, not quietly chosen
+  let checked = 0, everDisturbed = 0, transient = 0, maxPass = 0;
+  for (let k = 0; k < W; k += STEP) {
+    for (const v of [7, -7]) {
+      const inp = inputsFor(k, v, D.HIGH);
+      const init = seedAll(net, inp, contents);
+      // Find the settling pass, then replay each prefix and inspect it.
+      let settled = 0;
+      for (let p = 1; p <= 80; p++) {
+        try { net.solve(inp, p, init); settled = p; break; } catch (e) { /* not yet */ }
+      }
+      maxPass = Math.max(maxPass, settled);
+      for (let p = 1; p <= settled; p++) {
+        let sol = null;
+        try { sol = net.solve(inp, p, init); } catch (e) { continue; }
+        checked++;
+        for (let j = 0; j < W; j++) {
+          if (j === k) continue;
+          if (readWord(sol, j) !== contents[j]) { transient++; break; }
+        }
+      }
+      const final = net.solve(inp, 80, init);
+      for (let j = 0; j < W; j++) {
+        if (j !== k && readWord(final, j) !== contents[j]) everDisturbed++;
+      }
+    }
+  }
+  console.log(`      ${checked} intermediate states inspected across writes to every ${STEP}th word`);
+  console.log(`      passes where some unaddressed word differed: ${transient}`);
+  console.log(`      words wrong at the end: ${everDisturbed}   (settles in at most ${maxPass} passes)`);
 }
 
 console.log('\n--- C4  does it read back through the address path? ---');

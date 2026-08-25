@@ -190,6 +190,19 @@ floor is a defect in the prediction, not a fact about the subject. Either widen 
 until it cannot flip, or measure the quantity and report it without asserting a
 bound.
 
+`T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE` **A control signal that is computed
+rather than given is unknown on the first pass, and unknown conduction is treated
+as possible -- so on pass one it bridges or breaks everything it gates.** Bit
+twice. A decoded selector's middle leg, gated by a detector output, bridged the
+word being read to a second word's rail and the network never settled. Then the
+same shape at array scale: every hold gate in a 27-word memory is a decoder
+output, and every unaddressed word went to X on every write -- the cells hold
+perfectly when hold is a primary input and not at all when it is a decoder
+output, same circuit, different reachability. The fix both times is to solve the
+control cone on its own and seed it. **A circuit that is correct at its fixed
+point can be unreachable from a cold start**, and the larger the control fan-out,
+the more it takes down with it.
+
 `T-TRANSCRIBED-TABLE` **A fact that could have been RUN was hand-copied
 instead.** A detector's truth table was seeded from the table as written in a
 comment. The comment was right; the transcription inverted it, putting an n-type

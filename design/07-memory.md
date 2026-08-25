@@ -31,6 +31,7 @@ What it adds is scale, and scale changes which constraints matter.
 | **A0** | full array of `S0` cells | 4,374 cells at 11 switches | **~48,100** | DERIVED from `04` |
 | **A1** | full array of `S3` dynamic cells | needs `M1` | **~8,700** | PROPOSED |
 | **A2** | reduced address space — 81 or 243 words | the ISA's 729 becomes an aspiration | ~5,300 / ~16,000 | PROPOSED |
+| **A6** | **27 words — BUILT** | decoder + complement plane + buffered data + 162 cells + `tmux` read tree | **2,301 total, of which 519 is the address path** | MEASURED `C` |
 | **A3** | memory held by the harness; only the **port** is built | the switch layer ends at the address decoder | **0** | PROPOSED |
 | **A4** | ROM for program, RAM for data | program memory becomes a selector tree with no cells at all | ~half, plus a large tree | PROPOSED |
 | **A5** | banked — a small fast array plus a harness-held backing store | the cache idea, applied to a model with no timing to justify it | small | PROPOSED |

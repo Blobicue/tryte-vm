@@ -136,10 +136,14 @@ console.log('\n=== 4. THE CLAIM THE PLAN ACTUALLY RESTS ON ===');
     both.map(c => `${c.W}/${c.model}`).join(' '));
   check('   and the roadmap names that one as the target',
     /\*\*The two ladders intersect in exactly one place: 81 words under `M1`/.test(ROADMAP));
+  // This asserted "more than 3x" and set C's rebuilt formula put it at 2.95x —
+  // a criterion sitting on a boundary it had no reason to sit on, which is
+  // `T-CRITERION-IN-THE-NOISE` in a different guise. The claim the roadmap actually
+  // makes is about which term is LARGEST, so check the ordering, not a multiple.
   check('   the address path outweighs storage at 243 under M1 — the reordering claim',
     (() => {
       const c = B.CONFIGS.find(x => x.W === 243 && x.model === 'M1');
-      return c.lines[1][1] > c.lines[0][1] * 3;
+      return c.lines[1][1] > c.lines[0][1];
     })());
 }
 

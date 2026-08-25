@@ -38,6 +38,8 @@ const U = {
   adder: built(n => D.dRippleAdder(n, 6)),        // decoded 6-trit ripple, E/F
   dmux: built(n => D.dmux(n, 's', 'sm', 'l', 'm', 'h', 'o')),
   tmux: built(n => D.tmux(n, 's', 'l', 'm', 'h', 'o')),
+  bInv: built(n => D.bInv(n, 'a', 'o')),
+  tBuffer: built(n => D.tBuffer(n, 'a', 'o', 'T')),
   detector: built(n => D.isMid(n, 's', 'o')),
   inverter: built(n => D.sti(n, 'a', 'o')),
 };
@@ -69,21 +71,12 @@ U.cellRetained = measured('H', 'H4').dynamic_cell_switches;   // 1, needs M1
 // budget gets spent on is a choice the roadmap has to make explicitly.
 const SWEEP_DEVICE_BUDGET = 4806;
 
-// --- PROPOSED: structural formulas for what is not built --------------------
+// --- the address path -------------------------------------------------------
 //
-// t = address trits. A W-word memory needs W = 3^t.
-//
-// decoder (D0): a tree 3 -> 9 -> ... -> W. The number of select lines across all
-//   levels is 3 + 9 + ... + 3^t = (3W - 3)/2, each produced by one decoded
-//   3-way selector, plus one MID detector per address trit (shared down the tree,
-//   which is the whole point of the decoded family).
-// read (D1): a W-to-1 mux per output trit. A 3-way mux tree over W inputs has
-//   (W - 1)/2 internal nodes; six trits.
-// write: one pass switch per cell, gated by that word's select line.
-//
-// D0 and D1 may be the SAME STRUCTURE — design/07 flags it and nobody has
-// checked. If they are, the address path roughly halves. Both are counted here,
-// which is the pessimistic reading and is marked as such.
+// t = address trits, W = 3^t words. `B4` settled whether the decoder and the read
+// mux are one structure: they are not — a W-way mux has (W-1)/2 internal nodes and
+// a write path needs W one-hot selects, so both are counted, sharing only the
+// detectors.
 // THE READ PATH USES `tmux`, NOT `dmux`, AND THAT IS A DECISION SET `B` FORCED.
 //
 // The decoded selector is cheaper — 3 switches against 4 — and it won the adder.
@@ -102,17 +95,36 @@ const SWEEP_DEVICE_BUDGET = 4806;
 // the answer being wrong. Paying 4 switches instead of 3 removes the failure mode
 // rather than documenting it.
 //
-// Price at the target machine: +240 switches, 3,640 to 3,880, against a budget of
-// 4,806. The safer structure fits, so it is not a trade at this size.
+// Price at the target machine: 6 switches per read node instead of 4.5 on average.
+// The safer structure still fits the sweep budget, so at this size it is not a
+// trade — `test-budget.js` asserts that rather than restating a number here.
 const READ_FAMILY = 'tmux';
 
+// SET `C` BUILT THIS AND THE OLD FORMULA WAS WRONG THREE WAYS AT ONCE.
+//
+//   - it charged one 3-way selector per output LINE; a node produces three lines,
+//     so the decoder term was three times the node count;
+//   - it charged a bare routing tree, which `C2` measured is not a decoder at all —
+//     unselected outputs float, and a floating write-enable poisons the cell it
+//     gates. Each node needs 4 pull-down switches on top of its 3 route-in legs:
+//     one each for "not LOW" and "not HIGH", and TWO for "not MID", because that is
+//     two separate thresholds;
+//   - it charged `6 x W` for one write switch per cell, and `J2`'s measured
+//     11-switch cell already contains that switch. Counted twice.
+//
+// And it omitted the complement plane (each word needs `hold` = NOT `we`) and the
+// `tBuffer`s that let write data source at all under `T5`.
+//
+// Built at 27 words: decoder 105, read 312, write 102, total 519 against the old
+// formula's 603. `MEASURED` for the shape; still `PROPOSED` as it extrapolates to
+// other widths, since only 27 was built.
 const addressPath = W => {
   const t = Math.round(Math.log(W) / Math.log(3));
-  const decoder = U.dmux * (3 * W - 3) / 2 + U.detector * t;
-  const nodes = (W - 1) / 2;                       // 3-way mux tree over W inputs
+  const nodes = (W - 1) / 2;                       // a 3-way tree over W leaves
+  const decoder = 7 * nodes + U.detector * t + 2;  // 3 route-in + 4 pull-down; +2 global gate
   const read = 6 * (READ_FAMILY === 'tmux' ? U.tmux : U.dmux) * nodes;
   const readIfDecoded = 6 * U.dmux * nodes;        // kept visible: the price of the choice
-  const write = 6 * W;
+  const write = W * U.bInv + 6 * U.tBuffer;        // complement plane + T5 data buffers
   return { t, decoder, read, readIfDecoded, write, total: decoder + read + write };
 };
 

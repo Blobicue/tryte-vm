@@ -13,8 +13,8 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-Nineteen prediction sets, **83 registered predictions, 76 held, 7 failed.** Fifteen
-distinct failure classes, which bit **26 times** between them. Fifteen findings
+Twenty prediction sets, **88 registered predictions, 81 held, 7 failed.** Sixteen
+distinct failure classes, which bit **30 times** between them. Fifteen findings
 measured but never registered, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
@@ -142,7 +142,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace the nineteen sets and they form very nearly
+fanned out; the *frontier did not*. Trace the twenty sets and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from
@@ -209,7 +209,7 @@ wasteful when it does not.
 
 ## The failure catalogue, off ternary
 
-These are the fifteen classes that actually bit, stated so they transfer. The count
+These are the sixteen classes that actually bit, stated so they transfer. The count
 is how many times each recurred *after* being named — which is itself a measure of
 how well naming a thing prevents it.
 
@@ -228,6 +228,7 @@ how well naming a thing prevents it.
 | **searching where a check would do** | finding a value by scanning when two probes would confirm it. Cost eighty solves per case where two would do, and did not finish. |
 | **a claim narrowed by a design** | the numbers right and the noun too big. Bit twice. Before writing "X can never" or "this model always", ask whether what you swept visited more than one design. |
 | **a criterion in the noise** | a registered threshold whose verdict depends on run-to-run variation. The same world produced both a pass and a fail. Widen it until it cannot flip, or measure the quantity and report it without asserting a bound. |
+| **computed control, unknown at pass one** | a control signal that is derived rather than given is unknown on the first pass of a fixed point, and unknown conduction counts as possible -- so it bridges or breaks everything it gates before it settles. Bit twice, the second time taking down 26 of 27 memory words at once. A circuit correct at its fixed point can be unreachable from a cold start. |
 | **a transcribed table** | a fact that could have been *run* was hand-copied. A detector's truth table, copied from a comment into a seed, came out inverted -- and produced 36 failures out of 54 whose pattern exactly matched what a real contention bug would look like. Wrong instruments do not produce noise; they produce clean, mechanistic, entirely wrong findings. |
 | **a census that counts itself** | a measurement over a corpus that the measurement is then written into. A survey of repeated numbers in the record failed on its next run, because recording its own answer added those numbers to the record. Nothing was wrong with the first answer, or with the world. |
 

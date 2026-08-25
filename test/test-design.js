@@ -105,7 +105,11 @@ console.log('\n=== 3. STATUS MARKERS COME FROM THE DECLARED VOCABULARY ===');
   // Anything that looks like a status word but is not one of the three is drift:
   // ASSUMED, VERIFIED, CONFIRMED and friends all read as stronger or weaker than
   // they are, which is exactly what the vocabulary exists to prevent.
-  const SUSPECTS = /\b(MEASURED|DERIVED|PROPOSED|ASSUMED|VERIFIED|CONFIRMED|ESTIMATED|UNKNOWN|TBD)\b/g;
+  // Not inside a hyphenated identifier: `T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE`
+  // is a trap id, not a status marker, and `\b` matched the `UNKNOWN` inside it —
+  // so the check failed a document whose vocabulary was entirely correct.
+  // `T-CHECK-FORBIDS-HEALTHY-STATE`, second bite.
+  const SUSPECTS = /(?<![A-Z-])(MEASURED|DERIVED|PROPOSED|ASSUMED|VERIFIED|CONFIRMED|ESTIMATED|UNKNOWN|TBD)(?![A-Z-])/g;
   let offender = null, total = 0;
   for (const f of files) {
     for (const m of read(f).matchAll(SUSPECTS)) {
@@ -158,8 +162,12 @@ console.log('\n=== 5. THE ENFORCEMENT HAS TEETH ===');
   })());
   check('a status word outside the vocabulary is caught', (() => {
     const doctored = src + '\n| X | y | z | ASSUMED |\n';
-    const SUSPECTS = /\b(MEASURED|DERIVED|PROPOSED|ASSUMED|VERIFIED|CONFIRMED|ESTIMATED|UNKNOWN|TBD)\b/g;
+    const SUSPECTS = /(?<![A-Z-])(MEASURED|DERIVED|PROPOSED|ASSUMED|VERIFIED|CONFIRMED|ESTIMATED|UNKNOWN|TBD)(?![A-Z-])/g;
     return [...doctored.matchAll(SUSPECTS)].some(m => !STATUS.includes(m[1]));
+  })());
+  check('   but the same word inside a hyphenated identifier is not', (() => {
+    const SUSPECTS = /(?<![A-Z-])(MEASURED|DERIVED|PROPOSED|ASSUMED|VERIFIED|CONFIRMED|ESTIMATED|UNKNOWN|TBD)(?![A-Z-])/g;
+    return [...'`T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE`'.matchAll(SUSPECTS)].length === 0;
   })());
   // This one passed for the wrong reason first: the condition was written as an
   // arrow function rather than called, and a function is truthy. A vacuous check
