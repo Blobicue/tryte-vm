@@ -1,11 +1,11 @@
 ---
 name: unbuilt-machine
-description: Storage, registers, interconnect, memory, decode and sequencing. Designed and enumerated in design/, built nowhere.
+description: Storage, registers, an accumulator and a 27-word addressed memory built at switch level. Interconnect, decode and sequencing enumerated in design/ and built nowhere.
 type: reference
 last_updated: 2026-08-25
 ---
 
-# The unbuilt machine
+# The machine, part-built
 
 The datapath arithmetic exists. A **computer** needs storage, a register file,
 addressed memory, instruction decode and sequencing, and none of those exists at
@@ -43,6 +43,19 @@ order rather than enumerating a space.
   boundary lives in the harness, which means "a computer built of simulated ternary
   transistors" would mean a *datapath* built of them. That concession is written
   down rather than left to be discovered.
+
+- **Addressed memory exists at 27 words.** 2,301 switches: a decoder (105), a
+  complement plane, buffered write data, 162 loop-breaking cells and a `tmux` read
+  tree (312). A write lands in its word and disturbs none of the other 26, at every
+  pass of the solve, and write-then-read round trips through the address path work.
+  The address path is **519**, against a formula that said 603 and was wrong three
+  ways at once. `C`
+- **But the array does not start on its own.** Every `hold` gate is a decoder
+  output — computed, `Z` on pass one, unknown conduction — so by `N6` all 26
+  unaddressed words go to `X` on every write. The cells hold perfectly when `hold`
+  is a primary input and not at all when it is a decoder output. Solving the
+  control cone first fixes it, which makes the seeding discipline a **requirement
+  of the design** rather than a risk to it.
 
 ## Sub-topics (the rabbit hole)
 
@@ -86,5 +99,7 @@ its own state between steps (`L`) — 672 switches, correct on every one of the 
 accumulator values, and never once reading the value it was in the middle of
 replacing.
 
-Still missing, and why this is not `rich`: interconnect, addressed memory,
-instruction decode and sequencing. There is a datapath fragment, not a machine.
+Still missing, and why this is not `rich`: interconnect, instruction decode and
+sequencing. There is a datapath fragment and an addressed memory, not a machine —
+and the memory is built at 27 words, which runs none of the eight programs. The
+target size needs the charge-retention decision, which is a person's.

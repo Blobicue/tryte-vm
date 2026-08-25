@@ -26,7 +26,7 @@ node src/run.js programs/multiply.tasm 7 5
 |---|---|
 | **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + twenty audits |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
-| **What is not built** | [`design/`](design/) — interconnect, memory, decode and sequencing, enumerated before anything is chosen, and [`design/12-roadmap.md`](design/12-roadmap.md) for the order to build them in |
+| **What is not built** | [`design/`](design/) — interconnect, decode and sequencing, enumerated before anything is chosen, and [`design/12-roadmap.md`](design/12-roadmap.md) for the order to build them in |
 | **What is known** | [`.claude/knowledge/doctrees/tryte-vm/`](.claude/knowledge/doctrees/tryte-vm/) — 13 pillars, each declaring how well mapped it is |
 | **Every claim** | [`FINDINGS.json`](FINDINGS.json) — machine-readable, validated by `test/test-findings.js` |
 | **Before changing it** | [`AGENTS.md`](AGENTS.md) — pre-registration protocol, test standards, and the traps this repo has fallen into |

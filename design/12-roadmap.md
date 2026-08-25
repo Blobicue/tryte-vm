@@ -37,8 +37,8 @@ That is a **datapath fragment that computes and remembers**, and nothing else.
 | # | subsystem | design file | built? | governs |
 |---|---|---|---|---|
 | 1 | interconnect | [`06`](06-interconnect.md) | no | whether parts can be wired at all |
-| 2 | address path | [`07`](07-memory.md) | no | **the dominant cost** — see below |
-| 3 | memory array | [`07`](07-memory.md) | no | scope of the machine |
+| 2 | address path | [`07`](07-memory.md) | **built at 27 words** (`C`) | **the dominant cost** — see below |
+| 3 | memory array | [`07`](07-memory.md) | **built at 27 words** (`C`) | scope of the machine |
 | 4 | instruction decode | [`08`](08-decode.md) | no | ~480 switches, ~1% |
 | 5 | sequencing | [`09`](09-sequencing.md) | partly — `Q1` forced by `J4`/`K1`/`K4` | whether the sequencer is switches or JavaScript |
 | 6 | ALU beyond add | — | no | `MIN`/`MAX`/`NEG` exist as gates, not as selectable ops |

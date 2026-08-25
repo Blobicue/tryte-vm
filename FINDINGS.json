@@ -1582,7 +1582,7 @@
               "settles_within_passes": 4
             }
           },
-          "note": "Checked along the path, not only at the fixed point, because that distinction has cost this project twice. Nothing is disturbed at any intermediate pass either."
+          "note": "Checked along the path, not only at the fixed point, because that distinction has cost this project twice. Nothing is disturbed at any intermediate pass either. Holds under CONE-RESOLVED seeding. Under state-only seeding the array does not start at all -- 26 of 27 words corrupt on every write (T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE). That precondition was discovered during the run and not registered, unlike B1a/B1b which split their seeding regimes in advance; the seeder was changed mid-run to supply it."
         },
         {
           "id": "C4",
@@ -1600,7 +1600,7 @@
             "wrong": 0,
             "never_settled": 0
           },
-          "note": "The first round trip through an address in this project: write word k, drop the write enable, read word k back through the tmux tree. 108 of 108."
+          "note": "The first round trip through an address in this project: write word k, drop the write enable, read word k back through the tmux tree. 108 of 108. Holds under CONE-RESOLVED seeding. Under state-only seeding the array does not start at all -- 26 of 27 words corrupt on every write (T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE). That precondition was discovered during the run and not registered, unlike B1a/B1b which split their seeding regimes in advance; the seeder was changed mid-run to supply it."
         },
         {
           "id": "C5",
@@ -1800,8 +1800,8 @@
     },
     {
       "id": "T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE",
-      "count": 2,
-      "description": "A control signal that is a COMPUTED node rather than a primary input is unknown on the first pass of the fixed point, and unknown conduction is treated as possible -- so on pass one it bridges or breaks everything it gates. Bit twice. In B1a a decoded selector's middle leg, gated by a detector output, bridged the selected word to a second word's rail and the network never settled. In C the whole memory array's hold gates are driven by decoder outputs, and every unaddressed word went to X on every write -- the cells hold perfectly when hold is a primary input and not at all when it is a decoder output. The fix is the same both times and it is not a workaround: solve the control cone on its own and seed it. The general shape is that a circuit correct at its fixed point can be unreachable from a cold start, and the larger the control fan-out the more it takes with it."
+      "count": 1,
+      "description": "A control signal that is a COMPUTED node rather than a primary input is unknown on the first pass of the fixed point, and unknown conduction is treated as possible -- so on pass one it bridges or breaks everything it gates. Counted ONCE, not twice: B1a predicted exactly this shape for a decoded selector's middle leg in its own registration commit BEFORE the run, which is the protocol working rather than a trap anyone fell into. It bit in C, where nothing in the registration anticipated it: every hold gate in a 27-word array is a decoder output, and all 26 unaddressed words went to X on every write. The cells hold perfectly when hold is a primary input and not at all when it is a decoder output. The fix is not a workaround -- solve the control cone on its own and seed it. The general shape is that a circuit correct at its fixed point can be unreachable from a cold start, and the larger the control fan-out the more it takes with it."
     }
   ]
 }

@@ -57,9 +57,16 @@ resolved first, and the tree one is immune by construction. The read path and th
 interconnect are now budgeted in `tmux` at 4 switches rather than `dmux` at 3,
 which buys the removal of a failure mode nothing else would catch. `MEASURED`
 
-**What do the decoder and write-enable terms actually cost?** `B3` measured the
-read term and matched the budget exactly. These two are what is left, and they are
-now the largest `PROPOSED` numbers in the plan.
+**~~What do the decoder and write-enable terms actually cost?~~ Built** — `C1`,
+at 27 words. Decoder 105, write path 102, address path 519 against the formula's
+603, which was wrong three ways at once and net too high. The target machine got
+**cheaper**, not dearer: 81 words under `M1` is 3,562. `MEASURED`
+
+**What is still open is whether the array starts.** It does not, on its own: every
+`hold` gate is a decoder output, unknown on pass one, and all 26 unaddressed words
+corrupt on every write. Solving the control cone first fixes it — but that makes
+the seeding discipline a **requirement of the design** rather than a risk to it,
+and it scales with control fan-out rather than with anything the budget counts.
 
 **Does the seeded discipline compose?** Every state node must be seeded on every
 solve. At 4,374 nodes, one missing seed is one node at `Z`, which by `N6` poisons
