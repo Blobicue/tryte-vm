@@ -51,9 +51,9 @@
  *   D4  BIDIRECTIONALITY. The two terminals are interchangeable; a switch passes
  *       signal either way, as a pass transistor does and a logic gate does not.
  *   D5  GATE ISOLATION. The gate is read, never driven through. It draws nothing,
- *       and in each of the five gate designs no node is both a device's control
- *       and one of its terminals. A NETWORK may still wire one that way, and the
- *       self-inverter used to prove N7 and N8 does exactly that.
+ *       and in every builder this module exports no node is both a device's
+ *       control and one of its terminals. A NETWORK may still wire one that way,
+ *       and the self-inverter used to prove N7 and N8 does exactly that.
  *   D6  UNKNOWN IS NOT OFF. An undetermined gate yields undetermined conduction.
  *       Treating it as non-conducting is the classic switch-simulator bug: it
  *       makes broken circuits look clean.
@@ -310,9 +310,99 @@ function tmax(net, a, b, out) {
   return net;
 }
 
+/* ------------------------------------------------------------- selectors, tables
+ * The repository's monoid audits ended by making the truth table DATA: TOPC reads
+ * a 27-cell table and the carry falls out of it. These build the same idea in
+ * switches. A table becomes a tree of selectors, and any three-input trit
+ * function is then a circuit without anyone designing one. */
+
+/**
+ * 1-of-3 selector. Exactly one path conducts, for each of the three select
+ * levels — the LOW and HIGH arms are one switch each, and the MID arm is a series
+ * pair, for the same reason the standard ternary inverter's is (X4).
+ * Four switches.
+ */
+function tmux(net, sel, lo, mid, hi, out) {
+  net.p(sel, LOW, lo, out);               // sel <= LOW, i.e. sel is LOW
+  net.n(sel, HIGH, hi, out);              // sel >= HIGH, i.e. sel is HIGH
+  const s = `${out}$s`;
+  net.n(sel, MID, mid, s);                // series: sel >= MID AND sel <= MID
+  net.p(sel, MID, s, out);
+  return net;
+}
+
+const RAIL_FOR = { '-1': 'vss', 0: 'vmid', 1: 'vdd' };
+/** Cell index for a 27-entry table, matching ternary.js's ttableC convention. */
+const cellIndex = (a, b, c) => (a + 1) * 9 + (b + 1) * 3 + (c + 1);
+
+/**
+ * Any three-input trit function, from its 27 cells: nine leaf selectors driven by
+ * c off the rails, three selected by b, one by a. Thirteen selectors, 52 switches.
+ * `share` merges leaf selectors whose three cells are identical, which is the
+ * hash-consing `tableKey` does on tables, done to the circuit instead.
+ */
+function ttable3(net, a, b, c, cells, out, tag, share = false) {
+  const leafCache = new Map();
+  const mids = [];
+  for (let av = -1; av <= 1; av++) {
+    const leaves = [];
+    for (let bv = -1; bv <= 1; bv++) {
+      const rails = [-1, 0, 1].map(cv => RAIL_FOR[cells[cellIndex(av, bv, cv)]]);
+      const key = rails.join(',');
+      let leaf = share ? leafCache.get(key) : undefined;
+      if (leaf === undefined) {
+        leaf = `${tag}$l${share ? leafCache.size : `${av}_${bv}`}`;
+        tmux(net, c, rails[0], rails[1], rails[2], leaf);
+        if (share) leafCache.set(key, leaf);
+      }
+      leaves.push(leaf);
+    }
+    const mid = `${tag}$m${av}`;
+    tmux(net, b, leaves[0], leaves[1], leaves[2], mid);
+    mids.push(mid);
+  }
+  tmux(net, a, mids[0], mids[1], mids[2], out);
+  return net;
+}
+
+/** The two trit tables of a balanced-ternary full adder, from the raw sum. */
+function adderTables() {
+  const sum = [], carry = [];
+  for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let c = -1; c <= 1; c++) {
+    const s = a + b + c;                          // -3 .. +3
+    const cy = Math.sign(s) * Math.round(Math.abs(s) / 3);
+    sum.push(s - 3 * cy);
+    carry.push(cy);
+  }
+  return { sum, carry };
+}
+
+/** One full-adder cell: sum and carry-out, each a table realised as a tree. */
+function tAdderCell(net, a, b, cin, sum, cout, tag, share = false) {
+  const t = adderTables();
+  ttable3(net, a, b, cin, t.sum, sum, `${tag}S`, share);
+  ttable3(net, a, b, cin, t.carry, cout, `${tag}C`, share);
+  return net;
+}
+
+/**
+ * An n-trit ripple adder. Nodes: a0..a{n-1}, b0..b{n-1}, cin in; s0..s{n-1} and
+ * c{n} out. The carry out of the top trit is the overflow, so this is an adder
+ * rather than a mod-3^n unit.
+ */
+function tRippleAdder(net, n = 6, share = false) {
+  for (let i = 0; i < n; i++) {
+    tAdderCell(net, `a${i}`, `b${i}`, i === 0 ? 'cin' : `c${i}`, `s${i}`, `c${i + 1}`, `A${i}`, share);
+  }
+  return net;
+}
+
 /* ---------------------------------------------------------------- binary baseline
  * The same solver, two levels and two rails, so switch counts can be compared
- * without comparing across models. */
+ * without comparing across models. The selector and table builders are repeated
+ * here rather than shared, because a two-level selector is genuinely a different
+ * circuit — two switches, no series arm — and pretending otherwise would put the
+ * ternary mid-rail cost on the binary side by accident. */
 
 function binaryNet() { return new Net(BINARY_RAILS); }
 
@@ -337,8 +427,67 @@ function bAnd(net, a, b, out) {
   return bInv(net, t, out);
 }
 
+/** 1-of-2 selector. Two switches: no series arm, because there is no middle. */
+function bmux(net, sel, lo, hi, out) {
+  net.p(sel, LOW, lo, out);
+  net.n(sel, HIGH, hi, out);
+  return net;
+}
+
+const BRAIL_FOR = { '-1': 'vss', 1: 'vdd' };
+const bCellIndex = (a, b, c) => ((a + 1) / 2) * 4 + ((b + 1) / 2) * 2 + (c + 1) / 2;
+
+/** Any three-input bit function from its 8 cells. Seven selectors, 14 switches. */
+function btable3(net, a, b, c, cells, out, tag, share = false) {
+  const leafCache = new Map();
+  const mids = [];
+  for (const av of [-1, 1]) {
+    const leaves = [];
+    for (const bv of [-1, 1]) {
+      const rails = [-1, 1].map(cv => BRAIL_FOR[cells[bCellIndex(av, bv, cv)]]);
+      const key = rails.join(',');
+      let leaf = share ? leafCache.get(key) : undefined;
+      if (leaf === undefined) {
+        leaf = `${tag}$l${share ? leafCache.size : `${av}_${bv}`}`;
+        bmux(net, c, rails[0], rails[1], leaf);
+        if (share) leafCache.set(key, leaf);
+      }
+      leaves.push(leaf);
+    }
+    const mid = `${tag}$m${av}`;
+    bmux(net, b, leaves[0], leaves[1], mid);
+    mids.push(mid);
+  }
+  bmux(net, a, mids[0], mids[1], out);
+  return net;
+}
+
+/** Sum and carry tables of a binary full adder, in the same -1/+1 encoding. */
+function bAdderTables() {
+  const sum = [], carry = [];
+  for (const a of [-1, 1]) for (const b of [-1, 1]) for (const c of [-1, 1]) {
+    const ones = [a, b, c].filter(v => v === 1).length;
+    sum.push(ones % 2 === 1 ? 1 : -1);
+    carry.push(ones >= 2 ? 1 : -1);
+  }
+  return { sum, carry };
+}
+
+/** An n-bit binary ripple adder, built exactly as the ternary one is. */
+function bRippleAdder(net, n = 10, share = false) {
+  const t = bAdderTables();
+  for (let i = 0; i < n; i++) {
+    const cin = i === 0 ? 'cin' : `c${i}`;
+    btable3(net, `a${i}`, `b${i}`, cin, t.sum, `s${i}`, `A${i}S`, share);
+    btable3(net, `a${i}`, `b${i}`, cin, t.carry, `c${i + 1}`, `A${i}C`, share);
+  }
+  return net;
+}
+
 module.exports = {
   LOW, MID, HIGH, RAILS, BINARY_RAILS, Net,
   sti, nti, pti, tmin, tmax,
+  tmux, ttable3, cellIndex, adderTables, tAdderCell, tRippleAdder,
   binaryNet, bInv, bNand, bAnd,
+  bmux, btable3, bAdderTables, bRippleAdder,
 };

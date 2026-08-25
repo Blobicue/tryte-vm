@@ -129,11 +129,29 @@ const PROOFS = [
       return true;
     } },
 
-  { id: 'D5', name: 'the gate is read, never driven through — and no gate design ties one to its own terminal',
+  { id: 'D5', name: 'the gate is read, never driven through — and no builder ties one to its own terminal',
     fn: ({ M, GATES, gateNet }) => {
-      // Structural: no gate design uses a node as both its own control and terminal.
-      for (const g of GATES) {
-        for (const d of gateNet(g).devices) if (d.gate === d.a || d.gate === d.b) return false;
+      // Structural, over EVERY builder the module exports rather than the five
+      // gates: selectors, table trees, adder cells, the ripple, and the binary
+      // baseline. A builder added later without a line here fails the count check
+      // below rather than slipping past unexamined.
+      const built = GATES.map(g => gateNet(g));
+      const add = fn => { const net = new M.Net(); fn(net); built.push(net); };
+      const addBinary = fn => { const net = M.binaryNet(); fn(net); built.push(net); };
+      add(n => M.tmux(n, 'sel', 'lo', 'mid', 'hi', 'o'));
+      add(n => M.ttable3(n, 'a', 'b', 'c', M.adderTables().sum, 'o', 'T'));
+      add(n => M.ttable3(n, 'a', 'b', 'c', M.adderTables().sum, 'o', 'T', true));
+      add(n => M.tAdderCell(n, 'a', 'b', 'c', 's', 'co', 'A'));
+      add(n => M.tRippleAdder(n, 6));
+      addBinary(n => M.bInv(n, 'a', 'o'));
+      addBinary(n => M.bNand(n, 'a', 'b', 'o'));
+      addBinary(n => M.bAnd(n, 'a', 'b', 'o'));
+      addBinary(n => M.bmux(n, 'sel', 'lo', 'hi', 'o'));
+      addBinary(n => M.btable3(n, 'a', 'b', 'c', M.bAdderTables().sum, 'o', 'B'));
+      addBinary(n => M.bRippleAdder(n, 10));
+      if (built.length !== 16) return false;
+      for (const net of built) {
+        for (const d of net.devices) if (d.gate === d.a || d.gate === d.b) return false;
       }
       // Behavioural: a node that is only ever a gate is never driven by being one.
       const net = new M.Net();
