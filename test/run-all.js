@@ -2,7 +2,7 @@
 const { execFileSync } = require('child_process');
 const path = require('path');
 let failed = false;
-for (const suite of ['test-device.js', 'test-core.js', 'test-vm.js', 'test-selfhost.js', 'test-bench.js', 'test-logic.js', 'test-monoid.js', 'test-fold.js', 'test-page.js', 'test-style.js', 'test-findings.js']) {
+for (const suite of ['test-device.js', 'test-axioms.js', 'test-core.js', 'test-vm.js', 'test-selfhost.js', 'test-bench.js', 'test-logic.js', 'test-monoid.js', 'test-fold.js', 'test-page.js', 'test-style.js', 'test-findings.js']) {
   console.log(`\n########## ${suite} ##########`);
   try { console.log(execFileSync(process.execPath, [path.join(__dirname, suite)], { encoding: 'utf8' })); }
   catch (e) { failed = true; console.log(e.stdout || e.message); }

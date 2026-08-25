@@ -154,7 +154,7 @@ console.log('--- X1  is the inclusive threshold (D3) load-bearing? ---');
       }
       if (ok) { correct++; survivors.push(g.name); }
     }
-    const label = which === 'both' ? 'both strict' : `${which} strict  `;
+    const label = (which === 'both' ? 'both strict' : `${which} strict`).padEnd(11);
     console.log(`      ${label}        ${String(correct).padStart(2)} of 5`
       + `         ${String(levels).padStart(2)} of 27`
       + `           ${survivors.length ? survivors.join(' ') : 'none'}`);
@@ -171,15 +171,27 @@ console.log('\n--- X2  N8: the fixed point is not unique, and Z-init is not X-in
   for (const rail of Object.keys(self.rails)) internals.delete(rail);
 
   console.log(`      self-inverter, default start:  o = ${self.solve({}).o}`);
-  const stable = [];
+  const stable = [], oscillating = [];
   for (const seed of L) {
     const init = Object.fromEntries([...internals].map(n => [n, n === 'o' ? seed : 'Z']));
-    const got = self.solve({}, 64, init).o;
+    let got;
+    // A seeded start can fail to settle at all, which the registration did not
+    // anticipate. Measuring that is not the same as revising the prediction.
+    try { got = self.solve({}, 64, init).o; }
+    catch (e) { got = 'DOES NOT SETTLE'; oscillating.push(seed); }
     console.log(`      seeded at ${String(seed).padStart(2)}:                   o = ${got}`
       + (got === seed ? '   <- self-consistent' : ''));
     if (got === seed) stable.push(seed);
   }
   console.log(`      self-consistent seeds: [${stable.join(', ')}]  (predicted exactly [0])`);
+  console.log(`      seeds that never settle: [${oscillating.join(', ')}]  (not predicted at all)`);
+  if (oscillating.length) {
+    console.log('      X2a FAILED -- not on its answer but on its premise. It assumed every seed');
+    console.log('      resolves to something. N7 says "X is absorbing, so resolution cannot');
+    console.log('      oscillate", and that is only true from the all-Z start, where any node');
+    console.log('      with a non-driven gate goes to X on the first pass and stays. Seeded at a');
+    console.log('      LEVEL the self-inverter runs -1 -> +1 -> -1 forever. N7 is false as worded.');
+  }
 
   let differ = 0, rows = 0;
   for (const g of GATES) {
@@ -292,7 +304,11 @@ console.log('\n--- X5  is four switches minimal for NEG? ---');
       SPACE.push({ kind, gate: 'in', vt, a: NODES[i], b: NODES[j] });
     }
   }
-  const key = d => `${d.kind}${d.vt}:${d.a}-${d.b}`;
+  // Terminals are interchangeable (D4), so the key must not care about their
+  // order. It did, and the positive control reported the standard ternary
+  // inverter ABSENT from a search that had in fact found it. Third time an
+  // instrument here produced a false verdict on its own prediction.
+  const key = d => { const [x, y] = [d.a, d.b].sort(); return `${d.kind}${d.vt}:${x}-${y}`; };
   const show = devs => devs.map(key).sort().join('  ');
 
   const NEG = L.map(a => -a);

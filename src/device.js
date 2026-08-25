@@ -68,8 +68,13 @@
  *   N5  ISOLATION IS Z. No rail reaching a node leaves it floating.
  *   N6  UNKNOWNS ONLY SUBTRACT. An unknown conduction can make a node less
  *       determined, never more. The solver never claims a level it cannot justify.
- *   N7  TERMINATION. X is absorbing, so a fixed point always exists and resolution
- *       cannot oscillate.
+ *   N7  TERMINATION FROM THE DEFAULT START, AND ONLY FROM THERE. From the all-Z
+ *       start every node whose gate is not driven goes to X on the first pass and
+ *       stays, so a cyclic network collapses to X instead of oscillating and a
+ *       fixed point is always reached. This is NOT a general property of the
+ *       iteration, and the axiom used to claim it was: seeded at a LEVEL the
+ *       self-inverter runs -1 -> +1 -> -1 forever, and solve() throws rather than
+ *       hand back a half-settled state. The audit found this. See X2.
  *   N8  JUSTIFIED, NOT MERELY CONSISTENT. A level is assigned only when a
  *       conducting path from exactly one rail justifies it FROM THE CURRENT
  *       STATE. Fixed points are NOT unique, and the solver does not find the most
