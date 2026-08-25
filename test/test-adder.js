@@ -118,7 +118,7 @@ console.log('\n=== 3. Y2, Y4 — HOW MANY PASSES, AND WHETHER THE DATA CHANGES I
     const every = passes({ ...spread('a', 121), ...spread('b', 121), cin: 0 });
     return far === 7 && none === 7 && every === 7;
   })());
-  check('   which is what "no delays" means: depth is structural, not arithmetic',
+  check('   which is what "no delays" means here: for RAW-SELECT designs, depth is structural',
     /no currents, capacitances, delays/.test(require('fs')
       .readFileSync(require('path').join(__dirname, '..', 'src', 'device.js'), 'utf8')));
 }

@@ -160,7 +160,7 @@ console.log('\n=== 4. Z4, Z5 — THE RESTORED CIRCUITS STILL ADD, AND TAKE LONGE
     check(`Z4/Z5 — binary '${restore}' still adds, in exactly ${want} passes on all ${n} samples`,
       wrong === 0 && offPasses === 0, `${wrong} wrong, ${offPasses} off`);
   }
-  check('Z5 — and the pass count is still independent of the data', (() => {
+  check('Z5 — and the pass count is still independent of the data, for this design family', (() => {
     // The whole of Y2 again, on a restored circuit: depth is structural.
     const net = tAdder({ restore: 'mid' });
     const p = ab => exactPasses(net, { ...spread('a', ab[0]), ...spread('b', ab[1]), cin: 0 });

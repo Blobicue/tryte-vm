@@ -5,7 +5,7 @@ arithmetic, a 25-instruction machine, an assembler, an emulator written in its o
 assembly, and eleven audits establishing exactly what its instruction set can reach
 and what the device model beneath it rests on.
 
-**549 checks**, all passing. Every number below is recomputed by one of them.
+**577 checks**, all passing. Every number below is recomputed by one of them.
 
 ```bash
 npm test              # everything (~55s; the monoid and switch sweeps are real work)
@@ -303,7 +303,58 @@ on either side.
 **Restoration also costs time — the only currency this model measures it in.** Y2
 found the adder settles in exactly seven passes whatever the data. Buffered, it
 takes 19; buffered twice, 31 — because each inverter is its own dependency stage.
-Still independent of the data. Depth here is structural, never arithmetic.
+Still independent of the data — **for these designs.** Every arm of a selector
+here is gated on the raw select, so every arm's conduction becomes known at the
+same moment and nothing can settle early. The decoded adder below breaks that, and
+is the first circuit in this repository whose settling time depends on the numbers
+going through it.
+
+### The decoded selector — the circuit that failed Z2
+
+Z2 said depth 4 was the best ternary could buy at any price. Checking that
+sentence produced a circuit that reaches 3, and this is it at full width.
+
+A selector gated on a raw trit needs a **series pair** for its middle arm —
+isolating the middle level from a raw select needs the `D3` overlap and nothing
+less, which X4 proved by exhaustive search. So decode the select first. One
+four-switch detector answers *"is this signal MID?"*, and then every arm of every
+selector using that signal is a **single device**, middle one included. The series
+pair did not vanish; it moved into the detector, where it is paid **once per
+signal** instead of once per selector — and a tree has thirteen selectors.
+
+| six-trit adder | switches | shared | read depth | vs binary |
+|---|---|---|---|---|
+| selector tree, raw select | 624 | 384 | 6 | 2.23 |
+| **decoded select** | **540** | **360** | **3** | **1.93** |
+| binary, 10 bits | 280 | 220 | 3 | — |
+
+Cheaper, half the depth, and level with binary's. The gap narrows and does not
+close: the ratio never drops below **1.36** at any width, and per digit 90 against
+28 is **3.21×** where the break-even is log₂3 ≈ 1.58.
+
+**Two of the five predictions failed, and both are worth more than the three that
+held.**
+
+**E5 had the mid rail backwards.** The decoded design taps it **186 times against
+168** — one extra per detector, eighteen of them. Which matters, because Z1 showed
+the free rail is the largest unpriced thing in the whole stack. The design that
+wins on switches leans harder on the thing nobody is charging for.
+
+**E4 was wrong in a more interesting way.** It predicted exactly 13 passes for
+every operand pair, deriving 13 correctly — as the *worst* case. The real range is
+**9 to 13, and it depends on the numbers going through the adder.** That is the
+first circuit in this repository whose settling time is arithmetic rather than
+structural, and Y2's and Z5's "independent of the data" are now scoped to
+raw-select designs because of it.
+
+The mechanism is exact. With a raw select every arm's conduction becomes known at
+the same instant, so nothing can settle early. Decoding splits the gating across
+two dependency levels: with the carry-in LOW, the LOW arm is already conducting on
+the raw select while the MID arm's gate is still unknown — and if both arms lead to
+the *same rail*, the node is determined anyway, a whole pass early. **Six of the
+carry table's nine leaves have their LOW and MID cells equal.** None of the sum
+table's do. The adder settles faster on operands that happen to route through
+those six.
 
 ## The idea, without the jargon
 
