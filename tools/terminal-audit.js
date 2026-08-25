@@ -382,6 +382,62 @@ console.log('\n--- diagnostic (NOT registered; added after the run to explain B1
   console.log(`      it produces a clean, mechanistic, entirely wrong finding.`);
 }
 
+console.log('\n--- depth check (NOT registered; measured after the run) ---');
+{
+  // B1a/B1b solved ONE selector over three cells. The decision to budget the read
+  // path in tmux was then stated about read TREES, which is a one-level measurement
+  // wearing a tree-sized noun — `T-CLAIM-NARROWED-BY-A-DESIGN`, twice recorded. The
+  // mechanism argument says tmux stays immune at any depth (every gate at every
+  // level is an address input) but that is an argument, not a measurement. So:
+  // solve the 27-way three-level tree over 27 stored cells, both families, naive.
+  const W = 27, t = 3;
+  const build = family => {
+    const net = new D.Net(); const inputs = {};
+    for (let i = 0; i < W; i++) {
+      latch(net, `c${i}`, `w${i}`, `q${i}`, `we${i}`, `hold${i}`);
+      inputs[`we${i}`] = D.LOW; inputs[`hold${i}`] = D.HIGH; inputs[`w${i}`] = D.LOW;
+    }
+    if (family === 'dmux') for (let i = 0; i < t; i++) D.isMid(net, `a${i}`, `a${i}m`);
+    let lv = Array.from({ length: W }, (_, i) => `q${i}`);
+    for (let i = 0; i < t; i++) {
+      const nx = [];
+      for (let j = 0; j < lv.length; j += 3) {
+        const o = `n${i}_${j / 3}`;
+        if (family === 'tmux') D.tmux(net, `a${i}`, lv[j], lv[j + 1], lv[j + 2], o);
+        else D.dmux(net, `a${i}`, `a${i}m`, lv[j], lv[j + 1], lv[j + 2], o);
+        nx.push(o);
+      }
+      lv = nx;
+    }
+    return { net, inputs, out: lv[0] };
+  };
+  for (const family of ['tmux', 'dmux']) {
+    let ok = 0, wrong = 0, stuck = 0;
+    for (let addr = 0; addr < W; addr++) {
+      const { net, inputs, out } = build(family);
+      const ad = T.toTrits(addr - 13).slice(0, t);
+      const held = Array.from({ length: W }, (_, i) => [-1, 0, 1][i % 3]);
+      const inp = { ...inputs }; ad.forEach((v, i) => { inp[`a${i}`] = v; });
+      const nodes = new Set();
+      for (const d of net.devices) { nodes.add(d.a); nodes.add(d.b); nodes.add(d.gate); }
+      const driven = new Set([...Object.keys(net.rails), ...Object.keys(inp)]);
+      const init = {};
+      for (const x of nodes) if (!driven.has(x)) init[x] = 'Z';
+      held.forEach((v, i) => { init[`q${i}`] = v; init[`q${i}b`] = -v; });
+      let r = null;
+      try { r = net.solve(inp, 80, init); } catch (e) { stuck++; continue; }
+      let idx = 0, mul = 1;
+      for (let i = 0; i < t; i++) { idx += (ad[i] + 1) * mul; mul *= 3; }
+      if (r[out] === held[idx]) ok++; else wrong++;
+    }
+    console.log(`      ${family.padEnd(5)} 27-way, 3 levels, over stored cells, naive seeding:`
+      + ` ${ok} read, ${wrong} wrong, ${stuck} never settled`);
+  }
+  console.log(`      dmux's 9 are the addresses whose every trit is MID — the one-level`);
+  console.log(`      result repeating at each level. The tmux decision holds at depth, and`);
+  console.log(`      is now measured there rather than argued there.`);
+}
+
 console.log('\n--- B3  what a 27-way one-trit read mux costs ---');
 {
   // A 3-level tree of decoded selectors over 27 stored terminals.

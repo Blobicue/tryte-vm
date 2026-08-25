@@ -13,7 +13,7 @@ Eighty-three predictions, seventy-six held, seven failed — and the seven produ
 than the seventy-six. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**797 checks**, all passing. Every number below is recomputed by one of them,
+**802 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -519,7 +519,7 @@ that order from two measured ladders rather than from taste. The short version:
   to ~4,800 devices. The machine is the first subject here that sits outside the
   exhaustive discipline every other result rests on.
 - **So which machine? Exactly one configuration works:** 81 words of memory under
-  charge retention, ~3,880 switches. It is the only size that both fits the sweep
+  charge retention, ~3,916 switches. It is the only size that both fits the sweep
   budget and runs a program somebody already wrote — `countdown`, `threeway` and
   `kleene` fit as placed. A 27-word machine fits the budget and runs **none** of
   the eight.

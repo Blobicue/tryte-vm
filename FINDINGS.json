@@ -1427,7 +1427,7 @@
       "subject": "Can a stored value drive a selector SOURCE terminal? The roadmap phase-0 gate.",
       "tool": "tools/terminal-audit.js",
       "registered_at": "6fc2628",
-      "results_at": "214f95c",
+      "results_at": "f6de37c",
       "asserted_in": "test/test-terminal.js",
       "predictions": [
         {
@@ -1517,7 +1517,7 @@
             "share_of_address_path": "2.3%",
             "roadmap_allowed_for": "roughly half"
           },
-          "note": "A counting argument, and it decides 243 words. A 27-way read mux has 13 internal nodes and a write path needs 27 one-hot word selects, one per word; 13 < 27, so D0 survives in the write path no matter what D1 does. design/07 suspected the two were one structure seen from both ends. They share 2.3%, not half. 243 words stays out of the sweep budget and the target machine is 81."
+          "note": "A counting argument, and it decides 243 words. A 27-way read mux has 13 internal nodes and a write path needs 27 one-hot word selects, one per word; 13 < 27, so D0 survives in the write path no matter what D1 does. design/07 suspected the two were one structure seen from both ends. They share 2.3%, not half. 243 words stays out of the sweep budget and the target machine is 81. The 2.3% figure is against the 525-switch address path as budgeted at the time of the run; the read path then moved to tmux (see B1a), so the tool re-run today reports the same 12 shared switches as 2.0% of a 603-switch path. The share changed because the basis did, not the sharing."
         }
       ]
     }
@@ -1617,6 +1617,13 @@
       "evidence": "sum tree 3 distinct rows and 0 of 18 in-row agreements; carry tree 5 distinct rows and 12 of 18",
       "asserted_in": "test/test-passcount.js",
       "note": "The same fact about balanced-ternary addition appeared once as the 38 percent area saving in Y3 and once as the pass-count distribution in E4 and F. Wrapping buys area; stepping buys time; neither buys both."
+    },
+    {
+      "id": "F-TREE-DEPTH-SPLIT",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "The tmux/dmux split measured on one selector holds on a 27-way three-level read tree over stored cells: tmux reads all 27 addresses, dmux reads only the 9 whose every address trit is MID and never settles on the other 18.",
+      "evidence": "tools/terminal-audit.js, naive seeding, all 27 addresses, both families",
+      "asserted_in": "test/test-terminal.js"
     }
   ],
   "traps_encountered": [

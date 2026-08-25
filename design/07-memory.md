@@ -43,11 +43,17 @@ And the address path, separately, because it is a different structure:
 | **D1** | selector tree read, decoder-free | the read path *is* a 729-way mux; no one-hot needed | PROPOSED |
 | **D2** | two-stage: decode 3 trits to 27 rows, 3 to 27 columns | the classic array, and it halves the decode | PROPOSED |
 
-**D1 and D0 may be the same object.** A 729-way selector tree and a 729-way
-address decoder do the same work from opposite ends, and
-[`06-interconnect.md`](06-interconnect.md) already noted the collision. Deciding
-whether they are one structure or two is worth a phase on its own, because the
-answer roughly halves the address path.
+~~**D1 and D0 may be the same object.**~~ **They are not** — `B4`, and it took
+counting rather than a phase. A `W`-way read mux has `(W-1)/2` internal nodes; a
+write path needs `W` one-hot word selects, one per word. At 27 words that is 13
+against 27, so the mux cannot supply them and `D0` survives in the write path
+whatever `D1` does. The two share the MID detectors and nothing else — about **2%**
+of the address path, against the "roughly halves" this file hoped for.
+
+The consequence is not local. The address path was the term that dominates once
+charge retention lands, this was the only structural saving anyone had identified
+for it, and it is not there. **243 words stays outside the sweep budget for good**,
+and with it the six-program configuration. `MEASURED`
 
 ## Interactions
 

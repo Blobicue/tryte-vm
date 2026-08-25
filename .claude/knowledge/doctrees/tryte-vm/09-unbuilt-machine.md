@@ -31,7 +31,7 @@ order rather than enumerating a space.
 - **Which machine is worth building has an answer, and it is narrow.** Two
   ladders — what fits the sweep budget, and which programs fit in how much memory —
   intersect in **exactly one configuration: 81 words under charge retention**, at
-  roughly 3,880 switches. It runs `countdown`, `threeway` and `kleene` as placed.
+  roughly 3,916 switches. It runs `countdown`, `threeway` and `kleene` as placed.
   A 27-word machine fits the budget and runs **none** of the eight programs.
 - **So the retention decision and the memory-scope decision are the same
   decision**, which the design phase had ranked as two.

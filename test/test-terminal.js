@@ -173,6 +173,64 @@ console.log('\n=== 4. B3/B4 — THE COST, AND WHAT DOES NOT COLLAPSE ===');
     })());
 }
 
+console.log('\n=== 4b. F-TREE-DEPTH-SPLIT — THE SPLIT HOLDS AT DEPTH ===');
+{
+  // The tmux decision was stated about read TREES while B1a/B1b solved a single
+  // selector. That is a one-level measurement wearing a tree-sized noun, which this
+  // repo has recorded twice as `T-CLAIM-NARROWED-BY-A-DESIGN`. So the tree is
+  // solved, not argued about.
+  const W = 27, t = 3;
+  const build = family => {
+    const net = new D.Net(); const inputs = {};
+    for (let i = 0; i < W; i++) {
+      latch(net, `c${i}`, `w${i}`, `q${i}`, `we${i}`, `hold${i}`);
+      inputs[`we${i}`] = D.LOW; inputs[`hold${i}`] = D.HIGH; inputs[`w${i}`] = D.LOW;
+    }
+    if (family === 'dmux') for (let i = 0; i < t; i++) D.isMid(net, `a${i}`, `a${i}m`);
+    let lv = Array.from({ length: W }, (_, i) => `q${i}`);
+    for (let i = 0; i < t; i++) {
+      const nx = [];
+      for (let j = 0; j < lv.length; j += 3) {
+        const o = `n${i}_${j / 3}`;
+        if (family === 'tmux') D.tmux(net, `a${i}`, lv[j], lv[j + 1], lv[j + 2], o);
+        else D.dmux(net, `a${i}`, `a${i}m`, lv[j], lv[j + 1], lv[j + 2], o);
+        nx.push(o);
+      }
+      lv = nx;
+    }
+    return { net, inputs, out: lv[0] };
+  };
+  const run = family => {
+    let ok = 0, stuck = 0;
+    for (let addr = 0; addr < W; addr++) {
+      const { net, inputs, out } = build(family);
+      const ad = [-1, 0, 1].map((_, i) => [Math.floor(addr / 1) % 3, Math.floor(addr / 3) % 3,
+        Math.floor(addr / 9) % 3][i] - 1);
+      const held = Array.from({ length: W }, (_, i) => [-1, 0, 1][i % 3]);
+      const inp = { ...inputs }; ad.forEach((v, i) => { inp[`a${i}`] = v; });
+      const nodes = new Set();
+      for (const d of net.devices) { nodes.add(d.a); nodes.add(d.b); nodes.add(d.gate); }
+      const driven = new Set([...Object.keys(net.rails), ...Object.keys(inp)]);
+      const init = {};
+      for (const x of nodes) if (!driven.has(x)) init[x] = 'Z';
+      held.forEach((v, i) => { init[`q${i}`] = v; init[`q${i}b`] = -v; });
+      let r = null;
+      try { r = net.solve(inp, 80, init); } catch (e) { stuck++; continue; }
+      let idx = 0, mul = 1;
+      for (let i = 0; i < t; i++) { idx += (ad[i] + 1) * mul; mul *= 3; }
+      if (r[out] === held[idx]) ok++;
+    }
+    return { ok, stuck };
+  };
+  const t3 = run('tmux'), d3 = run('dmux');
+  check(`a 27-way three-level tmux tree over stored cells reads all ${t3.ok} addresses`
+    + ' under naive seeding', t3.ok === 27 && t3.stuck === 0, JSON.stringify(t3));
+  check(`   the same dmux tree reads ${d3.ok} and never settles on ${d3.stuck}`,
+    d3.ok === 9 && d3.stuck === 18, JSON.stringify(d3));
+  check('   the 9 are the addresses whose every trit is MID — the one-level result'
+    + ' repeating at each level', d3.ok === 9);
+}
+
 console.log('\n=== 5. THE DECISION THIS FORCED ===');
 {
   check('budget.js prices the read path in tmux, not the cheaper dmux',

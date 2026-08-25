@@ -58,12 +58,12 @@ largest network a full 531,441-pair sweep clears inside an hour.
 
 | words | trits | model | storage | address path | rest | total | sweepable |
 |---|---|---|---|---|---|---|---|
-| 27 | 3 | `M0` | 1,782 | 603 | 1,572 | **3,957** | yes |
-| 27 | 3 | `M1` | 162 | 603 | 1,572 | **2,337** | yes |
-| 81 | 4 | `M0` | 5,346 | 1,822 | 1,572 | **8,740** | no |
-| **81** | **4** | **`M1`** | **486** | **1,822** | **1,572** | **3,880** | **yes** |
-| 243 | 5 | `M1` | 1,458 | 5,471 | 1,572 | **8,501** | no |
-| 729 | 6 | `M0` | 48,114 | 16,410 | 1,572 | **66,096** | no |
+| 27 | 3 | `M0` | 1,782 | 603 | 1,608 | **3,993** | yes |
+| 27 | 3 | `M1` | 162 | 603 | 1,608 | **2,373** | yes |
+| 81 | 4 | `M0` | 5,346 | 1,822 | 1,608 | **8,776** | no |
+| **81** | **4** | **`M1`** | **486** | **1,822** | **1,608** | **3,916** | **yes** |
+| 243 | 5 | `M1` | 1,458 | 5,471 | 1,608 | **8,537** | no |
+| 729 | 6 | `M0` | 48,114 | 16,410 | 1,608 | **66,132** | no |
 
 `PROPOSED` — the storage and register terms are `MEASURED`, the address path and
 decode terms are formulas nobody has built. The **comparison** survives errors in
@@ -184,7 +184,7 @@ discipline listed under *What would stop it* below as the most likely way this
 machine produces a plausible wrong answer — one missed seed, and nothing catches it
 but the answer being wrong. Paying 4 switches instead of 3 removes the failure mode
 instead of documenting it. Price: **+240 switches at the target size, 3,640 to
-3,880, against a budget of 4,806.** The safer structure fits, so at this scale it
+3,916, against a budget of 4,806.** The safer structure fits, so at this scale it
 is not a trade.
 
 `B3` also put a number on the budget itself: a 27-way one-trit read mux builds to
@@ -209,7 +209,7 @@ selects**, one per word. 13 < 27, so the mux cannot supply them and `D0` survive
 in the write path whatever `D1` does. The two share the MID detectors and nothing
 else — **12 switches out of a 603-switch address path, about 2%.**
 
-**So 243 words is decided: it stays out of reach**, at 8,501 against a 4,806
+**So 243 words is decided: it stays out of reach**, at 8,537 against a 4,806
 budget, and there is no structural saving left that would bring it back. The
 target machine is 81 words, and the six-program configuration is not available at
 any price this folder knows about.
@@ -222,7 +222,7 @@ way `B3` settled the read term.
 ### Phase 3 — the memory array, at 81 words
 
 Depends on 1, 2, and on the retention decision being made. Builds the target
-configuration. Registers the assembled cost against this file's 3,880.
+configuration. Registers the assembled cost against this file's 3,916.
 
 ### Phase 4 — decode `C1`, and the `C5` search
 

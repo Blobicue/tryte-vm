@@ -198,6 +198,32 @@ console.log('\n=== 5. REFERENCES ===');
   check('every trap has a description and a count',
     M.traps_encountered.every(t => t.id && t.description && typeof t.count === 'number'));
 
+  // Every recorded hash must be REACHABLE FROM HEAD, not merely present in the
+  // object store. Set B's results_at was written as the results commit's hash and
+  // that commit was then amended, so the recorded hash became a dangling object:
+  // `git cat-file -e` still found it locally and the chronology check passed, while
+  // on any fresh clone the hash does not exist and the suite fails. A check that
+  // passes only in the working copy that created the record is worse than none.
+  {
+    const unreachable = [];
+    for (const s of M.prediction_sets) {
+      for (const [field, hash] of [['registered_at', s.registered_at], ['results_at', s.results_at]]) {
+        if (!hash || hash === 'PENDING') continue;
+        try { execFileSync('git', ['merge-base', '--is-ancestor', hash, 'HEAD'], { cwd: ROOT, stdio: 'pipe' }); }
+        catch (e) { unreachable.push(`${s.id}.${field}=${hash}`); }
+      }
+    }
+    check(`every recorded commit is an ancestor of HEAD, not just present locally`,
+      unreachable.length === 0, `unreachable: ${unreachable.join(' ')}`);
+    check('   and a hash that is not an ancestor would be caught', (() => {
+      try {
+        execFileSync('git', ['merge-base', '--is-ancestor',
+          '0000000000000000000000000000000000000000', 'HEAD'], { cwd: ROOT, stdio: 'pipe' });
+        return false;
+      } catch (e) { return true; }
+    })());
+  }
+
   // The manifest is the ledger; AGENTS.md is the version an agent actually reads
   // before working here. They drifted: four classes sat in the ledger and were
   // never written up, so the operational document was a phase and a half behind the

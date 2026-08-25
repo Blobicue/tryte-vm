@@ -34,6 +34,20 @@ from switches and checked against it. Owner: `src/device.js`.
 - Leaf sharing by hash-consing, which is `tableKey` applied to a circuit
 - Whether the MID detector is itself minimal at 4 switches
 
+## The families are not interchangeable
+
+The decoded selector is cheaper (3 against 4) and won the adder. It **cannot read a
+stored value** unless its select cone is resolved first: its middle leg is gated by
+a computed detector output, `Z` on pass one, and unknown conduction bridges the
+selected word to a second word's rail, so the network oscillates. Measured at one
+level (`B1a`) and again on a 27-way three-level tree, where `tmux` reads all 27
+addresses and `dmux` reads the 9 whose every address trit is MID.
+
+`tmux` gates every leg on the select **input**, known on pass one, so it is immune
+by construction — and that immunity, not the switch count, is why the read path and
+the interconnect are budgeted in `tmux`. The cheaper part is the right choice only
+where the sources are rail-driven, which is where the adder uses it.
+
 ## Open questions
 
 - ~~Is the 4-switch MID detector minimal?~~ **Settled by the I set**: yes, and for

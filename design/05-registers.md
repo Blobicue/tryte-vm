@@ -24,10 +24,17 @@ back; and while enable is low, prove that changing the write data moves nothing.
   register file needs no read ports in the usual sense, which is a large and
   slightly suspicious saving. `MEASURED` for the axiom, `PROPOSED` for the
   conclusion.
-- **Nothing yet establishes that a cell's output can drive a selector *terminal***
-  rather than a gate. Everything built so far feeds gates. If a register value has
-  to pass *through* a selector as data, that is a pass-network read and it has not
-  been tested. `PROPOSED`
+- ~~**Nothing yet establishes that a cell's output can drive a selector
+  *terminal*** rather than a gate.~~ **It can** — set `B`. A stored trit passes
+  through a selector as data and reads back correctly, and the read disturbs it at
+  no pass of the solve, nor on a second consecutive read. `MEASURED`
+
+  With one condition that is now a design rule: **the decoded family cannot do it**
+  unless its select cone is resolved first, because its middle leg is gated by a
+  computed node that is unknown on pass one. The tree family gates every leg on the
+  select input and is immune. So a pass-network read over stored cells is built
+  from `tmux`, and paying 4 switches instead of 3 buys the removal of a failure
+  mode nothing would catch. See [`12-roadmap.md`](12-roadmap.md) phase 0.
 
 ## Options
 

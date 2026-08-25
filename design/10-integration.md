@@ -72,7 +72,7 @@ Three consequences for what to do next:
    machine that can be built and swept exhaustively and one that cannot.
 
    ~~A 27-word machine is a real machine and it is ~2,000 switches.~~ **It is
-   ~3,957 switches and it runs none of the eight programs** — every one of them
+   ~3,993 switches and it runs none of the eight programs** — every one of them
    places cells outside −13..13, and only `countdown` is even narrow enough to
    relocate into that range. Measured by assembling them; see
    [`12-roadmap.md`](12-roadmap.md), which picks **81 words under `M1`** instead as

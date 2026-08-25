@@ -126,9 +126,18 @@ for (const W of [27, 81, 243, 729]) {
       ['address path', ap.total, 'PROPOSED'],
       ['registers (3 x master-slave)', 3 * U.msRegister, 'MEASURED'],
       ['ALU adder', U.adder, 'MEASURED'],
-      ['ALU op select', 6 * 2 * U.dmux + 3 * U.detector, 'PROPOSED'],
+      // ALU op select stays DECODED: its source terminals are the ALU's outputs,
+      // which `L2` measured as rail-driven, not stored nodes. `B1a`'s failure needs
+      // a storage cell with a feedback loop on the terminal; a rail-driven source
+      // has none, and the control diagnostic in `terminal-audit.js` confirms dmux
+      // reads rail terminals cleanly with no precondition.
+      ['ALU op select (dmux — rail-driven sources)', 6 * 2 * U.dmux + 3 * U.detector, 'PROPOSED'],
       ['decode (C1, 12 lines)', 12 * 39 + 12, 'PROPOSED'],
-      ['interconnect (I0)', 3 * 6 * U.dmux * 2, 'PROPOSED'],
+      // Interconnect moves to tmux for the same reason the read path did: `I0`'s
+      // sources are REGISTER OUTPUTS — stored nodes — which is exactly the case
+      // `B1a` measured never settling under the decoded family. Applying the rule
+      // to the read path and not here would be the inconsistency this repo hunts.
+      ['interconnect (I0, tmux — stored sources)', 3 * 6 * U.tmux * 2, 'PROPOSED'],
     ];
     const total = lines.reduce((a, l) => a + l[1], 0);
     const rank = { MEASURED: 2, DERIVED: 1, PROPOSED: 0 };

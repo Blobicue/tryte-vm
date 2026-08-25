@@ -44,17 +44,22 @@ here that sits outside its own method — and the exhaustibility precondition in
 [`../METHOD.md`](../METHOD.md) stops applying to the thing the method was built to
 study. `MEASURED`
 
-**Is the address path one structure or two?** The largest term in the machine once
-retention lands, and [`07-memory.md`](07-memory.md) suspects the 729-way decoder
-and the 729-way read mux are the same object approached from opposite ends. If they
-are, the path roughly halves and the 243-word machine — six of the eight programs —
-comes back inside the sweep budget. Nobody has checked. This is now the
-highest-leverage **unbuilt** question in the project.
+**~~Is the address path one structure or two?~~ Two** — `B4`. A read mux has too
+few internal nodes to supply a write path's one-hot selects: 13 against 27 at that
+size. They share about 2%, not half. This was the only structural saving anyone had
+found for the term that dominates once retention lands, and it does not exist, so
+**243 words is settled — it stays outside the budget.** `MEASURED`
 
-**Can a stored value drive a selector's source terminal?** Everything built so far
-feeds selector **gates**. `I0`, the read mux and the address path all need the
-other thing. It is one cheap experiment and four of the six phases in
-[`12-roadmap.md`](12-roadmap.md) assume its answer.
+**~~Can a stored value drive a selector's source terminal?~~ Yes** — `B1b`, with
+nothing disturbed at any pass (`B2`). But the two selector families are not
+interchangeable for it: the decoded one never settles unless its select cone is
+resolved first, and the tree one is immune by construction. The read path and the
+interconnect are now budgeted in `tmux` at 4 switches rather than `dmux` at 3,
+which buys the removal of a failure mode nothing else would catch. `MEASURED`
+
+**What do the decoder and write-enable terms actually cost?** `B3` measured the
+read term and matched the budget exactly. These two are what is left, and they are
+now the largest `PROPOSED` numbers in the plan.
 
 **Does the seeded discipline compose?** Every state node must be seeded on every
 solve. At 4,374 nodes, one missing seed is one node at `Z`, which by `N6` poisons
