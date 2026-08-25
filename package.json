@@ -27,6 +27,7 @@
     "audit:collision": "node tools/collision-audit.js",
     "audit:headroom": "node tools/headroom-audit.js",
     "audit:detector": "node tools/detector-audit.js",
+    "audit:register": "node tools/register-audit.js",
     "findings": "node test/test-findings.js"
   },
   "license": "MIT",
