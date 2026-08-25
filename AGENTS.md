@@ -68,6 +68,18 @@ trailer.
 
 ---
 
+## Where the knowledge lives
+
+Four places, and they do different jobs. `README.md` narrates. `FINDINGS.json` is
+the claim ledger and owns every number. `design/` looks forward at what is not
+built. And `.claude/knowledge/doctrees/tryte-vm/` maps what is **known** — 13
+pillars, each declaring its own depth as `rich`, `seeded` or `stub`, each carrying
+an explicit list of open questions.
+
+Start there if you are orienting. It links outward rather than restating, so it
+cannot drift from the manifest; `test/test-doctree.js` fails the build if a
+pillar's declared depth disagrees with the overview's table.
+
 ## The method, generalised
 
 This file is the operating manual for *this* repository. The loop it describes —

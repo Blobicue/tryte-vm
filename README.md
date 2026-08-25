@@ -13,7 +13,7 @@ Fifty-eight predictions, fifty-three held, five failed — and the five produced
 than the forty-nine. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**649 checks**, all passing. Every number below is recomputed by one of them,
+**666 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -27,6 +27,7 @@ node src/run.js programs/multiply.tasm 7 5
 | **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + thirteen audits |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
 | **What is not built** | [`design/`](design/) — storage, memory, decode and sequencing, enumerated before anything is chosen |
+| **What is known** | [`.claude/knowledge/doctrees/tryte-vm/`](.claude/knowledge/doctrees/tryte-vm/) — 13 pillars, each declaring how well mapped it is |
 | **Every claim** | [`FINDINGS.json`](FINDINGS.json) — machine-readable, validated by `test/test-findings.js` |
 | **Before changing it** | [`AGENTS.md`](AGENTS.md) — pre-registration protocol, test standards, and the traps this repo has fallen into |
 | **Where it came from** | [`docs/origin/`](docs/origin/) — append-only provenance |

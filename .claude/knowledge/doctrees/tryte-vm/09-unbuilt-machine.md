@@ -1,0 +1,57 @@
+---
+name: unbuilt-machine
+description: Storage, registers, interconnect, memory, decode and sequencing. Designed and enumerated in design/, built nowhere.
+type: reference
+last_updated: 2026-08-25
+---
+
+# The unbuilt machine
+
+The datapath arithmetic exists. A **computer** needs storage, a register file,
+addressed memory, instruction decode and sequencing, and none of those exists at
+switch level. Owner: [`design/`](../../../../design/), twelve documents.
+
+## What is established
+
+- **A trit can be stored, and three of the four obvious routes are forbidden.** A
+  cross-coupled pair holds all three trits when seeded and goes unresolved from
+  cold (`N7`). Writing from an input fails (`T5`). Writing by overpowering the loop
+  fails (`N4`), because this model has no strength. **Opening the feedback loop
+  works** - all three trits, 19 switches per cell. All measured.
+- **Memory is the machine.** 729 words of six trits is roughly 48,000 switches
+  against about 3,700 for everything else - about **93%**. The six-trit adder,
+  three phases of work and the best result in the project, is about **1%**.
+- **So the storage cell is the highest-leverage decision in the project**, by a
+  factor of five, and charge retention is the model change that would move it.
+- **The sequencer may not be made of switches.** Under seeded semantics the step
+  boundary lives in the harness, which means "a computer built of simulated ternary
+  transistors" would mean a *datapath* built of them. That concession is written
+  down rather than left to be discovered.
+
+## Sub-topics (the rabbit hole)
+
+- Ten storage-cell options, including one that costs zero switches by conceding
+- Selector trees versus a decoded bus, and where contention lives
+- Whether the address decoder and the read multiplexer are one structure
+- Whether an ISA renumbering could make decode disappear entirely
+
+## Open questions
+
+- **Can a 50,000-device machine be simulated at all?** Untested, and if not, most
+  of the design is moot.
+- Does the seeded discipline compose across 4,374 state nodes? One missing seed
+  poisons whatever it gates, and nothing would catch it but a wrong answer.
+- Do a register read and write in the same solve race? If not, master-slave cells
+  are unnecessary and the register file halves.
+- Is `T5` going to bite a third time? Three axioms have surfaced this way already.
+
+## Related pillars
+
+- [05-axioms.md](05-axioms.md) - which axioms constrain this, and how hard
+- [08-cost-currencies.md](08-cost-currencies.md) - the currencies with no instrument
+- [01-instruction-set.md](01-instruction-set.md) - what the machine must decode
+
+## Depth status
+
+**Stub** (2026-08-25). The design space is enumerated in `design/`; nothing is
+chosen and nothing is built. This pillar fills in as the machine does.
