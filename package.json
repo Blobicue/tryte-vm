@@ -34,7 +34,8 @@
     "budget": "node tools/budget.js",
     "audit:terminal": "node tools/terminal-audit.js",
     "audit:memory": "node tools/memory-audit.js",
-    "audit:interconnect": "node tools/interconnect-audit.js"
+    "audit:interconnect": "node tools/interconnect-audit.js",
+    "audit:iterhash": "node tools/iterhash-audit.js"
   },
   "license": "MIT",
   "private": true
