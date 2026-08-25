@@ -964,7 +964,7 @@
       "subject": "Whether 251,505 appearing twice, from unrelated constructions, is anything",
       "tool": "tools/collision-audit.js",
       "registered_at": "43c29b8",
-      "results_at": "PENDING",
+      "results_at": "cd581ef",
       "asserted_in": "test/test-collision.js",
       "predictions": [
         {
@@ -1042,9 +1042,10 @@
               279936,
               4489
             ],
-            "halves_derived_from": "which library each tool imports: monoid-lib or device.js"
+            "halves_derived_from": "which library each tool imports: monoid-lib or device.js",
+            "self_reference_excluded": "the censusing set, matched by its tool name"
           },
-          "note": "The instrument produced a false verdict first, and this is the fourth time that has happened here. The registration said prediction sets THAT MEASURE DIFFERENT THINGS and the first loop dropped the clause, counting 279,936 as colliding with itself because two sets record the same adder count, and 4,489 likewise because two sets share a sampling stride. Corrected by classifying each set by which library its tool imports -- derived, not hardcoded -- and requiring a collision to cross that line. The disambiguation rule was chosen after the first run, which is a degree of freedom worth declaring; it implements a clause that was in the registration beforehand, and the two excluded values are restatements of one quantity under any reading."
+          "note": "The instrument produced a false verdict first, and this is the fourth time that has happened here. The registration said prediction sets THAT MEASURE DIFFERENT THINGS and the first loop dropped the clause, counting 279,936 as colliding with itself because two sets record the same adder count, and 4,489 likewise because two sets share a sampling stride. Corrected by classifying each set by which library its tool imports -- derived, not hardcoded -- and requiring a collision to cross that line. The disambiguation rule was chosen after the first run, which is a degree of freedom worth declaring; it implements a clause that was in the registration beforehand, and the two excluded values are restatements of one quantity under any reading. Then a second correction, and a better one. Recording this very result put 279,936 and 4,489 into the manifest again -- as the values G4 had just EXCLUDED -- and on the next run they crossed the halves and G4 failed. The measurement had become part of the corpus it measures. A census cannot count the set that is the census; the tool and the test now drop it by matching the censusing tool name rather than an id."
         }
       ]
     }
@@ -1206,6 +1207,11 @@
       "id": "T-CLAIM-NARROWED-BY-A-DESIGN",
       "count": 2,
       "description": "A measured result stated as a property of the SUBJECT when it was a property of the DESIGN measured. Z2 swept buffer placements in one family of trees and concluded a depth floor for ternary at any price; a different selector beat it. E4, and Y2 and Z5 before it, measured raw-select circuits and concluded settling time is never data-dependent; a decoded selector made it data-dependent. Both times the numbers were right and the noun was too big. Before writing ternary, or this model, ask whether the sweep visited more than one design."
+    },
+    {
+      "id": "T-CENSUS-COUNTS-ITSELF",
+      "count": 1,
+      "description": "A measurement over a corpus that the measurement is then written into. G4 surveyed the manifest for repeated integers, and recording its own result added those integers to the manifest a second time -- as the values it had excluded -- so the next run found them colliding and the prediction failed against its own record. Nothing was wrong with the world or the first answer. If a result is stored where it will later be read as data, exclude the storing record from the read, and derive the exclusion from something structural rather than an id."
     }
   ]
 }

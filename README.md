@@ -9,15 +9,15 @@ its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
 before it was measured, in its own commit, and every failed prediction was kept.
-Fifty-four predictions, forty-nine held, five failed — and the five produced more
+Fifty-eight predictions, fifty-three held, five failed — and the five produced more
 than the forty-nine. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**633 checks**, all passing. Every number below is recomputed by one of them,
+**634 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
-npm test              # everything (~55s; the monoid and switch sweeps are real work)
+npm test              # everything (~2 min; the monoid and switch sweeps are real work)
 npm run build         # rebuild the interactive page from src/
 node src/run.js programs/multiply.tasm 7 5
 ```
@@ -59,7 +59,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-Twelve prediction sets, registered before their runs. **49 held, 5 failed** — the
+Thirteen prediction sets, registered before their runs. **53 held, 5 failed** — the
 failures are kept, and four of the five produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
@@ -79,6 +79,7 @@ with registering commits and the tests that assert each one, in
 | **Z1–Z5** | pricing the free mid rail and the missing restoration | 4 held, **Z2 failed** |
 | **E1–E5** | the decoded-selector adder | 3 held, **E4 and E5 failed** |
 | **F1–F4** | deriving the decoded adder's pass count | all held |
+| **G1–G4** | whether the same number twice meant anything | all held |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:

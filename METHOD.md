@@ -13,8 +13,8 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-Twelve prediction sets, **54 registered predictions, 49 held, 5 failed.** Twelve
-distinct failure classes, which bit **20 times** between them. Fourteen findings
+Thirteen prediction sets, **58 registered predictions, 53 held, 5 failed.** Thirteen
+distinct failure classes, which bit **22 times** between them. Fourteen findings
 measured but never registered, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
@@ -206,6 +206,7 @@ how well naming a thing prevents it.
 | **checks that forbid healthy states** | a consistency check treating a legitimate intermediate state as a defect. During a registration there is deliberately one more tool than there are results; that gap *is* the protocol working. |
 | **searching where a check would do** | finding a value by scanning when two probes would confirm it. Cost eighty solves per case where two would do, and did not finish. |
 | **a claim narrowed by a design** | the numbers right and the noun too big. Bit twice. Before writing "X can never" or "this model always", ask whether what you swept visited more than one design. |
+| **a census that counts itself** | a measurement over a corpus that the measurement is then written into. A survey of repeated numbers in the record failed on its next run, because recording its own answer added those numbers to the record. Nothing was wrong with the first answer, or with the world. |
 
 Two further shapes, from the prose rather than the code:
 

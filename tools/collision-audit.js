@@ -210,7 +210,14 @@ console.log('\n--- G4  how rare is a collision of this size in this repository? 
     if (/require\([^)]*device\.js/.test(src)) return 'circuit';
     return 'other';
   };
-  const sides = new Map(M.prediction_sets.map(st => [st.id, half(st)]));
+  // A census of the manifest must not count the set that IS the census. Recording
+  // G4's result put 279,936 and 4,489 into the manifest a second time -- as the
+  // values G4 had just EXCLUDED -- and on the next run they looked like
+  // collisions. The measurement became part of the corpus it measures. Excluded
+  // by matching the censusing tool, not by hardcoding an id.
+  const CENSUS = 'collision-audit.js';
+  const sets = M.prediction_sets.filter(st => !st.tool.endsWith(CENSUS));
+  const sides = new Map(sets.map(st => [st.id, half(st)]));
   console.log('      halves, derived from what each tool imports:');
   for (const side of ['vocabulary', 'circuit', 'other']) {
     const ids = [...sides].filter(([, v]) => v === side).map(([k]) => k);
@@ -218,7 +225,7 @@ console.log('\n--- G4  how rare is a collision of this size in this repository? 
   }
 
   const where = new Map();
-  for (const st of M.prediction_sets) {
+  for (const st of sets) {
     for (const p of st.predictions) {
       const ints = [...JSON.stringify(p.measured || {}).matchAll(/(\d{4,})/g)].map(x => Number(x[1]));
       for (const v of new Set(ints)) {
