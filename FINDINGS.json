@@ -788,7 +788,7 @@
             "pairs_more_than_13": 0,
             "buckets_sum_to_total": true
           },
-          "note": "FAILED on universality, not on arithmetic. Thirteen is correct as the WORST case, which is what the derivation actually bounded; the range is 9 to 13 and it DEPENDS ON THE OPERANDS. First circuit in the repository whose settling time is arithmetic rather than structural, and it scoped Y2 and Z5. Their independence-of-data result is a property of gating every arm on the RAW select, which makes all conduction known at one instant so nothing can settle early. Decoding splits the gating across two dependency levels: with the carry-in LOW the LOW arm already conducts while the MID arm gate is still unknown, so if both arms lead to the same rail the node is determined a pass early, by N3. Six of the carry table nine leaves have their LOW and MID cells equal; none of the sum table do. The three outcomes were separated on a second run: 279,936 settle in fewer than thirteen, 251,505 in exactly thirteen, and 0 in more. So 128 of every 243 settle early, and thirteen is a genuine ceiling rather than merely the predicted number."
+          "note": "FAILED on universality, not on arithmetic. Thirteen is correct as the WORST case, which is what the derivation actually bounded; the range is 9 to 13 and it DEPENDS ON THE OPERANDS. First circuit in the repository whose settling time is arithmetic rather than structural, and it scoped Y2 and Z5. Their independence-of-data result is a property of gating every arm on the RAW select, which makes all conduction known at one instant so nothing can settle early. Decoding splits the gating across two dependency levels: with the carry-in LOW the LOW arm already conducts while the MID arm gate is still unknown, so if both arms lead to the same rail the node is determined a pass early, by N3. Six of the carry table nine leaves have their LOW and MID cells equal; none of the sum table do. The three outcomes were separated on a second run: 279,936 settle in fewer than thirteen, 251,505 in exactly thirteen, and 0 in more. So 128 of every 243 settle early, and thirteen is a genuine ceiling rather than merely the predicted number. The count is no longer unexplained: the F set derives it exactly. The six agreeing carry leaves enable the saving, and the sum tree never being early is what decides which positions can use it."
         },
         {
           "id": "E5",
@@ -806,6 +806,155 @@
             "detectors": 18
           },
           "note": "The ratio half held exactly: 1.93 and 1.64, never below 1.36 at any width from one trit to six, and 3.21x per digit against a log2(3) break-even of 1.585. The mid-rail half was BACKWARDS. The decoded design taps vmid 186 times against 168 -- one more per detector, eighteen of them -- because each detector reaches vmid through its own series pair. So the design that wins on switch count does it partly by leaning harder on the rail Z1 established that nobody is charging for. Kept as FAILED on the X2 precedent: a prediction with a refuted half is not trimmed to the half that survived."
+        }
+      ]
+    },
+    {
+      "id": "F",
+      "subject": "Where 128/243 comes from — the decoded adder’s pass count, derived",
+      "tool": "tools/passcount-audit.js",
+      "registered_at": "bf1d4f1",
+      "results_at": "cbc7528",
+      "asserted_in": "test/test-passcount.js",
+      "predictions": [
+        {
+          "id": "F1",
+          "claim": "the rule is exact pair by pair, not merely in aggregate",
+          "outcome": "HELD",
+          "measured": {
+            "rule": "passes = (2n+1) - #{ i in 1..n-2 : c_i != 0 and carry(s_i + c_i) == carry(s_i) }",
+            "exhaustive_widths": [
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "pairs": [
+              81,
+              729,
+              6561,
+              59049,
+              531441
+            ],
+            "disagreements": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "seconds_at_width_6": 1261,
+            "distribution_at_width_6": {
+              "9": 108,
+              "10": 4428,
+              "11": 54108,
+              "12": 221292,
+              "13": 251505
+            }
+          },
+          "note": "Reproducing a total is much weaker than reproducing it term by term, so this was registered in the strong form. Zero disagreements against the actual solver over 597,861 pairs across five widths, every one of them exhaustive. The distribution sums to 531,441."
+        },
+        {
+          "id": "F2",
+          "claim": "the sum tree can never settle early, and that asymmetry is the whole result",
+          "outcome": "HELD",
+          "measured": {
+            "combinations": 18,
+            "sum_tree_agreements": 0,
+            "carry_tree_agreements": 12
+          },
+          "note": "Early settling needs the arm conducting on the raw select and the arm still waiting on the MID detector to lead to the same rail. For the carry tree that is carry(s+c) == carry(s), true for 12 of 18, because the carry function is flat over stretches. For the sum tree it is lowTrit(s+c) == lowTrit(s), true for none of them, because adding one always moves a low trit. So only the carry tree is ever early; the top position SUM is always the last node to move; and a saving at the top position is therefore invisible. That is exactly why the earlier naive count over-predicted by one, always in the same direction."
+        },
+        {
+          "id": "F3",
+          "claim": "the walk over the carry state gives 251,505 exactly",
+          "outcome": "HELD",
+          "measured": {
+            "matrix_from_low": [
+              2,
+              1,
+              0
+            ],
+            "matrix_from_middle": [
+              1,
+              7,
+              1
+            ],
+            "matrix_from_high": [
+              0,
+              1,
+              2
+            ],
+            "vectors": [
+              [
+                1,
+                7,
+                1
+              ],
+              [
+                9,
+                51,
+                9
+              ],
+              [
+                69,
+                375,
+                69
+              ],
+              [
+                513,
+                2763,
+                513
+              ],
+              [
+                3789,
+                20367,
+                3789
+              ]
+            ],
+            "final_sum": 27945,
+            "times_nine": 251505,
+            "early": 279936,
+            "fraction": "128/243"
+          },
+          "note": "The matrix is derived from the adder own tables inside the check rather than written down, and comes out as nine ways from the middle carry state and three from each end. The 3^5 in the denominator is four constrained positions plus one free top digit."
+        },
+        {
+          "id": "F4",
+          "claim": "and the same walk predicts every other width",
+          "outcome": "HELD",
+          "measured": {
+            "widths": [
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "derived_counts": [
+              81,
+              621,
+              4617,
+              34101,
+              251505
+            ],
+            "measured_counts": [
+              81,
+              621,
+              4617,
+              34101,
+              251505
+            ],
+            "domains": [
+              81,
+              729,
+              6561,
+              59049,
+              531441
+            ]
+          },
+          "note": "Checked against the actual circuit exhaustively at all five widths. A rule fitted to six trits rather than derived would come apart here. It does not."
         }
       ]
     }

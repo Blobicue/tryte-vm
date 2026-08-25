@@ -5,7 +5,7 @@ arithmetic, a 25-instruction machine, an assembler, an emulator written in its o
 assembly, and twelve audits establishing exactly what its instruction set can reach
 and what the device model beneath it rests on.
 
-**601 checks**, all passing. Every number below is recomputed by one of them.
+**602 checks**, all passing. Every number below is recomputed by one of them.
 
 ```bash
 npm test              # everything (~55s; the monoid and switch sweeps are real work)
@@ -49,7 +49,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-Eleven prediction sets, registered before their runs. **45 held, 5 failed** — the
+Twelve prediction sets, registered before their runs. **49 held, 5 failed** — the
 failures are kept, and both produced the most useful results here. Full detail,
 with registering commits and the tests that assert each one, in
 [`FINDINGS.json`](FINDINGS.json).
@@ -67,6 +67,7 @@ with registering commits and the tests that assert each one, in
 | **Y1–Y5** | the carry cell and the adder, built from switches | all held |
 | **Z1–Z5** | pricing the free mid rail and the missing restoration | 4 held, **Z2 failed** |
 | **E1–E5** | the decoded-selector adder | 3 held, **E4 and E5 failed** |
+| **F1–F4** | deriving the decoded adder's pass count | all held |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:
@@ -356,10 +357,7 @@ the raw select while the MID arm's gate is still unknown — and if both arms le
 the *same rail*, the node is determined anyway, a whole pass early. **Six of the
 carry table's nine leaves have their LOW and MID cells equal.** None of the sum
 table's do. The adder settles faster on operands that happen to route through
-those six. But they only *enable* it — they do not explain the count. The carry
-pattern alone does not determine the pass count, and counting enabled positions
-over-predicts the saving, always by exactly one, so savings do not simply compound.
-Why is open.
+those six. **The count is derived below**, exactly.
 
 What is measured, with the three outcomes separated rather than merged:
 **279,936** of the 531,441 pairs settle in *fewer* than thirteen passes, **251,505**
@@ -367,6 +365,72 @@ in exactly thirteen, and **none** in more — so thirteen is a real ceiling, and
 251,505 — which is, for no reason
 anyone here can give, the same number the vocabulary audits found for what
 positionwise logic plus one carrying `ADD` reaches at width two.
+
+### Where 128/243 comes from
+
+E4 measured that the decoded adder settles early on 279,936 of its 531,441
+operand pairs and could not say why. This says why, and the account is exact.
+
+**Each digit asks a question that takes an extra beat.** Its selectors are gated
+partly on the raw carry coming in and partly on a detector answering *"is that
+carry the middle value?"* — and the detector's answer arrives one pass later. But
+sometimes the answer does not matter: if the arm already conducting and the arm
+still waiting both lead to the **same rail**, the node is determined anyway.
+
+For the **carry** output that happens often. For the **sum** output it never
+happens. That asymmetry is the whole result:
+
+| | condition for settling early | true on |
+|---|---|---|
+| carry tree | `carry(s+c) == carry(s)` | **12 of 18** |
+| sum tree | `lowTrit(s+c) == lowTrit(s)` | **0 of 18** |
+
+Adding one always moves a low trit. The carry function, by contrast, is flat over
+stretches — several different sums produce the same carry. So only the carry tree
+is ever early, and **the top digit's sum is always the last thing to move**, which
+means a saving at the top position is invisible. That is precisely why an earlier
+count over-predicted by exactly one, always in the same direction.
+
+**The rule**, then, with *s* = the two operand digits summed:
+
+> passes = (2n+1) − #{ positions *i*, excluding the bottom and the top, where the
+> carry in is non-zero and `carry(s+c) == carry(s)` }
+
+The bottom position is excluded because its carry-in is zero. Four positions can
+save, which is where the 3⁵ comes from.
+
+**The count** is then a walk over the carry state, with the saving moves deleted —
+a matrix derived from the adder's own tables, not written down:
+
+| from | → −1 | → 0 | → +1 | total |
+|---|---|---|---|---|
+| **0** | 1 | 7 | 1 | 9 |
+| **−1** | 2 | 1 | 0 | 3 |
+| **+1** | 0 | 1 | 2 | 3 |
+
+```
+(1, 7, 1) → (9, 51, 9) → (69, 375, 69) → (513, 2763, 513) → (3789, 20367, 3789)
+                                                     sum 27,945  × 9 = 251,505
+```
+
+251,505 pairs take the full thirteen passes, so 279,936 settle early — **128/243**,
+exactly the measured figure.
+
+**Checked against the real circuit, pair by pair, exhaustively at five widths.**
+Not the total: every individual pair.
+
+| trits | pairs | rule wrong on | take exactly 2n+1 | derived |
+|---|---|---|---|---|
+| 2 | 81 | 0 | 81 | 81 |
+| 3 | 729 | 0 | 621 | 621 |
+| 4 | 6,561 | 0 | 4,617 | 4,617 |
+| 5 | 59,049 | 0 | 34,101 | 34,101 |
+| 6 | 531,441 | 0 | 251,505 | 251,505 |
+
+And every clause is shown load-bearing: counting the top position breaks the rule,
+counting the bottom one does not, and swapping the sum table for the carry table
+breaks it. The old over-prediction is accounted for *case by case* — the two rules
+differ on exactly the pairs where the top position would have saved.
 
 ## The idea, without the jargon
 
