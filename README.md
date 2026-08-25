@@ -5,7 +5,7 @@ arithmetic, a 25-instruction machine, an assembler, an emulator written in its o
 assembly, and ten audits establishing exactly what its instruction set can reach
 and what the device model beneath it rests on.
 
-**541 checks**, all passing. Every number below is recomputed by one of them.
+**542 checks**, all passing. Every number below is recomputed by one of them.
 
 ```bash
 npm test              # everything (~55s; the monoid and switch sweeps are real work)
@@ -49,7 +49,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-Nine prediction sets, registered before their runs. **38 held, 2 failed** — the
+Ten prediction sets, registered before their runs. **43 held, 2 failed** — the
 failures are kept, and both produced the most useful results here. Full detail,
 with registering commits and the tests that assert each one, in
 [`FINDINGS.json`](FINDINGS.json).
@@ -65,6 +65,7 @@ with registering commits and the tests that assert each one, in
 | **W1–W3** | the gates rebuilt from switches, and what they cost | all held |
 | **X1–X5** | the axioms the device model rests on | 4 held, **X2 failed** |
 | **Y1–Y5** | the carry cell and the adder, built from switches | all held |
+| **Z1–Z5** | pricing the free mid rail and the missing restoration | all held |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:
@@ -76,6 +77,7 @@ pre-registration record is not inflated by facts that were never at risk:
 - **Base 3 is the cheapest integer radix**, by the measure Setun was argued on.
 - **Three-way branching wins about half an instruction** per decision point, and nothing when the decision is binary.
 - **The standard ternary inverter is not the only four-switch `NEG`.** Exhaustive search over 148,995 networks finds four, and it is one of them.
+- **An input gates but never sources.** A conducting switch between an input and a node transfers nothing; reachability starts at rails and only at rails.
 
 ---
 

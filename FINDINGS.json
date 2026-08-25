@@ -598,6 +598,123 @@
           "note": "W3 measured 0.80 for MIN and predicted it should not be believed. Both numbers are real and the currency did not change: MIN is positionwise, so six wide slices beat ten narrow ones, while an adder is a table and a selector tree over three inputs is 3^3 wide in ternary against 2^3 in binary. The per-digit saving is spent on tree width. The binary adder compared against was itself checked exhaustively at five bits, because a cost comparison against a circuit that does not work is not a comparison."
         }
       ]
+    },
+    {
+      "id": "Z",
+      "subject": "The two limits every switch count in this repository was quoted under",
+      "tool": "tools/midrail-audit.js",
+      "registered_at": "441a96a",
+      "results_at": "0c3fd03",
+      "asserted_in": "test/test-midrail.js",
+      "predictions": [
+        {
+          "id": "Z1",
+          "claim": "the free mid rail is load-bearing for exactly one published result, and it is the one that favoured ternary",
+          "outcome": "HELD",
+          "measured": {
+            "w3_ternary_switches": 48,
+            "w3_binary_switches": 60,
+            "w3_ratio": 0.8,
+            "w3_mid_taps": 6,
+            "generator_switches_for_parity": 12,
+            "per_tap": 2,
+            "generator_switches_for_reversal": 13,
+            "adder_ternary_switches": 624,
+            "adder_binary_switches": 280,
+            "adder_parity_at": 0,
+            "adder_reversible": false
+          },
+          "note": "T5 says the generator cannot be built inside the model at all: a divider between vss and vdd is two rails reaching one node, which is contention. So this break-even is a charge from outside the vocabulary rather than a circuit that could be drawn here. What can be said exactly is how dear it would have to be, and twelve switches is not dear."
+        },
+        {
+          "id": "Z2",
+          "claim": "buffering cannot take ternary pass depth below 4, and binary gets 3 for free",
+          "outcome": "HELD",
+          "measured": {
+            "ternary_depths": {
+              "none": 6,
+              "mid": 4,
+              "leafmid": 4
+            },
+            "binary_depths": {
+              "none": 3,
+              "mid": 2,
+              "leafmid": 2
+            },
+            "ternary_floor": 4,
+            "binary_floor": 2,
+            "binary_unrestored": 3
+          },
+          "note": "The reason is structural and traceable to an earlier result: a selector LOW or HIGH arm is one switch, but its MID arm is the series pair X4 proved irreducible, and a restoring buffer output already sits two hops from a rail. Two plus two. So the best depth ternary can buy at any price is worse than the depth binary has for nothing. D3 inclusive threshold is what bought the middle level; this is the invoice."
+        },
+        {
+          "id": "Z3",
+          "claim": "what restoration costs, at each level of it",
+          "outcome": "HELD",
+          "measured": {
+            "ternary": {
+              "none": 624,
+              "mid": 912,
+              "leafmid": 1776
+            },
+            "ternary_shared": {
+              "none": 384,
+              "mid": 672,
+              "leafmid": 1056
+            },
+            "binary": {
+              "none": 280,
+              "mid": 440,
+              "leafmid": 760
+            },
+            "binary_shared": {
+              "none": 220,
+              "mid": 380,
+              "leafmid": 580
+            },
+            "ratio_unrestored": 2.229,
+            "ratio_restored": 3.257,
+            "mid_taps_ternary": {
+              "none": 168,
+              "mid": 240,
+              "leafmid": 456
+            }
+          },
+          "note": "Restoring makes the ratio worse, not better, and increases the mid-rail tap count rather than reducing it. Buffering both levels costs nearly double buffering one and buys no depth at all on either side, because the cheaper option already reaches both floors."
+        },
+        {
+          "id": "Z4",
+          "claim": "the restored circuits still add",
+          "outcome": "HELD",
+          "measured": {
+            "variants": 6,
+            "sum_wrong": 0,
+            "carry_wrong": 0,
+            "sampling_stride_ternary": 11,
+            "sampling_stride_binary": 37
+          },
+          "note": "At risk because a restoring buffer is an inverter driven BY a pass network and driving another one, which is the exact arrangement stated limit 2 handles by assumption. If that assumption were doing work, this is where it would have shown."
+        },
+        {
+          "id": "Z5",
+          "claim": "restoration costs passes, and that is the only way delay appears in this model",
+          "outcome": "HELD",
+          "measured": {
+            "ternary_passes": {
+              "none": 7,
+              "mid": 19,
+              "leafmid": 31
+            },
+            "binary_passes": {
+              "none": 11,
+              "mid": 31,
+              "leafmid": 51
+            },
+            "pairs_differing_by_data": 0
+          },
+          "note": "All six counts were derived by hand before the run from gate-dependency depth: each inverter is its own stage, so a two-inverter buffer adds two per level, times the number of digits, plus the pass that observes nothing changed. Still independent of the data, exactly as Y2 found for the unrestored circuit. Depth here is structural, never arithmetic."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -672,6 +789,13 @@
       "claim": "The sum tree of a balanced-ternary full adder has only three distinct leaf selectors of nine, and the carry tree five, because both depend on a+b rather than on a and b separately.",
       "evidence": "hash-consing the leaf selectors takes the six-trit adder from 624 switches to 384",
       "asserted_in": "test/test-adder.js"
+    },
+    {
+      "id": "F-INPUTS-DO-NOT-SOURCE",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "An input gates a device and terminates a path, but never sources one: a conducting device between an input and a node transfers nothing, and the node is Z. Reachability starts at rails and only at rails.",
+      "evidence": "proved as the second half of T5; no circuit in the repository had ever used an input as a pass terminal, so nothing had depended on it either way",
+      "asserted_in": "test/test-axioms.js"
     }
   ],
   "traps_encountered": [
@@ -719,6 +843,16 @@
       "id": "T-FAKE-RANDOM",
       "count": 1,
       "description": "A sampling instrument that was not sampling. A seeded generator multiplied a 31-bit seed by a 31-bit constant, which overflows the 53 bits a JS number holds exactly, so the low-order bits it returned were rounding noise: three of its eight node names were drawn essentially never and no random network ever floated or contended. It looked like 400 trials and was closer to 400 repetitions of one. Random input needs a vacuity check on what it actually produced, not on how many times it ran."
+    },
+    {
+      "id": "T-CHECK-FORBIDS-HEALTHY-STATE",
+      "count": 1,
+      "description": "A consistency check that treated a legitimate intermediate state as a defect. It demanded that tools/ and the manifest prediction sets be equal in number; they are equal only between phases, because registering a tool predictions and recording its results are deliberately separate commits. During a registration there is one more tool than there are sets, and that is the protocol working. The check now names the pending tool instead of failing on it."
+    },
+    {
+      "id": "T-SEARCH-WHERE-A-CHECK-WOULD-DO",
+      "count": 1,
+      "description": "An instrument that searched for a value it could have verified. Finding the exact pass count by scanning k = 1 upward cost up to eighty solves per input on a 1,776-switch network and did not finish inside ten minutes. The count is the same for every input, so it needs finding once and checking twice thereafter -- settles at k, does not settle at k-1. Two solves, not eighty."
     }
   ]
 }
