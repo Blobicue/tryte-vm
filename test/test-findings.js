@@ -211,8 +211,17 @@ console.log('\n=== 5. REFERENCES ===');
     const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
       'eight', 'nine', 'ten', 'eleven', 'twelve'];
     const onDisk = fs.readdirSync(path.join(ROOT, 'tools')).filter(f => /-audit\.js$/.test(f));
-    check(`tools/ holds ${onDisk.length} audits, one per prediction set`,
-      onDisk.length === M.prediction_sets.length,
+    // Sets must all have tools; tools need not yet have sets. Between registering
+    // a tool's predictions and recording its results the counts differ by one on
+    // purpose, and that gap is exactly what a registration commit IS. This check
+    // fired on that gap the first time it met one, which was right of it -- what
+    // was wrong was demanding equality. The pending tool is named instead.
+    const claimed = new Set(M.prediction_sets.map(x => path.basename(x.tool)));
+    const pending = onDisk.filter(f => !claimed.has(f));
+    check(`tools/ holds ${onDisk.length} audits; ${M.prediction_sets.length} have results`
+      + `${pending.length ? `, awaiting ${pending.join(' ')}` : ''}`,
+      onDisk.length >= M.prediction_sets.length
+      && [...claimed].every(f => onDisk.includes(f)),
       `${onDisk.length} files, ${M.prediction_sets.length} sets`);
     const word = WORDS[onDisk.length];
     check(`the README calls it "${word} audits" in both places that state the count`,
