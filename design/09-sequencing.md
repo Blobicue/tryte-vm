@@ -47,12 +47,14 @@ lives in the harness, then the machine is a combinational function and the
 rather than discovered later: under `Q0`, "a computer built of simulated ternary
 transistors" means a **datapath** built of them, driven by a loop that is not.
 
-**Q1 is what actually makes writes safe.** Two-phase non-overlapping clocking
-exists precisely so a value being written cannot race the value being read, and
-the loop-breaking write from [`04-storage.md`](04-storage.md) is already a
-two-phase structure — `we` and `hold` are the two phases. So `Q1` may not be an
-option so much as a description of what the storage cell already requires.
-`DERIVED`
+**Q1 is not an option, it is a requirement, and that is now measured.** `J4`
+showed the single latch is transparent while written; `K1` showed a master-slave
+pair on opposite phases reads the value from before the step; and `K4` showed that
+asserting both phases at once collapses it straight back to the transparent latch.
+
+So two-phase **non-overlapping** clocking is load-bearing here rather than
+conventional, and the failure it prevents has been produced deliberately to prove
+it. A register is 180 switches on primary inputs and 132 in place. `MEASURED`
 
 **Q3 is the one that would make this a real machine** and it is also the one most
 likely to be impossible here: a handshake is a feedback loop, and `N7` says a

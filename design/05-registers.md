@@ -37,7 +37,7 @@ back; and while enable is low, prove that changing the write data moves nothing.
 | **R1** | six cells, enable **decoded** once and distributed | one detector shared across the register instead of per cell — the same trick that beat the selector tree | ~66 + one decoder | PROPOSED |
 | **R2** | six S3 dynamic cells | needs `M1` | **~12** | PROPOSED |
 | **R3** | no register circuit — the tryte lives in the solve's seed | `S7` at register scale | **0** | PROPOSED |
-| **R4** | master–slave, for a register that can be read and written in the same step | needs `S4` | ~228 | PROPOSED |
+| **R4** | master–slave, for a register that can be read and written in the same step | two latches on opposite phases | **180** on primary inputs, **132** in place | MEASURED (`K2`) — and REQUIRED, see below |
 | **R5** | shift register — write serially, one trit per step | trades area for steps; a real historical design | ~66 + shift wiring | PROPOSED |
 
 **R1 is worth attention** because it is the same structural move that produced
