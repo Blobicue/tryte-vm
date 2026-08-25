@@ -29,6 +29,73 @@
  *   'Z'  floating — connected to no rail
  *   'X'  unresolved — contended between rails, or dependent on an unknown
  *
+ *
+ * ------------------------------------------------------------------------------
+ * AXIOMS. Everything above this layer rests on these, so they are stated here and
+ * PROVED in test/test-axioms.js — exhaustively, since the domains are tiny. That
+ * test also checks completeness: every id below must have a proof, and every
+ * proof must name an id here, so neither list can drift from the other.
+ *
+ * THE DEVICE — one switch, in isolation.
+ *
+ *   D1  DETERMINISM. Conduction is a function of the gate's level alone. No
+ *       history, no hysteresis, no dependence on the terminals.
+ *   D2  MONOTONICITY. An n-type's conduction is non-decreasing in gate level; a
+ *       p-type's is non-increasing. This is what makes it a THRESHOLD device
+ *       rather than an arbitrary one, and it is the property the gate designs
+ *       actually exploit.
+ *   D3  INCLUSIVE THRESHOLD. n(t) conducts AT t as well as above it; p(t) conducts
+ *       AT t as well as below. The two therefore overlap at exactly g = t — and
+ *       that overlap is load-bearing, not incidental: it is the only way this
+ *       model isolates the middle level. See X1.
+ *   D4  BIDIRECTIONALITY. The two terminals are interchangeable; a switch passes
+ *       signal either way, as a pass transistor does and a logic gate does not.
+ *   D5  GATE ISOLATION. The gate controls and does not conduct. It draws nothing
+ *       and is never a terminal of its own device.
+ *   D6  UNKNOWN IS NOT OFF. An undetermined gate yields undetermined conduction.
+ *       Treating it as non-conducting is the classic switch-simulator bug: it
+ *       makes broken circuits look clean.
+ *
+ * THE NETWORK — how node levels are resolved.
+ *
+ *   N1  RAILS ARE FIXED. Nothing in the network changes a rail's level.
+ *   N2  SOURCES ARE TERMINALS. A path stops at any driven node. Signal does not
+ *       pass THROUGH a rail or an input. Violating this makes correct circuits
+ *       resolve to X, which is a bug this model actually had.
+ *   N3  ONE RAIL DETERMINES. A node connected to exactly one rail, with no other
+ *       rail even possibly reaching it, takes that rail's level.
+ *   N4  CONTENTION IS X. Two or more rails reaching a node leaves it unresolved.
+ *   N5  ISOLATION IS Z. No rail reaching a node leaves it floating.
+ *   N6  UNKNOWNS ONLY SUBTRACT. An unknown conduction can make a node less
+ *       determined, never more. The solver never claims a level it cannot justify.
+ *   N7  TERMINATION FROM THE DEFAULT START, AND ONLY FROM THERE. From the all-Z
+ *       start every node whose gate is not driven goes to X on the first pass and
+ *       stays, so a cyclic network collapses to X instead of oscillating and a
+ *       fixed point is always reached. This is NOT a general property of the
+ *       iteration, and the axiom used to claim it was: seeded at a LEVEL the
+ *       self-inverter runs -1 -> +1 -> -1 forever, and solve() throws rather than
+ *       hand back a half-settled state. The audit found this. See X2.
+ *   N8  JUSTIFIED, NOT MERELY CONSISTENT. A level is assigned only when a
+ *       conducting path from exactly one rail justifies it FROM THE CURRENT
+ *       STATE. Fixed points are NOT unique, and the solver does not find the most
+ *       determined one: a self-latching node has consistent, fully determined
+ *       assignments it will not invent. The standard ternary inverter wired to
+ *       its own input holds at MID — check the conduction rule and see — and the
+ *       solver returns X for it. The initial state is therefore part of the
+ *       semantics, which is why solve() takes one. See X2.
+ *
+ * THEOREMS — what a circuit built on the above may rely on.
+ *
+ *   T1  TOTALITY. A well-formed gate produces a level for every input. Never X,
+ *       never Z.
+ *   T2  NO SNEAK PATHS. For every input, exactly one rail is definitely connected
+ *       to the output — never none, never two.
+ *   T3  COMPOSITION. Wiring one gate's output to another's input computes the
+ *       composition of their functions.
+ *   T4  SLICE INDEPENDENCE. Gates sharing only rails do not interact, so a
+ *       six-trit datapath is six copies of a one-trit gate.
+ * ------------------------------------------------------------------------------
+ *
  * CONDUCTION. An n-type conducts when its gate is at or above its threshold; a
  * p-type when at or below. If the gate is Z or X the conduction is UNKNOWN, and
  * unknown conduction poisons whatever it could reach. Treating unknown as "off"
@@ -62,8 +129,13 @@ class Net {
   /**
    * Resolve every node, given input levels. Returns a map of node -> level|'Z'|'X'.
    * Throws rather than returning a half-settled state if it does not converge.
+   *
+   * `init` seeds non-driven nodes; anything it omits starts at Z. This is not a
+   * test seam. N8 says the starting state is part of the semantics — the fixed
+   * point is not unique — so a solver that hid its initial state would be hiding
+   * half of what it means. Naming a driven or unknown node here throws.
    */
-  solve(inputs, maxIterations = 64) {
+  solve(inputs, maxIterations = 64, init = {}) {
     const value = { ...this.rails };
     for (const [k, v] of Object.entries(inputs)) value[k] = v;
     const driven = new Set([...Object.keys(this.rails), ...Object.keys(inputs)]);
@@ -72,6 +144,11 @@ class Net {
     const nodes = new Set();
     for (const d of this.devices) { nodes.add(d.a); nodes.add(d.b); nodes.add(d.gate); }
     for (const nm of nodes) if (!driven.has(nm)) value[nm] = 'Z';
+    for (const [nm, v] of Object.entries(init)) {
+      if (driven.has(nm)) throw new Error(`init names a driven node: ${nm}`);
+      if (!nodes.has(nm)) throw new Error(`init names a node no device mentions: ${nm}`);
+      value[nm] = v;
+    }
 
     const conducts = d => {
       const g = value[d.gate];

@@ -2,9 +2,10 @@
 
 A working computer that counts in **three states instead of two** — core
 arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
-assembly, and six audits establishing exactly what its instruction set can reach.
+assembly, and eight audits establishing exactly what its instruction set can reach
+and what the device model beneath it rests on.
 
-**441 checks**, all passing. Every number below is recomputed by one of them.
+**481 checks**, all passing. Every number below is recomputed by one of them.
 
 ```bash
 npm test              # everything (~55s; the monoid and switch sweeps are real work)
@@ -38,7 +39,7 @@ src/         device.js (switch-level transistors -- the layer BELOW the arithmet
              selfhost.js (run a program inside the emulated machine), run.js
 programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
-tools/       the six audits, each with its registered predictions
+tools/       the eight audits, each with its registered predictions
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
 build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
@@ -48,9 +49,9 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-Six prediction sets, registered before their runs. **26 held, 1 failed** — the
-failure is kept, and produced the most useful result here. Full detail, with
-registering commits and the tests that assert each one, in
+Eight prediction sets, registered before their runs. **33 held, 2 failed** — the
+failures are kept, and both produced the most useful results here. Full detail,
+with registering commits and the tests that assert each one, in
 [`FINDINGS.json`](FINDINGS.json).
 
 | | claim | outcome |
@@ -62,6 +63,7 @@ registering commits and the tests that assert each one, in
 | **U1–U3** | `TOPC`, the carry as a table | all held |
 | **V1–V4** | whether the ceiling ladder has another rung | all held |
 | **W1–W3** | the gates rebuilt from switches, and what they cost | all held |
+| **X1–X5** | the axioms the device model rests on | 4 held, **X2 failed** |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:
@@ -72,6 +74,7 @@ pre-registration record is not inflated by facts that were never at risk:
 - **`MIN`/`MAX`/`NEG` are exactly Kleene's three-valued logic.**
 - **Base 3 is the cheapest integer radix**, by the measure Setun was argued on.
 - **Three-way branching wins about half an instruction** per decision point, and nothing when the decision is binary.
+- **The standard ternary inverter is not the only four-switch `NEG`.** Exhaustive search over 148,995 networks finds four, and it is one of them.
 
 ---
 
@@ -84,6 +87,7 @@ against the same functions the rest of the suite is written against.
 
 ```bash
 npm run audit:device          # exhaustive: all 531,441 pairs per gate, ~90s
+npm run audit:axioms          # break the axioms on purpose, see what stops working
 ```
 
 | gate | switches | mid-rail taps |
@@ -94,6 +98,36 @@ npm run audit:device          # exhaustive: all 531,441 pairs per gate, ~90s
 
 Six slices side by side make a six-trit datapath that matches `T.tMIN`, `T.tMAX`
 and `T.neg` **exhaustively**, and gates compose without degrading.
+
+### The axioms underneath
+
+A switch model is only worth what its assumptions are worth, so `src/device.js`
+states them — six about a single switch, eight about how a network resolves, four
+theorems a circuit may then rely on — and `test/test-axioms.js` proves every one
+of them exhaustively. It also parses the ids out of `device.js` and checks them
+against the ids proved, in both directions, so the two lists cannot drift apart.
+
+Then it breaks the solver three ways and requires the *right* proofs to notice:
+
+| defect | axioms that catch it |
+|---|---|
+| thresholds made strict | D3 N2 N6 N7 N8 T1 T2 T3 T4 |
+| unknown conduction treated as off | D6 N7 N8 |
+| reachability runs through rails | N2 T3 |
+
+Two of those three are defects this model actually had. The expected sets are
+pinned because *which* axioms a defect trips is the part worth knowing — a proof
+that fails for everything is not telling you what it caught.
+
+**One axiom was false as written, and the audit is what found it.** N7 claimed
+that resolution cannot oscillate, full stop. It cannot *from the default start*,
+where any node with a non-driven gate goes unresolved on the first pass and stays
+there. Seeded at a level, a ternary inverter wired to its own input runs
+−1 → +1 → −1 forever, and the solver throws rather than hand back a half-settled
+answer. The same experiment showed the fixed point is not unique: that inverter
+also sits happily at 0, which is fully determined and fully consistent — the
+solver simply will not invent it. So the starting state is part of the semantics,
+and `solve()` takes one.
 
 **This is switch-level, not SPICE**, and the header of `src/device.js` lists what
 that means it assumes away. The largest by far: **the middle rail is free here.**

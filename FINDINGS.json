@@ -380,6 +380,102 @@
           "note": "The ternary side taps a third rail this model hands out free; real ternary logic must generate its mid level with dividers that burn static power. Switch count per gate is also a different currency from the 3.08x per-digit bar."
         }
       ]
+    },
+    {
+      "id": "X",
+      "subject": "The axioms the switch-level device model rests on",
+      "tool": "tools/axiom-audit.js",
+      "registered_at": "b247751",
+      "results_at": "92e4ba6",
+      "asserted_in": "test/test-axioms.js",
+      "predictions": [
+        {
+          "id": "X1",
+          "claim": "the inclusive threshold (D3) is load-bearing: strict thresholds break every gate",
+          "outcome": "HELD",
+          "measured": {
+            "mutations": [
+              "n strict",
+              "p strict",
+              "both strict"
+            ],
+            "gates_still_correct": [
+              0,
+              0,
+              0
+            ],
+            "gates_total": 5,
+            "output_rows_still_a_level": [
+              11,
+              11,
+              2
+            ],
+            "output_rows_total": 27
+          },
+          "note": "The row counts were derived by hand and written into the registration before the run. They were right. On this integer domain a strict n(t) is an inclusive n(t+1), and a device that can never conduct is indistinguishable from an absent one, so the mutation is a transformation of the device list rather than a patch to the solver."
+        },
+        {
+          "id": "X2",
+          "claim": "the fixed point is not unique, and an all-X start is indistinguishable from all-Z",
+          "outcome": "FAILED",
+          "measured": {
+            "self_consistent_seeds": [
+              0
+            ],
+            "seeds_that_never_settle": [
+              -1,
+              1
+            ],
+            "x_init_vs_z_init_rows_differing": 0,
+            "x_init_vs_z_init_rows_total": 27
+          },
+          "note": "FAILED on its premise, not its answer. It asked which seeds of the self-inverter are self-consistent, taking for granted that every seed resolves to something. Two of three do not: seeded at a level the network runs -1 -> +1 -> -1 forever and solve() throws. That falsified N7, which claimed resolution cannot oscillate, full stop -- true only from the all-Z start, where any node with a non-driven gate goes to X on the first pass and stays. N7 was reworded to say so. The second half of X2 held exactly: 0 of 27 rows differ, because conducts() maps Z and X alike to unknown."
+        },
+        {
+          "id": "X3",
+          "claim": "composition (T3) holds for every wiring, not just the one already tested",
+          "outcome": "HELD",
+          "measured": {
+            "composites": 25,
+            "matching": 25,
+            "linking_node_degraded_on_rows": 0
+          }
+        },
+        {
+          "id": "X4",
+          "claim": "the series mid path is not redundant: no single device can replace it",
+          "outcome": "HELD",
+          "measured": {
+            "candidates": 6,
+            "working": 0,
+            "terminal_orders_agreeing": 6,
+            "why_six_not_twelve": "D4 -- terminals are interchangeable, checked here rather than assumed"
+          }
+        },
+        {
+          "id": "X5",
+          "claim": "four switches is minimal for NEG in this model",
+          "outcome": "HELD",
+          "measured": {
+            "device_space": 42,
+            "rail_to_rail_excluded_as_inert": true,
+            "networks_searched": {
+              "1": 42,
+              "2": 903,
+              "3": 13244,
+              "4": 148995
+            },
+            "computing_neg": {
+              "1": 0,
+              "2": 0,
+              "3": 0,
+              "4": 4
+            },
+            "standard_ternary_inverter_found": true
+          },
+          "note": "The positive control first reported the standard ternary inverter ABSENT from a search that had in fact found it: the network key ordered its terminals, and D4 says terminals have no order. Third time an instrument here produced a false verdict on its own prediction. V3 and W2 were the others."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -442,11 +538,11 @@
       "asserted_in": "test/test-device.js"
     },
     {
-      "id": "F-GATES-FROM-SWITCHES",
+      "id": "F-FOUR-SWITCH-NEG-NOT-UNIQUE",
       "outcome": "MEASURED_NOT_REGISTERED",
-      "claim": "The standard ternary inverter computes NEG on all three inputs; MIN and MAX are correct on all nine rows. Switch counts: STI 4, NTI 2, PTI 2, MIN 8, MAX 8.",
-      "note": "Established while designing the gates, so not registered as a prediction.",
-      "asserted_in": "test/test-device.js"
+      "claim": "The standard ternary inverter is not the only four-switch NEG in this model. Exhaustive search finds four distinct networks, and it is one of them.",
+      "evidence": "148,995 four-switch networks over 42 device types, all solved",
+      "asserted_in": "test/test-axioms.js"
     }
   ],
   "traps_encountered": [
@@ -481,9 +577,14 @@
       "description": "Switch-level reachability traversing THROUGH a driven node. A path from one rail that touches another rail and continues out of it makes correct circuits look contended. Rails and inputs are ideal sources and must terminate a path."
     },
     {
-      "id": "T-SOURCE-NOT-TERMINAL",
+      "id": "T-INSTRUMENT-FALSE-VERDICT",
+      "count": 3,
+      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order. Each reported FAILED or ABSENT for something that was fine. Check the shape of an answer before believing its verdict."
+    },
+    {
+      "id": "T-PREMISE-NOT-ANSWER",
       "count": 1,
-      "description": "Switch-level reachability traversing THROUGH a driven node. A path from one rail that touches another and continues out of it makes correct circuits look contended. Rails and inputs are ideal sources and must terminate a path."
+      "description": "A prediction failing on an assumption it never stated rather than on the quantity it asked about. X2 asked which seeds are self-consistent and assumed every seed resolves; two do not. The assumption, not the answer, was the falsifiable part."
     }
   ]
 }

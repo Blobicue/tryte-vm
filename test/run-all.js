@@ -1,11 +1,48 @@
 'use strict';
+/* run-all.js — every suite, plus the one number no single suite can check.
+ *
+ * The README's headline check count has gone stale twice. It is not a constant
+ * any suite owns, because it is the SUM of all of them — so it is checked here,
+ * where the sum is already in hand. T-STALE-CONSTANT, third occurrence.
+ */
 const { execFileSync } = require('child_process');
+const fs = require('fs');
 const path = require('path');
+
+const SUITES = ['test-device.js', 'test-axioms.js', 'test-core.js', 'test-vm.js',
+  'test-selfhost.js', 'test-bench.js', 'test-logic.js', 'test-monoid.js',
+  'test-fold.js', 'test-page.js', 'test-style.js', 'test-findings.js'];
+
 let failed = false;
-for (const suite of ['test-device.js', 'test-core.js', 'test-vm.js', 'test-selfhost.js', 'test-bench.js', 'test-logic.js', 'test-monoid.js', 'test-fold.js', 'test-page.js', 'test-style.js', 'test-findings.js']) {
+let total = 0;
+const unparsed = [];
+for (const suite of SUITES) {
   console.log(`\n########## ${suite} ##########`);
-  try { console.log(execFileSync(process.execPath, [path.join(__dirname, suite)], { encoding: 'utf8' })); }
-  catch (e) { failed = true; console.log(e.stdout || e.message); }
+  let out;
+  try { out = execFileSync(process.execPath, [path.join(__dirname, suite)], { encoding: 'utf8' }); }
+  catch (e) { failed = true; out = e.stdout || e.message; }
+  console.log(out);
+  const m = /ALL (\d+) CHECKS PASSED/.exec(out);
+  if (m) total += Number(m[1]); else unparsed.push(suite);
 }
+
+console.log('########## totals ##########');
+if (unparsed.length) {
+  // A suite whose count could not be read must not be silently dropped from the
+  // sum — that would let the README claim a number nothing added up to.
+  failed = true;
+  console.log(`  [FAIL] no check count found in: ${unparsed.join(', ')}`);
+} else {
+  const README = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
+  const claimed = /\*\*(\d+) checks\*\*/.exec(README);
+  if (!claimed) { failed = true; console.log('  [FAIL] the README states no check count'); }
+  else if (Number(claimed[1]) !== total) {
+    failed = true;
+    console.log(`  [FAIL] the README says ${claimed[1]} checks; the suites ran ${total}`);
+  } else {
+    console.log(`  [PASS] ${total} checks across ${SUITES.length} suites, matching the README`);
+  }
+}
+
 console.log(failed ? '\n>>> SUITE FAILED' : '\n>>> ALL SUITES PASSED');
 process.exit(failed ? 1 : 0);
