@@ -958,6 +958,95 @@
           "note": "Checked against the actual circuit exhaustively at all five widths. A rule fitted to six trits rather than derived would come apart here. It does not."
         }
       ]
+    },
+    {
+      "id": "G",
+      "subject": "Whether 251,505 appearing twice, from unrelated constructions, is anything",
+      "tool": "tools/collision-audit.js",
+      "registered_at": "43c29b8",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-collision.js",
+      "predictions": [
+        {
+          "id": "G1",
+          "claim": "the correspondence dies at the first other parameter, and not narrowly",
+          "outcome": "HELD",
+          "measured": {
+            "pairing": "monoid width w against an adder of 3w trits",
+            "width_1_monoid_universe": 27,
+            "width_1_reach_any_carry": 27,
+            "width_1_reach_one_translation": 27,
+            "adder_3_trit_pairs": 729,
+            "adder_3_trit_late": 621,
+            "width_2_all_four": [
+              531441,
+              251505,
+              531441,
+              251505
+            ]
+          },
+          "note": "Decisive in the bluntest available way. At width 1 the monoid acts on three points, so the entire space of functions there is 3^3 = 27 and every monoid at that width, whatever its vocabulary, is at most that. Both vocabularies do reach 27 -- at a single position the positionwise maps already give every unary function. The three-trit adder has 729 operand pairs of which 621 settle late. The monoid universe is smaller than the number it would have to match, so the failure is not a wrong value but no room for one."
+        },
+        {
+          "id": "G2",
+          "claim": "and the two families grow at incompatible rates, so they were never one sequence",
+          "outcome": "HELD",
+          "measured": {
+            "recurrence": "s(k+1) = 9 s(k) - 12 s(k-1)",
+            "holds_widths": "2..12",
+            "dominant_root": 7.372281,
+            "root_exact": "(9 + sqrt 33) / 2",
+            "last_measured_ratio": 7.372282,
+            "monoid_growth_width_1_to_2": 9315,
+            "factor_apart": 1264,
+            "adder_counts_equalling_any_recorded_monoid_reach": [
+              251505
+            ]
+          },
+          "note": "The recurrence was derived by hand from the transfer matrix characteristic polynomial before the run and reproduces every count to width 12. Its dominant root is irrational, so the adder family multiplies by about 7.37 per step; the monoid multiplies by about 9,315 across the only span where both are computable. Across eleven adder counts and every monoid reach in the manifest, exactly one value coincides -- the one already known."
+        },
+        {
+          "id": "G3",
+          "claim": "the collision is where two exponent sequences cross, once, not a pattern",
+          "outcome": "HELD",
+          "measured": {
+            "monoid_ceiling_width_1": 27,
+            "monoid_ceiling_width_2": 531441,
+            "adder_pairs_3_trits": 729,
+            "adder_pairs_6_trits": 531441,
+            "as_powers_of_three": {
+              "monoid": [
+                "3^3",
+                "3^12"
+              ],
+              "adder": [
+                "3^6",
+                "3^12"
+              ]
+            }
+          },
+          "note": "They differ at the first width and agree at the second. No formula is claimed for how the monoid ceiling grows -- two data points do not determine one, and the question did not need it."
+        },
+        {
+          "id": "G4",
+          "claim": "and collisions of this size are rare here, which is why one looked like something",
+          "outcome": "HELD",
+          "measured": {
+            "integers_over_1000_in_two_or_more_sets": 4,
+            "crossing_the_two_halves": 2,
+            "crossing_values": [
+              251505,
+              531441
+            ],
+            "restatements_within_one_half": [
+              279936,
+              4489
+            ],
+            "halves_derived_from": "which library each tool imports: monoid-lib or device.js"
+          },
+          "note": "The instrument produced a false verdict first, and this is the fourth time that has happened here. The registration said prediction sets THAT MEASURE DIFFERENT THINGS and the first loop dropped the clause, counting 279,936 as colliding with itself because two sets record the same adder count, and 4,489 likewise because two sets share a sampling stride. Corrected by classifying each set by which library its tool imports -- derived, not hardcoded -- and requiring a collision to cross that line. The disambiguation rule was chosen after the first run, which is a degree of freedom worth declaring; it implements a clause that was in the registration beforehand, and the two excluded values are restatements of one quantity under any reading."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -1046,7 +1135,7 @@
       "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 — the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
       "evidence": "531,441 minus the 279,936 that settle in fewer passes; the rung is recorded in the U set",
       "asserted_in": "test/test-decoded.js",
-      "note": "Recorded, not explained, and not chased. F-531441-COINCIDENCE is the other one of these."
+      "note": "Chased and settled by the G set: a coincidence. The pairing that produces it holds at exactly one parameter value, the two families grow at rates a thousandfold apart, and the two numbers are the only pair in the manifest that collides across the vocabulary and circuit halves of the project."
     },
     {
       "id": "F-WRAP-VERSUS-STEP",
@@ -1090,8 +1179,8 @@
     },
     {
       "id": "T-INSTRUMENT-FALSE-VERDICT",
-      "count": 3,
-      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order. Each reported FAILED or ABSENT for something that was fine. Check the shape of an answer before believing its verdict."
+      "count": 4,
+      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered."
     },
     {
       "id": "T-PREMISE-NOT-ANSWER",

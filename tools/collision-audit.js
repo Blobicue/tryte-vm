@@ -197,24 +197,48 @@ console.log('\n--- G3  the denominators: one crossing, or a pattern? ---');
 console.log('\n--- G4  how rare is a collision of this size in this repository? ---');
 {
   const M = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'FINDINGS.json'), 'utf8'));
-  const where = new Map();                    // integer -> set of prediction-set ids
-  for (const s of M.prediction_sets) {
-    for (const p of s.predictions) {
-      const ints = [...JSON.stringify(p.measured || {}).matchAll(/(\d{4,})/g)].map(m => Number(m[1]));
+
+  /* "Prediction sets that measure DIFFERENT THINGS" was in the registration, and
+   * the first version of this loop dropped the clause -- counting a quantity
+   * restated in a second set as a collision with itself. Which half of the
+   * project a set belongs to is DERIVED from what its tool imports rather than
+   * hardcoded: the vocabulary work is built on monoid-lib, the circuit work on
+   * device.js. A collision worth the name crosses that line. */
+  const half = st => {
+    const src = fs.readFileSync(path.join(__dirname, '..', st.tool), 'utf8');
+    if (/require\([^)]*monoid-lib/.test(src)) return 'vocabulary';
+    if (/require\([^)]*device\.js/.test(src)) return 'circuit';
+    return 'other';
+  };
+  const sides = new Map(M.prediction_sets.map(st => [st.id, half(st)]));
+  console.log('      halves, derived from what each tool imports:');
+  for (const side of ['vocabulary', 'circuit', 'other']) {
+    const ids = [...sides].filter(([, v]) => v === side).map(([k]) => k);
+    if (ids.length) console.log(`        ${side.padEnd(11)} ${ids.sort().join(', ')}`);
+  }
+
+  const where = new Map();
+  for (const st of M.prediction_sets) {
+    for (const p of st.predictions) {
+      const ints = [...JSON.stringify(p.measured || {}).matchAll(/(\d{4,})/g)].map(x => Number(x[1]));
       for (const v of new Set(ints)) {
         if (!where.has(v)) where.set(v, new Set());
-        where.get(v).add(s.id);
+        where.get(v).add(st.id);
       }
     }
   }
-  const collisions = [...where.entries()]
-    .filter(([v, sets]) => v >= 1000 && sets.size >= 2)
-    .sort((a, b) => b[0] - a[0]);
-  console.log(`      integers >= 1000 appearing in two or more prediction SETS: ${collisions.length}`);
-  for (const [v, sets] of collisions) {
-    console.log(`        ${String(v).padStart(10)}  in sets ${[...sets].sort().join(', ')}`);
+  const repeated = [...where.entries()].filter(([v, ids]) => v >= 1000 && ids.size >= 2);
+  const crossing = repeated.filter(([, ids]) => new Set([...ids].map(id => sides.get(id))).size >= 2);
+
+  console.log(`\n      integers >= 1000 in two or more sets, ANY sets: ${repeated.length}`);
+  for (const [v, ids] of repeated.sort((x, y) => y[0] - x[0])) {
+    const halves = [...new Set([...ids].map(id => sides.get(id)))].sort();
+    console.log(`        ${String(v).padStart(10)}  sets ${[...ids].sort().join(', ').padEnd(18)}`
+      + `  ${halves.length >= 2 ? 'CROSSES the halves' : halves[0] + ' only - a restatement, not a collision'}`);
   }
-  console.log(`      predicted exactly 2: 531441 and 251505`);
+  console.log(`\n      crossing both halves, which is what was registered: ${crossing.length}`
+    + `   (predicted 2)`);
+  console.log(`        ${crossing.map(([v]) => v.toLocaleString()).sort().join(', ')}`);
 }
 
 console.log('\n' + line);

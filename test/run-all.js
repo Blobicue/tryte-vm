@@ -9,7 +9,7 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const SUITES = ['test-device.js', 'test-axioms.js', 'test-adder.js', 'test-midrail.js', 'test-decoded.js', 'test-passcount.js', 'test-core.js', 'test-vm.js',
+const SUITES = ['test-device.js', 'test-axioms.js', 'test-adder.js', 'test-midrail.js', 'test-decoded.js', 'test-passcount.js', 'test-collision.js', 'test-core.js', 'test-vm.js',
   'test-selfhost.js', 'test-bench.js', 'test-logic.js', 'test-monoid.js',
   'test-fold.js', 'test-page.js', 'test-style.js', 'test-findings.js'];
 
