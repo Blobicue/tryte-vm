@@ -271,6 +271,38 @@ console.log('\n--- beyond the registration: does ANYTHING in this shape mix? ---
   console.log('      baseline of 6.6 and 1 — and its linear twin does not. So the structure');
   console.log('      is not what mixes; the round function\'s NONLINEARITY is. And the round');
   console.log('      function is a 27-entry table, which is exactly this machine\'s TOPC.');
+  console.log('\n      One sample is one sample, so: 20 different round tables.');
+  const mk = s0 => {
+    let s = s0;
+    const r = () => { s = (Math.imul(s, 1103515245) + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+    const A = Array.from({ length: 27 }, (_, i) => i);
+    for (let i = 26; i > 0; i--) { const j = Math.floor(r() * (i + 1)); const t = A[i]; A[i] = A[j]; A[j] = t; }
+    return A;
+  };
+  const lnN = Math.log(N), band = Math.sqrt(lnN);
+  const cyc = [], fx = [];
+  for (let s = 1; s <= 20; s++) {
+    const A = mk(1000 * s + 7);
+    const st = structure(asMap(v => pack(hi(v), (lo(v) + A[hi(v)]) % 27)));
+    cyc.push(st.cycles); fx.push(st.fixed);
+  }
+  cyc.sort((a, b) => a - b);
+  const inBand = cyc.filter(c => c >= lnN - 2 * band && c <= lnN + 2 * band).length;
+  console.log(`      cycle counts ${cyc[0]}..${cyc[19]}, mean ${(cyc.reduce((a, b) => a + b, 0) / 20).toFixed(1)}`
+    + ` against ln(N) = ${lnN.toFixed(1)}; ${inBand}/20 inside two standard deviations.`);
+  console.log(`      -> consistent with a random permutation on cycle count.`);
+  console.log('');
+  console.log(`      fixed points across all 20: ${[...new Set(fx)].join(',')} — ALWAYS EXACTLY ONE.`);
+  console.log('      A random permutation gives Poisson(1): about 37% would have none at all.');
+  console.log('      This construction cannot. The state with L = R and round(R) = 0 is fixed,');
+  console.log('      the round table is a permutation so exactly one R maps to 0, and therefore');
+  console.log('      exactly one state is fixed FOR EVERY round table. That is a structural');
+  console.log('      fingerprint, not a statistic — and a fixed point is an input no number of');
+  console.log('      rounds ever moves.');
+  console.log('');
+  console.log('      The standard fix is a per-round CONSTANT, which breaks the symmetry. That');
+  console.log('      collides with the one-function rule unless the round counter is carried');
+  console.log('      inside the state — which is a real design consequence, not a detail.');
 }
 
 console.log('\n' + line);

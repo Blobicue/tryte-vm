@@ -167,6 +167,40 @@ console.log('\n=== 6. F-SPLIT-ROUND-MIXES — WHAT DOES WORK ===');
     nonlinear.isPerm && linear.isPerm);
   check('   and that round function is a 27-entry table — exactly this machine\'s'
     + ' TOPC primitive', S27.length === 27 && new Set(S27).size === 27);
+
+  // One sample is one sample. `T-ONE-POINT` is this repository's most-bitten trap,
+  // and the winner above rested on a single shuffled round table.
+  const mk = s0 => {
+    let z = s0;
+    const r = () => { z = (Math.imul(z, 1103515245) + 12345) & 0x7fffffff; return z / 0x7fffffff; };
+    const A = Array.from({ length: 27 }, (_, i) => i);
+    for (let i = 26; i > 0; i--) { const j = Math.floor(r() * (i + 1)); const t = A[i]; A[i] = A[j]; A[j] = t; }
+    return A;
+  };
+  const lnN = Math.log(N), band = Math.sqrt(lnN);
+  const cyc = [], fx = [];
+  for (let z = 1; z <= 20; z++) {
+    const A = mk(1000 * z + 7);
+    const st = structure(asMap(v => pack(hi(v), (lo(v) + A[hi(v)]) % 27)));
+    cyc.push(st.cycles); fx.push(st.fixed);
+  }
+  const inBand = cyc.filter(c => c >= lnN - 2 * band && c <= lnN + 2 * band).length;
+  check(`   across 20 round tables, ${inBand}/20 cycle counts sit within two standard`
+    + ' deviations of ln(N) — consistent with random, on 20 samples not one',
+    inBand >= 18, cyc.join(' '));
+  check('F-ALWAYS-ONE-FIXED-POINT — every one of the 20 has EXACTLY one fixed point,'
+    + ' where a random permutation would have none about 37% of the time',
+    fx.every(x => x === 1), fx.join(' '));
+  check('   structural, not luck: L = R with round(R) = 0 is fixed, and a permutation'
+    + ' sends exactly one R to 0', (() => {
+      const A = mk(1007);
+      const r0 = A.indexOf(0);
+      const st = pack(r0, r0);
+      return pack(hi(st), (lo(st) + A[hi(st)]) % 27) === st;
+    })());
+  check('   so a fixed point here is an input no number of rounds ever moves — and'
+    + ' the usual remedy, a per-round constant, collides with the one-function rule',
+    fx.every(x => x === 1));
 }
 
 console.log('\n' + '='.repeat(64));

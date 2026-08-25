@@ -1810,7 +1810,13 @@
               "cycles": 6.6,
               "fixed": 1
             },
-            "predicted_f_addrot_within_factor_2_of": 6.6
+            "predicted_f_addrot_within_factor_2_of": 6.6,
+            "first_run_registered_candidate": {
+              "sbox": "contained the NEGATION permutation",
+              "f_add_image": 16,
+              "f_addrot_image": 16,
+              "note": "the registered candidate's actual first result, before the s-box was corrected"
+            }
           },
           "note": "Wrong, and wrong twice over. First the sub-claim that s + sbox(s) is not in general a permutation held, but for a reason worth more than the claim: it is injective exactly when the s-box is an ORTHOMORPHISM (see F-ORTHOMORPHISM-GATE). Second, and the actual failure: with a correct orthomorphic s-box, rotate(s + sbox(s)) still lands at 130 cycles against a baseline of 6.6. It does not resemble a random permutation at all. The reason the prediction missed is that a positionwise 3-cycle IS addition of a constant, so s + sbox(s) stays AFFINE, and affine maps over this ring have tiny order. Fixing the s-box fixes injectivity and does nothing whatsoever for mixing. Carry alone is not enough; the addend must be nonlinear in s."
         },
@@ -1950,8 +1956,8 @@
     {
       "id": "F-SPLIT-ROUND-MIXES",
       "outcome": "MEASURED_NOT_REGISTERED",
-      "claim": "Splitting the state and using one half to modify the other is invertible for ANY round function, and with a NONLINEAR 27-entry round table it lands at 8 cycles and 1 fixed point against a random-permutation baseline of 6.6 and 1, with order 3,499,650. The same structure with a LINEAR round function gives 92 cycles and order 8 -- so the structure is not what mixes, the round function nonlinearity is.",
-      "evidence": "tools/iterhash-audit.js, exhaustive over 729 states, nonlinear round vs linear round as a control",
+      "claim": "Splitting the state and using one half to modify the other is invertible for ANY round function. With a NONLINEAR 27-entry round table, across 20 different tables, the cycle count runs 2..12 with mean 6.8 against ln(729)=6.6 and 19 of 20 inside two standard deviations -- consistent with a random permutation. The same structure with a LINEAR round function gives 92 cycles and order 8, so the structure is not what mixes: the round function's nonlinearity is.",
+      "evidence": "tools/iterhash-audit.js, exhaustive over 729 states, 20 shuffled round tables plus a linear-round control",
       "asserted_in": "test/test-iterhash.js"
     },
     {
@@ -1959,6 +1965,13 @@
       "outcome": "MEASURED_NOT_REGISTERED",
       "claim": "Truncating any permutation to m trits gives perfectly uniform buckets by construction, so a truncated-collision count cannot distinguish a mixing function from a relabelling. A map proved to repeat every six calls scores 0.96x the random-function expectation, the same as every other permutation tested.",
       "evidence": "tools/iterhash-audit.js, D4: three structurally different permutations all score 0.96x with 0 empty buckets",
+      "asserted_in": "test/test-iterhash.js"
+    },
+    {
+      "id": "F-ALWAYS-ONE-FIXED-POINT",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "The split-state construction has EXACTLY ONE fixed point for every round table -- 1 in all 20 sampled, never 0 and never 2 -- where a random permutation gives Poisson(1) and would have none about 37% of the time. The state with L = R and round(R) = 0 is fixed; the round table is a permutation, so exactly one R maps to 0. That is a structural fingerprint rather than a statistic, and a fixed point is an input that no number of rounds ever moves. The standard remedy is a per-round CONSTANT, which collides with the one-function-called-repeatedly rule unless the round counter is carried inside the state.",
+      "evidence": "tools/iterhash-audit.js, 20 shuffled round tables, exhaustive over 729 states; the fixed state is -336, where L=R=1 and round(1)=0",
       "asserted_in": "test/test-iterhash.js"
     }
   ],
