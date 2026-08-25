@@ -141,8 +141,12 @@ smaller and true thing.
 ## The sequence
 
 Ordered by dependency, not by interest. Each phase registers before it runs, in
-its own commit, per [`00-protocol.md`](00-protocol.md). Free prediction-set
-letters: `M`, `N`, `O`, `T`.
+its own commit, per [`00-protocol.md`](00-protocol.md).
+
+Prediction-set letters are chosen to avoid collisions rather than alphabetically:
+`M` reads as the model options `M0`/`M1`, `N` as the network axioms `N1`–`N8`, `T`
+as the theorems `T1`–`T5`, and `O` reads as a zero in an id like `O0`. So the next
+sets take **`B`**, then `A`, `C`, `D`.
 
 ### Phase 0 — can a cell output drive a selector *terminal*? `<- the gate`
 
