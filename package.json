@@ -29,6 +29,7 @@
     "audit:detector": "node tools/detector-audit.js",
     "audit:register": "node tools/register-audit.js",
     "audit:msregister": "node tools/msregister-audit.js",
+    "audit:accumulator": "node tools/accumulator-audit.js",
     "findings": "node test/test-findings.js"
   },
   "license": "MIT",
