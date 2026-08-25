@@ -130,33 +130,53 @@ const PROOFS = [
     } },
 
   { id: 'D5', name: 'the gate is read, never driven through — and no builder ties one to its own terminal',
-    fn: ({ M, GATES, gateNet }) => {
-      // Structural, over EVERY builder the module exports rather than the five
-      // gates: selectors, table trees, adder cells, the ripple, and the binary
-      // baseline. A builder added later without a line here fails the count check
-      // below rather than slipping past unexamined.
-      const built = GATES.map(g => gateNet(g));
-      const add = fn => { const net = new M.Net(); fn(net); built.push(net); };
-      const addBinary = fn => { const net = M.binaryNet(); fn(net); built.push(net); };
-      add(n => M.tmux(n, 'sel', 'lo', 'mid', 'hi', 'o'));
-      add(n => M.ttable3(n, 'a', 'b', 'c', M.adderTables().sum, 'o', 'T'));
-      add(n => M.ttable3(n, 'a', 'b', 'c', M.adderTables().sum, 'o', 'T', true));
-      add(n => M.tAdderCell(n, 'a', 'b', 'c', 's', 'co', 'A'));
-      add(n => M.tRippleAdder(n, 6));
-      addBinary(n => M.bInv(n, 'a', 'o'));
-      addBinary(n => M.bNand(n, 'a', 'b', 'o'));
-      addBinary(n => M.bAnd(n, 'a', 'b', 'o'));
-      addBinary(n => M.bmux(n, 'sel', 'lo', 'hi', 'o'));
-      addBinary(n => M.btable3(n, 'a', 'b', 'c', M.bAdderTables().sum, 'o', 'B'));
-      addBinary(n => M.bRippleAdder(n, 10));
-      if (built.length !== 16) return false;
-      for (const net of built) {
+    fn: ({ M }) => {
+      // Structural, over EVERY builder the module exports. The list used to be
+      // written out by hand with a count beside it, and five new builders slipped
+      // past it unexamined -- a hardcoded count of the hand-written list cannot
+      // notice a new export. It is derived from the module now: anything exported
+      // that is not on the not-a-builder list must appear here, or this fails.
+      const NOT_BUILDERS = new Set(['LOW', 'MID', 'HIGH', 'RAILS', 'BINARY_RAILS',
+        'Net', 'cellIndex', 'adderTables', 'bAdderTables', 'asOpts', 'binaryNet']);
+      const sum = M.adderTables().sum, bsum = M.bAdderTables().sum;
+      const T3 = n => { for (const g of ['a', 'b', 'c']) M.isMid(n, g, `${g}$im`); };
+      const BUILDERS = {
+        sti: n => M.sti(n, 'a', 'o'),
+        nti: n => M.nti(n, 'a', 'o'),
+        pti: n => M.pti(n, 'a', 'o'),
+        tmin: n => M.tmin(n, 'a', 'b', 'o'),
+        tmax: n => M.tmax(n, 'a', 'b', 'o'),
+        tmux: n => M.tmux(n, 'sel', 'lo', 'mid', 'hi', 'o'),
+        ttable3: n => M.ttable3(n, 'a', 'b', 'c', sum, 'o', 'T'),
+        tAdderCell: n => M.tAdderCell(n, 'a', 'b', 'c', 's', 'co', 'A'),
+        tRippleAdder: n => M.tRippleAdder(n, 6),
+        tBuffer: n => M.tBuffer(n, 'a', 'o', 'B'),
+        isMid: n => M.isMid(n, 'sel', 'im'),
+        dmux: n => M.dmux(n, 'sel', 'sel$im', 'lo', 'mid', 'hi', 'o'),
+        dtable3: n => { T3(n); M.dtable3(n, 'a', 'b', 'c', sum, 'o', 'T'); },
+        dAdderCell: n => M.dAdderCell(n, 'a', 'b', 'c', 's', 'co', 'A'),
+        dRippleAdder: n => M.dRippleAdder(n, 6),
+        bInv: n => M.bInv(n, 'a', 'o'),
+        bNand: n => M.bNand(n, 'a', 'b', 'o'),
+        bAnd: n => M.bAnd(n, 'a', 'b', 'o'),
+        bmux: n => M.bmux(n, 'sel', 'lo', 'hi', 'o'),
+        btable3: n => M.btable3(n, 'a', 'b', 'c', bsum, 'o', 'B'),
+        bRippleAdder: n => M.bRippleAdder(n, 10),
+        bBuffer: n => M.bBuffer(n, 'a', 'o', 'B'),
+      };
+      const exported = Object.keys(M).filter(k => typeof M[k] === 'function' && !NOT_BUILDERS.has(k));
+      if (exported.some(k => !(k in BUILDERS))) return false;      // a new export, unexercised
+      if (Object.keys(BUILDERS).some(k => !exported.includes(k))) return false;
+
+      for (const build of Object.values(BUILDERS)) {
+        const net = /^b/.test(build.name) ? M.binaryNet() : new M.Net();
+        build(net);
         for (const d of net.devices) if (d.gate === d.a || d.gate === d.b) return false;
       }
       // Behavioural: a node that is only ever a gate is never driven by being one.
-      const net = new M.Net();
-      net.n('g', M.MID, 'vdd', 'o');
-      return net.solve({}).g === 'Z';
+      const probeNet = new M.Net();
+      probeNet.n('g', M.MID, 'vdd', 'o');
+      return probeNet.solve({}).g === 'Z';
     } },
 
   { id: 'D6', name: 'an unknown gate gives unknown conduction — floating is not off, contended is not off',

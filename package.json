@@ -22,6 +22,7 @@
     "audit:axioms": "node tools/axiom-audit.js",
     "audit:adder": "node tools/adder-audit.js",
     "audit:midrail": "node tools/midrail-audit.js",
+    "audit:decoded": "node tools/decoded-audit.js",
     "findings": "node test/test-findings.js"
   },
   "license": "MIT",

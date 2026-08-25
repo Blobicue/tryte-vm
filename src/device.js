@@ -515,6 +515,90 @@ function tRippleAdder(net, n = 6, opts = false) {
   return net;
 }
 
+/* ------------------------------------------------------------- decoded selectors
+ * The selector above gates every arm on the raw select, which forces its MIDDLE
+ * arm to be a series pair: isolating the middle level from a raw trit needs the
+ * D3 overlap and nothing less (X4). Three arms, four switches, two hops deep.
+ *
+ * Decode the select once instead. A detector answers "is this signal MID?" in
+ * four switches, and then every arm of every selector using that signal is a
+ * SINGLE device. The detector is paid once per SIGNAL rather than once per
+ * selector, so a tree of thirteen selectors pays for it once.
+ *
+ * This exists because Z2 claimed the selector tree's depth floor was ternary's
+ * floor "at any price", and it was not. */
+
+/**
+ * MID detector: LOW and HIGH both pull to vss, MID passes vmid. Table (-1, 0, -1).
+ * The series pair lives here, once, instead of inside every selector.
+ */
+function isMid(net, sel, out) {
+  net.p(sel, LOW, 'vss', out);
+  net.n(sel, HIGH, 'vss', out);
+  const m = `${out}$m`;
+  net.n(sel, MID, 'vmid', m);
+  net.p(sel, MID, m, out);
+  return net;
+}
+
+/**
+ * 1-of-3 selector with every arm a single device. `selMid` must be the output of
+ * isMid(sel): it is HIGH-side conducting exactly when sel is MID, so the middle
+ * arm needs one n-type rather than a series pair. Three switches.
+ */
+function dmux(net, sel, selMid, lo, mid, hi, out) {
+  net.p(sel, LOW, lo, out);
+  net.n(sel, HIGH, hi, out);
+  net.n(selMid, MID, mid, out);
+  return net;
+}
+
+/**
+ * The same table-as-a-tree as ttable3, on decoded selectors. The caller must have
+ * built a detector for each of a, b and c named `${sel}$im` — dAdderCell does.
+ */
+function dtable3(net, a, b, c, cells, out, tag, opts = false) {
+  const { share = false } = asOpts(opts);
+  const leafCache = new Map();
+  const mids = [];
+  for (let av = -1; av <= 1; av++) {
+    const leaves = [];
+    for (let bv = -1; bv <= 1; bv++) {
+      const rails = [-1, 0, 1].map(cv => RAIL_FOR[cells[cellIndex(av, bv, cv)]]);
+      const key = rails.join(',');
+      let leaf = share ? leafCache.get(key) : undefined;
+      if (leaf === undefined) {
+        leaf = `${tag}$l${share ? leafCache.size : `${av}_${bv}`}`;
+        dmux(net, c, `${c}$im`, rails[0], rails[1], rails[2], leaf);
+        if (share) leafCache.set(key, leaf);
+      }
+      leaves.push(leaf);
+    }
+    const mid = `${tag}$m${av}`;
+    dmux(net, b, `${b}$im`, leaves[0], leaves[1], leaves[2], mid);
+    mids.push(mid);
+  }
+  dmux(net, a, `${a}$im`, mids[0], mids[1], mids[2], out);
+  return net;
+}
+
+/** One full-adder cell on decoded selectors, detectors included. */
+function dAdderCell(net, a, b, cin, sum, cout, tag, opts = false) {
+  for (const sel of [a, b, cin]) isMid(net, sel, `${sel}$im`);
+  const t = adderTables();
+  dtable3(net, a, b, cin, t.sum, sum, `${tag}S`, opts);
+  dtable3(net, a, b, cin, t.carry, cout, `${tag}C`, opts);
+  return net;
+}
+
+/** An n-trit ripple adder on decoded selectors. Same node names as tRippleAdder. */
+function dRippleAdder(net, n = 6, opts = false) {
+  for (let i = 0; i < n; i++) {
+    dAdderCell(net, `a${i}`, `b${i}`, i === 0 ? 'cin' : `c${i}`, `s${i}`, `c${i + 1}`, `A${i}`, opts);
+  }
+  return net;
+}
+
 /* ---------------------------------------------------------------- binary baseline
  * The same solver, two levels and two rails, so switch counts can be compared
  * without comparing across models. The selector and table builders are repeated
@@ -618,6 +702,7 @@ module.exports = {
   LOW, MID, HIGH, RAILS, BINARY_RAILS, Net,
   sti, nti, pti, tmin, tmax,
   tmux, ttable3, cellIndex, adderTables, tAdderCell, tRippleAdder, tBuffer, asOpts,
+  isMid, dmux, dtable3, dAdderCell, dRippleAdder,
   binaryNet, bInv, bNand, bAnd,
   bmux, btable3, bAdderTables, bRippleAdder, bBuffer,
 };
