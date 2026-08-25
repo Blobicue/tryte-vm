@@ -36,7 +36,7 @@ That is a **datapath fragment that computes and remembers**, and nothing else.
 
 | # | subsystem | design file | built? | governs |
 |---|---|---|---|---|
-| 1 | interconnect | [`06`](06-interconnect.md) | no | whether parts can be wired at all |
+| 1 | interconnect | [`06`](06-interconnect.md) | **measured, pick deferred** (`A`) | whether parts can be wired at all |
 | 2 | address path | [`07`](07-memory.md) | **built at 27 words** (`C`) | **the dominant cost** — see below |
 | 3 | memory array | [`07`](07-memory.md) | **built at 27 words** (`C`) | scope of the machine |
 | 4 | instruction decode | [`08`](08-decode.md) | no | ~480 switches, ~1% |

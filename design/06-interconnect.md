@@ -76,9 +76,12 @@ looked clean because a defect resolved to something plausible.
 
 ## Interactions
 
-- **[`05-registers.md`](05-registers.md)**: I0 makes register reads free (they
-  gate the mux) and I1 makes them drivers (they contend). The choice here changes
-  what a register *is*.
+- **[`05-registers.md`](05-registers.md)**: ~~I0 makes register reads free (they
+  gate the mux)~~ — **they do not gate it, they pass through it.** `B` measured a
+  stored value driving a selector's source TERMINAL, which is what `I0` actually
+  needs, and it is the reason `I0` must be `tmux` rather than the cheaper `dmux`.
+  Reads are not free; they are a pass-network read at 4 switches a node. `I1` makes
+  them drivers onto a shared node, which is the contention case. `MEASURED`
 - **[`09-sequencing.md`](09-sequencing.md)**: `N6` means bus enables must be
   settled before the bus resolves, which is a dependency-stage cost, not a switch
   cost. Under I0 that cost disappears because there is nothing to enable.

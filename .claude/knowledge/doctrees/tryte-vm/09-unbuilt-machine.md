@@ -57,6 +57,13 @@ order rather than enumerating a space.
   control cone first fixes it, which makes the seeding discipline a **requirement
   of the design** rather than a risk to it.
 
+- **Interconnect is measured and the pick is deliberately open.** A decoded bus is
+  3.8x cheaper than a selector tree per destination at this machine's counts, and
+  the crossover is in DESTINATIONS rather than sources — two documents predicted
+  the opposite, on the wrong axis. What the tree buys is structural mutual
+  exclusion; what the bus costs is a second control cone every step. That is a
+  sequencing question, so `A4` deferred the decision rather than forcing it. `A`
+
 ## Sub-topics (the rabbit hole)
 
 - Ten storage-cell options, including one that costs zero switches by conceding
@@ -99,7 +106,8 @@ its own state between steps (`L`) — 672 switches, correct on every one of the 
 accumulator values, and never once reading the value it was in the middle of
 replacing.
 
-Still missing, and why this is not `rich`: interconnect, instruction decode and
-sequencing. There is a datapath fragment and an addressed memory, not a machine —
+Still missing, and why this is not `rich`: instruction decode and sequencing, and
+an interconnect *decision* (both options are measured; the pick waits on
+sequencing). There is a datapath fragment and an addressed memory, not a machine —
 and the memory is built at 27 words, which runs none of the eight programs. The
 target size needs the charge-retention decision, which is a person's.

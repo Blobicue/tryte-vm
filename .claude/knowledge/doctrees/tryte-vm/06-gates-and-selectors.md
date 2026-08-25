@@ -48,6 +48,22 @@ by construction — and that immunity, not the switch count, is why the read pat
 the interconnect are budgeted in `tmux`. The cheaper part is the right choice only
 where the sources are rail-driven, which is where the adder uses it.
 
+## What a selector tree buys, measured
+
+Not the absence of a shared node — a selector's output IS shared between its legs.
+What it buys is that **every leg is gated by the same select trit**, and one trit
+cannot be LOW and HIGH at once, so mutual exclusion is *structural*. A decoded
+one-hot bus needs `S` separate enables to be one-hot, which is an **invariant
+something must uphold every step**.
+
+On cost the tree loses badly and on the wrong axis from what was expected: it costs
+one tree per DESTINATION, so it grows as destinations x sources, while a bus grows
+as sources alone. At 4 sources and 3 destinations the bus is **3.8x cheaper**. The
+tree wins in one corner only — one destination, three sources. `A1`
+
+And when a bus does contend, it goes `X` **only on the trits where the two sources
+disagree**. Two sources holding the same value contend invisibly. `A3`
+
 ## Open questions
 
 - ~~Is the 4-switch MID detector minimal?~~ **Settled by the I set**: yes, and for

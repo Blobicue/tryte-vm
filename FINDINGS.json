@@ -1741,7 +1741,8 @@
             },
             "pick": "PROPOSED, pending sequencing"
           },
-          "note": "I2 is 3.8x cheaper and needs a second control cone solved and seeded every step. Whether that is affordable is a question about how a step works, and design/09 is unbuilt -- so forcing the pick here would be deciding a sequencing question inside a wiring phase. Registered in advance that deferring is the expected outcome, so that it reads as a result rather than an omission."
+          "note": "SCOPE COMMITMENT, NOT A FALSIFIABLE CLAIM ABOUT THE CIRCUIT. Recorded as HELD because the phase did what it registered it would do, but flagged so it does not become a template for padding sets with unfalsifiable process entries. It is the only prediction in twenty-one sets that is about the PHASE rather than the SUBJECT. I2 is 3.8x cheaper and needs a second control cone solved and seeded every step. Whether that is affordable is a question about how a step works, and design/09 is unbuilt -- so forcing the pick here would be deciding a sequencing question inside a wiring phase. Registered in advance that deferring is the expected outcome, so that it reads as a result rather than an omission. One bound the ledger needs: its I0 row says \"no cold-start precondition -- selects are inputs\", which is true of the RIG and not of the machine. In the assembled machine I0 selects come from instruction DECODE, which is a computed control node, so I0 inherits a control cone there too. The real comparison is therefore ONE cone (decode, already required by any design) against TWO (decode plus bus enables) -- which sharpens the deferral rather than weakening it.",
+          "kind": "scope-commitment"
         }
       ]
     }

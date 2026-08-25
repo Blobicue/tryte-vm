@@ -298,14 +298,22 @@ console.log('\n--- A3  I2 two failure modes, produced not asserted ---');
 console.log('\n--- A4  the discipline ledger ---');
 {
   const rows = [
-    ['I0', 'selector tree per destination', 'none — selects are inputs', 'none', 'D x S'],
+    ['I0', 'selector tree per destination', 'none IN THIS RIG — selects are inputs', 'none', 'D x S'],
     ['I2', 'decoded one-hot bus', 'a second control cone, solved and seeded every step', 'two: X on double-enable, Z on no-enable', 'S'],
   ];
   console.log('      opt  shape                          cold-start precondition                              failure modes                            cost');
   for (const r of rows) {
     console.log(`      ${r[0].padEnd(4)} ${r[1].padEnd(30)} ${r[2].padEnd(52)} ${r[3].padEnd(40)} ${r[4]}`);
   }
-  console.log('\n      Whether a second control cone is affordable is a SEQUENCING question,');
+  console.log('');
+  console.log('      BOUND: "selects are inputs" is true of this RIG, not of the machine.');
+  console.log('      In the assembled machine I0\'s selects come from instruction DECODE, which');
+  console.log('      is a computed control node, so I0 inherits a control cone there too. The');
+  console.log('      real comparison is ONE cone (decode, required by any design) against TWO');
+  console.log('      (decode plus bus enables) — which sharpens the deferral rather than');
+  console.log('      weakening it.');
+  console.log('');
+  console.log('      Whether a second control cone is affordable is a SEQUENCING question,');
   console.log('      and design/09 is unbuilt. This phase produces the crossover, not the pick.');
 }
 
