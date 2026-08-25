@@ -36,9 +36,10 @@ from switches and checked against it. Owner: `src/device.js`.
 
 ## Open questions
 
-- **Is the 4-switch MID detector minimal?** It is paid 18 times in the adder, so a
-  switch saved there is 18 saved. The `X5` search machinery would answer it in
-  minutes and nobody has run it.
+- ~~Is the 4-switch MID detector minimal?~~ **Settled by the I set**: yes, and for
+  all four tables the selector's contract accepts, not only the one that was built.
+  Nothing under four switches computes any of them, and each has exactly four
+  solutions — the same count `X5` found for `NEG`.
 - Are there selector designs neither of the two found? The second came from
   attacking a sentence, not from search.
 - `MIN` and `MAX` at 8 switches have never been searched for minimality the way
