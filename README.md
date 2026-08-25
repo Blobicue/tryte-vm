@@ -5,7 +5,7 @@ arithmetic, a 25-instruction machine, an assembler, an emulator written in its o
 assembly, and twelve audits establishing exactly what its instruction set can reach
 and what the device model beneath it rests on.
 
-**582 checks**, all passing. Every number below is recomputed by one of them.
+**601 checks**, all passing. Every number below is recomputed by one of them.
 
 ```bash
 npm test              # everything (~55s; the monoid and switch sweeps are real work)
