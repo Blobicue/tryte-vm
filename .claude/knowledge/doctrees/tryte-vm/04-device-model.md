@@ -36,9 +36,10 @@ a third rail. Owner: `src/device.js`.
 
 ## Open questions
 
-- **Can a 50,000-device network be solved at all?** The largest solved is 1,776 and
-  nothing has profiled past it. If not, the exhaustive-sweep discipline stops
-  applying to this project's own subject.
+- ~~Can a 50,000-device network be solved at all?~~ **Settled by the H set**: yes,
+  and the solver is linear rather than superlinear. 50,000 devices solve in ~70ms.
+  The live question is now that sweeping, not simulation, is the binding limit — a
+  full 531,441-pair sweep fits in an hour only to ~4,800 devices.
 - Does the model need strength? It is the only change that makes the middle rail
   expressible, and it demolishes three axioms.
 - Nothing represents wire. Every area number is a lower bound of a lower bound.

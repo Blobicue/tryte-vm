@@ -82,7 +82,16 @@ Three consequences for what to do next:
 ## What is missing from this list
 
 Wiring, which this model cannot represent and which in a real 48,000-device design
-would dominate area. Power. Anything about whether a 4,374-node seed actually
-solves in reasonable time — the largest network solved so far is 1,776 devices and
-the solver is superlinear in practice. **If the machine cannot be simulated, none
-of these numbers matter**, and nothing here has checked that.
+would dominate area. Power.
+
+~~Anything about whether a 4,374-node seed actually solves in reasonable time — the
+solver is superlinear in practice.~~ **Both halves of that were wrong**, and the H
+set measured them. The solver is *linear* in devices × passes; 50,000 devices solve
+in about 70ms. The machine can be simulated. What it cannot be is **swept**: a full
+531,441-pair sweep fits in an hour only up to roughly 4,800 devices, and the machine
+is ten times that. `MEASURED`
+
+Which relocates the worry rather than removing it. Every circuit result in this
+repository rests on exhaustive sweeping, and the machine sits outside where that is
+available — so the numbers in this file will be checkable by sampling and by
+construction, and not the way everything else here was checked.

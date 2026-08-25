@@ -21,8 +21,11 @@ switch level. Owner: [`design/`](../../../../design/), twelve documents.
 - **Memory is the machine.** 729 words of six trits is roughly 48,000 switches
   against about 3,700 for everything else - about **93%**. The six-trit adder,
   three phases of work and the best result in the project, is about **1%**.
-- **So the storage cell is the highest-leverage decision in the project**, by a
-  factor of five, and charge retention is the model change that would move it.
+- **So the storage cell is the highest-leverage decision in the project** — and the
+  H set measured it at **eleven times**, not the five the design phase estimated.
+  Under charge retention a trit cell is **one switch**, taking the 729-word memory
+  from 48,114 to **4,374**. And retention changes *nothing* in the existing corpus:
+  zero differing node values across every gate, every input, and the adder swept.
 - **The sequencer may not be made of switches.** Under seeded semantics the step
   boundary lives in the harness, which means "a computer built of simulated ternary
   transistors" would mean a *datapath* built of them. That concession is written
@@ -37,8 +40,9 @@ switch level. Owner: [`design/`](../../../../design/), twelve documents.
 
 ## Open questions
 
-- **Can a 50,000-device machine be simulated at all?** Untested, and if not, most
-  of the design is moot.
+- ~~Can a 50,000-device machine be simulated at all?~~ **Yes** (H set). But it
+  cannot be exhaustively swept, so the machine is the first subject here that sits
+  outside the method used on everything else.
 - Does the seeded discipline compose across 4,374 state nodes? One missing seed
   poisons whatever it gates, and nothing would catch it but a wrong answer.
 - Do a register read and write in the same solve race? If not, master-slave cells

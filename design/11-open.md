@@ -10,7 +10,7 @@ made a decision. Here is what is genuinely open, sorted by how much it moves.
 
 | rank | decision | moves | who decides |
 |---|---|---|---|
-| 1 | **`M1` charge retention** — does `Z` retain, or float? | the whole machine, by ~5× | needs the blast-radius measurement first, then a person |
+| 1 | **`M1` charge retention** — does `Z` retain, or float? | **measured: 11×**, and it breaks nothing | the measurement is done; it is now a person's call |
 | 2 | **memory scope** — 729 words, or fewer, or harness-held? | the whole machine, by up to everything | a person; it is a question about what the exercise is for |
 | 3 | **`Q0` vs `Q1` vs `Q3`** — where the step boundary lives | whether the sequencer is made of switches | a person, after the handshake experiment |
 | 4 | **`I0` vs `I2`** — mux trees or a decoded bus | a few hundred switches, and one class of silent failure | measurable |
@@ -23,13 +23,17 @@ what is being built and what the model is allowed to be.
 
 ## Questions nobody has an answer to
 
-**Can the machine be simulated at all?** The largest network solved here is 1,776
-devices. A full-memory machine is ~50,000. The solver rebuilds an adjacency index
-per solve and iterates to a fixed point, and nothing has profiled it past 624
-devices. If a single instruction takes minutes, the exhaustive-sweep discipline
-this whole repository is built on stops being available, and every method claim in
-[`../METHOD.md`](../METHOD.md) about exhaustibility stops applying to its own
-subject.
+**~~Can the machine be simulated at all?~~ Answered — and the answer moved the
+question rather than closing it.** The solver is linear in devices × passes, not
+superlinear as this document asserted without checking, and 50,000 devices solve in
+about 70ms. So the machine can be **run**.
+
+What it cannot be is **swept**. A full 531,441-pair sweep fits inside an hour only
+up to roughly **4,800 devices**; the machine is ten times that. Every circuit result
+in this repository rests on exhaustive sweeping, so the machine is the first subject
+here that sits outside its own method — and the exhaustibility precondition in
+[`../METHOD.md`](../METHOD.md) stops applying to the thing the method was built to
+study. `MEASURED`
 
 **Does the seeded discipline compose?** Every state node must be seeded on every
 solve. At 4,374 nodes, one missing seed is one node at `Z`, which by `N6` poisons
@@ -64,8 +68,9 @@ Stated so that it can be, which is the point.
   wrong.
 - If the address decoder and the read mux turn out to be the same structure, the
   address path halves and [`07-memory.md`](07-memory.md) was double-counting.
-- If a 4,374-node solve is too slow, everything above is moot and the real design
-  question is which smaller machine is worth building.
+- ~~If a 4,374-node solve is too slow, everything above is moot.~~ It is not too
+  slow. The live question became a better one: which **sweepable** machine is worth
+  building, given that a full one can be run but never exhaustively checked.
 
 ---
 

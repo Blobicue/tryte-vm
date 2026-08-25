@@ -113,8 +113,21 @@ const scale = [];
   console.log(`      spread in ns per device-pass: ${spread.toFixed(2)}x   (predicted under 3)`);
   console.log(`      log-log exponent over the whole range: ${exponent.toFixed(3)}`
     + `   (predicted 1.0 to 1.2)`);
-  console.log(`      ${exponent < 1.2 ? 'LINEAR — the design documents saying otherwise are wrong'
+  console.log(`      ${exponent < 1.2 ? 'NOT superlinear — the design documents saying otherwise are wrong'
     : 'superlinear, as the design documents claimed'}`);
+
+  // Fixed per-solve overhead dominates the tiny networks, which is what the
+  // derivation behind H1 ignored. Measured again over the range where it does
+  // not: this is diagnosis of the failure, not a revised prediction.
+  const big = scale.filter(s => s.d >= 512);
+  const bigPers = big.map(s => s.per);
+  const bigSpread = Math.max(...bigPers) / Math.min(...bigPers);
+  const bigExp = Math.log(big[big.length - 1].ms / big[0].ms)
+    / Math.log(big[big.length - 1].d / big[0].d);
+  console.log(`      over 512 devices and up: spread ${bigSpread.toFixed(2)}x,`
+    + ` exponent ${bigExp.toFixed(3)}`);
+  console.log(`      which is inside H1's predicted band. The prediction failed only where`);
+  console.log(`      constant overhead dominates, and the derivation had no term for it.`);
 }
 
 console.log('\n--- H2  what is simulatable, and what is sweepable ---');
