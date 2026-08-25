@@ -360,8 +360,10 @@ pattern alone does not determine the pass count, and counting enabled positions
 over-predicts the saving, always by exactly one, so savings do not simply compound.
 Why is open.
 
-What is measured: **279,936 of the 531,441 pairs** settle in other than thirteen
-passes, leaving **251,505** that take exactly thirteen — which is, for no reason
+What is measured, with the three outcomes separated rather than merged:
+**279,936** of the 531,441 pairs settle in *fewer* than thirteen passes, **251,505**
+in exactly thirteen, and **none** in more — so thirteen is a real ceiling, and the
+251,505 — which is, for no reason
 anyone here can give, the same number the vocabulary audits found for what
 positionwise logic plus one carrying `ADD` reaches at width two.
 

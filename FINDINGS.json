@@ -736,12 +736,13 @@
             "pairs_carry_in_0": 531441,
             "sum_wrong": 0,
             "carry_wrong": 0,
-            "seconds": 1533,
+            "seconds": 1420,
             "pairs_carry_in_plus_1_sampled": 4489,
             "pairs_carry_in_minus_1_sampled": 4489,
-            "sampled_wrong": 0
+            "sampled_wrong": 0,
+            "pairs_needing_more_than_predicted": 0
           },
-          "note": "At risk in a way the selector tree was not: the carry feeds a DETECTOR as well as three raw arms, so cell i depends on cell i-1 through two paths that have to agree. They do. test-decoded.js also checks the two adders against EACH OTHER rather than both against T.add -- different primitives, same function on every sampled pair."
+          "note": "At risk in a way the selector tree was not: the carry feeds a DETECTOR as well as three raw arms, so cell i depends on cell i-1 through two paths that have to agree. They do. test-decoded.js also checks the two adders against EACH OTHER rather than both against T.add -- different primitives, same function on every sampled pair. The first sweep skipped the correctness check for any pair that did not settle inside the predicted budget, so this result was conditional on that bucket being empty. It is measured now: zero pairs need more than thirteen passes, and every one of the 531,441 was compared."
         },
         {
           "id": "E2",
@@ -776,15 +777,18 @@
               9,
               13
             ],
-            "pairs_not_exactly_13": 279936,
             "pairs_total": 531441,
             "fraction": "128/243",
             "selector_tree_passes": 7,
             "selector_tree_varies": false,
             "carry_table_leaves_with_low_and_mid_equal": 6,
-            "sum_table_leaves_with_low_and_mid_equal": 0
+            "sum_table_leaves_with_low_and_mid_equal": 0,
+            "pairs_fewer_than_13": 279936,
+            "pairs_exactly_13": 251505,
+            "pairs_more_than_13": 0,
+            "buckets_sum_to_total": true
           },
-          "note": "FAILED on universality, not on arithmetic. Thirteen is correct as the WORST case, which is what the derivation actually bounded; the range is 9 to 13 and it DEPENDS ON THE OPERANDS. First circuit in the repository whose settling time is arithmetic rather than structural, and it scoped Y2 and Z5. Their independence-of-data result is a property of gating every arm on the RAW select, which makes all conduction known at one instant so nothing can settle early. Decoding splits the gating across two dependency levels: with the carry-in LOW the LOW arm already conducts while the MID arm gate is still unknown, so if both arms lead to the same rail the node is determined a pass early, by N3. Six of the carry table nine leaves have their LOW and MID cells equal; none of the sum table do. Exactly 128 of every 243 operand pairs settle in fewer than thirteen passes."
+          "note": "FAILED on universality, not on arithmetic. Thirteen is correct as the WORST case, which is what the derivation actually bounded; the range is 9 to 13 and it DEPENDS ON THE OPERANDS. First circuit in the repository whose settling time is arithmetic rather than structural, and it scoped Y2 and Z5. Their independence-of-data result is a property of gating every arm on the RAW select, which makes all conduction known at one instant so nothing can settle early. Decoding splits the gating across two dependency levels: with the carry-in LOW the LOW arm already conducts while the MID arm gate is still unknown, so if both arms lead to the same rail the node is determined a pass early, by N3. Six of the carry table nine leaves have their LOW and MID cells equal; none of the sum table do. The three outcomes were separated on a second run: 279,936 settle in fewer than thirteen, 251,505 in exactly thirteen, and 0 in more. So 128 of every 243 settle early, and thirteen is a genuine ceiling rather than merely the predicted number."
         },
         {
           "id": "E5",
@@ -918,8 +922,8 @@
     },
     {
       "id": "T-EXHAUSTED-NOT-CLOSED",
-      "count": 1,
-      "description": "Reading depth exhaustion as saturation, which produced a false FAILED verdict for V3."
+      "count": 2,
+      "description": "Confusing ran out of budget with finished. A search that exhausts its depth limit, one that hits its size cap, and one that genuinely closes are three different outcomes; conflating them produced a false negative verdict on V3. It recurred in the E sweep, where one counter held both settled-sooner-than-predicted and needed-longer-than-predicted, and the correctness check was skipped for the second bucket -- so an exhaustive claim was published while resting on an unmeasured decomposition. That time the numbers happened to be right: the second bucket was empty. Report the outcomes separately and check that they sum to the total."
     },
     {
       "id": "T-SOURCE-NOT-TERMINAL",
