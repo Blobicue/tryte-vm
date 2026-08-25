@@ -178,10 +178,15 @@ console.log('\n--- Z4, Z5  do the restored adders still add, and in how many pas
   const settlesIn = (net, inputs, cap) => {
     try { net.solve(inputs, cap); return true; } catch (e) { return false; }
   };
+  // Find the pass count ONCE by scanning, then check every other pair against it
+  // with two solves rather than thirty. The scanning version cost up to eighty
+  // solves per pair on a 1,776-switch network and did not finish.
   const exactPasses = (net, inputs, cap = 80) => {
     for (let k = 1; k <= cap; k++) if (settlesIn(net, inputs, k)) return k;
     return null;
   };
+  const isExactly = (net, inputs, k) =>
+    settlesIn(net, inputs, k) && !settlesIn(net, inputs, k - 1);
 
   for (const restore of ['none', 'mid', 'leafmid']) {
     const net = new D.Net(); D.tRippleAdder(net, 6, { restore });
@@ -190,9 +195,8 @@ console.log('\n--- Z4, Z5  do the restored adders still add, and in how many pas
       for (let b = T.TRYTE_MIN; b <= T.TRYTE_MAX; b += STEP) {
         n++;
         const inputs = { ...spread('a', a), ...spread('b', b), cin: 0 };
-        const p = exactPasses(net, inputs);
-        if (expected === null) expected = p;
-        if (p !== expected) offPasses++;
+        if (expected === null) expected = exactPasses(net, inputs);
+        else if (!isExactly(net, inputs, expected)) offPasses++;
         const sol = net.solve(inputs, 80);
         if (gather(sol) !== T.wrap(a + b) || sol.c6 !== overflow(a, b)) wrong++;
       }
@@ -209,9 +213,8 @@ console.log('\n--- Z4, Z5  do the restored adders still add, and in how many pas
     for (let x = 0; x <= 1023; x += 37) for (let y = 0; y <= 1023; y += 37) {
       n++;
       const inputs = { ...bits('a', x), ...bits('b', y), cin: -1 };
-      const p = exactPasses(net, inputs);
-      if (expected === null) expected = p;
-      if (p !== expected) offPasses++;
+      if (expected === null) expected = exactPasses(net, inputs);
+      else if (!isExactly(net, inputs, expected)) offPasses++;
       const sol = net.solve(inputs, 80);
       let got = 0;
       for (let i = 0; i < 10; i++) if (sol[`s${i}`] === 1) got |= (1 << i);

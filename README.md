@@ -5,7 +5,7 @@ arithmetic, a 25-instruction machine, an assembler, an emulator written in its o
 assembly, and ten audits establishing exactly what its instruction set can reach
 and what the device model beneath it rests on.
 
-**515 checks**, all passing. Every number below is recomputed by one of them.
+**541 checks**, all passing. Every number below is recomputed by one of them.
 
 ```bash
 npm test              # everything (~55s; the monoid and switch sweeps are real work)
@@ -228,6 +228,62 @@ Measured, a ternary adder digit costs **3.71×** a binary one, or **2.91×** wit
 leaves shared. Both are more than double the budget. And this is the *generous*
 reading: the mid rail is still free in this model, and 168 of those 624 switches
 touch it.
+
+### The two caveats, priced
+
+Every switch count above has carried two disclaimers: the middle rail is free,
+and there is no level restoration. Neither had ever been costed.
+
+**The first one is now a theorem, and it is worse than a caveat.** The way real
+silicon makes a middle voltage is a divider between the two supplies. Here that is
+two rails reaching one node, which is contention — it resolves to *unresolved*. So
+the middle rail cannot be built inside this model at all (T5). It has to be handed
+in from outside, and its price is charged in a currency this vocabulary does not
+possess. The same theorem records a second thing that had never been stated: an
+input **gates** and **terminates** a path, but it never *sources* one. Every
+circuit here uses inputs purely as gates, so nothing has ever depended on it.
+
+What can still be asked is a break-even. How dear would the generator have to be?
+
+| | ternary | binary | ratio | parity at | reverses at |
+|---|---|---|---|---|---|
+| W3: `MIN` 6 trits vs `AND` 10 bits | 48 | 60 | 0.80 | **G = 12** | G = 13 |
+| the adder, 6 trits vs 10 bits | 624 | 280 | 2.23 | G = 0 | — |
+
+Twelve switches — **two per mid-rail tap** — and W3's 0.80 is gone. The adder
+cannot be moved in either direction, because a charge only ever adds to the
+ternary side. So the free rail was propping up **exactly one** published result,
+and it is the one that favoured ternary.
+
+**Restoration is measurable, and it has a floor.** Pass depth here means: how many
+conducting switches a level arrived through, from the rail that drives it,
+shortest path when there are several, counted only for nodes something actually
+*reads* — a gate input or a named output. Restoring buffers cut it, and cost.
+
+| | none | buffer mid | buffer leaf+mid |
+|---|---|---|---|
+| ternary adder, switches | 624 | 912 | 1776 |
+| ternary, leaves shared | 384 | 672 | 1056 |
+| binary adder, switches | 280 | 440 | 760 |
+| binary, leaves shared | 220 | 380 | 580 |
+| **ternary read depth** | 6 | **4** | **4** |
+| **binary read depth** | 3 | **2** | **2** |
+
+The repeated 4 and 2 are the finding. **Buffering cannot take ternary below depth
+4 at any price** — a selector's middle arm is the series pair X4 proved
+irreducible, and a restoring buffer's own output already sits two hops from a
+rail. Two plus two. Binary's floor is 2. So *the best depth ternary can buy is
+worse than the depth binary gets for free*. `D3`'s inclusive threshold is what
+bought the middle level in the first place; this is the invoice for it.
+
+And restoring makes the cost ratio worse, not better: **2.23 → 3.26**. The
+`leaf+mid` column costs nearly double the `mid` column and buys no depth at all,
+on either side.
+
+**Restoration is also the only thing in this model that ever costs time.** Y2
+found the adder settles in exactly seven passes whatever the data. Buffered, it
+takes 19; buffered twice, 31 — because each inverter is its own dependency stage.
+Still independent of the data. Depth here is structural, never arithmetic.
 
 ## The idea, without the jargon
 
