@@ -342,6 +342,68 @@ const PROOFS = [
       return true;
     } },
 
+  { id: 'T5', name: 'only rail levels exist — MID cannot be made, and an input does not source',
+    fn: ({ M }) => {
+      // (a) The cheapest way to make a middle level in real silicon is a divider
+      // between the supplies. Here that is two rails reaching one node, which is
+      // contention. The level this model hands out free is one it cannot build.
+      const div = new M.Net();
+      div.n('on', M.LOW, 'vdd', 'm');
+      div.n('on', M.LOW, 'vss', 'm');
+      if (div.solve({ on: M.HIGH }).m !== 'X') return false;
+
+      // (b) Exhaustively: no network of up to three switches that never touches
+      // vmid puts any node at MID -- in a net where vmid EXISTS as a rail, so the
+      // level is available and simply cannot be reached without wiring to it.
+      const NODES = ['vss', 'vdd', 'x', 'y'];          // deliberately no vmid
+      const SPACE = [];
+      for (const kind of ['n', 'p']) for (const vt of L) {
+        for (let i = 0; i < NODES.length; i++) for (let j = i + 1; j < NODES.length; j++) {
+          SPACE.push({ kind, gate: 'g', vt, a: NODES[i], b: NODES[j] });
+        }
+      }
+      const anyMid = devs => {
+        const net = new M.Net(); net.devices = devs;
+        for (const g of L) {
+          let sol;
+          try { sol = net.solve({ g }); } catch (e) { continue; }
+          // Only NON-DRIVEN nodes count. The rails and the gate input are in this
+          // map too, and the gate sits at MID whenever g is 0 -- counting it made
+          // this proof fail against a model that was behaving correctly.
+          const driven = new Set(['vss', 'vmid', 'vdd', 'g']);
+          for (const [nm, v] of Object.entries(sol)) {
+            if (!driven.has(nm) && v === M.MID) return true;
+          }
+        }
+        return false;
+      };
+      const pick = [];
+      let found = false;
+      const rec = (start, k) => {
+        if (found) return;
+        if (pick.length === k) { if (anyMid(pick)) found = true; return; }
+        for (let i = start; i < SPACE.length && !found; i++) { pick.push(SPACE[i]); rec(i, k); pick.pop(); }
+      };
+      for (const k of [1, 2, 3]) { rec(0, k); if (found) return false; }
+
+      // The same search WITH vmid available must find it, or it proved nothing.
+      const control = new M.Net();
+      control.n('g', M.LOW, 'vmid', 'o');
+      if (control.solve({ g: M.HIGH }).o !== M.MID) return false;
+
+      // (c) An input gates and terminates; it never sources. A conducting device
+      // between an input and a node transfers nothing.
+      for (const level of L) {
+        const net = new M.Net();
+        net.n('g', M.LOW, 'x', 'o');
+        if (net.solve({ g: M.HIGH, x: level }).o !== 'Z') return false;
+      }
+      // And the control: the same device off a RAIL does source.
+      const src = new M.Net();
+      src.n('g', M.LOW, 'vdd', 'o');
+      return src.solve({ g: M.HIGH }).o === M.HIGH;
+    } },
+
   { id: 'T4', name: 'slice independence — gates sharing only rails do not interact',
     fn: ({ M, GATES }) => {
       for (const g of GATES.filter(x => x.arity === 2)) {
@@ -382,6 +444,28 @@ check('   and the T4 check can fail — two gates forced to share an internal no
   for (const a1 of L) for (const b1 of L) for (const a2 of L) for (const b2 of L) {
     const sol = net.solve({ a1, b1, a2, b2 });
     if (sol.o1 !== Math.min(a1, b1) || sol.o2 !== Math.min(a2, b2)) return true;   // interacted
+  }
+  return false;
+})());
+
+check('   and the T5 search can find MID when vmid IS in the space, so its silence means something', (() => {
+  // T5(b) reports that no network avoiding vmid reaches MID. A search that could
+  // not detect MID at all would report exactly the same thing. Same machinery,
+  // same node set plus vmid, and it has to come back positive.
+  const NODES = ['vss', 'vdd', 'vmid', 'x', 'y'];
+  const drivenNames = new Set(['vss', 'vmid', 'vdd', 'g']);
+  for (const kind of ['n', 'p']) for (const vt of L) {
+    for (let i = 0; i < NODES.length; i++) for (let j = i + 1; j < NODES.length; j++) {
+      const net = new D.Net();
+      net.devices = [{ kind, gate: 'g', vt, a: NODES[i], b: NODES[j] }];
+      for (const g of L) {
+        let sol;
+        try { sol = net.solve({ g }); } catch (e) { continue; }
+        for (const [nm, v] of Object.entries(sol)) {
+          if (!drivenNames.has(nm) && v === D.MID) return true;
+        }
+      }
+    }
   }
   return false;
 })());

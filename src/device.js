@@ -101,6 +101,22 @@
  *       composition of their functions.
  *   T4  SLICE INDEPENDENCE. Gates sharing only rails do not interact, so a
  *       six-trit datapath is six copies of a one-trit gate.
+ *   T5  ONLY RAIL LEVELS EXIST. A non-driven node can take a level only from a
+ *       rail, and that has two consequences this model needs stated rather than
+ *       assumed.
+ *
+ *       A level that is not some rail's CANNOT BE MADE. A divider between vss and
+ *       vdd — two conducting devices, one to each — is contention, and resolves
+ *       to X. So the middle level cannot be generated inside the model; it has to
+ *       be given. That is why limit 1 at the top of this file is the largest one:
+ *       vmid being free is not a convenience, it is a thing this vocabulary is
+ *       incapable of pricing.
+ *
+ *       And an INPUT DOES NOT SOURCE. It gates, and it terminates a path, but a
+ *       conducting device between an input and a node transfers nothing — the
+ *       node is Z, not the input's level. Reachability starts at rails and only
+ *       at rails. Every circuit here uses inputs purely as gates, so this has
+ *       never bitten anything; it is stated so that it cannot.
  * ------------------------------------------------------------------------------
  *
  * CONDUCTION. An n-type conducts when its gate is at or above its threshold; a
@@ -230,6 +246,83 @@ class Net {
     throw new Error('switch-level network did not settle — oscillation or a cycle');
   }
 
+  /**
+   * How many conducting switches each node's level arrived through, counted from
+   * the rail that drives it. This is the quantity a real pass network degrades
+   * with, and the one this model otherwise cannot see (stated limit 2: no level
+   * restoration).
+   *
+   * PARALLEL PATHS TAKE THE SHORTEST. In a real pass network a node driven by two
+   * routes from the same rail degrades no worse than its best route, so the
+   * shortest conducting path is the honest bound. Taking the longest would
+   * overstate every fan-in structure in the repository.
+   *
+   * Nodes that settle to Z or X have no depth and are omitted: nothing arrived.
+   */
+  depths(inputs, maxIterations = 64) {
+    const value = this.solve(inputs, maxIterations);
+    const driven = new Set([...Object.keys(this.rails), ...Object.keys(inputs)]);
+    const on = d => {
+      const g = value[d.gate];
+      if (g === 'Z' || g === 'X' || g === undefined) return false;
+      return d.kind === 'n' ? (g >= d.vt) : (g <= d.vt);
+    };
+    const adj = new Map();
+    const link = (from, to) => {
+      let l = adj.get(from);
+      if (!l) { l = []; adj.set(from, l); }
+      l.push(to);
+    };
+    for (const d of this.devices) if (on(d)) { link(d.a, d.b); link(d.b, d.a); }
+
+    const depth = {};
+    for (const rail of Object.keys(this.rails)) {
+      const dist = new Map([[rail, 0]]);
+      const queue = [rail];
+      while (queue.length) {
+        const at = queue.shift();
+        if (at !== rail && driven.has(at)) continue;      // a source terminates a path (N2)
+        for (const next of adj.get(at) || []) {
+          if (dist.has(next)) continue;
+          dist.set(next, dist.get(at) + 1);
+          queue.push(next);
+        }
+      }
+      for (const [nm, hops] of dist) {
+        if (driven.has(nm)) continue;
+        if (value[nm] !== this.rails[rail]) continue;     // only the rail that drives it
+        if (depth[nm] === undefined || hops < depth[nm]) depth[nm] = hops;
+      }
+    }
+    return depth;
+  }
+
+  /**
+   * The deepest any node that something READS sits, over a list of inputs.
+   *
+   * "Read" means the node gates a device or is a named output. That restriction
+   * is the whole definition, and it is not cosmetic: a pass network is full of
+   * internal nodes reachable backwards from an output through an off-path branch,
+   * and taking the maximum over ALL nodes reports those instead. MIN's helper
+   * node reads as depth 4 that way and 2 this way, and the 4 describes nothing —
+   * no device's behaviour depends on that node's level.
+   */
+  readDepth(inputList, outputs = []) {
+    const read = new Set(outputs);
+    for (const d of this.devices) read.add(d.gate);
+    let worst = 0, where = null;
+    for (const inputs of inputList) {
+      const driven = new Set([...Object.keys(this.rails), ...Object.keys(inputs)]);
+      const depth = this.depths(inputs);
+      for (const nm of read) {
+        if (driven.has(nm)) continue;
+        const d = depth[nm];
+        if (d !== undefined && d > worst) { worst = d; where = nm; }
+      }
+    }
+    return { depth: worst, node: where };
+  }
+
   /** Evaluate one output node over a list of input assignments. */
   table(outName, inputNames, levels) {
     const rows = [];
@@ -331,6 +424,26 @@ function tmux(net, sel, lo, mid, hi, out) {
   return net;
 }
 
+/**
+ * A restoring buffer: two standard ternary inverters in series, so the level is
+ * re-driven from the rails and the pass depth downstream restarts at zero. Two,
+ * not one, because one inverts — a single STI would restore the level and negate
+ * the value. Eight switches.
+ */
+function tBuffer(net, inp, out, tag) {
+  const mid = `${tag}$bi`;
+  sti(net, inp, mid);
+  sti(net, mid, out);
+  return net;
+}
+
+/**
+ * Options for the table builders. A bare boolean is still accepted and means
+ * `share`, because every existing call site passes one that way and silently
+ * reading `true.share` as undefined would have built the wrong circuit.
+ */
+const asOpts = o => (typeof o === 'boolean' ? { share: o } : (o || {}));
+
 const RAIL_FOR = { '-1': 'vss', 0: 'vmid', 1: 'vdd' };
 /** Cell index for a 27-entry table, matching ternary.js's ttableC convention. */
 const cellIndex = (a, b, c) => (a + 1) * 9 + (b + 1) * 3 + (c + 1);
@@ -341,7 +454,10 @@ const cellIndex = (a, b, c) => (a + 1) * 9 + (b + 1) * 3 + (c + 1);
  * `share` merges leaf selectors whose three cells are identical, which is the
  * hash-consing `tableKey` does on tables, done to the circuit instead.
  */
-function ttable3(net, a, b, c, cells, out, tag, share = false) {
+function ttable3(net, a, b, c, cells, out, tag, opts = false) {
+  const { share = false, restore = 'none' } = asOpts(opts);
+  const bufLeaf = restore === 'leafmid';
+  const bufMid = restore === 'mid' || restore === 'leafmid';
   const leafCache = new Map();
   const mids = [];
   for (let av = -1; av <= 1; av++) {
@@ -353,12 +469,14 @@ function ttable3(net, a, b, c, cells, out, tag, share = false) {
       if (leaf === undefined) {
         leaf = `${tag}$l${share ? leafCache.size : `${av}_${bv}`}`;
         tmux(net, c, rails[0], rails[1], rails[2], leaf);
-        if (share) leafCache.set(key, leaf);
+        if (bufLeaf) { const r = `${leaf}r`; tBuffer(net, leaf, r, r); leaf = r; }
+        if (share) leafCache.set(key, leaf);   // cache the BUFFERED name, or it is rebuffered
       }
       leaves.push(leaf);
     }
-    const mid = `${tag}$m${av}`;
+    let mid = `${tag}$m${av}`;
     tmux(net, b, leaves[0], leaves[1], leaves[2], mid);
+    if (bufMid) { const r = `${mid}r`; tBuffer(net, mid, r, r); mid = r; }
     mids.push(mid);
   }
   tmux(net, a, mids[0], mids[1], mids[2], out);
@@ -378,10 +496,10 @@ function adderTables() {
 }
 
 /** One full-adder cell: sum and carry-out, each a table realised as a tree. */
-function tAdderCell(net, a, b, cin, sum, cout, tag, share = false) {
+function tAdderCell(net, a, b, cin, sum, cout, tag, opts = false) {
   const t = adderTables();
-  ttable3(net, a, b, cin, t.sum, sum, `${tag}S`, share);
-  ttable3(net, a, b, cin, t.carry, cout, `${tag}C`, share);
+  ttable3(net, a, b, cin, t.sum, sum, `${tag}S`, opts);
+  ttable3(net, a, b, cin, t.carry, cout, `${tag}C`, opts);
   return net;
 }
 
@@ -390,9 +508,9 @@ function tAdderCell(net, a, b, cin, sum, cout, tag, share = false) {
  * c{n} out. The carry out of the top trit is the overflow, so this is an adder
  * rather than a mod-3^n unit.
  */
-function tRippleAdder(net, n = 6, share = false) {
+function tRippleAdder(net, n = 6, opts = false) {
   for (let i = 0; i < n; i++) {
-    tAdderCell(net, `a${i}`, `b${i}`, i === 0 ? 'cin' : `c${i}`, `s${i}`, `c${i + 1}`, `A${i}`, share);
+    tAdderCell(net, `a${i}`, `b${i}`, i === 0 ? 'cin' : `c${i}`, `s${i}`, `c${i + 1}`, `A${i}`, opts);
   }
   return net;
 }
@@ -438,7 +556,17 @@ const BRAIL_FOR = { '-1': 'vss', 1: 'vdd' };
 const bCellIndex = (a, b, c) => ((a + 1) / 2) * 4 + ((b + 1) / 2) * 2 + (c + 1) / 2;
 
 /** Any three-input bit function from its 8 cells. Seven selectors, 14 switches. */
-function btable3(net, a, b, c, cells, out, tag, share = false) {
+function bBuffer(net, inp, out, tag) {
+  const mid = `${tag}$bi`;
+  bInv(net, inp, mid);
+  bInv(net, mid, out);
+  return net;
+}
+
+function btable3(net, a, b, c, cells, out, tag, opts = false) {
+  const { share = false, restore = 'none' } = asOpts(opts);
+  const bufLeaf = restore === 'leafmid';
+  const bufMid = restore === 'mid' || restore === 'leafmid';
   const leafCache = new Map();
   const mids = [];
   for (const av of [-1, 1]) {
@@ -450,12 +578,14 @@ function btable3(net, a, b, c, cells, out, tag, share = false) {
       if (leaf === undefined) {
         leaf = `${tag}$l${share ? leafCache.size : `${av}_${bv}`}`;
         bmux(net, c, rails[0], rails[1], leaf);
+        if (bufLeaf) { const r = `${leaf}r`; bBuffer(net, leaf, r, r); leaf = r; }
         if (share) leafCache.set(key, leaf);
       }
       leaves.push(leaf);
     }
-    const mid = `${tag}$m${av}`;
+    let mid = `${tag}$m${av}`;
     bmux(net, b, leaves[0], leaves[1], mid);
+    if (bufMid) { const r = `${mid}r`; bBuffer(net, mid, r, r); mid = r; }
     mids.push(mid);
   }
   bmux(net, a, mids[0], mids[1], out);
@@ -474,12 +604,12 @@ function bAdderTables() {
 }
 
 /** An n-bit binary ripple adder, built exactly as the ternary one is. */
-function bRippleAdder(net, n = 10, share = false) {
+function bRippleAdder(net, n = 10, opts = false) {
   const t = bAdderTables();
   for (let i = 0; i < n; i++) {
     const cin = i === 0 ? 'cin' : `c${i}`;
-    btable3(net, `a${i}`, `b${i}`, cin, t.sum, `s${i}`, `A${i}S`, share);
-    btable3(net, `a${i}`, `b${i}`, cin, t.carry, `c${i + 1}`, `A${i}C`, share);
+    btable3(net, `a${i}`, `b${i}`, cin, t.sum, `s${i}`, `A${i}S`, opts);
+    btable3(net, `a${i}`, `b${i}`, cin, t.carry, `c${i + 1}`, `A${i}C`, opts);
   }
   return net;
 }
@@ -487,7 +617,7 @@ function bRippleAdder(net, n = 10, share = false) {
 module.exports = {
   LOW, MID, HIGH, RAILS, BINARY_RAILS, Net,
   sti, nti, pti, tmin, tmax,
-  tmux, ttable3, cellIndex, adderTables, tAdderCell, tRippleAdder,
+  tmux, ttable3, cellIndex, adderTables, tAdderCell, tRippleAdder, tBuffer, asOpts,
   binaryNet, bInv, bNand, bAnd,
-  bmux, btable3, bAdderTables, bRippleAdder,
+  bmux, btable3, bAdderTables, bRippleAdder, bBuffer,
 };
