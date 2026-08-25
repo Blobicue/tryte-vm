@@ -13,7 +13,7 @@ Fifty-eight predictions, fifty-three held, five failed — and the five produced
 than the forty-nine. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**634 checks**, all passing. Every number below is recomputed by one of them,
+**649 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -26,6 +26,7 @@ node src/run.js programs/multiply.tasm 7 5
 |---|---|
 | **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + thirteen audits |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
+| **What is not built** | [`design/`](design/) — storage, memory, decode and sequencing, enumerated before anything is chosen |
 | **Every claim** | [`FINDINGS.json`](FINDINGS.json) — machine-readable, validated by `test/test-findings.js` |
 | **Before changing it** | [`AGENTS.md`](AGENTS.md) — pre-registration protocol, test standards, and the traps this repo has fallen into |
 | **Where it came from** | [`docs/origin/`](docs/origin/) — append-only provenance |
@@ -49,6 +50,7 @@ src/         device.js (switch-level transistors -- the layer BELOW the arithmet
              selfhost.js (run a program inside the emulated machine), run.js
 programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
+design/      the design phase for the machine that does not exist yet
 tools/       the thirteen audits, each with its registered predictions
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
