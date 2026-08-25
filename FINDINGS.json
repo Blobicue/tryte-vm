@@ -1342,6 +1342,85 @@
           "note": "With both phases high the structure degenerates to precisely the transparent latch J4 measured. So the non-overlap discipline is load-bearing rather than conventional, and the failure it exists to prevent was produced deliberately rather than assumed. Registering the failure mode alongside the success is the point: a structure that only works under a discipline should be shown breaking when the discipline is dropped, or the discipline reads as superstition."
         }
       ]
+    },
+    {
+      "id": "L",
+      "subject": "An accumulator — the first circuit here that computes and remembers",
+      "tool": "tools/accumulator-audit.js",
+      "registered_at": "8b6da4d",
+      "results_at": "7070b81",
+      "asserted_in": "test/test-accumulator.js",
+      "predictions": [
+        {
+          "id": "L1",
+          "claim": "one two-phase step computes A + B, for every accumulator value",
+          "outcome": "HELD",
+          "measured": {
+            "steps": 6561,
+            "accumulator_values": 729,
+            "addends": 9,
+            "wrong_sums": 0,
+            "steps_where_the_register_leaked": 0
+          },
+          "note": "The sum being right is the lesser half. The register is read by the adder while the adder is computing the register next value, and on none of the 6,561 steps did it stop reading the OLD accumulator. That is K1 property under load, and the whole reason the J4 failure mattered."
+        },
+        {
+          "id": "L2",
+          "claim": "and costs 672 switches",
+          "outcome": "HELD",
+          "measured": {
+            "total": 672,
+            "adder": 540,
+            "register": 132,
+            "buffer_between_them": 0,
+            "mid_rail_taps": 210
+          },
+          "note": "No buffer between adder and register because the sum is already rail-driven, which is the one place T5 does not charge. B needs none either, since it only ever gates selectors."
+        },
+        {
+          "id": "L3",
+          "claim": "and its step cost varies with the data",
+          "outcome": "HELD",
+          "measured": {
+            "phase_a_passes_min": 10,
+            "phase_a_passes_max": 14,
+            "predicted_max": 15,
+            "distribution": {
+              "10": 2,
+              "11": 18,
+              "12": 48,
+              "13": 122,
+              "14": 230
+            },
+            "varies": true
+          },
+          "note": "Inherited from the decoded adder, which E4 measured at 9 to 13 passes depending on its operands. So a machine built on this design has no fixed clock period -- the first consequence in this project that behaves like a property of the computation rather than of the structure."
+        },
+        {
+          "id": "L4",
+          "claim": "and it accumulates across steps",
+          "outcome": "HELD",
+          "measured": {
+            "steps": 10,
+            "list": [
+              5,
+              12,
+              -3,
+              100,
+              -50,
+              7,
+              7,
+              7,
+              -364,
+              200
+            ],
+            "final": -79,
+            "reference": -79,
+            "mismatches": 0
+          },
+          "note": "The first computation in this repository carried out by simulated transistors holding their own state between steps, wrapping correctly where the running total leaves the tryte range."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
