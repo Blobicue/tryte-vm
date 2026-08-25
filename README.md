@@ -5,7 +5,7 @@ arithmetic, a 25-instruction machine, an assembler, an emulator written in its o
 assembly, and twelve audits establishing exactly what its instruction set can reach
 and what the device model beneath it rests on.
 
-**602 checks**, all passing. Every number below is recomputed by one of them.
+**607 checks**, all passing. Every number below is recomputed by one of them.
 
 ```bash
 npm test              # everything (~55s; the monoid and switch sweeps are real work)
@@ -369,7 +369,9 @@ positionwise logic plus one carrying `ADD` reaches at width two.
 ### Where 128/243 comes from
 
 E4 measured that the decoded adder settles early on 279,936 of its 531,441
-operand pairs and could not say why. This says why, and the account is exact.
+operand pairs and could not say why. This says why, and the account is exact —
+**at carry-in 0**, which is what every sweep here fixed. With a non-zero carry-in
+the bottom position can save too, and the walk below is a different walk.
 
 **Each digit asks a question that takes an extra beat.** Its selectors are gated
 partly on the raw carry coming in and partly on a detector answering *"is that
@@ -393,11 +395,12 @@ count over-predicted by exactly one, always in the same direction.
 
 **The rule**, then, with *s* = the two operand digits summed:
 
-> passes = (2n+1) − #{ positions *i*, excluding the bottom and the top, where the
-> carry in is non-zero and `carry(s+c) == carry(s)` }
+> **At carry-in 0:** passes = (2n+1) − #{ positions *i*, excluding the bottom and
+> the top, where the carry in is non-zero and `carry(s+c) == carry(s)` }
 
-The bottom position is excluded because its carry-in is zero. Four positions can
-save, which is where the 3⁵ comes from.
+The bottom position is excluded because *at carry-in 0* its carry-in is zero and
+the condition needs a non-zero one — that clause is a property of the sweep, not
+of the circuit. Four positions can save, which is where the 3⁵ comes from.
 
 **The count** is then a walk over the carry state, with the saving moves deleted —
 a matrix derived from the adder's own tables, not written down:

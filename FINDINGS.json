@@ -822,7 +822,7 @@
           "claim": "the rule is exact pair by pair, not merely in aggregate",
           "outcome": "HELD",
           "measured": {
-            "rule": "passes = (2n+1) - #{ i in 1..n-2 : c_i != 0 and carry(s_i + c_i) == carry(s_i) }",
+            "rule": "at carry-in 0: passes = (2n+1) - #{ i in 1..n-2 : c_i != 0 and carry(s_i + c_i) == carry(s_i) }",
             "exhaustive_widths": [
               2,
               3,
@@ -851,9 +851,10 @@
               "11": 54108,
               "12": 221292,
               "13": 251505
-            }
+            },
+            "scope": "carry-in 0 throughout; with a non-zero carry-in the bottom position can save as well (six of its nine digit-pairs qualify) and the walk is a different one"
           },
-          "note": "Reproducing a total is much weaker than reproducing it term by term, so this was registered in the strong form. Zero disagreements against the actual solver over 597,861 pairs across five widths, every one of them exhaustive. The distribution sums to 531,441."
+          "note": "Reproducing a total is much weaker than reproducing it term by term, so this was registered in the strong form. Zero disagreements against the actual solver over 597,861 pairs across five widths, every one of them exhaustive. The distribution sums to 531,441. Scoped to carry-in 0 after the fact: every sweep fixed it, and the exclusion of the bottom position is a property of that choice rather than of the circuit. Caught by asking what the sweep actually visited, which is T-CLAIM-NARROWED-BY-A-DESIGN checking itself."
         },
         {
           "id": "F2",
@@ -1046,6 +1047,14 @@
       "evidence": "531,441 minus the 279,936 that settle in fewer passes; the rung is recorded in the U set",
       "asserted_in": "test/test-decoded.js",
       "note": "Recorded, not explained, and not chased. F-531441-COINCIDENCE is the other one of these."
+    },
+    {
+      "id": "F-WRAP-VERSUS-STEP",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "The sum and carry halves of a balanced-ternary adder save in exactly complementary currencies, and for one reason. The low trit WRAPS, so its rows repeat across operand sums -- nine leaf selectors collapse to three -- but its cells never agree within a row, so it can never settle early. The carry STEPS, so its rows never repeat -- five of nine, no collapse -- but it is flat over stretches, so twelve of eighteen cells agree within a row and it settles early constantly.",
+      "evidence": "sum tree 3 distinct rows and 0 of 18 in-row agreements; carry tree 5 distinct rows and 12 of 18",
+      "asserted_in": "test/test-passcount.js",
+      "note": "The same fact about balanced-ternary addition appeared once as the 38 percent area saving in Y3 and once as the pass-count distribution in E4 and F. Wrapping buys area; stepping buys time; neither buys both."
     }
   ],
   "traps_encountered": [

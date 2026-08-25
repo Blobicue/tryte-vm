@@ -5,6 +5,11 @@
  * before its thirteenth pass, and left the number unexplained. This is the
  * account, and it is exact.
  *
+ * SCOPE: carry-in 0, which is what every sweep here fixes. With a non-zero
+ * carry-in the bottom position can save as well -- six of its nine digit-pairs
+ * qualify -- and the count below is a different walk. The rule is stated for the
+ * case measured, not for the circuit in general.
+ *
  * THE RULE. With s = a_i + b_i, cell i saves a pass exactly when
  *
  *     c_i != 0   AND   carry(s + c_i) == carry(s)
@@ -157,7 +162,51 @@ console.log('\n=== 3. F1 — THE RULE AGAINST THE CIRCUIT, PAIR BY PAIR ===');
   })());
 }
 
-console.log('\n=== 4. THE RULE HAS TEETH — EACH CLAUSE IS LOAD-BEARING ===');
+console.log('\n=== 4. WRAP VERSUS STEP — WHY THE TWO TREES SAVE IN DIFFERENT CURRENCIES ===');
+{
+  /* The same fact about balanced-ternary addition turned up twice in this
+   * repository wearing different clothes. Y3 found that sharing identical leaf
+   * selectors collapses the SUM tree from nine leaves to three and the carry tree
+   * only to five — an area saving. F2 finds that the CARRY tree settles early on
+   * twelve of eighteen combinations and the sum tree on none — a timing effect.
+   * They are one asymmetry seen from two sides, and exactly complementary. */
+  const t = D.adderTables();
+  const distinctRows = table => {
+    const seen = new Set();
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) {
+      seen.add([-1, 0, 1].map(c => table[D.cellIndex(a, b, c)]).join(','));
+    }
+    return seen.size;
+  };
+  const inRowAgreements = table => {
+    let k = 0;
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (const c of [-1, 1]) {
+      if (table[D.cellIndex(a, b, c)] === table[D.cellIndex(a, b, 0)]) k++;
+    }
+    return k;
+  };
+  check('the sum tree shares rows (3 of 9) and never settles early (0 of 18)',
+    distinctRows(t.sum) === 3 && inRowAgreements(t.sum) === 0);
+  check('the carry tree shares nothing (5 of 9) and settles early constantly (12 of 18)',
+    distinctRows(t.carry) === 5 && inRowAgreements(t.carry) === 12);
+  check('   because the low trit WRAPS: rows repeat across operand sums, cells never agree',
+    [-2, -1, 0].every(s => T.lowTrit(s + 3) === T.lowTrit(s))
+    && [-2, -1, 0, 1, 2].every(s => T.lowTrit(s + 1) !== T.lowTrit(s)));
+  check('   and the carry STEPS: rows never repeat, but it is flat over stretches',
+    [-3, -2, -1, 0, 1, 2].every(x => carry(x + 1) >= carry(x))
+    && carry(-1) === carry(1) && distinctRows(t.carry) === 5);
+  check('so wrapping buys area and stepping buys time, and neither buys both', (() => {
+    // Y3's 38% saving is mostly the sum tree collapsing; E4's early settling is
+    // entirely the carry tree. Exactly one currency each.
+    const shared = new D.Net(); D.tRippleAdder(shared, 6, true);
+    const plain = new D.Net(); D.tRippleAdder(plain, 6);
+    return distinctRows(t.sum) < distinctRows(t.carry)          // the sum tree shares more
+      && inRowAgreements(t.sum) < inRowAgreements(t.carry)      // the carry tree is early more
+      && shared.cost().switches < plain.cost().switches;        // and the sharing is real
+  })());
+}
+
+console.log('\n=== 5. THE RULE HAS TEETH — EACH CLAUSE IS LOAD-BEARING ===');
 {
   const net = new D.Net(); D.dRippleAdder(net, 4);
   const hi = 40;
