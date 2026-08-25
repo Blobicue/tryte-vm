@@ -9,11 +9,11 @@ its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
 before it was measured, in its own commit, and every failed prediction was kept.
-Seventy predictions, sixty-three held, seven failed — and the five produced more
+Seventy-four predictions, sixty-seven held, seven failed — and the five produced more
 than the forty-nine. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**729 checks**, all passing. Every number below is recomputed by one of them,
+**730 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -62,7 +62,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-Sixteen prediction sets, registered before their runs. **63 held, 7 failed** — the
+Seventeen prediction sets, registered before their runs. **67 held, 7 failed** — the
 failures are kept, and four of the five produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
@@ -86,6 +86,7 @@ with registering commits and the tests that assert each one, in
 | **H1–H4** | whether the model can carry a machine, and what retention costs | 3 held, **H1 failed** |
 | **I1–I4** | whether four switches is minimal for the MID detector | all held |
 | **J1–J4** | a six-trit register, the first sequential circuit here | 3 held, **J4 failed** |
+| **K1–K4** | the master-slave register J4 said was required | all held |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:

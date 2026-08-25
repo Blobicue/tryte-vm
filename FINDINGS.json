@@ -1286,6 +1286,62 @@
           "note": "FAILED, cleanly and in the opposite direction. The mechanism is exact and obvious afterwards: while the write enable is asserted the feedback loop is held OPEN -- that is the whole trick that makes the write possible -- so the cell is driven straight from its input and the seeded value has nothing holding it. S0 is a TRANSPARENT LATCH, not a flip-flop, and a transparent latch is see-through by definition. So master-slave is required and the register file is double what design/05 budgeted. design/11 had already listed this as one of five outcomes that would falsify the plan, which is the design phase working: the consequence was named before the measurement, so it could not be argued with afterwards."
         }
       ]
+    },
+    {
+      "id": "K",
+      "subject": "The master-slave register J4 established was required, and the discipline it needs",
+      "tool": "tools/msregister-audit.js",
+      "registered_at": "47069d9",
+      "results_at": "1664d11",
+      "asserted_in": "test/test-msregister.js",
+      "predictions": [
+        {
+          "id": "K1",
+          "claim": "it reads the old value while writing the new",
+          "outcome": "HELD",
+          "measured": {
+            "cases": 626,
+            "saw_old": 626,
+            "saw_new": 0,
+            "saw_neither": 0
+          },
+          "note": "The property J4 measured the single latch to lack. Not automatic that the textbook answer would survive this model: three of the four obvious ways to build the single cell were forbidden by axioms."
+        },
+        {
+          "id": "K2",
+          "claim": "and costs 180 switches built for test, 132 in place",
+          "outcome": "HELD",
+          "measured": {
+            "with_input_buffers": 180,
+            "without": 132,
+            "single_latch": 114,
+            "single_in_place": 66,
+            "design_05_estimate": 228
+          },
+          "note": "Exactly double the single latch and nothing more. The slave needs no input buffer because its input is the master output, already rail-driven. design/05 had estimated ~228."
+        },
+        {
+          "id": "K3",
+          "claim": "and a full two-phase step moves the value through exactly once",
+          "outcome": "HELD",
+          "measured": {
+            "trytes": 729,
+            "wrong": 0,
+            "idle_holds": true
+          }
+        },
+        {
+          "id": "K4",
+          "claim": "and asserting both phases at once breaks it, in the specific way predicted",
+          "outcome": "HELD",
+          "measured": {
+            "cases": 127,
+            "saw_new": 127,
+            "saw_old": 0
+          },
+          "note": "With both phases high the structure degenerates to precisely the transparent latch J4 measured. So the non-overlap discipline is load-bearing rather than conventional, and the failure it exists to prevent was produced deliberately rather than assumed. Registering the failure mode alongside the success is the point: a structure that only works under a discipline should be shown breaking when the discipline is dropped, or the discipline reads as superstition."
+        }
+      ]
     }
   ],
   "unregistered_findings": [

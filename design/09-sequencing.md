@@ -35,7 +35,7 @@ same answer the JavaScript emulator gives, instruction for instruction.
 | # | sequencing | where the step boundary lives | needs | status |
 |---|---|---|---|---|
 | **Q0** | **harness as clock** — one `solve()` per step, previous state seeded in | outside the circuit | nothing | PROPOSED |
-| **Q1** | two-phase non-overlapping — two solves per step with different enables | outside, twice per step | nothing | PROPOSED |
+| **Q1** | two-phase non-overlapping — two solves per step with different enables | outside, twice per step | nothing | **MEASURED and forced** (`J4`, `K1`, `K4`) |
 | **Q2** | phase index inside the model — nodes carry a value per phase | inside the solver | `M5` | PROPOSED |
 | **Q3** | self-timed handshake — request and acknowledge between stages | inside the circuit | storage plus loops that must settle | PROPOSED |
 | **Q4** | unrolled — a bounded program becomes one combinational network, no state at all | nowhere; there are no steps | nothing | PROPOSED |
@@ -71,9 +71,9 @@ because programs are not bounded — but `programs/multiply.tasm` is.
 - **[`04-storage.md`](04-storage.md)**: `Q1` and the cell's `we`/`hold` pair are
   the same idea, which suggests the storage design has already chosen the
   sequencing without saying so.
-- **[`05-registers.md`](05-registers.md)**: whether `R4` master–slave is needed
-  depends entirely on `Q0` versus `Q1`. Under a single seeded solve, a read and a
-  write in the same step may simply not race.
+- **[`05-registers.md`](05-registers.md)**: `R4` master–slave IS needed, measured.
+  A read and a write in one solve DO race — the single latch is transparent while
+  written — so the register file doubles and `Q1` is forced. `MEASURED`
 - **[`06-interconnect.md`](06-interconnect.md)**: `N6` requires bus enables to be
   settled before the bus resolves, which is a dependency-stage ordering constraint
   that only `Q1` and `Q2` can state.
@@ -86,9 +86,10 @@ because programs are not bounded — but `programs/multiply.tasm` is.
    — with the switch-level datapath and a seeded state dictionary, checked
    instruction for instruction against the emulator. This is the experiment that
    turns a pile of subsystems into a machine.
-2. **Whether a read and a write to the same register in one solve race.**
-   Predicted under `Q0`: no, the read sees the seeded value deterministically. If
-   that holds, `R4` is unnecessary and the register file halves.
+2. ~~**Whether a read and a write to the same register in one solve race.**
+   Predicted: no.~~ **They do** (`J4`). The read sees the NEW value, because the
+   write holds the feedback open. `R4` is required, the register file doubles, and
+   two-phase non-overlapping clocking is forced rather than chosen. `MEASURED`
 3. **Whether a driven handshake settles** — the `Q3` question, and the one whose
    answer nobody can guess from the axioms.
 4. **The dependency-stage cost of one instruction**, which is the machine's
