@@ -722,7 +722,7 @@
     },
     {
       "id": "E",
-      "subject": "The decoded-selector adder — the circuit that failed Z2, at full width",
+      "subject": "The decoded-selector adder \u2014 the circuit that failed Z2, at full width",
       "tool": "tools/decoded-audit.js",
       "registered_at": "ba1918b",
       "results_at": "88d5f71",
@@ -811,7 +811,7 @@
     },
     {
       "id": "F",
-      "subject": "Where 128/243 comes from — the decoded adder’s pass count, derived",
+      "subject": "Where 128/243 comes from \u2014 the decoded adder\u2019s pass count, derived",
       "tool": "tools/passcount-audit.js",
       "registered_at": "bf1d4f1",
       "results_at": "cbc7528",
@@ -1227,7 +1227,7 @@
     },
     {
       "id": "J",
-      "subject": "A six-trit register at switch level — the first sequential circuit here",
+      "subject": "A six-trit register at switch level \u2014 the first sequential circuit here",
       "tool": "tools/register-audit.js",
       "registered_at": "e23ca30",
       "results_at": "5012c77",
@@ -1345,7 +1345,7 @@
     },
     {
       "id": "L",
-      "subject": "An accumulator — the first circuit here that computes and remembers",
+      "subject": "An accumulator \u2014 the first circuit here that computes and remembers",
       "tool": "tools/accumulator-audit.js",
       "registered_at": "8b6da4d",
       "results_at": "7070b81",
@@ -1419,6 +1419,105 @@
             "mismatches": 0
           },
           "note": "The first computation in this repository carried out by simulated transistors holding their own state between steps, wrapping correctly where the running total leaves the tryte range."
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "subject": "Can a stored value drive a selector SOURCE terminal? The roadmap phase-0 gate.",
+      "tool": "tools/terminal-audit.js",
+      "registered_at": "6fc2628",
+      "results_at": "214f95c",
+      "asserted_in": "test/test-terminal.js",
+      "predictions": [
+        {
+          "id": "B1a",
+          "claim": "under naive seeding the two selector families split, and dmux fails on exactly the two addresses that bridge two words",
+          "outcome": "HELD",
+          "measured": {
+            "tmux": {
+              "read": 9,
+              "wrong": 0,
+              "never_settled": 0,
+              "addresses": [
+                -1,
+                0,
+                1
+              ]
+            },
+            "dmux": {
+              "at_low": "never settles (3/3)",
+              "at_mid": "reads (3/3)",
+              "at_high": "never settles (3/3)"
+            },
+            "predicted_asymmetry_confirmed": true
+          },
+          "note": "Exactly the predicted shape. tmux gates every leg on the select INPUT, known at pass one. dmux gates its middle leg on a COMPUTED detector output, unknown at pass one, and N6 makes unknown conduction possible -- so the selected word is bridged to a second word and two rails reach it. At sel=MID only one word is bridged, there is no second rail, and it reads cleanly. The mechanism was derived from the solver before the run and the measurement matched it."
+        },
+        {
+          "id": "B1b",
+          "claim": "under select-resolved seeding both families read correctly",
+          "outcome": "HELD",
+          "measured": {
+            "tmux": {
+              "correct": 81,
+              "wrong": 0,
+              "never_settled": 0
+            },
+            "dmux": {
+              "correct": 81,
+              "wrong": 0,
+              "never_settled": 0
+            },
+            "cases": "all 3 addresses x all 27 stored patterns"
+          },
+          "note": "So a stored value CAN drive a selector source terminal. The roadmap phase-0 gate passes and I0, the read mux and the address path are all viable. This prediction FIRST reported dmux at 45 of 81 -- see T-TRANSCRIBED-TABLE. The failure was in the seed, not the circuit."
+        },
+        {
+          "id": "B2",
+          "claim": "and reading does not disturb what is stored, at any pass, not only at the end",
+          "outcome": "HELD",
+          "measured": {
+            "tmux": {
+              "never_disturbed": 81,
+              "disturbed_mid_solve": 0,
+              "left_wrong": 0
+            },
+            "dmux": {
+              "never_disturbed": 81,
+              "disturbed_mid_solve": 0,
+              "left_wrong": 0
+            },
+            "second_consecutive_read": "clean in every case"
+          },
+          "note": "Checked along the trajectory rather than at the fixed point, because a suite of 481 fixed-point checks once missed exactly this. No stored trit passed through X even transiently, and a second read from the state the first one left is still correct."
+        },
+        {
+          "id": "B3",
+          "claim": "and a 27-way one-trit read mux costs exactly what budget.js PROPOSED",
+          "outcome": "HELD",
+          "measured": {
+            "built": 39,
+            "budget_read_term_per_trit": 39,
+            "detectors": 12,
+            "detector_term": 12,
+            "internal_nodes": 13
+          },
+          "note": "A PROPOSED term in the budget tested against a built structure and matching exactly. The formula for the read path is no longer a guess -- though the decoder and write-enable terms still are."
+        },
+        {
+          "id": "B4",
+          "claim": "and the decoder does NOT collapse into the read mux, so the address path does not halve",
+          "outcome": "HELD",
+          "measured": {
+            "mux_internal_nodes": 13,
+            "one_hot_selects_a_write_needs": 27,
+            "can_supply": false,
+            "shared": "3 MID detectors = 12 switches",
+            "share_of_address_path": "2.3%",
+            "roadmap_allowed_for": "roughly half"
+          },
+          "note": "A counting argument, and it decides 243 words. A 27-way read mux has 13 internal nodes and a write path needs 27 one-hot word selects, one per word; 13 < 27, so D0 survives in the write path no matter what D1 does. design/07 suspected the two were one structure seen from both ends. They share 2.3%, not half. 243 words stays out of the sweep budget and the target machine is 81."
         }
       ]
     }
@@ -1506,7 +1605,7 @@
     {
       "id": "F-251505-AGAIN",
       "outcome": "MEASURED_NOT_REGISTERED",
-      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 — the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
+      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 \u2014 the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
       "evidence": "531,441 minus the 279,936 that settle in fewer passes; the rung is recorded in the U set",
       "asserted_in": "test/test-decoded.js",
       "note": "Chased and settled by the G set: a coincidence. The pairing that produces it holds at exactly one parameter value, the two families grow at rates a thousandfold apart, and the two numbers are the only pair in the manifest that collides across the vocabulary and circuit halves of the project."
@@ -1543,8 +1642,8 @@
     },
     {
       "id": "T-EXHAUSTED-NOT-CLOSED",
-      "count": 2,
-      "description": "Confusing ran out of budget with finished. A search that exhausts its depth limit, one that hits its size cap, and one that genuinely closes are three different outcomes; conflating them produced a false negative verdict on V3. It recurred in the E sweep, where one counter held both settled-sooner-than-predicted and needed-longer-than-predicted, and the correctness check was skipped for the second bucket -- so an exhaustive claim was published while resting on an unmeasured decomposition. That time the numbers happened to be right: the second bucket was empty. Report the outcomes separately and check that they sum to the total."
+      "count": 3,
+      "description": "Confusing ran out of budget with finished. A search that exhausts its depth limit, one that hits its size cap, and one that genuinely closes are three different outcomes; conflating them produced a false negative verdict on V3. It recurred in the E sweep, where one counter held both settled-sooner-than-predicted and needed-longer-than-predicted, and the correctness check was skipped for the second bucket -- so an exhaustive claim was published while resting on an unmeasured decomposition. That time the numbers happened to be right: the second bucket was empty. Report the outcomes separately and check that they sum to the total. Third bite, this time in a CHECKER rather than an instrument: the staged solver was compared against solve() by crediting agreement only when both settled, so the cases where both agreed precisely that the network does NOT settle were counted as disagreements, and the tool declared its own results suspect."
     },
     {
       "id": "T-SOURCE-NOT-TERMINAL",
@@ -1553,8 +1652,8 @@
     },
     {
       "id": "T-INSTRUMENT-FALSE-VERDICT",
-      "count": 4,
-      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered."
+      "count": 5,
+      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument."
     },
     {
       "id": "T-PREMISE-NOT-ANSWER",
@@ -1590,6 +1689,11 @@
       "id": "T-CRITERION-IN-THE-NOISE",
       "count": 1,
       "description": "A registered criterion whose verdict depends on run-to-run variation. H1 predicted a spread under 3x and measured 3.72 on one run and 2.89 on the next, either side of its own line, so the same world produced both a pass and a fail. The attempt to salvage a more robust shape from it flipped too. A threshold placed near the noise floor is a defect in the prediction rather than a fact about the subject; either widen it until it cannot flip, or measure the quantity and report it without asserting a bound."
+    },
+    {
+      "id": "T-TRANSCRIBED-TABLE",
+      "count": 1,
+      "description": "A fact that could have been RUN was hand-copied instead. The terminal audit seeded a detector output from its truth table as written in a comment. The comment was right; the transcription inverted it, putting an n-type gate above its threshold so a selector leg conducted on exactly the addresses where it must be off. The result was not noise: 36 of 54 cases failed, every one of them a case where the middle word disagreed with the selected word and none where they agreed -- the exact mechanistic signature real contention would produce, and a plausible headline finding. A wrong instrument does not look wrong. When a value is derivable by running a two-line network, run it rather than copying it."
     }
   ]
 }

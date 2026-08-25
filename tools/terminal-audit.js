@@ -195,33 +195,71 @@ function seed(net, inputs, held, resolveSelect) {
   for (const x of nodes) if (!driven.has(x)) init[x] = 'Z';
   held.forEach((t, i) => { init[`q${i}`] = t; init[`q${i}b`] = -t; });
   if (resolveSelect && nodes.has('selMid')) {
-    init.selMid = inputs.sel === D.MID ? D.LOW : D.HIGH;   // isMid's table: (-1, 0, -1)
-    init['selMid$m'] = inputs.sel === D.MID ? D.MID : 'Z';
+    // SOLVE the detector rather than transcribing its table. The first version
+    // hand-wrote `selMid = sel === MID ? LOW : HIGH` from a comment, which is
+    // inverted: the real table is LOW / MID / LOW. Seeding HIGH put the middle leg
+    // — an n-type at threshold MID — ABOVE its threshold, so the leg conducted on
+    // exactly the addresses where it must be off. That manufactured a clean-looking
+    // failure: 36 of 54 cases, every one of them where the middle word disagreed
+    // with the selected word, and none where they agreed. Precisely the signature a
+    // real contention bug would have.
+    //
+    // `T-INSTRUMENT-FALSE-VERDICT`, and the specific lesson is narrower than
+    // "check the instrument": a table copied from prose into a seed is a
+    // transcription, and transcriptions are checkable by running the thing.
+    const det = new D.Net();
+    D.isMid(det, 'sel', 'selMid');
+    const settled = det.solve({ sel: inputs.sel }, 40);
+    init.selMid = settled.selMid;
+    init['selMid$m'] = settled['selMid$m'];
   }
   return init;
 }
 
-const HOLD_OFF = { we0: D.LOW, we1: D.LOW, we2: D.LOW, hold0: D.LOW, hold1: D.LOW, hold2: D.LOW,
+/**
+ * The cells HOLDING: feedback closed, write disabled.
+ *
+ * The first version of this set `hold` LOW, which is the *write* configuration —
+ * the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop
+ * and every cell floats. `out` came back `Z` for all 81 cases in BOTH families,
+ * including ones that must trivially work, and the audit would have reported the
+ * roadmap's blocking question as answered NO. A verdict of "nothing works" against
+ * a circuit family that demonstrably works is the instrument, not the subject —
+ * `T-INSTRUMENT-FALSE-VERDICT`, fourth bite.
+ */
+const HOLDING = { we0: D.LOW, we1: D.LOW, we2: D.LOW,
+  hold0: D.HIGH, hold1: D.HIGH, hold2: D.HIGH,
   w0: D.LOW, w1: D.LOW, w2: D.LOW };
 
 console.log('--- instrument check: the staged loop against solve() ---');
 {
-  let agree = 0, disagree = 0;
+  // Compare all THREE outcomes, not two. The first version credited agreement only
+  // when both settled, so the cases where staged said hit-cap AND solve() threw —
+  // the two implementations agreeing precisely that the network does not settle —
+  // were counted as DISAGREEMENTS, and the tool declared its own results suspect.
+  // Conflating "did not finish" with "disagreed" is `T-EXHAUSTED-NOT-CLOSED` again,
+  // this time inside the checker rather than the instrument it checks.
+  let sameSettled = 0, sameStuck = 0, differ = 0;
+  const notes = [];
   for (const family of ['tmux', 'dmux']) {
     for (const sel of [D.LOW, D.MID, D.HIGH]) {
       const { net } = rig(family, 0);
-      const inputs = { sel, ...HOLD_OFF };
+      const inputs = { sel, ...HOLDING };
       const init = seed(net, inputs, [1, 0, -1], true);
       const s = staged(net, inputs, init);
-      let real = null;
-      try { real = net.solve(inputs, 40, init); } catch (e) { real = 'threw'; }
-      if (s.outcome === 'settled' && real !== 'threw'
-        && Object.keys(real).every(k => real[k] === s.value[k])) agree++;
-      else disagree++;
+      let real = null, threw = false;
+      try { real = net.solve(inputs, 40, init); } catch (e) { threw = true; }
+      const stagedSettled = s.outcome === 'settled';
+      if (stagedSettled !== !threw) {
+        differ++; notes.push(`${family} sel=${sel}: staged ${s.outcome}, solve ${threw ? 'threw' : 'returned'}`);
+      } else if (!stagedSettled) sameStuck++;
+      else if (Object.keys(real).every(k => real[k] === s.value[k])) sameSettled++;
+      else { differ++; notes.push(`${family} sel=${sel}: settled to different values`); }
     }
   }
-  console.log(`      staged agrees with solve() on ${agree} of ${agree + disagree} settled cases`);
-  if (disagree) console.log(`      DISAGREEMENTS: ${disagree} — every result below is suspect`);
+  console.log(`      ${sameSettled} settled identically, ${sameStuck} agreed it never settles,`
+    + ` ${differ} genuine disagreements`);
+  if (differ) console.log(`      SUSPECT: ${notes.join('; ')}`);
 }
 
 console.log('\n--- B1a  naive seeding: do the two families split? ---');
@@ -233,7 +271,7 @@ for (const family of ['tmux', 'dmux']) {
     for (const v of [-1, 0, 1]) {
       const held = [v, v, v].map((x, i) => (i === pos ? v : (v + 1 > 1 ? -1 : v + 1)));
       const { net } = rig(family, pos);
-      const inputs = { sel, ...HOLD_OFF };
+      const inputs = { sel, ...HOLDING };
       const r = staged(net, inputs, seed(net, inputs, held, false));
       if (r.outcome !== 'settled') stuck++;
       else if (r.value.out === held[pos]) ok++;
@@ -252,7 +290,7 @@ for (const family of ['tmux', 'dmux']) {
     for (const a of [-1, 0, 1]) for (const b of [-1, 0, 1]) for (const c of [-1, 0, 1]) {
       const held = [a, b, c];
       const { net } = rig(family, pos);
-      const inputs = { sel, ...HOLD_OFF };
+      const inputs = { sel, ...HOLDING };
       const r = staged(net, inputs, seed(net, inputs, held, true));
       if (r.outcome !== 'settled') { stuck++; if (!first) first = `sel=${sel} held=${held} never settled`; }
       else if (r.value.out === held[pos]) ok++;
@@ -270,7 +308,7 @@ for (const family of ['tmux', 'dmux']) {
     for (const a of [-1, 0, 1]) for (const b of [-1, 0, 1]) for (const c of [-1, 0, 1]) {
       const held = [a, b, c];
       const { net } = rig(family, pos);
-      const inputs = { sel, ...HOLD_OFF };
+      const inputs = { sel, ...HOLDING };
       const r = staged(net, inputs, seed(net, inputs, held, true));
       if (r.outcome !== 'settled') { dirty++; continue; }
       const everWrong = r.trace.some(v => held.some((t, i) => v[`q${i}`] !== t));
@@ -287,6 +325,61 @@ for (const family of ['tmux', 'dmux']) {
   }
   console.log(`      ${family.padEnd(5)}  ${clean} never disturbed, ${endOnly} disturbed MID-SOLVE`
     + ` but recovered, ${dirty} left wrong`);
+}
+
+console.log('\n--- diagnostic (NOT registered; added after the run to explain B1b) ---');
+{
+  // B1b predicted both families read once the detector is seeded. dmux did not.
+  // Two things need separating before that means anything: is it the DECODED
+  // FAMILY that fails, or is it STORAGE ON A TERMINAL that fails? dmux drives the
+  // adder correctly over every operand pair, so the control matters.
+  const control = () => {
+    const net = new D.Net();
+    D.isMid(net, 'sel', 'selMid');
+    D.dmux(net, 'sel', 'selMid', 'vss', 'vmid', 'vdd', 'out');
+    let ok = 0, stuck = 0;
+    for (const sel of [D.LOW, D.MID, D.HIGH]) {
+      const want = sel;
+      const inputs = { sel };
+      const nodes = new Set();
+      for (const d of net.devices) { nodes.add(d.a); nodes.add(d.b); nodes.add(d.gate); }
+      const driven = new Set([...Object.keys(net.rails), ...Object.keys(inputs)]);
+      const init = {};
+      for (const x of nodes) if (!driven.has(x)) init[x] = 'Z';
+      const r = staged(net, inputs, init);
+      if (r.outcome !== 'settled') stuck++; else if (r.value.out === want) ok++;
+    }
+    return `rail terminals: ${ok}/3 read, ${stuck} never settled`;
+  };
+  console.log(`      control — ${control()}`);
+
+  // And which stored patterns break it?
+  const fails = [];
+  for (const sel of [D.LOW, D.HIGH]) {
+    const pos = sel === D.LOW ? 0 : 2;
+    for (const a of [-1, 0, 1]) for (const b of [-1, 0, 1]) for (const c of [-1, 0, 1]) {
+      const held = [a, b, c];
+      const { net } = rig('dmux', pos);
+      const inputs = { sel, ...HOLDING };
+      const r = staged(net, inputs, seed(net, inputs, held, true));
+      if (r.outcome !== 'settled') fails.push({ sel, held });
+    }
+  }
+  const byMid = { same: 0, diff: 0 };
+  for (const f of fails) {
+    const pos = f.sel === D.LOW ? 0 : 2;
+    if (f.held[1] === f.held[pos]) byMid.same++; else byMid.diff++;
+  }
+  console.log(`      stored terminals, select resolved: ${fails.length} of 54 never settle`
+    + ` at sel=LOW/HIGH`);
+  console.log(`      (same-value cases failing: ${byMid.same}, different-value: ${byMid.diff})`);
+  console.log(`      Kept as a control. It earned its place by catching a defect in this tool:`);
+  console.log(`      with the detector seeded from a hand-copied table instead of a solve, this`);
+  console.log(`      line read 36 of 54, and every one of those 36 was a case where the middle`);
+  console.log(`      word disagreed with the selected word — the exact signature real contention`);
+  console.log(`      would have. The seed was inverted, so the middle leg conducted on the two`);
+  console.log(`      addresses where it must be off. A wrong instrument does not produce noise;`);
+  console.log(`      it produces a clean, mechanistic, entirely wrong finding.`);
 }
 
 console.log('\n--- B3  what a 27-way one-trit read mux costs ---');

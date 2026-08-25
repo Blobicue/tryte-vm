@@ -37,6 +37,7 @@ const built = fn => { const net = new D.Net(); fn(net); return net.cost().switch
 const U = {
   adder: built(n => D.dRippleAdder(n, 6)),        // decoded 6-trit ripple, E/F
   dmux: built(n => D.dmux(n, 's', 'sm', 'l', 'm', 'h', 'o')),
+  tmux: built(n => D.tmux(n, 's', 'l', 'm', 'h', 'o')),
   detector: built(n => D.isMid(n, 's', 'o')),
   inverter: built(n => D.sti(n, 'a', 'o')),
 };
@@ -83,12 +84,36 @@ const SWEEP_DEVICE_BUDGET = 4806;
 // D0 and D1 may be the SAME STRUCTURE — design/07 flags it and nobody has
 // checked. If they are, the address path roughly halves. Both are counted here,
 // which is the pessimistic reading and is marked as such.
+// THE READ PATH USES `tmux`, NOT `dmux`, AND THAT IS A DECISION SET `B` FORCED.
+//
+// The decoded selector is cheaper — 3 switches against 4 — and it won the adder.
+// It cannot be used here without a precondition. `B1a` measured it: with a stored
+// value on a source terminal and the select cone left to resolve itself, `dmux`
+// NEVER SETTLES on two of the three addresses, because its middle leg is gated by
+// a computed detector output that is unknown on pass one, and unknown conduction
+// bridges the selected word to a second word's rail. `tmux` gates every leg on the
+// select INPUT, which is known on pass one, and reads correctly with no
+// precondition at all.
+//
+// `dmux` does work once the select cone is resolved (`B1b`, 81 of 81). But
+// "resolve the select cone first" is exactly the seeding discipline that
+// `design/12-roadmap.md` names as the most likely way the assembled machine
+// produces a plausible wrong answer — one missed seed, and nothing catches it but
+// the answer being wrong. Paying 4 switches instead of 3 removes the failure mode
+// rather than documenting it.
+//
+// Price at the target machine: +240 switches, 3,640 to 3,880, against a budget of
+// 4,806. The safer structure fits, so it is not a trade at this size.
+const READ_FAMILY = 'tmux';
+
 const addressPath = W => {
   const t = Math.round(Math.log(W) / Math.log(3));
   const decoder = U.dmux * (3 * W - 3) / 2 + U.detector * t;
-  const read = 6 * U.dmux * (W - 1) / 2;
+  const nodes = (W - 1) / 2;                       // 3-way mux tree over W inputs
+  const read = 6 * (READ_FAMILY === 'tmux' ? U.tmux : U.dmux) * nodes;
+  const readIfDecoded = 6 * U.dmux * nodes;        // kept visible: the price of the choice
   const write = 6 * W;
-  return { t, decoder, read, write, total: decoder + read + write };
+  return { t, decoder, read, readIfDecoded, write, total: decoder + read + write };
 };
 
 const CONFIGS = [];
@@ -123,7 +148,12 @@ if (require.main === module) {
   console.log(`      ${SWEEP_DEVICE_BUDGET} devices is the largest network a full 531,441-pair`);
   console.log(`      sweep clears inside an hour. It is a budget of solves, not a proof.\n`);
 
-  console.log('--- the ladder ---');
+  console.log(`--- the read path is ${READ_FAMILY} (decided by set B) ---`);
+  console.log(`      dmux costs ${U.dmux} and cannot read a stored value unless its select cone`);
+  console.log(`      is resolved first — B1a measured it never settling on two of the three`);
+  console.log(`      addresses. tmux costs ${U.tmux} and needs no precondition.`);
+
+  console.log('\n--- the ladder ---');
   console.log('  words  trits  model  storage   addr    rest   TOTAL   status     sweepable');
   for (const c of CONFIGS) {
     const st = c.lines[0][1], ad = c.lines[1][1];

@@ -66,7 +66,16 @@ console.log('\n=== 2. COMPLETENESS AGAINST THE TOOLS ===');
   for (const s of M.prediction_sets) {
     const src = fs.readFileSync(path.join(ROOT, s.tool), 'utf8');
     const block = src.slice(src.indexOf('PREDICTED OUTCOMES'), src.indexOf(' */'));
-    for (const m of block.matchAll(/^ \*\s{3}([A-Z]\d+)\s{2}/gm)) found.add(m[1]);
+    // Ids may carry a lowercase suffix — `B1a`/`B1b` are two conditions of one
+    // claim, registered separately because they were predicted to differ. The
+    // original pattern matched `[A-Z]\d+` followed by exactly two spaces, so it
+    // silently could not see a suffixed id at all: the manifest looked as though it
+    // had invented predictions no tool registered. A checker that cannot parse a
+    // legal id reports the corpus as wrong rather than itself.
+    // (A first attempt at widening this added a `(?=[A-Z])` lookahead, which
+    // assumed every claim opens with a capital. Several do not, and fifteen older
+    // ids vanished from the corpus at once — the fix broke more than the bug.)
+    for (const m of block.matchAll(/^ \*\s{3}([A-Z]\d+[a-z]?)\s/gm)) found.add(m[1]);
   }
   const declared = new Set(allPreds.map(p => p.id));
   const missing = [...found].filter(id => !declared.has(id));

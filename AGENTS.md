@@ -190,6 +190,17 @@ floor is a defect in the prediction, not a fact about the subject. Either widen 
 until it cannot flip, or measure the quantity and report it without asserting a
 bound.
 
+`T-TRANSCRIBED-TABLE` **A fact that could have been RUN was hand-copied
+instead.** A detector's truth table was seeded from the table as written in a
+comment. The comment was right; the transcription inverted it, putting an n-type
+gate above its threshold so a selector leg conducted on exactly the addresses
+where it must be off. The result was not noise -- 36 of 54 cases failed, every one
+of them a case where the middle word disagreed with the selected word and none
+where they agreed, which is the exact mechanistic signature real contention would
+produce. It read as a clean headline finding: "the decoded selector cannot read
+storage." **A wrong instrument does not look wrong.** If a value can be obtained by
+running a two-line network, run it rather than copying it.
+
 **Trusting a build artifact that was not rebuilt.** The published page embeds the
 source; after changing the source it will still pass its own tests until rebuilt.
 There is a staleness check for exactly this — do not remove it.

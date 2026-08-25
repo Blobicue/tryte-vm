@@ -58,12 +58,12 @@ largest network a full 531,441-pair sweep clears inside an hour.
 
 | words | trits | model | storage | address path | rest | total | sweepable |
 |---|---|---|---|---|---|---|---|
-| 27 | 3 | `M0` | 1,782 | 525 | 1,572 | **3,879** | yes |
-| 27 | 3 | `M1` | 162 | 525 | 1,572 | **2,259** | yes |
-| 81 | 4 | `M0` | 5,346 | 1,582 | 1,572 | **8,500** | no |
-| **81** | **4** | **`M1`** | **486** | **1,582** | **1,572** | **3,640** | **yes** |
-| 243 | 5 | `M1` | 1,458 | 4,745 | 1,572 | **7,775** | no |
-| 729 | 6 | `M0` | 48,114 | 14,226 | 1,572 | **63,912** | no |
+| 27 | 3 | `M0` | 1,782 | 603 | 1,572 | **3,957** | yes |
+| 27 | 3 | `M1` | 162 | 603 | 1,572 | **2,337** | yes |
+| 81 | 4 | `M0` | 5,346 | 1,822 | 1,572 | **8,740** | no |
+| **81** | **4** | **`M1`** | **486** | **1,822** | **1,572** | **3,880** | **yes** |
+| 243 | 5 | `M1` | 1,458 | 5,471 | 1,572 | **8,501** | no |
+| 729 | 6 | `M0` | 48,114 | 16,410 | 1,572 | **66,096** | no |
 
 `PROPOSED` — the storage and register terms are `MEASURED`, the address path and
 decode terms are formulas nobody has built. The **comparison** survives errors in
@@ -99,13 +99,13 @@ already wrote. That is the target.
 3. **The bottleneck moves rather than disappearing.** [`10-integration.md`](10-integration.md)
    says memory is 93% of the machine, which is true under `M0`. Under `M1` storage
    nearly vanishes and **the address path becomes the largest single term** — at
-   243 words it is 4,745 against storage's 1,458, three times bigger. Retention
+   243 words it is 5,471 against storage's 1,458, nearly four times bigger. Retention
    does not make the machine cheap; it *relocates* what makes it expensive, from a
    part with a known fix to a part nobody has built.
 
    This also means [`10-integration.md`](10-integration.md)'s address-path estimate
    of ~1,000–3,000 for 729 words is very likely low: the formula in `budget.js`
-   gives 14,226, and unlike the estimate it is written down and can be argued with.
+   gives 16,410, and unlike the estimate it is written down and can be argued with.
    Corrected there, with the disagreement noted rather than quietly replaced.
 
 ---
@@ -157,11 +157,41 @@ whole address path need a stored value to drive a selector's **source terminal**
 which is a different thing in this model — `T5` charges for it and `N4` may
 contend on it.
 
-Cheap: one register, one selector, one sweep. If it fails, `I0`/`D1` die together
-and the machine is `I2`-shaped with buffers everywhere. **Do this before anything
-else in this list**, because four of the six phases below assume it.
+**DONE — set `B`, and the answer is yes with a condition attached.** `B1b`: every
+one of 81 stored patterns reads back correctly through both selector families, and
+`B2` shows the stored trit is not disturbed at any pass of the solve, nor by a
+second consecutive read. `I0`, `D1` and the address path are all viable and the
+four phases below are unblocked.
 
-### Phase 1 — interconnect, `I0` vs `I2`
+The condition is the finding. **The two families are not interchangeable here**,
+and `B1a` measured the split:
+
+| family | switches | reads a stored terminal with the select cone unresolved? |
+|---|---|---|
+| `tmux` (tree) | 4 | **yes**, at every address, no precondition | 
+| `dmux` (decoded) | 3 | **no — never settles** at two of the three addresses |
+
+`dmux` gates its middle leg on a *computed* detector output. On pass one that node
+is `Z`, unknown conduction counts as possible (`N6`), and the selected word gets
+bridged to a second word's rail — so the network oscillates instead of resolving.
+At the middle address only one word is bridged, there is no second rail, and it
+reads cleanly. `tmux` gates every leg on the select **input**, which is known on
+pass one, so it is immune by construction.
+
+**Decision: the read path is built from `tmux`.** `dmux` does work once the select
+cone is resolved, but "resolve the select cone first" is precisely the seeding
+discipline listed under *What would stop it* below as the most likely way this
+machine produces a plausible wrong answer — one missed seed, and nothing catches it
+but the answer being wrong. Paying 4 switches instead of 3 removes the failure mode
+instead of documenting it. Price: **+240 switches at the target size, 3,640 to
+3,880, against a budget of 4,806.** The safer structure fits, so at this scale it
+is not a trade.
+
+`B3` also put a number on the budget itself: a 27-way one-trit read mux builds to
+exactly the 39 switches [`../tools/budget.js`](../tools/budget.js) predicted. The
+read term is no longer a guess. The decoder and write-enable terms still are.
+
+### Phase 1 — interconnect, `I0` vs `I2`  ← **next**
 
 Register the crossover: `I0` (selector tree per destination) is predicted to win at
 this machine's source and destination counts and to lose badly by eight sources.
@@ -169,20 +199,30 @@ this machine's source and destination counts and to lose badly by eight sources.
 
 ### Phase 2 — the address path, and whether `D0` and `D1` are one structure
 
-**Now the highest-leverage unbuilt question in the project**, because consequence 3
-above makes it the dominant term. [`07-memory.md`](07-memory.md) suspects the
-729-way decoder and the 729-way read mux are the same object approached from
-opposite ends. If they are, the address path roughly halves — which at 243 words
-under `M1` moves the total from 7,775 to roughly 5,400, close enough to the sweep
-budget to reopen the 243-word machine and its six programs.
+**ANSWERED by `B4`, and the answer is no.** [`07-memory.md`](07-memory.md)
+suspected the decoder and the read mux were one object approached from opposite
+ends, and this file allowed that the address path might "roughly halve" if so.
 
-That single structural question is worth more than every optimisation left in this
-folder combined. Depends on phase 0.
+It does not, on a counting argument that needs no simulation: a 27-word read mux
+has **(27−1)/2 = 13 internal nodes**, and a write path needs **27 one-hot word
+selects**, one per word. 13 < 27, so the mux cannot supply them and `D0` survives
+in the write path whatever `D1` does. The two share the MID detectors and nothing
+else — **12 switches out of a 603-switch address path, about 2%.**
+
+**So 243 words is decided: it stays out of reach**, at 8,501 against a 4,806
+budget, and there is no structural saving left that would bring it back. The
+target machine is 81 words, and the six-program configuration is not available at
+any price this folder knows about.
+
+What remains of this phase is the part `B4` did not touch: the decoder and
+write-enable terms are still `PROPOSED` formulas, and they are now the largest
+unmeasured numbers in the budget. Building a 27-word decoder would settle them the
+way `B3` settled the read term.
 
 ### Phase 3 — the memory array, at 81 words
 
 Depends on 1, 2, and on the retention decision being made. Builds the target
-configuration. Registers the assembled cost against this file's 3,640.
+configuration. Registers the assembled cost against this file's 3,880.
 
 ### Phase 4 — decode `C1`, and the `C5` search
 

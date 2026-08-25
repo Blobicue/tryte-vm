@@ -31,13 +31,13 @@ order rather than enumerating a space.
 - **Which machine is worth building has an answer, and it is narrow.** Two
   ladders — what fits the sweep budget, and which programs fit in how much memory —
   intersect in **exactly one configuration: 81 words under charge retention**, at
-  roughly 3,640 switches. It runs `countdown`, `threeway` and `kleene` as placed.
+  roughly 3,880 switches. It runs `countdown`, `threeway` and `kleene` as placed.
   A 27-word machine fits the budget and runs **none** of the eight programs.
 - **So the retention decision and the memory-scope decision are the same
   decision**, which the design phase had ranked as two.
 - **Under retention the bottleneck moves rather than disappearing.** Storage stops
   dominating and the **address path** becomes the largest single term — at 243
-  words it is 4,745 against storage's 1,458. Retention relocates the cost from a
+  words it is 5,471 against storage's 1,458. Retention relocates the cost from a
   part with a known fix to a part nobody has built.
 - **The sequencer may not be made of switches.** Under seeded semantics the step
   boundary lives in the harness, which means "a computer built of simulated ternary

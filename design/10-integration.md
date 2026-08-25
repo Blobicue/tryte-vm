@@ -28,14 +28,14 @@ Two coherent paths, and the gap between them is the whole planning decision.
 | decode, ~12 lines | ~480 | ~480 |
 | interconnect | ~300 | ~300 |
 | ALU (existing adder + gates) | ~700 | ~700 |
-| address path | ~~~1,000–3,000~~ **14,226** | ~~~1,000–3,000~~ **14,226** |
+| address path | ~~~1,000–3,000~~ **16,410** | ~~~1,000–3,000~~ **16,410** |
 | **total** | **~51,000–53,000** | **~11,000–13,000** |
 | status | DERIVED from `04`, `07` | PROPOSED |
 
 **The address-path row was wrong and is corrected in place.** ~1,000–3,000 was an
 estimate with no formula behind it. [`../tools/budget.js`](../tools/budget.js) now
 computes it — a decoder tree, a `W`-to-1 read mux per trit, and one write-enable
-switch per cell — and gets **14,226** for 729 words, five times the top of the old
+switch per cell — and gets **16,410** for 729 words, five times the top of the old
 range. The formula is written out where it can be argued with, which the estimate
 never was. Both are `PROPOSED`; only one of them can be checked.
 
@@ -72,7 +72,7 @@ Three consequences for what to do next:
    machine that can be built and swept exhaustively and one that cannot.
 
    ~~A 27-word machine is a real machine and it is ~2,000 switches.~~ **It is
-   ~3,879 switches and it runs none of the eight programs** — every one of them
+   ~3,957 switches and it runs none of the eight programs** — every one of them
    places cells outside −13..13, and only `countdown` is even narrow enough to
    relocate into that range. Measured by assembling them; see
    [`12-roadmap.md`](12-roadmap.md), which picks **81 words under `M1`** instead as
@@ -80,7 +80,7 @@ Three consequences for what to do next:
 
 4. **And under `M1` the bottleneck moves rather than disappearing.** The 93% figure
    below is a fact about `M0`. Once storage costs one switch per trit, the address
-   path is the largest term in the machine — 4,745 against storage's 1,458 at 243
+   path is the largest term in the machine — 5,471 against storage's 1,458 at 243
    words. Removing the dominant cost promotes the second one, and the second one
    here has never been built.
 

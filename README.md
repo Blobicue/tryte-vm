@@ -4,16 +4,16 @@
 
 **A working computer that counts in three states instead of two** — core
 arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
-assembly, transistors underneath it, and eighteen audits establishing exactly what
+assembly, transistors underneath it, and nineteen audits establishing exactly what
 its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
 before it was measured, in its own commit, and every failed prediction was kept.
-Seventy-eight predictions, seventy-one held, seven failed — and the five produced more
-than the forty-nine. That loop is written up separately in
+Eighty-three predictions, seventy-six held, seven failed — and the seven produced more
+than the seventy-six. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**780 checks**, all passing. Every number below is recomputed by one of them,
+**797 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -24,9 +24,9 @@ node src/run.js programs/multiply.tasm 7 5
 
 | | |
 |---|---|
-| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + eighteen audits |
+| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + nineteen audits |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
-| **What is not built** | [`design/`](design/) — storage, memory, decode and sequencing, enumerated before anything is chosen |
+| **What is not built** | [`design/`](design/) — interconnect, memory, decode and sequencing, enumerated before anything is chosen, and [`design/12-roadmap.md`](design/12-roadmap.md) for the order to build them in |
 | **What is known** | [`.claude/knowledge/doctrees/tryte-vm/`](.claude/knowledge/doctrees/tryte-vm/) — 13 pillars, each declaring how well mapped it is |
 | **Every claim** | [`FINDINGS.json`](FINDINGS.json) — machine-readable, validated by `test/test-findings.js` |
 | **Before changing it** | [`AGENTS.md`](AGENTS.md) — pre-registration protocol, test standards, and the traps this repo has fallen into |
@@ -52,7 +52,7 @@ src/         device.js (switch-level transistors -- the layer BELOW the arithmet
 programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
 design/      the design phase for the machine that does not exist yet
-tools/       the eighteen audits, each with its registered predictions
+tools/       the nineteen audits, each with its registered predictions
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
 build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
@@ -62,7 +62,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-Eighteen prediction sets, registered before their runs. **71 held, 7 failed** — the
+Nineteen prediction sets, registered before their runs. **76 held, 7 failed** — the
 failures are kept, and four of the five produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
@@ -88,6 +88,7 @@ with registering commits and the tests that assert each one, in
 | **J1–J4** | a six-trit register, the first sequential circuit here | 3 held, **J4 failed** |
 | **K1–K4** | the master-slave register J4 said was required | all held |
 | **L1–L4** | an accumulator: the first circuit here that computes *and* remembers | all held |
+| **B1a–B4** | can a stored value drive a selector *source*, not just its gate? | all held |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:
@@ -123,6 +124,8 @@ npm run audit:detector        # is four switches minimal for the thing paid eigh
 npm run audit:register        # six trits, held: the first sequential circuit here
 npm run audit:msregister      # the master-slave register J4 said was required
 npm run audit:accumulator     # A <- A + B: the first thing here that computes AND remembers
+npm run audit:terminal        # can a stored value drive a selector SOURCE? the phase-0 gate
+npm run budget                # what the machine costs, parametric in how much memory
 ```
 
 | gate | switches | mid-rail taps |
@@ -516,7 +519,7 @@ that order from two measured ladders rather than from taste. The short version:
   to ~4,800 devices. The machine is the first subject here that sits outside the
   exhaustive discipline every other result rests on.
 - **So which machine? Exactly one configuration works:** 81 words of memory under
-  charge retention, ~3,640 switches. It is the only size that both fits the sweep
+  charge retention, ~3,880 switches. It is the only size that both fits the sweep
   budget and runs a program somebody already wrote — `countdown`, `threeway` and
   `kleene` fit as placed. A 27-word machine fits the budget and runs **none** of
   the eight.
@@ -525,7 +528,7 @@ that order from two measured ladders rather than from taste. The short version:
   machine that runs a real program and one that runs a relocated toy.
 - **And removing the dominant cost promotes the next one.** Under retention,
   storage stops being 93% of the machine and the **address path** — which nobody
-  has built — becomes the largest single term: at 243 words it is **4,745**
+  has built — becomes the largest single term: at 243 words it is **5,471**
   switches against storage's **1,458**.
 
 The costs come from [`tools/budget.js`](tools/budget.js) rather than being typed
