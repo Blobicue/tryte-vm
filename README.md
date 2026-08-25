@@ -60,7 +60,8 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 ## Findings at a glance
 
 Twelve prediction sets, registered before their runs. **49 held, 5 failed** — the
-failures are kept, and both produced the most useful results here. Full detail,
+failures are kept, and four of the five produced the result that replaced them.
+Full detail,
 with registering commits and the tests that assert each one, in
 [`FINDINGS.json`](FINDINGS.json).
 
