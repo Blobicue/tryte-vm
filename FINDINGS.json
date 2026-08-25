@@ -1622,7 +1622,7 @@
       "subject": "Interconnect: I0 against I2, and a crossover on the axis nobody was watching",
       "tool": "tools/interconnect-audit.js",
       "registered_at": "b21ad36",
-      "results_at": "PENDING",
+      "results_at": "2291331",
       "asserted_in": "test/test-interconnect.js",
       "predictions": [
         {
