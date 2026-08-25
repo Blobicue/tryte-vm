@@ -2,10 +2,10 @@
 
 A working computer that counts in **three states instead of two** — core
 arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
-assembly, and eight audits establishing exactly what its instruction set can reach
+assembly, and nine audits establishing exactly what its instruction set can reach
 and what the device model beneath it rests on.
 
-**507 checks**, all passing. Every number below is recomputed by one of them.
+**510 checks**, all passing. Every number below is recomputed by one of them.
 
 ```bash
 npm test              # everything (~55s; the monoid and switch sweeps are real work)
@@ -39,7 +39,7 @@ src/         device.js (switch-level transistors -- the layer BELOW the arithmet
              selfhost.js (run a program inside the emulated machine), run.js
 programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
-tools/       the eight audits, each with its registered predictions
+tools/       the nine audits, each with its registered predictions
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
 build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
@@ -49,7 +49,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-Eight prediction sets, registered before their runs. **33 held, 2 failed** — the
+Nine prediction sets, registered before their runs. **38 held, 2 failed** — the
 failures are kept, and both produced the most useful results here. Full detail,
 with registering commits and the tests that assert each one, in
 [`FINDINGS.json`](FINDINGS.json).
@@ -64,6 +64,7 @@ with registering commits and the tests that assert each one, in
 | **V1–V4** | whether the ceiling ladder has another rung | all held |
 | **W1–W3** | the gates rebuilt from switches, and what they cost | all held |
 | **X1–X5** | the axioms the device model rests on | 4 held, **X2 failed** |
+| **Y1–Y5** | the carry cell and the adder, built from switches | all held |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:
@@ -88,6 +89,7 @@ against the same functions the rest of the suite is written against.
 ```bash
 npm run audit:device          # exhaustive: all 531,441 pairs per gate, ~90s
 npm run audit:axioms          # break the axioms on purpose, see what stops working
+npm run audit:adder           # every operand pair, both adder variants, ~32 min
 ```
 
 | gate | switches | mid-rail taps |
@@ -149,6 +151,63 @@ the prediction that it should not be believed. Six trits carry what ten bits do,
 so the ternary side gets fewer, wider slices; but it also taps a rail this model
 hands out free. Separately, the radix-economy bar computed earlier was **3.08×
 per digit** — a different currency from switches per gate, and not settled by it.
+
+### The carry, in switches
+
+The vocabulary audits ended by making the truth table *data*: `TOPC` reads a
+27-cell table and addition falls out of it. This is that same sentence one layer
+down. The 27 cells become a tree of 1-of-3 selectors — nine leaves chosen by the
+carry-in, three by one operand, one by the other — and the tree is a full-adder
+cell. Nobody designed the circuit; the table did.
+
+```bash
+npm run audit:adder           # every operand pair, both circuit variants, ~45 min
+```
+
+| | switches | mid-rail taps |
+|---|---|---|
+| one full-adder cell | 104 | 28 |
+| six-trit ripple adder | 624 | 168 |
+| the same, sharing identical leaves | **384** | 72 |
+
+Sharing is the hash-consing `tableKey` already does to tables, applied to the
+circuit instead: leaf selectors whose three cells agree become one selector. The
+sum tree's leaves depend only on `a + b`, so nine collapse to **three**; the carry
+tree's to five. That is a 38% saving, and it is not free of risk — a shared leaf
+ties two mid-level selectors to a single node, so the shared circuit contains
+conducting paths between them that the tree did not have. Registered as the
+prediction most likely to fail (Y3).
+
+**Ripple delay is invisible here, and that is the model telling on itself.** The
+adder settles in exactly seven passes for every operand pair — never six, never
+more — whether the carry travels nowhere or crosses all six positions. It has to:
+reachability is transitive closure, so a fully determined chain of switches
+resolves in one pass however long it is, and staging happens only where a *gate*
+is still unknown. Cell 0 resolves on pass one, cell *i* on pass *i+1*, and pass
+seven is the one that notices nothing changed. A model with no delays in it cannot
+show you the one cost a ripple adder is famous for.
+
+#### The cost result reverses
+
+| at equal representable range | switches | mid-rail taps | rails |
+|---|---|---|---|
+| ternary adder, 6 trits (729 values) | **624** | 168 | 3 |
+| binary adder, 10 bits (1024 values) | 280 | 0 | 2 |
+| ternary, leaves shared | **384** | 72 | 3 |
+| binary, leaves shared | 220 | 0 | 2 |
+
+W3 measured **0.80** for `MIN` and predicted that number should not be believed.
+Here the ratio is **2.23** unshared and **1.75** shared — the other side of 1.0.
+Both numbers are real, and the currency did not change. `MIN` is *positionwise*:
+six wide slices beat ten narrow ones, so fewer digits wins. An adder is a *table*,
+and a selector tree over three inputs is 3³ wide in ternary against 2³ in binary.
+The per-digit saving is spent on tree width, and then some.
+
+Y5 checked this is structural rather than an artefact of pairing six trits with
+ten bits: sweeping one trit to six against the matching bit width, the ratio never
+drops below **1.46**. Registered alongside it, and checked, that the binary adder
+being compared against is itself correct — a cost comparison against a circuit
+that does not work is not a comparison.
 
 ## The idea, without the jargon
 

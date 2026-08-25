@@ -203,6 +203,22 @@ console.log('\n=== 5. REFERENCES ===');
     const unnamed = M.prediction_sets.filter(s => !README.includes(`**${s.id}1`));
     check('the README names every prediction set in the manifest',
       unnamed.length === 0, `missing: ${unnamed.map(s => s.id).join(' ')}`);
+    // One set per tool is checked above, so the audit count is the tool count.
+    // It is written out in words in two places and had already drifted once.
+    // Anchored on those two phrasings rather than on any mention of the word,
+    // because the README also says the ceiling ladder took six audits, which is
+    // a different and still-true number.
+    const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
+      'eight', 'nine', 'ten', 'eleven', 'twelve'];
+    const onDisk = fs.readdirSync(path.join(ROOT, 'tools')).filter(f => /-audit\.js$/.test(f));
+    check(`tools/ holds ${onDisk.length} audits, one per prediction set`,
+      onDisk.length === M.prediction_sets.length,
+      `${onDisk.length} files, ${M.prediction_sets.length} sets`);
+    const word = WORDS[onDisk.length];
+    check(`the README calls it "${word} audits" in both places that state the count`,
+      README.includes(`${word} audits establishing`)
+      && README.includes(`the ${word} audits, each with its registered predictions`),
+      'one of the two mentions has drifted');
   }
   check('the one-point trap is recorded as having bitten three times',
     M.traps_encountered.find(t => t.id === 'T-ONE-POINT').count === 3);

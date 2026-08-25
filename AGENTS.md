@@ -113,6 +113,14 @@ cyclic network are self-consistent and quietly assumed every seed resolves at al
 Two did not. The unstated assumption was the falsifiable part, and it falsified an
 axiom. When registering, write down what the question takes for granted.
 
+**Sampling with a generator that is not sampling.** A seeded pseudo-random source
+multiplied a 31-bit seed by a 31-bit constant, which overflows the range a
+JavaScript number represents exactly, so the low bits it handed back were rounding
+noise. Three of its eight possible values were drawn essentially never, and a
+comparison that looked like four hundred trials was closer to four hundred
+repetitions of one. Check what a random instrument actually produced — every
+outcome class it was supposed to reach — not how many times it ran.
+
 **Trusting a build artifact that was not rebuilt.** The published page embeds the
 source; after changing the source it will still pass its own tests until rebuilt.
 There is a staleness check for exactly this — do not remove it.
