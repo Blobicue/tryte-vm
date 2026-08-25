@@ -40,6 +40,23 @@ not the obvious answer here that it is in silicon.
 | **I5** | tri-state with an explicit off state | needs `M2` | as I1 | none, if `M2` is real | PROPOSED |
 | **I6** | no interconnect — the datapath is one big combinational function of the seed | `S7`/`R3` taken to its conclusion | zero wiring, maximal logic | none | PROPOSED |
 
+**~~I0 is the one this project is set up to win with.~~ Not on cost, and the axis
+was the wrong one.** Set `A` built both: `I0` grows as **destinations x sources**,
+`I2` as **sources alone**, so the destination count decides it. At the machine's
+4 sources and 3 destinations, `I2` is **3.8x cheaper** — 62 against 234 — and `I0`
+wins in exactly one corner of the surface, one destination with three sources.
+`MEASURED`
+
+What `I0` does buy is measured too, and it is not what this file said either.
+Its safety is **not** that nothing is shared: a selector's output is shared between
+its legs. It is that every leg is gated by the *same select trit*, and one trit
+cannot be LOW and HIGH at once — so exclusion is **structural**. `I2` needs `S`
+separate enables to be one-hot, which is an **invariant something must uphold every
+step**. That is the real trade, and it is a sequencing cost rather than a switch
+cost.
+
+The original text follows.
+
 **I0 is the one this project is set up to win with.** A selector tree is already
 built, proved exhaustively, and — critically — cannot contend, because `T2` holds
 for it by construction. It trades area for the complete absence of the failure
@@ -49,7 +66,8 @@ and this machine is not at scale.
 
 **I2 is what real machines do**, and the interesting question is whether the
 decoder that enforces one-hot is cheaper than the mux tree that makes one-hot
-unnecessary. That is a clean, registrable comparison and nobody has run it.
+unnecessary. ~~That is a clean, registrable comparison and nobody has run it.~~
+**Run — set `A`. The decoder is cheaper, by 3.8x at this machine's counts.**
 
 **I1 should probably be rejected outright** and is listed to make the rejection
 explicit: it has a failure mode the model turns into silent `X` rather than a
@@ -65,9 +83,11 @@ looked clean because a defect resolved to something plausible.
   settled before the bus resolves, which is a dependency-stage cost, not a switch
   cost. Under I0 that cost disappears because there is nothing to enable.
 - **[`07-memory.md`](07-memory.md)**: a memory read is the widest interconnect in
-  the machine — 729 possible sources into one destination. I0 at that width is a
-  729-way selector, which is exactly the address decoder, so the two subsystems
-  may be the same structure seen twice.
+  the machine — 729 possible sources into one destination. ~~I0 at that width is a
+  729-way selector, which is exactly the address decoder, so the two subsystems may
+  be the same structure seen twice.~~ **They are not** — `B4` settled it by
+  counting: a `W`-way mux has `(W-1)/2` internal nodes and a write path needs `W`
+  one-hot selects. `MEASURED`
 - **[`01-currencies.md`](01-currencies.md)**: I0 is the option that trades the
   `switches` currency for the *absence of a risk*, which none of the six
   currencies can express.

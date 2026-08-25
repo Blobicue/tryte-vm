@@ -43,8 +43,17 @@ check(`${allPreds.length} registered predictions across ${M.prediction_sets.leng
   allPreds.length > 0 && M.prediction_sets.length > 0 &&
   new Set(M.prediction_sets.map(s => s.tool)).size === M.prediction_sets.length,
   'one set per tool');
-check('the failures are kept, not corrected away: P3, X2, Z2, E4, E5, H1 and J4',
-  allPreds.filter(p => p.outcome === 'FAILED').map(p => p.id).join() === 'P3,X2,Z2,E4,E5,H1,J4');
+// The roll-call used to be a literal list and went stale the moment a new failure
+// was recorded -- T-STALE-CONSTANT inside the suite that exists to catch it. What
+// matters is not WHICH ids failed but that none of them quietly became HELD, so
+// the check is now that the failed set only ever grows.
+const FAILED_AS_OF_SET_A = ['P3', 'X2', 'Z2', 'E4', 'E5', 'H1', 'J4', 'A2'];
+{
+  const failedNow = allPreds.filter(p => p.outcome === 'FAILED').map(p => p.id);
+  const vanished = FAILED_AS_OF_SET_A.filter(id => !failedNow.includes(id));
+  check(`the failures are kept, not corrected away (${failedNow.length}: ${failedNow.join(', ')})`,
+    vanished.length === 0, `no longer FAILED: ${vanished.join(' ')}`);
+}
 // Two ids were duplicated in this manifest and nothing noticed, because nothing
 // looked. F-GATES-FROM-SWITCHES appeared twice identically and
 // T-SOURCE-NOT-TERMINAL twice with two words different -- a merge artifact that
@@ -270,7 +279,9 @@ console.log('\n=== 5. REFERENCES ===');
     // a different and still-true number.
     const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
       'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
-      'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
+      'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one',
+      'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five', 'twenty-six',
+      'twenty-seven', 'twenty-eight', 'twenty-nine', 'thirty'];
     const onDisk = fs.readdirSync(path.join(ROOT, 'tools')).filter(f => /-audit\.js$/.test(f));
     // Sets must all have tools; tools need not yet have sets. Between registering
     // a tool's predictions and recording its results the counts differ by one on
@@ -327,7 +338,7 @@ console.log('\n=== 5. REFERENCES ===');
     // So: no number-word may precede "classes" or "sets" unless it is the right one.
     const WORDSET = new Set(WORDS.map(w => w && w.toLowerCase()).filter(Boolean));
     const wrong = [];
-    for (const [, word, noun] of lower.matchAll(/(\w+) (classes|sets)\b/g)) {
+    for (const [, word, noun] of lower.matchAll(/([\w-]+) (classes|sets)\b/g)) {
       if (!WORDSET.has(word)) continue;                 // not a count, just prose
       const right = noun === 'classes'
         ? WORDS[M.traps_encountered.length] : WORDS[M.prediction_sets.length];
@@ -356,7 +367,7 @@ console.log('\n=== 5. REFERENCES ===');
     for (const f of ['11-failure-catalogue.md', '_overview.md', '09-unbuilt-machine.md']) {
       const text = fs.readFileSync(path.join(DOCTREE, f), 'utf8')
         .toLowerCase().replace(/\s+/g, ' ');
-      for (const [, word, noun] of text.matchAll(/(\w+)[- ](classes|sets|occurrences|bites)\b/g)) {
+      for (const [, word, noun] of text.matchAll(/([\w-]+?)[- ](classes|sets|occurrences|bites)\b/g)) {
         if (!WORDSET.has(word)) continue;
         const right = WORDS[COUNTED[noun]];
         if (right && word !== right.toLowerCase()) drifted.push(`${f}: "${word} ${noun}" -> "${right}"`);
@@ -389,7 +400,7 @@ console.log('\n=== 5. REFERENCES ===');
     })());
     check('      (and that sweep would catch a wrong one)', (() => {
       const doctored = 'trace the two sets and the two classes';
-      return [...doctored.matchAll(/(\w+) (classes|sets)\b/g)]
+      return [...doctored.matchAll(/([\w-]+) (classes|sets)\b/g)]
         .some(([, w, n]) => WORDSET.has(w)
           && w !== (n === 'classes' ? WORDS[M.traps_encountered.length]
             : WORDS[M.prediction_sets.length]).toLowerCase());

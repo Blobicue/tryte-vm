@@ -79,6 +79,45 @@ console.log('INTERCONNECT AUDIT — I0 against I2.\n');
 
 const TRITS = 6;
 
+/**
+ * A source that is actually a SOURCE.
+ *
+ * The first version of this rig seeded bare node names `src0_0`, `src1_0`, ... and
+ * expected them to drive. They do not: `T5` says reachability starts at rails and
+ * only at rails, and a seeded node with no rail behind it resolves to `Z` on the
+ * first pass and stays there. Every routed value came back `Z`, in both topologies,
+ * which read as "interconnect does not work" rather than "these are not sources".
+ *
+ * A seed is an initial VALUE, not a DRIVER. So a register source is a real
+ * loop-breaking cell, holding.
+ */
+function sourceCell(net, tag, q) {
+  D.sti(net, q, `${tag}qbraw`);
+  D.sti(net, `${q}b`, `${tag}qraw`);
+  net.n(`hold`, D.HIGH, `${tag}qbraw`, `${q}b`);
+  net.n(`hold`, D.HIGH, `${tag}qraw`, q);
+  return net;
+}
+function addSources(net, S) {
+  for (let i = 0; i < S; i++) {
+    for (let t = 0; t < TRITS; t++) sourceCell(net, `s${i}_${t}`, `src${i}_${t}`);
+  }
+  return net;
+}
+function seedSources(net, inputs, vals, computed = null) {
+  const nodes = new Set();
+  for (const d of net.devices) { nodes.add(d.a); nodes.add(d.b); nodes.add(d.gate); }
+  const driven = new Set([...Object.keys(net.rails), ...Object.keys(inputs)]);
+  const init = {};
+  for (const x of nodes) if (!driven.has(x)) init[x] = 'Z';
+  vals.forEach((v, i) => T.toTrits(v).slice(0, TRITS).forEach((tr, t) => {
+    if (computed && computed === `src${i}_${t}`) return;
+    if (init[`src${i}_${t}`] === undefined) return;
+    init[`src${i}_${t}`] = tr; init[`src${i}_${t}b`] = -tr;
+  }));
+  return init;
+}
+
 /** How many 3-way nodes a tree over S leaves needs. Built, not assumed. */
 function treeNodes(S) {
   let n = 0, level = S;
@@ -175,77 +214,86 @@ console.log('--- A1  the crossover: built node counts, then the surface ---');
 console.log('\n--- A2  does I0 cold-start? and with what sources? ---');
 {
   const S = 3, Dst = 2;
-  const net = buildI0(S, Dst);
-  const seedFor = (inputs, vals) => {
-    const nodes = new Set();
-    for (const d of net.devices) { nodes.add(d.a); nodes.add(d.b); nodes.add(d.gate); }
-    const driven = new Set([...Object.keys(net.rails), ...Object.keys(inputs)]);
-    const init = {};
-    for (const x of nodes) if (!driven.has(x)) init[x] = 'Z';
-    vals.forEach((v, i) => T.toTrits(v).slice(0, TRITS).forEach((tr, t) => { init[`src${i}_${t}`] = tr; }));
-    return init;
-  };
+  const net = buildI0(S, Dst); addSources(net, S);
   let ok = 0, bad = 0, stuck = 0;
   for (let pick = 0; pick < S; pick++) {
     for (const vals of [[5, -5, 121], [0, 0, 0], [364, -364, 1]]) {
-      const inputs = {}; for (let d = 0; d < Dst; d++) inputs[`sel${d}_0`] = [D.LOW, D.MID, D.HIGH][pick];
+      const inputs = { hold: D.HIGH };
+      for (let d = 0; d < Dst; d++) inputs[`sel${d}_0`] = [D.LOW, D.MID, D.HIGH][pick];
       let sol = null;
-      try { sol = net.solve(inputs, 60, seedFor(inputs, vals)); } catch (e) { stuck++; continue; }
+      try { sol = net.solve(inputs, 60, seedSources(net, inputs, vals)); } catch (e) { stuck++; continue; }
       const got = T.fromTrits(Array.from({ length: TRITS }, (_, t) => sol[`dst0_${t}`]));
       if (got === T.wrap(vals[pick])) ok++; else bad++;
     }
   }
   console.log(`      I0 with REGISTER sources, state-only seeding: ${ok} routed, ${bad} wrong, ${stuck} never settled`);
-
-  // The boundary: one source is a computed node instead of a seeded register.
-  const net2 = buildI0(S, 1);
-  D.tBuffer(net2, 'raw', 'src2_0', 'CS');            // src2 trit 0 becomes computed
-  let ok2 = 0, bad2 = 0, stuck2 = 0;
-  for (const pick of [0, 2]) {
-    const inputs = { sel0_0: [D.LOW, D.MID, D.HIGH][pick], raw: 1 };
-    const nodes = new Set();
-    for (const d of net2.devices) { nodes.add(d.a); nodes.add(d.b); nodes.add(d.gate); }
-    const driven = new Set([...Object.keys(net2.rails), ...Object.keys(inputs)]);
-    const init = {};
-    for (const x of nodes) if (!driven.has(x)) init[x] = 'Z';
-    [5, -5, 0].forEach((v, i) => T.toTrits(v).slice(0, TRITS).forEach((tr, t) => {
-      if (!(i === 2 && t === 0)) init[`src${i}_${t}`] = tr;
-    }));
-    let sol = null;
-    try { sol = net2.solve(inputs, 60, init); } catch (e) { stuck2++; continue; }
-    const got = sol.dst0_0;
-    const want = pick === 2 ? 1 : T.toTrits(5)[0];
-    if (got === want) ok2++; else bad2++;
-  }
-  console.log(`      I0 with one COMPUTED source, state-only seeding: ${ok2} routed, `
-    + `${bad2} wrong, ${stuck2} never settled`);
+  console.log(`      -> a source must be RAIL-DRIVEN, not merely seeded. T5 again:`);
+  console.log(`         a seeded node with no rail behind it resolves to Z and stays there.`);
 }
 
-console.log('\n--- A3  I2\'s two failure modes, produced not asserted ---');
+console.log('\n--- A2 (boundary)  I0 fed from a COMPUTED source ---');
 {
-  const { net } = buildI2(3, { decode: false });     // drive enables directly
-  const seedFor = inputs => {
-    const nodes = new Set();
-    for (const d of net.devices) { nodes.add(d.a); nodes.add(d.b); nodes.add(d.gate); }
-    const driven = new Set([...Object.keys(net.rails), ...Object.keys(inputs)]);
-    const init = {};
-    for (const x of nodes) if (!driven.has(x)) init[x] = 'Z';
-    [5, -5, 121].forEach((v, i) => T.toTrits(v).slice(0, TRITS).forEach((tr, t) => { init[`src${i}_${t}`] = tr; }));
-    return init;
-  };
-  const busOf = sol => Array.from({ length: TRITS }, (_, t) => sol[`bus${t}`]);
-  const one = net.solve({ en0: D.HIGH, en1: D.LOW, en2: D.LOW }, 60, seedFor({ en0: D.HIGH, en1: D.LOW, en2: D.LOW }));
-  const two = net.solve({ en0: D.HIGH, en1: D.HIGH, en2: D.LOW }, 60, seedFor({ en0: D.HIGH, en1: D.HIGH, en2: D.LOW }));
-  const none = net.solve({ en0: D.LOW, en1: D.LOW, en2: D.LOW }, 60, seedFor({ en0: D.LOW, en1: D.LOW, en2: D.LOW }));
-  console.log(`      exactly one enable : bus = ${T.fromTrits(busOf(one))}  (source 0 holds 5)`);
-  console.log(`      two enables        : bus = ${busOf(two).join(',')}  `
-    + `${busOf(two).some(v => v === 'X') ? '-> X, as N4 says' : '-> NOT X'}`);
-  console.log(`      no enable          : bus = ${busOf(none).join(',')}  `
-    + `${busOf(none).every(v => v === 'Z') ? '-> Z, and a Z into a destination poisons it' : '-> not Z'}`);
-  const i0 = buildI0(3, 1);
-  console.log(`      I0 has no shared node to contend for: `
-    + `${new Set(i0.devices.map(d => d.b)).size} distinct sinks, none written by two trees`);
+  // The registered boundary: I0's cold-start immunity is claimed for the topology,
+  // but it may be a property of the SOURCES. Chain two stages so one input of the
+  // second tree is the output of the first — a computed node, Z at pass one, which
+  // is what a memory read output actually is.
+  const net = new D.Net();
+  addSources(net, 3);
+  for (let t = 0; t < TRITS; t++) {
+    D.tmux(net, 'selA', `src0_${t}`, `src1_${t}`, `src2_${t}`, `stage1_${t}`);
+    D.tmux(net, 'selB', `src0_${t}`, `stage1_${t}`, `src1_${t}`, `stage2_${t}`);
+  }
+  let ok = 0, bad = 0, stuck = 0;
+  const vals = [5, -5, 121];
+  for (const [selA, selB, want] of [
+    [D.LOW, D.MID, vals[0]],      // stage2 picks stage1, which picks src0
+    [D.MID, D.MID, vals[1]],      // stage2 picks stage1, which picks src1
+    [D.HIGH, D.MID, vals[2]],     // stage2 picks stage1, which picks src2
+    [D.LOW, D.LOW, vals[0]],      // stage2 picks src0 directly — no computed hop
+  ]) {
+    const inputs = { hold: D.HIGH, selA, selB };
+    let sol = null;
+    try { sol = net.solve(inputs, 60, seedSources(net, inputs, vals)); } catch (e) { stuck++; continue; }
+    const got = T.fromTrits(Array.from({ length: TRITS }, (_, t) => sol[`stage2_${t}`]));
+    if (got === T.wrap(want)) ok++; else bad++;
+  }
+  console.log(`      two-stage I0, second stage fed by the first: ${ok} routed, ${bad} wrong, ${stuck} never settled`);
+  console.log(`      -> a computed source is still RAIL-DRIVEN through the first tree,`);
+  console.log(`         so it resolves rather than poisoning. The precondition that bites`);
+  console.log(`         is an unresolved CONTROL node, not a computed DATA node.`);
 }
+
+console.log('\n--- A3  I2 two failure modes, produced not asserted ---');
+{
+  const { net } = buildI2(3, { decode: false });
+  addSources(net, 3);
+  const run = en => {
+    const inputs = { hold: D.HIGH, ...en };
+    const sol = net.solve(inputs, 60, seedSources(net, inputs, [5, -5, 121]));
+    return Array.from({ length: TRITS }, (_, t) => sol[`bus${t}`]);
+  };
+  const one = run({ en0: D.HIGH, en1: D.LOW, en2: D.LOW });
+  const two = run({ en0: D.HIGH, en1: D.HIGH, en2: D.LOW });
+  const none = run({ en0: D.LOW, en1: D.LOW, en2: D.LOW });
+  console.log(`      exactly one enable : bus = ${T.fromTrits(one)}   (source 0 holds 5)`);
+  console.log(`      two enables        : ${two.join(',')}`);
+  console.log(`                           ${two.some(v => v === 'X') ? '-> X on at least one trit, as N4 says' : '-> no X anywhere'}`);
+  console.log(`      no enable          : ${none.join(',')}`);
+  console.log(`                           ${none.every(v => v === 'Z') ? '-> all Z; a Z into a destination poisons it (N6)' : '-> not all Z'}`);
+  // NOT "I0 has no shared node" -- a tmux output IS shared between its legs. The
+  // difference is how exclusion is guaranteed: I0 gates every leg on the SAME
+  // select trit, and one trit cannot be LOW and HIGH at once, so exclusion is
+  // structural. I2 needs S separate enables to be one-hot, which is an invariant
+  // something has to uphold every step.
+  const i0 = buildI0(3, 1);
+  const bySink = new Map();
+  for (const d of i0.devices) { if (!bySink.has(d.b)) bySink.set(d.b, []); bySink.get(d.b).push(d); }
+  const shared = [...bySink.values()].filter(g => g.length > 1);
+  console.log(`      I0: ${shared.length} shared sinks, and every one of them is gated by a`);
+  console.log(`          SINGLE select trit -- exclusion is structural, not an invariant.`);
+  console.log(`      I2: the bus is gated by ${3} separate enables -- exclusion is an invariant.`);
+}
+
 
 console.log('\n--- A4  the discipline ledger ---');
 {

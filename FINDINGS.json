@@ -1616,6 +1616,134 @@
           "note": "The roadmap said a seed-completeness check should exist BEFORE the array rather than after it. This is the array, and it does. A deliberately withheld seed stays at Z and is detectable rather than absorbed."
         }
       ]
+    },
+    {
+      "id": "A",
+      "subject": "Interconnect: I0 against I2, and a crossover on the axis nobody was watching",
+      "tool": "tools/interconnect-audit.js",
+      "registered_at": "b21ad36",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-interconnect.js",
+      "predictions": [
+        {
+          "id": "A1",
+          "claim": "the crossover is in destinations, not sources, and two registered expectations are wrong",
+          "outcome": "HELD",
+          "measured": {
+            "at_machine_counts": {
+              "sources": 4,
+              "destinations": 3,
+              "I0": 234,
+              "I2": 62,
+              "ratio": "3.8x cheaper"
+            },
+            "surface": {
+              "S=3,D=1": {
+                "I0": 30,
+                "I2": 31,
+                "winner": "I0"
+              },
+              "S=3,D=2": {
+                "I0": 60,
+                "I2": 31,
+                "winner": "I2"
+              },
+              "S=4,D=1": {
+                "I0": 78,
+                "I2": 62,
+                "winner": "I2"
+              },
+              "S=9,D=3": {
+                "I0": 306,
+                "I2": 92,
+                "winner": "I2"
+              }
+            },
+            "tree_nodes_built": {
+              "S=3": 1,
+              "S=4": 3,
+              "S=9": 4
+            },
+            "formula_that_would_have_been_wrong": "ceil((S-1)/2) gives 2 for S=4; the built tree is 3 nodes"
+          },
+          "note": "I0 wins in exactly one corner of the surface -- one destination, three sources -- and loses everywhere else. design/06 said \"I0 is the one this project is set up to win with\" and the roadmap registered \"I0 wins at this scale and loses badly by eight sources\". Both wrong, and wrong about the AXIS: I0 grows as destinations x sources, I2 as sources alone, so the destination count decides it and the source count barely matters. Node counts were built rather than derived, which mattered: the obvious formula is wrong at S=4, the headline case."
+        },
+        {
+          "id": "A2",
+          "claim": "I0 cold-starts with register sources, and a computed source inherits I2's precondition",
+          "outcome": "FAILED",
+          "measured": {
+            "register_sources": {
+              "routed": 9,
+              "wrong": 0,
+              "never_settled": 0,
+              "seeding": "state-only"
+            },
+            "computed_source": {
+              "routed": 4,
+              "wrong": 0,
+              "never_settled": 0,
+              "predicted": "inherits the precondition"
+            }
+          },
+          "note": "The first half held: I0 with register sources routes correctly under state-only seeding, because its selects are address INPUTS known at pass one. The SECOND half -- registered explicitly as the boundary, to avoid claiming too much for the topology -- is false, and its falsity is the more useful result. A computed DATA source is still rail-driven through whatever produced it, so it resolves rather than poisoning. What bites is an unresolved CONTROL node, which is unknown at pass one and gates rather than feeds. So the distinction is not computed-versus-seeded, it is CONTROL versus DATA, and T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE is named correctly after all. Registering the boundary is what made this measurable; predicting it correctly would have taught less."
+        },
+        {
+          "id": "A3",
+          "claim": "and I2 has two failure modes I0 cannot have",
+          "outcome": "HELD",
+          "measured": {
+            "one_enable": {
+              "bus": 5,
+              "correct": true
+            },
+            "two_enables": {
+              "bus": [
+                "X",
+                "X",
+                "X",
+                0,
+                0,
+                0
+              ],
+              "sources": [
+                5,
+                -5
+              ]
+            },
+            "no_enable": {
+              "bus": "all Z",
+              "consequence": "poisons any destination reading it (N6)"
+            },
+            "exclusion": {
+              "I0": "structural -- every leg gated by the SAME select trit, and one trit cannot be LOW and HIGH at once",
+              "I2": "an invariant -- S separate enables must be one-hot, and something must uphold that every step"
+            }
+          },
+          "note": "Produced rather than asserted. And the two-enable result carries something nobody predicted: the bus goes X only on the trits where the two sources DISAGREE. 5 and -5 are trit-wise negatives, so they differ on three positions and agree (at zero) on the other three -- and the bus is X on exactly those three. A double-enable fault is therefore INVISIBLE whenever the contending sources happen to hold the same value. N4 does not say \"contention is detected\"; it says contention is X, and X only appears where there was something to disagree about. One correction to this audit's own first phrasing: it said \"I0 has no shared node to contend for\", which is false -- a tmux output IS shared between its legs. The difference is not whether a node is shared but how exclusion is guaranteed: I0 gates every leg on one select trit, so exclusion is structural; I2 needs S separate enables to be one-hot, which is an invariant something has to maintain. The comfortable phrasing was the wrong one."
+        },
+        {
+          "id": "A4",
+          "claim": "and the decision does not belong to this phase",
+          "outcome": "HELD",
+          "measured": {
+            "ledger": {
+              "I0": {
+                "precondition": "none - selects are inputs",
+                "failure_modes": "none",
+                "cost": "D x S"
+              },
+              "I2": {
+                "precondition": "a second control cone, solved and seeded every step",
+                "failure_modes": "X on double-enable, Z on no-enable",
+                "cost": "S"
+              }
+            },
+            "pick": "PROPOSED, pending sequencing"
+          },
+          "note": "I2 is 3.8x cheaper and needs a second control cone solved and seeded every step. Whether that is affordable is a question about how a step works, and design/09 is unbuilt -- so forcing the pick here would be deciding a sequencing question inside a wiring phase. Registered in advance that deferring is the expected outcome, so that it reads as a result rather than an omission."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -1720,6 +1848,13 @@
       "claim": "The tmux/dmux split measured on one selector holds on a 27-way three-level read tree over stored cells: tmux reads all 27 addresses, dmux reads only the 9 whose every address trit is MID and never settles on the other 18.",
       "evidence": "tools/terminal-audit.js, naive seeding, all 27 addresses, both families",
       "asserted_in": "test/test-terminal.js"
+    },
+    {
+      "id": "F-CONTENTION-IS-DATA-DEPENDENT",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "Bus contention resolves to X only on the trits where the contending sources differ, so a double-enable fault is completely invisible when they hold equal values.",
+      "evidence": "tools/interconnect-audit.js, two enables asserted with sources holding 5 and -5: X on the three trits where they differ, 0 on the three where both are zero",
+      "asserted_in": "test/test-interconnect.js"
     }
   ],
   "traps_encountered": [
@@ -1755,8 +1890,8 @@
     },
     {
       "id": "T-INSTRUMENT-FALSE-VERDICT",
-      "count": 6,
-      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit."
+      "count": 7,
+      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit. Sixth bite: the interconnect rig named its sources `src0_0`, `src1_0`, ... and SEEDED them, without building anything behind them. A seed is an initial value, not a driver -- T5 says reachability starts at rails and only at rails -- so every source resolved to Z on pass one and stayed there. Both topologies routed Z, which read as \"interconnect does not work at all\" rather than \"these are not sources\". The same fact this repository already records as \"an input gates but never sources\", arriving in a form nobody recognised."
     },
     {
       "id": "T-PREMISE-NOT-ANSWER",

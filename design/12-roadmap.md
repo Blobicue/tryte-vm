@@ -200,11 +200,40 @@ is not a trade.
 exactly the 39 switches [`../tools/budget.js`](../tools/budget.js) predicted. The
 read term is no longer a guess. The decoder and write-enable terms still are.
 
-### Phase 1 — interconnect, `I0` vs `I2`  ← **next**
+### Phase 1 — interconnect, `I0` vs `I2`  ← **done, set `A`**
 
-Register the crossover: `I0` (selector tree per destination) is predicted to win at
-this machine's source and destination counts and to lose badly by eight sources.
-**The crossover point is the useful output**, not the winner. Depends on phase 0.
+~~`I0` is predicted to win at this machine's source and destination counts and to
+lose badly by eight sources.~~ **Both halves wrong, and wrong about the axis.**
+`I0` grows as *destinations x sources*; `I2` grows as *sources alone*. The
+destination count decides it and the source count barely matters, so "by eight
+sources" was watching the wrong variable.
+
+| | I0 | I2 | |
+|---|---|---|---|
+| 4 sources, 3 destinations | 234 | **62** | `I2`, 3.8x |
+| 4 sources, 1 destination | 78 | **62** | `I2` |
+| 3 sources, 1 destination | **30** | 31 | `I0` — the only corner it wins |
+
+**The crossover point was the useful output**, as registered, and it is a corner
+rather than a line.
+
+What `I0` buys is not the absence of a shared node — a selector's output is shared
+between its legs. It is that every leg is gated by the **same select trit**, and one
+trit cannot be LOW and HIGH at once, so exclusion is *structural*. `I2` needs `S`
+separate enables to be one-hot: an **invariant something must uphold every step**.
+
+**The pick is deliberately deferred**, and `A4` registered that in advance so it
+reads as a result rather than an omission. `I2` is 3.8x cheaper and costs a second
+control cone that must be solved and seeded every step — and whether that is
+affordable is a *sequencing* question, with [`09-sequencing.md`](09-sequencing.md)
+unbuilt. Deciding it here would be settling sequencing inside a wiring phase.
+
+`A2` also failed usefully. It predicted that `I0` fed from a *computed* source would
+inherit the same precondition `I2` has. It does not: a computed **data** node is
+rail-driven through whatever produced it and resolves fine. What poisons a network
+is an unresolved **control** node. So the distinction is control-versus-data, not
+computed-versus-seeded — which is why
+`T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE` is named after control.
 
 ### Phase 2 — the address path, and whether `D0` and `D1` are one structure
 
