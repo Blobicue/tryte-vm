@@ -13,8 +13,8 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-Thirteen prediction sets, **58 registered predictions, 53 held, 5 failed.** Thirteen
-distinct failure classes, which bit **22 times** between them. Fourteen findings
+Fourteen prediction sets, **62 registered predictions, 56 held, 6 failed.** Fourteen
+distinct failure classes, which bit **23 times** between them. Fourteen findings
 measured but never registered, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
@@ -30,6 +30,7 @@ still in the manifest, marked `FAILED`, with the result it led to:
 | **Z2** | a depth floor for ternary "at any price" | a different circuit design, **cheaper and shallower** than the one measured |
 | **E4** | a fixed settling time for the new adder | settling turned out to depend on the data — and then to be derivable exactly |
 | **E5** | the new design would use less of the scarce rail | it uses **more**; the design that wins on area wins by spending elsewhere |
+| **H1** | the solver is linear, with a spread and an exponent attached | it is — but both numbers missed, and one criterion sat so close to the noise that the same machine gave a pass and a fail on consecutive runs |
 
 That is the single most important observation here. A method that only records
 what it got right produces a scrapbook. The value is concentrated in the moments
@@ -206,6 +207,7 @@ how well naming a thing prevents it.
 | **checks that forbid healthy states** | a consistency check treating a legitimate intermediate state as a defect. During a registration there is deliberately one more tool than there are results; that gap *is* the protocol working. |
 | **searching where a check would do** | finding a value by scanning when two probes would confirm it. Cost eighty solves per case where two would do, and did not finish. |
 | **a claim narrowed by a design** | the numbers right and the noun too big. Bit twice. Before writing "X can never" or "this model always", ask whether what you swept visited more than one design. |
+| **a criterion in the noise** | a registered threshold whose verdict depends on run-to-run variation. The same world produced both a pass and a fail. Widen it until it cannot flip, or measure the quantity and report it without asserting a bound. |
 | **a census that counts itself** | a measurement over a corpus that the measurement is then written into. A survey of repeated numbers in the record failed on its next run, because recording its own answer added those numbers to the record. Nothing was wrong with the first answer, or with the world. |
 
 Two further shapes, from the prose rather than the code:

@@ -9,11 +9,11 @@ its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
 before it was measured, in its own commit, and every failed prediction was kept.
-Fifty-eight predictions, fifty-three held, five failed — and the five produced more
+Sixty-two predictions, fifty-six held, six failed — and the five produced more
 than the forty-nine. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**666 checks**, all passing. Every number below is recomputed by one of them,
+**685 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -62,7 +62,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-Thirteen prediction sets, registered before their runs. **53 held, 5 failed** — the
+Fourteen prediction sets, registered before their runs. **56 held, 6 failed** — the
 failures are kept, and four of the five produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
@@ -83,6 +83,7 @@ with registering commits and the tests that assert each one, in
 | **E1–E5** | the decoded-selector adder | 3 held, **E4 and E5 failed** |
 | **F1–F4** | deriving the decoded adder's pass count | all held |
 | **G1–G4** | whether the same number twice meant anything | all held |
+| **H1–H4** | whether the model can carry a machine, and what retention costs | 3 held, **H1 failed** |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:

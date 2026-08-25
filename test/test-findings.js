@@ -43,8 +43,8 @@ check(`${allPreds.length} registered predictions across ${M.prediction_sets.leng
   allPreds.length > 0 && M.prediction_sets.length > 0 &&
   new Set(M.prediction_sets.map(s => s.tool)).size === M.prediction_sets.length,
   'one set per tool');
-check('the failures are kept, not corrected away: P3, X2, Z2, E4 and E5',
-  allPreds.filter(p => p.outcome === 'FAILED').map(p => p.id).join() === 'P3,X2,Z2,E4,E5');
+check('the failures are kept, not corrected away: P3, X2, Z2, E4, E5 and H1',
+  allPreds.filter(p => p.outcome === 'FAILED').map(p => p.id).join() === 'P3,X2,Z2,E4,E5,H1');
 // Two ids were duplicated in this manifest and nothing noticed, because nothing
 // looked. F-GATES-FROM-SWITCHES appeared twice identically and
 // T-SOURCE-NOT-TERMINAL twice with two words different -- a merge artifact that
