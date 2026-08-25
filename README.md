@@ -2,7 +2,7 @@
 
 A working computer that counts in **three states instead of two** — core
 arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
-assembly, and eleven audits establishing exactly what its instruction set can reach
+assembly, and twelve audits establishing exactly what its instruction set can reach
 and what the device model beneath it rests on.
 
 **582 checks**, all passing. Every number below is recomputed by one of them.
@@ -39,7 +39,7 @@ src/         device.js (switch-level transistors -- the layer BELOW the arithmet
              selfhost.js (run a program inside the emulated machine), run.js
 programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
-tools/       the eleven audits, each with its registered predictions
+tools/       the twelve audits, each with its registered predictions
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
 build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
@@ -95,6 +95,7 @@ npm run audit:axioms          # break the axioms on purpose, see what stops work
 npm run audit:adder           # every operand pair, both adder variants, ~32 min
 npm run audit:midrail         # price the free mid rail and the missing restoration
 npm run audit:decoded         # the decoded-selector adder, every operand pair, ~35 min
+npm run audit:passcount       # derive 128/243 from the carry table, ~30 min
 ```
 
 | gate | switches | mid-rail taps |
