@@ -51,7 +51,7 @@ the territory is named and not mapped; it is not a failure and it is not padding
 | 6 | [Gates and selectors](06-gates-and-selectors.md) | inverters, MIN/MAX, the two selector designs | rich | project |
 | 7 | [Arithmetic circuits](07-arithmetic-circuits.md) | adder cells, ripple, leaf sharing, restoration | rich | project |
 | 8 | [Cost currencies](08-cost-currencies.md) | six costs that disagree, and every comparison made in them | seeded | substrate |
-| 9 | [The unbuilt machine](09-unbuilt-machine.md) | storage, memory, decode, sequencing — designed, not built | stub | project |
+| 9 | [The unbuilt machine](09-unbuilt-machine.md) | storage, registers and an accumulator built; memory, decode and sequencing not | seeded | project |
 | 10 | [Method](10-method.md) | register, run, record; the two error classes | rich | **substrate** |
 | 11 | [Failure catalogue](11-failure-catalogue.md) | 13 classes, 22 bites, each now an antibody | rich | **substrate** |
 | 12 | [Provenance](12-provenance.md) | the source conversation, and what of it survived checking | seeded | project |
@@ -67,8 +67,10 @@ that cut across pillars or are not yet shaped enough to be one.
 one pillar, not 600 lines of README. If a pillar is a stub, that absence is data.
 
 **As a depth queue.** Stubs get pulled into deep treatment when work hits friction
-in that area — *not* in numerical order. Pillar 9 is a stub because the machine is
-unbuilt; it will fill in as it is built, and not before.
+in that area — *not* in numerical order. Pillar 9 went from stub to seeded by being
+*built*, not by being written about: storage, a register, a master-slave register
+and an accumulator, in that order, each one answering a question the previous one
+raised.
 
 **As a frontier map.** Every pillar carries an *Open questions* section. Those are
 the actual edges of what is known, and they are the intake for

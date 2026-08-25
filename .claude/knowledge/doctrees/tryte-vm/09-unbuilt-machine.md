@@ -59,7 +59,12 @@ switch level. Owner: [`design/`](../../../../design/), twelve documents.
 
 ## Depth status
 
-**Stub** (2026-08-25). The design space is enumerated in `design/`. The first
-piece is now **built and checked**: a six-trit register, 114 switches on primary
-inputs and 66 in place, holding all 729 trytes and leaking on none (`J1`-`J3`).
-The pillar stays a stub until there is a machine rather than a part of one.
+**Seeded** (2026-08-25). No longer a stub. Built and checked at switch level: a
+six-trit register (`J`), the master-slave register `J4` proved was required (`K`),
+and an **accumulator** that performs `A <- A + B` in a two-phase step and holds
+its own state between steps (`L`) — 672 switches, correct on every one of the 729
+accumulator values, and never once reading the value it was in the middle of
+replacing.
+
+Still missing, and why this is not `rich`: interconnect, addressed memory,
+instruction decode and sequencing. There is a datapath fragment, not a machine.

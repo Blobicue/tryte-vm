@@ -24,7 +24,7 @@ Two coherent paths, and the gap between them is the whole planning decision.
 | model | unchanged | charge retention |
 | storage cell | `S0`, 11 switches | `S3`, ~2 switches |
 | memory, 729 × 6 | **~48,100** | **~8,700** |
-| registers, 3 × 6 trits | ~200 | ~36 |
+| registers, 3 × 6 trits, master-slave | **396** `MEASURED` | ~72 |
 | decode, ~12 lines | ~480 | ~480 |
 | interconnect | ~300 | ~300 |
 | ALU (existing adder + gates) | ~700 | ~700 |

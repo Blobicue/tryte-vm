@@ -89,9 +89,15 @@ console.log('\n=== 3. STATUS MARKERS COME FROM THE DECLARED VOCABULARY ===');
     return files.filter(f => kindOf(read(f)) === 'subsystem')
       .every(f => STATUS.some(s => read(f).includes(s)));
   })());
-  check('   with PROPOSED the commonest, which is correct for a design phase', (() => {
+  check('   and all three markers stay in use as the design gets built', (() => {
+    // This required PROPOSED to be the commonest, "which is correct for a design
+    // phase". It stopped being true the moment the design started being BUILT and
+    // options turned MEASURED — the count is now 53 to 53. So the check was
+    // encoding "we are early" and failed for a good reason in the wrong place.
+    // What matters is that the vocabulary stays in use and nothing drifts outside
+    // it; the ratio between the three is a fact about progress, not a defect.
     const count = s => files.reduce((n, f) => n + (read(f).match(new RegExp(`\\b${s}\\b`, 'g')) || []).length, 0);
-    return count('PROPOSED') > count('MEASURED') && count('PROPOSED') > count('DERIVED');
+    return STATUS.every(s => count(s) > 0);
   })());
 }
 
