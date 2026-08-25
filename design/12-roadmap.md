@@ -146,7 +146,16 @@ its own commit, per [`00-protocol.md`](00-protocol.md).
 Prediction-set letters are chosen to avoid collisions rather than alphabetically:
 `M` reads as the model options `M0`/`M1`, `N` as the network axioms `N1`–`N8`, `T`
 as the theorems `T1`–`T5`, and `O` reads as a zero in an id like `O0`. So the next
-sets take **`B`**, then `A`, `C`, `D`.
+sets take **`B`**, then **`C`**, then `A`, `D`. (`A` was next in line and is
+skipped for the memory phase specifically, because `A0`–`A5` in
+[`07-memory.md`](07-memory.md) are that phase's own option labels.)
+
+**The order below has been departed from once, deliberately.** Phase 1 is
+interconnect and phase 2/3 are the address path and the array; set `C` does the
+address path first. The reason is that `B3`/`B4` left the decoder and write-enable
+terms as the largest `PROPOSED` numbers in the budget, and interconnect is ~108
+switches against their ~600 — so the cheaper question was not the more decisive
+one. Interconnect follows.
 
 ### Phase 0 — can a cell output drive a selector *terminal*? `<- the gate`
 
