@@ -4,7 +4,7 @@
 
 **A working computer that counts in three states instead of two** — core
 arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
-assembly, transistors underneath it, and thirteen audits establishing exactly what
+assembly, transistors underneath it, and fourteen audits establishing exactly what
 its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
@@ -24,7 +24,7 @@ node src/run.js programs/multiply.tasm 7 5
 
 | | |
 |---|---|
-| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + thirteen audits |
+| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + fourteen audits |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
 | **What is not built** | [`design/`](design/) — storage, memory, decode and sequencing, enumerated before anything is chosen |
 | **What is known** | [`.claude/knowledge/doctrees/tryte-vm/`](.claude/knowledge/doctrees/tryte-vm/) — 13 pillars, each declaring how well mapped it is |
@@ -52,7 +52,7 @@ src/         device.js (switch-level transistors -- the layer BELOW the arithmet
 programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
 design/      the design phase for the machine that does not exist yet
-tools/       the thirteen audits, each with its registered predictions
+tools/       the fourteen audits, each with its registered predictions
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
 build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
@@ -113,6 +113,7 @@ npm run audit:midrail         # price the free mid rail and the missing restorat
 npm run audit:decoded         # the decoded-selector adder, every operand pair, ~35 min
 npm run audit:passcount       # derive 128/243 from the carry table, ~30 min
 npm run audit:collision       # is the same six-digit number twice a coincidence?
+npm run audit:headroom        # can the model carry a machine, and what would charge retention cost?
 ```
 
 | gate | switches | mid-rail taps |
