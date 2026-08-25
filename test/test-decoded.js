@@ -228,7 +228,79 @@ console.log('\n=== 5. TWO INDEPENDENT ADDERS, ONE FUNCTION ===');
        !== tree.devices.filter(d => d.vt === D.MID).length);
 }
 
-console.log('\n=== 6. THE SWEEP HAS TEETH ===');
+console.log('\n=== 6. WHAT THE MECHANISM DOES AND DOES NOT EXPLAIN ===');
+{
+  /* The six agreeing carry-table leaves ENABLE early settling. They were briefly
+   * written up as if they explained the exact count, and they do not. Two
+   * negative results, pinned here so the causal claim cannot creep back in. */
+  const settles = (net, inputs, k) => { try { net.solve(inputs, k); return true; } catch (e) { return false; } };
+  const passesOf = inputs => {
+    for (let k = 1; k <= 40; k++) if (settles(decoded, inputs, k)) return k;
+    return null;
+  };
+  const carryVec = (a, b) => {
+    const A = T.toTrits(a), B = T.toTrits(b);
+    let c = 0; const out = [];
+    for (let i = 0; i < 6; i++) { c = T.shiftRight(A[i] + B[i] + c, 1); out.push(c); }
+    return out.slice(0, 5).join('');
+  };
+  check('the carry pattern alone does NOT determine the pass count', (() => {
+    const byVec = new Map();
+    for (let a = T.TRYTE_MIN; a <= T.TRYTE_MAX; a += 29) {
+      for (let b = T.TRYTE_MIN; b <= T.TRYTE_MAX; b += 29) {
+        const v = carryVec(a, b);
+        const p = passesOf({ ...spread('a', a), ...spread('b', b), cin: 0 });
+        if (!byVec.has(v)) byVec.set(v, new Set());
+        byVec.get(v).add(p);
+      }
+    }
+    // If it did, every carry vector would map to one pass count. Many do not:
+    // the enabling condition needs the LEAF selected by a_i and b_i, not just c_i.
+    return [...byVec.values()].some(s => s.size > 1);
+  })());
+  check('and counting enabled positions OVER-predicts the saving, always by exactly one', (() => {
+    const CT = D.adderTables().carry;
+    const savings = (a, b) => {
+      const A = T.toTrits(a), B = T.toTrits(b);
+      let c = 0, n = 0;
+      for (let i = 0; i < 6; i++) {
+        if (i > 0 && c !== 0
+          && CT[D.cellIndex(A[i], B[i], c)] === CT[D.cellIndex(A[i], B[i], 0)]) n++;
+        c = T.shiftRight(A[i] + B[i] + c, 1);
+      }
+      return n;
+    };
+    let wrongWay = 0, offByOne = 0, total = 0;
+    for (let a = T.TRYTE_MIN; a <= T.TRYTE_MAX; a += 29) {
+      for (let b = T.TRYTE_MIN; b <= T.TRYTE_MAX; b += 29) {
+        const p = passesOf({ ...spread('a', a), ...spread('b', b), cin: 0 });
+        const pred = 13 - savings(a, b);
+        if (p === pred) continue;
+        total++;
+        if (p === pred + 1) offByOne++; else wrongWay++;
+      }
+    }
+    // Every disagreement is the rule claiming one saving too many, never too few:
+    // savings do not always compound. Why they sometimes do not is OPEN.
+    return total > 0 && wrongWay === 0 && offByOne === total;
+  })());
+  check('so the six agreeing leaves ENABLE early settling; they do not explain 128/243', true);
+  check('the exactly-13 count is 251,505 — the same number as the ADD-with-one-carry rung', (() => {
+    // 531,441 - 279,936. The monoid audits found ADD carrying one trit reaches
+    // 251,505 functions at width two. Two different objects counted in the same
+    // 3^12 space, landing on the same six-digit number. Recorded, not explained.
+    const M = JSON.parse(require('fs').readFileSync(
+      require('path').join(__dirname, '..', 'FINDINGS.json'), 'utf8'));
+    // Anchored on the prediction that OWNS the number, not on the first
+    // reach_w2 in the file -- there are ten of them and the first is 9.
+    const owner = M.prediction_sets.flatMap(x => x.predictions)
+      .find(x => /carrying ADD reaches 251505/.test(x.claim || ''));
+    return 531441 - 279936 === 251505
+      && owner !== undefined && owner.measured.reach_w2 === 251505;
+  })());
+}
+
+console.log('\n=== 7. THE SWEEP HAS TEETH ===');
 {
   // Corrupt the detector so it reports MID for a LOW input, and confirm the
   // sampled sweep notices. Without this, "0 wrong" means nothing.

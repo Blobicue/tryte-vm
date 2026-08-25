@@ -150,19 +150,37 @@ console.log('--- E2, E3, E5  cost, depth, and the comparison ---');
 
 console.log('\n--- E1, E4  every operand pair, and how many passes ---');
 {
+  /* THREE OUTCOMES, THREE COUNTERS. The first version of this had one counter
+   * called notExact, holding both "settled in twelve or fewer" and "needed more
+   * than thirteen" -- and it skipped the correctness check whenever thirteen
+   * passes did not settle, so any pair in the second bucket was never compared
+   * against T.add at all. That is T-EXHAUSTED-NOT-CLOSED exactly: a search that
+   * ran out of budget reported as a search that finished. The published sentence
+   * "128 of every 243 pairs settle in FEWER than thirteen passes" was standing on
+   * a decomposition this loop never measured. */
   const t0 = process.hrtime.bigint();
-  const EXPECT = 13;
-  let n = 0, wrongSum = 0, wrongCarry = 0, notExact = 0, first = '';
+  const EXPECT = 13, SAFE = 60;
+  let n = 0, wrongSum = 0, wrongCarry = 0, under = 0, exact = 0, over = 0, first = '';
   for (let a = T.TRYTE_MIN; a <= T.TRYTE_MAX; a++) {
     for (let b = T.TRYTE_MIN; b <= T.TRYTE_MAX; b++) {
       n++;
       const inputs = { ...spread('a', a), ...spread('b', b), cin: 0 };
       let sol = null;
-      try { sol = decoded.solve(inputs, EXPECT); } catch (e) { /* did not settle */ }
-      let fewer = true;
-      try { decoded.solve(inputs, EXPECT - 1); } catch (e) { fewer = false; }
-      if (sol === null || fewer) { notExact++; if (!first) first = `${a}+${b}: passes`; }
-      if (sol !== null) {
+      try { sol = decoded.solve(inputs, EXPECT); } catch (e) { /* over */ }
+      if (sol === null) {
+        over++;
+        if (!first) first = `${a}+${b}: needs more than ${EXPECT}`;
+        try { sol = decoded.solve(inputs, SAFE); } catch (e) { sol = null; }
+      } else {
+        let fewer = true;
+        try { decoded.solve(inputs, EXPECT - 1); } catch (e) { fewer = false; }
+        if (fewer) under++; else exact++;
+      }
+      // Correctness is checked for EVERY pair, including the ones that needed
+      // more passes than predicted. Skipping those is how a conditional result
+      // gets published as an exhaustive one.
+      if (sol === null) { wrongSum++; if (!first) first = `${a}+${b}: never settled`; }
+      else {
         if (gather(sol) !== T.wrap(a + b)) { wrongSum++; if (!first) first = `${a}+${b}: sum`; }
         if (sol.c6 !== overflow(a, b, 0)) { wrongCarry++; if (!first) first = `${a}+${b}: carry`; }
       }
@@ -171,8 +189,12 @@ console.log('\n--- E1, E4  every operand pair, and how many passes ---');
   const secs = Number(process.hrtime.bigint() - t0) / 1e9;
   console.log(`      carry-in 0, every operand pair`);
   console.log(`        ${n.toLocaleString()} pairs in ${secs.toFixed(0)}s`
-    + `   sum wrong ${wrongSum}   carry wrong ${wrongCarry}`
-    + `   not exactly ${EXPECT} passes: ${notExact}`);
+    + `   sum wrong ${wrongSum}   carry wrong ${wrongCarry}`);
+  console.log(`        passes: fewer than ${EXPECT}: ${under.toLocaleString()}`
+    + `   exactly ${EXPECT}: ${exact.toLocaleString()}`
+    + `   more than ${EXPECT}: ${over.toLocaleString()}`);
+  console.log(`        (${under + exact + over === n ? 'the three buckets account for every pair'
+    : 'BUCKETS DO NOT SUM — instrument bug'})`);
   if (first) console.log(`        first divergence: ${first}`);
 
   for (const cin of [1, -1]) {

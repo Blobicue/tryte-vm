@@ -5,7 +5,7 @@ arithmetic, a 25-instruction machine, an assembler, an emulator written in its o
 assembly, and eleven audits establishing exactly what its instruction set can reach
 and what the device model beneath it rests on.
 
-**578 checks**, all passing. Every number below is recomputed by one of them.
+**582 checks**, all passing. Every number below is recomputed by one of them.
 
 ```bash
 npm test              # everything (~55s; the monoid and switch sweeps are real work)
@@ -355,8 +355,15 @@ the raw select while the MID arm's gate is still unknown — and if both arms le
 the *same rail*, the node is determined anyway, a whole pass early. **Six of the
 carry table's nine leaves have their LOW and MID cells equal.** None of the sum
 table's do. The adder settles faster on operands that happen to route through
-those six — **exactly 128 of every 243 operand pairs**, or 279,936 of the
-531,441, settle in fewer than thirteen passes.
+those six. But they only *enable* it — they do not explain the count. The carry
+pattern alone does not determine the pass count, and counting enabled positions
+over-predicts the saving, always by exactly one, so savings do not simply compound.
+Why is open.
+
+What is measured: **279,936 of the 531,441 pairs** settle in other than thirteen
+passes, leaving **251,505** that take exactly thirteen — which is, for no reason
+anyone here can give, the same number the vocabulary audits found for what
+positionwise logic plus one carrying `ADD` reaches at width two.
 
 ## The idea, without the jargon
 

@@ -885,6 +885,14 @@
       "claim": "An input gates a device and terminates a path, but never sources one: a conducting device between an input and a node transfers nothing, and the node is Z. Reachability starts at rails and only at rails.",
       "evidence": "proved as the second half of T5; no circuit in the repository had ever used an input as a pass terminal, so nothing had depended on it either way",
       "asserted_in": "test/test-axioms.js"
+    },
+    {
+      "id": "F-251505-AGAIN",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 — the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
+      "evidence": "531,441 minus the 279,936 that settle in fewer passes; the rung is recorded in the U set",
+      "asserted_in": "test/test-decoded.js",
+      "note": "Recorded, not explained, and not chased. F-531441-COINCIDENCE is the other one of these."
     }
   ],
   "traps_encountered": [
