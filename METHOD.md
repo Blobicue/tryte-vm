@@ -13,7 +13,7 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-Fifteen prediction sets, **66 registered predictions, 60 held, 6 failed.** Fourteen
+Sixteen prediction sets, **70 registered predictions, 63 held, 7 failed.** Fourteen
 distinct failure classes, which bit **23 times** between them. Fourteen findings
 measured but never registered, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
@@ -30,6 +30,7 @@ still in the manifest, marked `FAILED`, with the result it led to:
 | **Z2** | a depth floor for ternary "at any price" | a different circuit design, **cheaper and shallower** than the one measured |
 | **E4** | a fixed settling time for the new adder | settling turned out to depend on the data — and then to be derivable exactly |
 | **E5** | the new design would use less of the scarce rail | it uses **more**; the design that wins on area wins by spending elsewhere |
+| **J4** | a register read during a write sees the old value | it sees the **new** one — the write holds the feedback open, so the cell is a transparent latch. Master-slave is required and the register file doubles |
 | **H1** | the solver is linear, with a spread and an exponent attached | it is — but both numbers missed, and one criterion sat so close to the noise that the same machine gave a pass and a fail on consecutive runs |
 
 That is the single most important observation here. A method that only records

@@ -1224,6 +1224,68 @@
           "note": "A negative result, and the arithmetic for the other outcome was registered in advance so it could not be massaged afterwards: a three-switch detector would have taken the adder to 522 and the ratio to 1.864. The detector count of 18 is derived from the netlist rather than assumed."
         }
       ]
+    },
+    {
+      "id": "J",
+      "subject": "A six-trit register at switch level — the first sequential circuit here",
+      "tool": "tools/register-audit.js",
+      "registered_at": "e23ca30",
+      "results_at": "5012c77",
+      "asserted_in": "test/test-register.js",
+      "predictions": [
+        {
+          "id": "J1",
+          "claim": "six loop-breaking cells under one enable hold a tryte, exhaustively",
+          "outcome": "HELD",
+          "measured": {
+            "trytes_written": 729,
+            "write_wrong": 0,
+            "trytes_held": 729,
+            "hold_wrong": 0,
+            "feedback_loops_per_solve": 6
+          },
+          "note": "At risk because six feedback loops settle inside one solve, and nothing in this project had ever solved a network with more than one loop. N7 is about loops and had surfaced consequences twice that only appeared once state arrived. It did not this time."
+        },
+        {
+          "id": "J2",
+          "claim": "and costs 114 switches built for test, 66 in place",
+          "outcome": "HELD",
+          "measured": {
+            "with_input_buffers": 114,
+            "without": 66,
+            "difference": 48,
+            "buffers": 6,
+            "per_buffer": 8,
+            "mid_rail_taps": 24
+          },
+          "note": "The 48-switch difference is six input buffers, which T5 makes mandatory at any boundary with a primary input. Enable fan-out is free in this model and is the largest thing these numbers hide."
+        },
+        {
+          "id": "J3",
+          "claim": "and does not leak",
+          "outcome": "HELD",
+          "measured": {
+            "solves": 11025,
+            "moved": 0,
+            "stride": 7,
+            "tool_stride": 7,
+            "test_stride": 17
+          },
+          "note": "With hold asserted and the write enable low, sweeping the data over the range moves the stored tryte not at all. Strides are stated in the output rather than quietly chosen."
+        },
+        {
+          "id": "J4",
+          "claim": "and a read in the same solve as a write sees the old value",
+          "outcome": "FAILED",
+          "measured": {
+            "cases": 334,
+            "saw_old": 0,
+            "saw_new": 334,
+            "saw_neither": 0
+          },
+          "note": "FAILED, cleanly and in the opposite direction. The mechanism is exact and obvious afterwards: while the write enable is asserted the feedback loop is held OPEN -- that is the whole trick that makes the write possible -- so the cell is driven straight from its input and the seeded value has nothing holding it. S0 is a TRANSPARENT LATCH, not a flip-flop, and a transparent latch is see-through by definition. So master-slave is required and the register file is double what design/05 budgeted. design/11 had already listed this as one of five outcomes that would falsify the plan, which is the design phase working: the consequence was named before the measurement, so it could not be argued with afterwards."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
