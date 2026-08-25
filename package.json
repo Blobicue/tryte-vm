@@ -33,7 +33,8 @@
     "findings": "node test/test-findings.js",
     "budget": "node tools/budget.js",
     "audit:terminal": "node tools/terminal-audit.js",
-    "audit:memory": "node tools/memory-audit.js"
+    "audit:memory": "node tools/memory-audit.js",
+    "audit:interconnect": "node tools/interconnect-audit.js"
   },
   "license": "MIT",
   "private": true
