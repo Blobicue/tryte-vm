@@ -1526,7 +1526,7 @@
       "subject": "A 27-word addressed memory, built \u2014 and three errors in the budget formula",
       "tool": "tools/memory-audit.js",
       "registered_at": "8720a5c",
-      "results_at": "PENDING",
+      "results_at": "49fc6ad",
       "asserted_in": "test/test-memory.js",
       "predictions": [
         {
