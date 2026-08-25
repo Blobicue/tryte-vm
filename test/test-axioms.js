@@ -129,7 +129,7 @@ const PROOFS = [
       return true;
     } },
 
-  { id: 'D5', name: 'the gate controls and does not conduct',
+  { id: 'D5', name: 'the gate is read, never driven through — and no gate design ties one to its own terminal',
     fn: ({ M, GATES, gateNet }) => {
       // Structural: no gate design uses a node as both its own control and terminal.
       for (const g of GATES) {
@@ -224,8 +224,8 @@ const PROOFS = [
       return true;
     } },
 
-  { id: 'N7', name: 'termination holds from the default start — and does not hold in general',
-    fn: ({ GATES, gateNet, rowsOf, selfInverter }) => {
+  { id: 'N7', name: 'termination holds from the default start — staged, and not general',
+    fn: ({ M, GATES, gateNet, rowsOf, selfInverter }) => {
       // (a) From the all-Z start, everything settles, cycles included.
       for (const g of GATES) for (const r of rowsOf(g)) {
         if (gateNet(g).solve(r).o === undefined) return false;
@@ -238,7 +238,20 @@ const PROOFS = [
       for (const seed of [-1, 1]) {
         try { cyc.solve({}, 64, { o: seed, 'o$mid': 'Z' }); } catch (e) { threw++; }
       }
-      return threw === 2;
+      if (threw !== 2) return false;
+      // (c) Resolution is STAGED: nodes firm up in gate-dependency order, and one
+      // may sit at X for a pass before taking a level. A lone gate settles inside
+      // two passes; the same gate fed by another needs three, because its output
+      // cannot resolve on the pass that first gives its gate a level. An earlier
+      // wording of this axiom claimed a node reaching X stays there, which is false
+      // — 481 passing checks missed it because none of them looked at an
+      // intermediate pass. This one does.
+      const lone = new M.Net(); M.tmin(lone, 'a', 'b', 'o');
+      const chain = new M.Net(); M.sti(chain, 'a', 'na'); M.tmin(chain, 'na', 'b', 'o');
+      const settlesWithin = (net, passes) => {
+        try { net.solve({ a: 1, b: 1 }, passes); return true; } catch (e) { return false; }
+      };
+      return settlesWithin(lone, 2) && !settlesWithin(chain, 2) && settlesWithin(chain, 3);
     } },
 
   { id: 'N8', name: 'justified, not merely consistent — the fixed point is not unique',
@@ -396,7 +409,7 @@ console.log('\n=== TEETH — break the solver, and the right proofs must notice 
     { tag: 'reachability runs through rails',
       from: '      if (!driven.has(other)) stack.push(other);',
       to: '      stack.push(other);',
-      expect: ['N2', 'T3'] },
+      expect: ['N2', 'N7', 'T3'] },
   ];
 
   for (const m of MUTATIONS) {
@@ -536,6 +549,10 @@ console.log('\n=== THE X SET — what tools/axiom-audit.js measured, pinned ==='
       rec(0);
       return found;
     };
+    // At 3 switches the one-internal-node restriction costs nothing: NEG needs all
+    // three rails to reach `out`, which with three switches forces three direct
+    // rail-to-out devices, and any chain through an internal node reaches at most
+    // two rails. So the restricted search is complete at the size that matters.
     check('X5 HELD — no network of 1, 2 or 3 switches computes NEG, over 42 device types',
       [1, 2, 3].every(k => search(k).length === 0));
     const four = search(4);

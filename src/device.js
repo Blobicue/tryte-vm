@@ -50,8 +50,10 @@
  *       model isolates the middle level. See X1.
  *   D4  BIDIRECTIONALITY. The two terminals are interchangeable; a switch passes
  *       signal either way, as a pass transistor does and a logic gate does not.
- *   D5  GATE ISOLATION. The gate controls and does not conduct. It draws nothing
- *       and is never a terminal of its own device.
+ *   D5  GATE ISOLATION. The gate is read, never driven through. It draws nothing,
+ *       and in each of the five gate designs no node is both a device's control
+ *       and one of its terminals. A NETWORK may still wire one that way, and the
+ *       self-inverter used to prove N7 and N8 does exactly that.
  *   D6  UNKNOWN IS NOT OFF. An undetermined gate yields undetermined conduction.
  *       Treating it as non-conducting is the classic switch-simulator bug: it
  *       makes broken circuits look clean.
@@ -68,13 +70,18 @@
  *   N5  ISOLATION IS Z. No rail reaching a node leaves it floating.
  *   N6  UNKNOWNS ONLY SUBTRACT. An unknown conduction can make a node less
  *       determined, never more. The solver never claims a level it cannot justify.
- *   N7  TERMINATION FROM THE DEFAULT START, AND ONLY FROM THERE. From the all-Z
- *       start every node whose gate is not driven goes to X on the first pass and
- *       stays, so a cyclic network collapses to X instead of oscillating and a
- *       fixed point is always reached. This is NOT a general property of the
- *       iteration, and the axiom used to claim it was: seeded at a LEVEL the
- *       self-inverter runs -1 -> +1 -> -1 forever, and solve() throws rather than
- *       hand back a half-settled state. The audit found this. See X2.
+ *   N7  TERMINATION FROM THE DEFAULT START. Nodes firm up in gate-dependency
+ *       order, and may pass THROUGH X on the way: in a chain, the far end is still
+ *       unresolved on the pass that gives its gate a level, and takes a level on
+ *       the pass after. A node on a gate CYCLE never gets a determined gate at
+ *       all, so it lands on X and stays there — which is why the all-Z start
+ *       always reaches a fixed point rather than oscillating.
+ *
+ *       That is a property of THAT START, not of the iteration. Seeded at a level
+ *       the self-inverter runs -1 -> +1 -> -1 forever and solve() throws rather
+ *       than hand back a half-settled state. Some seeds do settle; none is
+ *       guaranteed to. The audit found this — the axiom used to say oscillation
+ *       was impossible, full stop. See X2.
  *   N8  JUSTIFIED, NOT MERELY CONSISTENT. A level is assigned only when a
  *       conducting path from exactly one rail justifies it FROM THE CURRENT
  *       STATE. Fixed points are NOT unique, and the solver does not find the most

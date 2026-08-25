@@ -187,10 +187,11 @@ console.log('\n--- X2  N8: the fixed point is not unique, and Z-init is not X-in
   console.log(`      seeds that never settle: [${oscillating.join(', ')}]  (not predicted at all)`);
   if (oscillating.length) {
     console.log('      X2a FAILED -- not on its answer but on its premise. It assumed every seed');
-    console.log('      resolves to something. N7 says "X is absorbing, so resolution cannot');
-    console.log('      oscillate", and that is only true from the all-Z start, where any node');
-    console.log('      with a non-driven gate goes to X on the first pass and stays. Seeded at a');
-    console.log('      LEVEL the self-inverter runs -1 -> +1 -> -1 forever. N7 is false as worded.');
+    console.log('      resolves to something. N7 said "X is absorbing, so resolution cannot');
+    console.log('      oscillate", full stop. That holds only from the all-Z start, where a node');
+    console.log('      on a gate CYCLE never gets a determined gate and so lands on X and stays.');
+    console.log('      Seeded at a LEVEL the self-inverter runs -1 -> +1 -> -1 forever. N7 was');
+    console.log('      false as worded, and has been reworded to say which half is true.');
   }
 
   let differ = 0, rows = 0;

@@ -113,7 +113,7 @@ Then it breaks the solver three ways and requires the *right* proofs to notice:
 |---|---|
 | thresholds made strict | D3 N2 N6 N7 N8 T1 T2 T3 T4 |
 | unknown conduction treated as off | D6 N7 N8 |
-| reachability runs through rails | N2 T3 |
+| reachability runs through rails | N2 N7 T3 |
 
 Two of those three are defects this model actually had. The expected sets are
 pinned because *which* axioms a defect trips is the part worth knowing — a proof
@@ -121,8 +121,10 @@ that fails for everything is not telling you what it caught.
 
 **One axiom was false as written, and the audit is what found it.** N7 claimed
 that resolution cannot oscillate, full stop. It cannot *from the default start*,
-where any node with a non-driven gate goes unresolved on the first pass and stays
-there. Seeded at a level, a ternary inverter wired to its own input runs
+because nodes firm up in gate-dependency order — a node may sit at unresolved for
+a pass and take a level on the next — and a node on a gate *cycle* never gets a
+determined gate at all, so it lands on unresolved and stays. Seeded at a level,
+a ternary inverter wired to its own input runs
 −1 → +1 → −1 forever, and the solver throws rather than hand back a half-settled
 answer. The same experiment showed the fixed point is not unique: that inverter
 also sits happily at 0, which is fully determined and fully consistent — the

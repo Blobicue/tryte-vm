@@ -429,7 +429,7 @@
             "x_init_vs_z_init_rows_differing": 0,
             "x_init_vs_z_init_rows_total": 27
           },
-          "note": "FAILED on its premise, not its answer. It asked which seeds of the self-inverter are self-consistent, taking for granted that every seed resolves to something. Two of three do not: seeded at a level the network runs -1 -> +1 -> -1 forever and solve() throws. That falsified N7, which claimed resolution cannot oscillate, full stop -- true only from the all-Z start, where any node with a non-driven gate goes to X on the first pass and stays. N7 was reworded to say so. The second half of X2 held exactly: 0 of 27 rows differ, because conducts() maps Z and X alike to unknown."
+          "note": "FAILED on its premise, not its answer. It asked which seeds of the self-inverter are self-consistent, taking for granted that every seed resolves to something. Two of three do not: seeded at a level the network runs -1 -> +1 -> -1 forever and solve() throws. That falsified N7, which claimed resolution cannot oscillate, full stop -- true only from the all-Z start, where a node on a gate CYCLE never gets a determined gate and so lands on X and stays. Nodes elsewhere firm up in gate-dependency order and may pass THROUGH X: an earlier wording of the correction said they reach X on the first pass and stay, which is false, and 481 passing checks did not notice because none of them looked at an intermediate pass. One does now. N7 was reworded to say so. The second half of X2 held exactly: 0 of 27 rows differ, because conducts() maps Z and X alike to unknown."
         },
         {
           "id": "X3",
