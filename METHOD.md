@@ -142,7 +142,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace the twelve sets and they form very nearly
+fanned out; the *frontier did not*. Trace the eighteen sets and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from
@@ -177,6 +177,25 @@ prediction is *decisive*. Where it is not, the loop degrades to sampling plus
 adversarial verification, which is weaker and should be labelled as such. This
 repository states its sample strides in the output every time it uses one.
 
+**And this project has now walked off the edge of that precondition.** Every
+circuit result here rests on exhaustive sweeping. The `H` set measured what the
+solver can carry, and the two facts do not fit together: a 50,000-device machine
+*solves* in about 70 ms, but a full 531,441-pair sweep stays inside an hour only up
+to roughly **4,800 devices**. So the machine this method was built to study can be
+run and cannot be swept.
+
+That is worth stating as a general lesson rather than a local inconvenience: **a
+method whose authority comes from exhaustion has a size limit, and the subject
+grows toward it.** The failure mode is not noticing — continuing to write "checked"
+in the tone earned by sweeps, while actually sampling.
+
+What replaces it is not a weaker version of the same sentence. It is a **stated
+verification contract**: name the dimensions that are exhaustive and the ones that
+are sampled, in the claim itself. "The machine is verified" is unavailable. "The
+machine agrees with the reference on every opcode against every value of one
+register, and on every step of one bounded program" is smaller, checkable, and
+true. See [`design/12-roadmap.md`](design/12-roadmap.md), which had to choose one.
+
 **It needs cheap ground truth.** Every claim here could be checked against an
 independent reference implementation. Without something to be wrong against, the
 loop has nothing to bite on.
@@ -190,7 +209,7 @@ wasteful when it does not.
 
 ## The failure catalogue, off ternary
 
-These are the twelve classes that actually bit, stated so they transfer. The count
+These are the fourteen classes that actually bit, stated so they transfer. The count
 is how many times each recurred *after* being named — which is itself a measure of
 how well naming a thing prevents it.
 

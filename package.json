@@ -30,7 +30,8 @@
     "audit:register": "node tools/register-audit.js",
     "audit:msregister": "node tools/msregister-audit.js",
     "audit:accumulator": "node tools/accumulator-audit.js",
-    "findings": "node test/test-findings.js"
+    "findings": "node test/test-findings.js",
+    "budget": "node tools/budget.js"
   },
   "license": "MIT",
   "private": true

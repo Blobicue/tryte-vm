@@ -103,47 +103,47 @@ you have named the set it ranges over and confirmed your measurement visited it.
 Each of these produced a wrong result that looked right. They are listed because
 the next one will look right too.
 
-**Comparing functions at a single point.** Two functions agreeing on one input are
+`T-ONE-POINT` **Comparing functions at a single point.** Two functions agreeing on one input are
 not equal. This has bitten three separate times, most sharply where dozens of
 distinct tables all matched the target at one chosen pair. Compare over a probe
 set, or prove equality structurally.
 
-**Hardcoding a count that the code can change.** A test listing the opcodes
+`T-STALE-CONSTANT` **Hardcoding a count that the code can change.** A test listing the opcodes
 literally kept passing against a number the source no longer had. Derive it. The
 README's own tallies went stale the same way, twice — the total check count is
 now summed in `run-all.js` and the manifest tally recomputed in
 `test-findings.js`, because neither number belongs to any one suite.
 
-**Writing through a label that does not exist.** A missing label yields an
+`T-SILENT-NAN` **Writing through a label that does not exist.** A missing label yields an
 undefined address; the write silently does nothing and the program runs on with
 uninitialised state. Assert the label exists before writing through it.
 
-**Reading past the end of a datum.** A short table borrowed the cells that
+`T-ADJACENCY` **Reading past the end of a datum.** A short table borrowed the cells that
 happened to follow it and produced a plausible wrong answer. Track how much space
 a datum spans and refuse to over-read it.
 
-**Confusing "ran out of budget" with "finished".** A search that exhausts its
+`T-EXHAUSTED-NOT-CLOSED` **Confusing "ran out of budget" with "finished".** A search that exhausts its
 depth limit, one that hits its size cap, and one that genuinely closes are three
 different outcomes. Conflating them produced a false negative verdict on a
 prediction. Report them separately.
 
-**Letting a path run through an ideal source.** Switch-level reachability that
+`T-SOURCE-NOT-TERMINAL` **Letting a path run through an ideal source.** Switch-level reachability that
 continues *out of* a rail makes every node that rail drives look contended, and
 correct circuits resolve to unknown. Rails and inputs terminate a path.
 
-**Believing the instrument before checking its shape.** Three times the measuring
+`T-INSTRUMENT-FALSE-VERDICT` **Believing the instrument before checking its shape.** Three times the measuring
 tool, not the thing measured, produced the failure: a search reported exhausted as
 closed, reachability ran through rails, and a network key ordered terminals that
 have no order — each declaring FAILED or ABSENT for something that was fine. When
 a result contradicts a prediction, suspect the instrument first; it is cheaper to
 rule out than the finding is to publish.
 
-**A prediction failing on a premise it never stated.** One asked which seeds of a
+`T-PREMISE-NOT-ANSWER` **A prediction failing on a premise it never stated.** One asked which seeds of a
 cyclic network are self-consistent and quietly assumed every seed resolves at all.
 Two did not. The unstated assumption was the falsifiable part, and it falsified an
 axiom. When registering, write down what the question takes for granted.
 
-**Sampling with a generator that is not sampling.** A seeded pseudo-random source
+`T-FAKE-RANDOM` **Sampling with a generator that is not sampling.** A seeded pseudo-random source
 multiplied a 31-bit seed by a 31-bit constant, which overflows the range a
 JavaScript number represents exactly, so the low bits it handed back were rounding
 noise. Three of its eight possible values were drawn essentially never, and a
@@ -151,7 +151,7 @@ comparison that looked like four hundred trials was closer to four hundred
 repetitions of one. Check what a random instrument actually produced — every
 outcome class it was supposed to reach — not how many times it ran.
 
-**Stating a property of one design as a property of the subject.** Twice now a
+`T-CLAIM-NARROWED-BY-A-DESIGN` **Stating a property of one design as a property of the subject.** Twice now a
 measurement has been right and its noun too big. A sweep over where restoring
 buffers can go inside one family of trees became a claim about what ternary can
 reach "at any price" — a different selector reached further, and cost less. A
@@ -159,6 +159,36 @@ sweep over raw-select circuits became a claim that settling time in this model i
 never data-dependent — a decoded selector made it data-dependent. Before writing
 "ternary", or "this model", ask whether what you swept visited more than one
 design.
+
+`T-CHECK-FORBIDS-HEALTHY-STATE` **A check that treats a legitimate state as a
+defect.** One demanded that the number of tools and the number of prediction sets
+be equal. They are equal only *between* phases: registering a tool and recording
+its results are deliberately separate commits, so during a registration there is
+one more tool than there are sets. The check was failing on the protocol working.
+Before asserting an invariant, ask which legal intermediate states it forbids.
+
+`T-SEARCH-WHERE-A-CHECK-WOULD-DO` **Searching for a value you could verify.**
+Finding a settling count by scanning k upward from 1 cost up to eighty solves per
+input and did not finish inside ten minutes. The count is the same for every
+input: find it once, then check it twice thereafter -- settles at k, does not
+settle at k-1. Two solves, not eighty. When an instrument is slow, check whether
+it is searching for something it already knows how to confirm.
+
+`T-CENSUS-COUNTS-ITSELF` **A measurement over a corpus it is then written into.**
+A survey of the manifest for repeated integers failed on its second run, because
+recording the first run's result added those very integers back to the manifest --
+as the values it had excluded. Nothing was wrong with the world or with the first
+answer. If a result is stored where it will later be read as data, exclude the
+storing record from the read, and derive that exclusion from something structural
+rather than from an id.
+
+`T-CRITERION-IN-THE-NOISE` **A threshold whose verdict depends on run-to-run
+variation.** A prediction of "spread under 3x" measured 3.72 on one run and 2.89
+on the next -- the same world returning both a pass and a fail -- and the attempt
+to salvage a more robust shape from it flipped too. A line placed near the noise
+floor is a defect in the prediction, not a fact about the subject. Either widen it
+until it cannot flip, or measure the quantity and report it without asserting a
+bound.
 
 **Trusting a build artifact that was not rebuilt.** The published page embeds the
 source; after changing the source it will still pass its own tests until rebuilt.

@@ -10,11 +10,20 @@ made a decision. Here is what is genuinely open, sorted by how much it moves.
 
 | rank | decision | moves | who decides |
 |---|---|---|---|
-| 1 | **`M1` charge retention** — does `Z` retain, or float? | **measured: 11×**, and it breaks nothing | the measurement is done; it is now a person's call |
-| 2 | **memory scope** — 729 words, or fewer, or harness-held? | the whole machine, by up to everything | a person; it is a question about what the exercise is for |
+| 1 | **`M1` charge retention *and* memory scope — one decision, not two** | whether the machine runs a real program at all | a person; see below |
+| 1= | ~~memory scope — 729 words, or fewer, or harness-held?~~ **merged into rank 1** | — | — |
 | 3 | **`Q0` vs `Q1` vs `Q3`** — where the step boundary lives | whether the sequencer is made of switches | a person, after the handshake experiment |
 | 4 | **`I0` vs `I2`** — mux trees or a decoded bus | a few hundred switches, and one class of silent failure | measurable |
 | 5 | **`C5`** — could the ISA be renumbered so decode disappears? | ~480 switches and the assembler | a search, then a person |
+
+**Why 1 and 2 merged.** They were listed as separate decisions and they are not.
+[`12-roadmap.md`](12-roadmap.md) crosses two ladders — what fits `H2`'s sweep
+budget, and which programs fit in how much memory — and they intersect in exactly
+one configuration: **81 words under `M1`**. Under `M0` the only sweepable machine
+is 27 words, and **none of the eight programs fit in it**. So retention is not a
+line-item saving to be weighed against others; it is the difference between a
+machine that runs `countdown`, `threeway` and `kleene` and one that runs a
+relocated toy. Choosing the scope *is* choosing the model.
 
 Ranks 1–3 are not measurement questions dressed as choices. They are choices about
 what is being built and what the model is allowed to be.
@@ -34,6 +43,18 @@ in this repository rests on exhaustive sweeping, so the machine is the first sub
 here that sits outside its own method — and the exhaustibility precondition in
 [`../METHOD.md`](../METHOD.md) stops applying to the thing the method was built to
 study. `MEASURED`
+
+**Is the address path one structure or two?** The largest term in the machine once
+retention lands, and [`07-memory.md`](07-memory.md) suspects the 729-way decoder
+and the 729-way read mux are the same object approached from opposite ends. If they
+are, the path roughly halves and the 243-word machine — six of the eight programs —
+comes back inside the sweep budget. Nobody has checked. This is now the
+highest-leverage **unbuilt** question in the project.
+
+**Can a stored value drive a selector's source terminal?** Everything built so far
+feeds selector **gates**. `I0`, the read mux and the address path all need the
+other thing. It is one cheap experiment and four of the six phases in
+[`12-roadmap.md`](12-roadmap.md) assume its answer.
 
 **Does the seeded discipline compose?** Every state node must be seeded on every
 solve. At 4,374 nodes, one missing seed is one node at `Z`, which by `N6` poisons
@@ -84,7 +105,11 @@ three of the four obvious ways to build it are forbidden by axioms that had neve
 mattered before.
 
 Everything downstream is arithmetic, except memory, and **memory is 93% of the
-machine**. So the design has one decision in it, and the rest is bookkeeping.
+machine** — under `M0`. Under `M1` that sentence stops being true and the address
+path takes over, which is the one thing this folder did not anticipate.
+
+So the design has one decision in it — scope-and-model, together — and one
+unbuilt structure that nobody has priced honestly, and the rest is bookkeeping.
 
 That is a much smaller and clearer plan than it looked like at the start of this
 folder, and the reason it is clear is that the option spaces were written down

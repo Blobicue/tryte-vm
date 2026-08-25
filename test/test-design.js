@@ -24,8 +24,20 @@ const check = (name, cond, detail = '') => {
 };
 
 const DIR = path.join(__dirname, '..', 'design');
-const KINDS = ['index', 'reference', 'subsystem'];
+const KINDS = ['index', 'reference', 'subsystem', 'plan'];
 const STATUS = ['MEASURED', 'DERIVED', 'PROPOSED'];
+// A `plan` is the one kind allowed to COMMIT to an order rather than enumerate a
+// space. It earns that by carrying its own obligations instead of a subsystem's:
+// what is already built (so the plan cannot quietly re-promise it), what would
+// STOP it (a plan with no falsifier is a wish), and what it deliberately leaves to
+// a person (so a decision does not get made by default inside a table).
+const PLAN_REQUIRED = [
+  '## What is built',
+  '## What is missing',
+  '## The sequence',
+  '## What would stop it',
+  '## What this plan does not decide',
+];
 const REQUIRED = [
   '## Requirement',
   '## What the axioms force',
@@ -43,7 +55,7 @@ console.log('\n=== 1. EVERY FILE DECLARES WHAT IT IS ===');
 {
   check(`design/ holds ${files.length} documents`, files.length > 0, String(files.length));
   const undeclared = files.filter(f => !KINDS.includes(kindOf(read(f))));
-  check('every file declares a kind, and it is one of the three',
+  check(`every file declares a kind, and it is one of the ${KINDS.length}`,
     undeclared.length === 0, `undeclared or unknown: ${undeclared.join(' ')}`);
   const kinds = files.map(f => kindOf(read(f)));
   check('exactly one index, and at least one of each other kind',
@@ -67,6 +79,25 @@ console.log('\n=== 2. SUBSYSTEM FILES CARRY ALL SIX SECTIONS ===');
   check('   and "What is missing from this list" is present in every one of them —'
     + ' the section that keeps an enumeration from collapsing into a decision',
     subsystems.every(f => read(f).includes('## What is missing from this list')));
+}
+
+console.log('\n=== 2b. A PLAN CARRIES ITS OWN OBLIGATIONS ===');
+{
+  const plans = files.filter(f => kindOf(read(f)) === 'plan');
+  check(`${plans.length} plan file: ${plans.join(' ')}`, plans.length >= 1);
+  let bad = null;
+  for (const f of plans) {
+    const missing = PLAN_REQUIRED.filter(h => !read(f).includes(h));
+    if (missing.length) { bad = `${f} missing ${missing.join(', ')}`; break; }
+  }
+  check('every plan states what is built, what is missing, the sequence, what would'
+    + ' stop it, and what it does not decide', bad === null, bad || '');
+  check('   and "What would stop it" is present — a plan with no falsifier is a wish',
+    plans.every(f => read(f).includes('## What would stop it')));
+  check('   a plan missing its falsifier section is caught', (() => {
+    const doctored = read(plans[0]).replace('## What would stop it', '## Risks');
+    return PLAN_REQUIRED.some(h => !doctored.includes(h));
+  })());
 }
 
 console.log('\n=== 3. STATUS MARKERS COME FROM THE DECLARED VOCABULARY ===');

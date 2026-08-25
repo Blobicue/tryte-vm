@@ -13,7 +13,7 @@ Seventy-eight predictions, seventy-one held, seven failed — and the five produ
 than the forty-nine. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**743 checks**, all passing. Every number below is recomputed by one of them,
+**771 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -460,6 +460,77 @@ And every clause is shown load-bearing: counting the top position breaks the rul
 counting the bottom one does not, and swapping the sum table for the carry table
 breaks it. The old over-prediction is accounted for *case by case* — the two rules
 differ on exactly the pairs where the top position would have saved.
+
+### It remembers: storage, a register, and a thing that computes
+
+Everything above computes and forgets. Holding a value turned out to be the harder
+problem, and **three of the four obvious ways to do it are forbidden by axioms that
+had never mattered before.**
+
+A cross-coupled pair holds all three trits once seeded, and from a cold start it
+goes unresolved — `N7`. Writing straight from an input fails on `T5`. Writing by
+overpowering the loop fails on `N4`, because this model has no notion of drive
+strength: a contended node is unknown, not "whichever side is stronger". What works
+is opening the feedback loop while writing. **11 switches a trit, in place.**
+
+Then a six-trit register at 66, and a prediction that failed usefully:
+
+> `J4` — a read during a write returns the value from *before* the write.
+
+It does not. The write holds the feedback loop open, so the cell is transparent
+while written and a read sees the new value on every case tried. That is a
+**latch**, not a flip-flop — so the register file doubles and the next phase built
+what `J4` proved was required: a master-slave pair on opposite clock phases, 132
+switches, which does return the pre-step value. Asserting both phases at once
+collapses it straight back to the transparent latch, which was produced deliberately
+to show the non-overlap discipline is load-bearing rather than conventional.
+
+Wire that register to the decoded adder and you get an **accumulator** — `A ← A + B`
+in one two-phase step, 672 switches:
+
+```bash
+npm run audit:accumulator     # all 729 accumulator values x 9 addends
+```
+
+All 6,561 steps produce the right sum. The number that matters more is the other
+one: on **none** of them did the register stop reading the *old* accumulator while
+the adder was computing its replacement. Ten successive additions accumulate to
+−79, matching the reference at every step — the first computation here carried out
+by simulated transistors holding their own state between steps.
+
+One consequence worth stating plainly: the decoded adder settles in 9 to 13 passes
+depending on its operands, and the accumulator inherits that. **A machine built on
+this design has no fixed clock period.**
+
+### What is missing, and the order to build it in
+
+A datapath fragment is not a machine. Still unbuilt at switch level: **interconnect,
+the address path, addressed memory, instruction decode, and sequencing.**
+
+[`design/12-roadmap.md`](design/12-roadmap.md) commits to an order, and it argues
+that order from two measured ladders rather than from taste. The short version:
+
+- **The solver can run a machine but cannot sweep one.** 50,000 devices solve in
+  ~70 ms — the solver is linear, not superlinear as two design documents had
+  asserted without checking. But a full 531,441-pair sweep fits in an hour only up
+  to ~4,800 devices. The machine is the first subject here that sits outside the
+  exhaustive discipline every other result rests on.
+- **So which machine? Exactly one configuration works:** 81 words of memory under
+  charge retention, ~3,640 switches. It is the only size that both fits the sweep
+  budget and runs a program somebody already wrote — `countdown`, `threeway` and
+  `kleene` fit as placed. A 27-word machine fits the budget and runs **none** of
+  the eight.
+- **Which means two decisions the design phase ranked separately are one.** Charge
+  retention isn't a saving to weigh against others; it is the difference between a
+  machine that runs a real program and one that runs a relocated toy.
+- **And removing the dominant cost promotes the next one.** Under retention,
+  storage stops being 93% of the machine and the **address path** — which nobody
+  has built — becomes the largest single term.
+
+The costs come from [`tools/budget.js`](tools/budget.js) rather than being typed
+into the table, because a number in prose stops tracking the code that made it;
+`test/test-budget.js` fails the build if this README, that roadmap and that tool
+disagree.
 
 ## The idea, without the jargon
 

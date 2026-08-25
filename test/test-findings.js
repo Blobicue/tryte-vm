@@ -189,6 +189,24 @@ console.log('\n=== 5. REFERENCES ===');
   check('every trap has a description and a count',
     M.traps_encountered.every(t => t.id && t.description && typeof t.count === 'number'));
 
+  // The manifest is the ledger; AGENTS.md is the version an agent actually reads
+  // before working here. They drifted: four classes sat in the ledger and were
+  // never written up, so the operational document was a phase and a half behind the
+  // record. A trap nobody is warned about is not an antibody. Each paragraph in
+  // AGENTS.md now carries its id, which is what makes this checkable at all.
+  //
+  // One-directional on purpose: AGENTS.md may carry traps with no manifest entry —
+  // the build-artifact one has never been a registered prediction's failure — but
+  // it may not omit one the manifest has.
+  {
+    const AGENTS = fs.readFileSync(path.join(ROOT, 'AGENTS.md'), 'utf8');
+    const unwritten = M.traps_encountered.filter(t => !AGENTS.includes('`' + t.id + '`'));
+    check(`all ${M.traps_encountered.length} trap classes are written up in AGENTS.md`,
+      unwritten.length === 0, `no prose for: ${unwritten.map(t => t.id).join(' ')}`);
+    check('   and a class in the ledger with no paragraph would be caught',
+      !AGENTS.includes('`T-NOT-A-REAL-TRAP`'));
+  }
+
   // The README's summary of this manifest went stale, twice. Derive it instead.
   // The total check count is checked in run-all.js, which is the only place the
   // sum of all suites exists.
@@ -258,6 +276,30 @@ console.log('\n=== 5. REFERENCES ===');
     check('   and it counts the trap classes the manifest actually holds',
       lower.includes(`${WORDS[M.traps_encountered.length]} distinct failure classes`),
       `expected ${WORDS[M.traps_encountered.length]}`);
+
+    // The check above pinned ONE phrasing of the trap count. METHOD.md stated the
+    // same number twice more, in different words, and both went stale — "the twelve
+    // classes that actually bit" and "trace the twelve sets" survived four phases
+    // of growth while the pinned sentence stayed correct. T-STALE-CONSTANT, and the
+    // lesson is specifically that pinning one wording licenses the others to drift.
+    // So: no number-word may precede "classes" or "sets" unless it is the right one.
+    const WORDSET = new Set(WORDS.map(w => w && w.toLowerCase()).filter(Boolean));
+    const wrong = [];
+    for (const [, word, noun] of lower.matchAll(/(\w+) (classes|sets)\b/g)) {
+      if (!WORDSET.has(word)) continue;                 // not a count, just prose
+      const right = noun === 'classes'
+        ? WORDS[M.traps_encountered.length] : WORDS[M.prediction_sets.length];
+      if (word !== right.toLowerCase()) wrong.push(`"${word} ${noun}" should be "${right} ${noun}"`);
+    }
+    check('   and every OTHER restatement of those counts agrees too',
+      wrong.length === 0, wrong.join('; '));
+    check('      (and that sweep would catch a wrong one)', (() => {
+      const doctored = 'trace the two sets and the two classes';
+      return [...doctored.matchAll(/(\w+) (classes|sets)\b/g)]
+        .some(([, w, n]) => WORDSET.has(w)
+          && w !== (n === 'classes' ? WORDS[M.traps_encountered.length]
+            : WORDS[M.prediction_sets.length]).toLowerCase());
+    })());
   }
   check('the one-point trap is recorded as having bitten three times',
     M.traps_encountered.find(t => t.id === 'T-ONE-POINT').count === 3);

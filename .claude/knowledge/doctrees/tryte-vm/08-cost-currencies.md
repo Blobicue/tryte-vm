@@ -39,6 +39,19 @@ that is not a stylistic preference - it is a measured fact. Owner:
 - What a currency for wire would look like, and why there isn't one
 - Whether "report all six" is a position or an evasion
 
+## What changed rank
+
+Switch count has always been the currency that decided things here, and within it
+the assumption was that **storage** dominates — 93% of the machine, which is true
+under the unchanged model. Under charge retention it is not: storage falls by 11x
+and the **address path** becomes the largest single term. At 243 words it is 4,745
+switches against storage's 1,458.
+
+The general form is worth keeping: *a decision that removes the dominant cost does
+not make a system cheap, it promotes the second cost to dominant* — and the second
+cost here has never been built, so it is also the least trustworthy number in the
+budget. See [`design/12-roadmap.md`](../../../../design/12-roadmap.md).
+
 ## Open questions
 
 - Which currency should the machine actually be optimised in? Genuinely unsettled,

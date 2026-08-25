@@ -9,7 +9,9 @@ last_updated: 2026-08-25
 
 The datapath arithmetic exists. A **computer** needs storage, a register file,
 addressed memory, instruction decode and sequencing, and none of those exists at
-switch level. Owner: [`design/`](../../../../design/), twelve documents.
+switch level. Owner: [`design/`](../../../../design/), fourteen documents — of which
+[`12-roadmap.md`](../../../../design/12-roadmap.md) is the one that commits to an
+order rather than enumerating a space.
 
 ## What is established
 
@@ -26,6 +28,17 @@ switch level. Owner: [`design/`](../../../../design/), twelve documents.
   Under charge retention a trit cell is **one switch**, taking the 729-word memory
   from 48,114 to **4,374**. And retention changes *nothing* in the existing corpus:
   zero differing node values across every gate, every input, and the adder swept.
+- **Which machine is worth building has an answer, and it is narrow.** Two
+  ladders — what fits the sweep budget, and which programs fit in how much memory —
+  intersect in **exactly one configuration: 81 words under charge retention**, at
+  roughly 3,640 switches. It runs `countdown`, `threeway` and `kleene` as placed.
+  A 27-word machine fits the budget and runs **none** of the eight programs.
+- **So the retention decision and the memory-scope decision are the same
+  decision**, which the design phase had ranked as two.
+- **Under retention the bottleneck moves rather than disappearing.** Storage stops
+  dominating and the **address path** becomes the largest single term — at 243
+  words it is 4,745 against storage's 1,458. Retention relocates the cost from a
+  part with a known fix to a part nobody has built.
 - **The sequencer may not be made of switches.** Under seeded semantics the step
   boundary lives in the harness, which means "a computer built of simulated ternary
   transistors" would mean a *datapath* built of them. That concession is written
@@ -50,6 +63,13 @@ switch level. Owner: [`design/`](../../../../design/), twelve documents.
   during a write sees the new value. Master-slave is required and the register file
   doubles.
 - Is `T5` going to bite a third time? Three axioms have surfaced this way already.
+- **Can a stored value drive a selector's source *terminal*, not just its gate?**
+  Everything built so far feeds gates. `I0`, the read mux and the whole address
+  path need the other thing, and it is untested. This is the cheapest experiment
+  in the project and four of the six remaining phases assume its answer.
+- **Are the address decoder and the read multiplexer one structure or two?** Now
+  the highest-leverage unbuilt question, because it governs the term that
+  dominates once retention lands.
 
 ## Related pillars
 
