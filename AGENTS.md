@@ -121,6 +121,15 @@ comparison that looked like four hundred trials was closer to four hundred
 repetitions of one. Check what a random instrument actually produced — every
 outcome class it was supposed to reach — not how many times it ran.
 
+**Stating a property of one design as a property of the subject.** Twice now a
+measurement has been right and its noun too big. A sweep over where restoring
+buffers can go inside one family of trees became a claim about what ternary can
+reach "at any price" — a different selector reached further, and cost less. A
+sweep over raw-select circuits became a claim that settling time in this model is
+never data-dependent — a decoded selector made it data-dependent. Before writing
+"ternary", or "this model", ask whether what you swept visited more than one
+design.
+
 **Trusting a build artifact that was not rebuilt.** The published page embeds the
 source; after changing the source it will still pass its own tests until rebuilt.
 There is a staleness check for exactly this — do not remove it.

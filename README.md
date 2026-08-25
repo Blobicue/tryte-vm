@@ -5,7 +5,7 @@ arithmetic, a 25-instruction machine, an assembler, an emulator written in its o
 assembly, and eleven audits establishing exactly what its instruction set can reach
 and what the device model beneath it rests on.
 
-**577 checks**, all passing. Every number below is recomputed by one of them.
+**578 checks**, all passing. Every number below is recomputed by one of them.
 
 ```bash
 npm test              # everything (~55s; the monoid and switch sweeps are real work)
@@ -49,7 +49,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-Ten prediction sets, registered before their runs. **42 held, 3 failed** — the
+Eleven prediction sets, registered before their runs. **45 held, 5 failed** — the
 failures are kept, and both produced the most useful results here. Full detail,
 with registering commits and the tests that assert each one, in
 [`FINDINGS.json`](FINDINGS.json).
@@ -66,6 +66,7 @@ with registering commits and the tests that assert each one, in
 | **X1–X5** | the axioms the device model rests on | 4 held, **X2 failed** |
 | **Y1–Y5** | the carry cell and the adder, built from switches | all held |
 | **Z1–Z5** | pricing the free mid rail and the missing restoration | 4 held, **Z2 failed** |
+| **E1–E5** | the decoded-selector adder | 3 held, **E4 and E5 failed** |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:
@@ -354,7 +355,8 @@ the raw select while the MID arm's gate is still unknown — and if both arms le
 the *same rail*, the node is determined anyway, a whole pass early. **Six of the
 carry table's nine leaves have their LOW and MID cells equal.** None of the sum
 table's do. The adder settles faster on operands that happen to route through
-those six.
+those six — **exactly 128 of every 243 operand pairs**, or 279,936 of the
+531,441, settle in fewer than thirteen passes.
 
 ## The idea, without the jargon
 

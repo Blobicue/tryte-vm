@@ -719,6 +719,91 @@
           "note": "All six counts were derived by hand before the run from gate-dependency depth: each inverter is its own stage, so a two-inverter buffer adds two per level, times the number of digits, plus the pass that observes nothing changed. Still independent of the data, exactly as Y2 found for the unrestored circuit. Depth here is structural, never arithmetic."
         }
       ]
+    },
+    {
+      "id": "E",
+      "subject": "The decoded-selector adder — the circuit that failed Z2, at full width",
+      "tool": "tools/decoded-audit.js",
+      "registered_at": "ba1918b",
+      "results_at": "88d5f71",
+      "asserted_in": "test/test-decoded.js",
+      "predictions": [
+        {
+          "id": "E1",
+          "claim": "the decoded six-trit ripple is T.add, exhaustively, including the overflow trit",
+          "outcome": "HELD",
+          "measured": {
+            "pairs_carry_in_0": 531441,
+            "sum_wrong": 0,
+            "carry_wrong": 0,
+            "seconds": 1533,
+            "pairs_carry_in_plus_1_sampled": 4489,
+            "pairs_carry_in_minus_1_sampled": 4489,
+            "sampled_wrong": 0
+          },
+          "note": "At risk in a way the selector tree was not: the carry feeds a DETECTOR as well as three raw arms, so cell i depends on cell i-1 through two paths that have to agree. They do. test-decoded.js also checks the two adders against EACH OTHER rather than both against T.add -- different primitives, same function on every sampled pair."
+        },
+        {
+          "id": "E2",
+          "claim": "540 switches, and 360 with leaves shared",
+          "outcome": "HELD",
+          "measured": {
+            "decoded": 540,
+            "decoded_shared": 360,
+            "selector_tree": 624,
+            "selector_tree_shared": 384,
+            "decomposition": "18 detectors x 4, plus 12 trees x 13 selectors x 3"
+          }
+        },
+        {
+          "id": "E3",
+          "claim": "read depth 3 for the whole ripple, not just one cell",
+          "outcome": "HELD",
+          "measured": {
+            "decoded_depth": 3,
+            "selector_tree_depth": 6,
+            "binary_depth": 3
+          },
+          "note": "Half the selector tree, and equal to the binary adder unrestored. The chain resets at every gate and a carry is read as a gate, which is why six cells are no deeper than one."
+        },
+        {
+          "id": "E4",
+          "claim": "exactly 13 passes for every operand pair, still independent of the data",
+          "outcome": "FAILED",
+          "measured": {
+            "predicted_passes": 13,
+            "observed_range": [
+              9,
+              13
+            ],
+            "pairs_not_exactly_13": 279936,
+            "pairs_total": 531441,
+            "fraction": "128/243",
+            "selector_tree_passes": 7,
+            "selector_tree_varies": false,
+            "carry_table_leaves_with_low_and_mid_equal": 6,
+            "sum_table_leaves_with_low_and_mid_equal": 0
+          },
+          "note": "FAILED on universality, not on arithmetic. Thirteen is correct as the WORST case, which is what the derivation actually bounded; the range is 9 to 13 and it DEPENDS ON THE OPERANDS. First circuit in the repository whose settling time is arithmetic rather than structural, and it scoped Y2 and Z5. Their independence-of-data result is a property of gating every arm on the RAW select, which makes all conduction known at one instant so nothing can settle early. Decoding splits the gating across two dependency levels: with the carry-in LOW the LOW arm already conducts while the MID arm gate is still unknown, so if both arms lead to the same rail the node is determined a pass early, by N3. Six of the carry table nine leaves have their LOW and MID cells equal; none of the sum table do. Exactly 128 of every 243 operand pairs settle in fewer than thirteen passes."
+        },
+        {
+          "id": "E5",
+          "claim": "it narrows the gap without closing it, and taps the mid rail less",
+          "outcome": "FAILED",
+          "measured": {
+            "ratio_unshared": 1.929,
+            "ratio_shared": 1.636,
+            "lowest_ratio_any_width": 1.364,
+            "per_digit": 3.214,
+            "break_even_log2_3": 1.585,
+            "mid_taps_decoded": 186,
+            "mid_taps_selector_tree": 168,
+            "excess_per_detector": 1,
+            "detectors": 18
+          },
+          "note": "The ratio half held exactly: 1.93 and 1.64, never below 1.36 at any width from one trit to six, and 3.21x per digit against a log2(3) break-even of 1.585. The mid-rail half was BACKWARDS. The decoded design taps vmid 186 times against 168 -- one more per detector, eighteen of them -- because each detector reaches vmid through its own series pair. So the design that wins on switch count does it partly by leaning harder on the rail Z1 established that nobody is charging for. Kept as FAILED on the X2 precedent: a prediction with a refuted half is not trimmed to the half that survived."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -857,6 +942,11 @@
       "id": "T-SEARCH-WHERE-A-CHECK-WOULD-DO",
       "count": 1,
       "description": "An instrument that searched for a value it could have verified. Finding the exact pass count by scanning k = 1 upward cost up to eighty solves per input on a 1,776-switch network and did not finish inside ten minutes. The count is the same for every input, so it needs finding once and checking twice thereafter -- settles at k, does not settle at k-1. Two solves, not eighty."
+    },
+    {
+      "id": "T-CLAIM-NARROWED-BY-A-DESIGN",
+      "count": 2,
+      "description": "A measured result stated as a property of the SUBJECT when it was a property of the DESIGN measured. Z2 swept buffer placements in one family of trees and concluded a depth floor for ternary at any price; a different selector beat it. E4, and Y2 and Z5 before it, measured raw-select circuits and concluded settling time is never data-dependent; a decoded selector made it data-dependent. Both times the numbers were right and the noun was too big. Before writing ternary, or this model, ask whether the sweep visited more than one design."
     }
   ]
 }
