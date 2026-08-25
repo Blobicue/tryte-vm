@@ -43,8 +43,17 @@ check(`${allPreds.length} registered predictions across ${M.prediction_sets.leng
   allPreds.length > 0 && M.prediction_sets.length > 0 &&
   new Set(M.prediction_sets.map(s => s.tool)).size === M.prediction_sets.length,
   'one set per tool');
-check('exactly one registered prediction failed, and it is kept as FAILED',
-  allPreds.filter(p => p.outcome === 'FAILED').map(p => p.id).join() === 'P3');
+check('the failures are kept, not corrected away, and they are P3 and X2',
+  allPreds.filter(p => p.outcome === 'FAILED').map(p => p.id).join() === 'P3,X2');
+// Two ids were duplicated in this manifest and nothing noticed, because nothing
+// looked. F-GATES-FROM-SWITCHES appeared twice identically and
+// T-SOURCE-NOT-TERMINAL twice with two words different -- a merge artifact that
+// would have gone on inflating the trap count.
+check('no id appears twice — not in the sets, the findings, or the traps', (() => {
+  const groups = [allPreds.map(p => p.id), M.prediction_sets.map(s => s.id),
+    M.unregistered_findings.map(f => f.id), M.traps_encountered.map(t => t.id)];
+  return groups.every(g => new Set(g).size === g.length);
+})(), 'duplicate id');
 check('unregistered findings are listed separately, not counted as predictions',
   M.unregistered_findings.length > 0 &&
   M.unregistered_findings.every(f => f.outcome === 'MEASURED_NOT_REGISTERED'));
@@ -179,6 +188,22 @@ console.log('\n=== 5. REFERENCES ===');
     missingMention === null, missingMention || '');
   check('every trap has a description and a count',
     M.traps_encountered.every(t => t.id && t.description && typeof t.count === 'number'));
+
+  // The README's summary of this manifest went stale, twice. Derive it instead.
+  // The total check count is checked in run-all.js, which is the only place the
+  // sum of all suites exists.
+  {
+    const README = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
+    const held = allPreds.filter(p => p.outcome === 'HELD').length;
+    const failedCount = allPreds.filter(p => p.outcome === 'FAILED').length;
+    const stated = /\*\*(\d+) held, (\d+) failed\*\*/.exec(README);
+    check(`the README's tally matches the manifest: ${held} held, ${failedCount} failed`,
+      stated !== null && Number(stated[1]) === held && Number(stated[2]) === failedCount,
+      stated ? `README says ${stated[1]} held, ${stated[2]} failed` : 'README states no tally');
+    const unnamed = M.prediction_sets.filter(s => !README.includes(`**${s.id}1`));
+    check('the README names every prediction set in the manifest',
+      unnamed.length === 0, `missing: ${unnamed.map(s => s.id).join(' ')}`);
+  }
   check('the one-point trap is recorded as having bitten three times',
     M.traps_encountered.find(t => t.id === 'T-ONE-POINT').count === 3);
 }

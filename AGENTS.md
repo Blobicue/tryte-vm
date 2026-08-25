@@ -79,7 +79,10 @@ distinct tables all matched the target at one chosen pair. Compare over a probe
 set, or prove equality structurally.
 
 **Hardcoding a count that the code can change.** A test listing the opcodes
-literally kept passing against a number the source no longer had. Derive it.
+literally kept passing against a number the source no longer had. Derive it. The
+README's own tallies went stale the same way, twice — the total check count is
+now summed in `run-all.js` and the manifest tally recomputed in
+`test-findings.js`, because neither number belongs to any one suite.
 
 **Writing through a label that does not exist.** A missing label yields an
 undefined address; the write silently does nothing and the program runs on with
@@ -93,6 +96,22 @@ a datum spans and refuse to over-read it.
 depth limit, one that hits its size cap, and one that genuinely closes are three
 different outcomes. Conflating them produced a false negative verdict on a
 prediction. Report them separately.
+
+**Letting a path run through an ideal source.** Switch-level reachability that
+continues *out of* a rail makes every node that rail drives look contended, and
+correct circuits resolve to unknown. Rails and inputs terminate a path.
+
+**Believing the instrument before checking its shape.** Three times the measuring
+tool, not the thing measured, produced the failure: a search reported exhausted as
+closed, reachability ran through rails, and a network key ordered terminals that
+have no order — each declaring FAILED or ABSENT for something that was fine. When
+a result contradicts a prediction, suspect the instrument first; it is cheaper to
+rule out than the finding is to publish.
+
+**A prediction failing on a premise it never stated.** One asked which seeds of a
+cyclic network are self-consistent and quietly assumed every seed resolves at all.
+Two did not. The unstated assumption was the falsifiable part, and it falsified an
+axiom. When registering, write down what the question takes for granted.
 
 **Trusting a build artifact that was not rebuilt.** The published page embeds the
 source; after changing the source it will still pass its own tests until rebuilt.
