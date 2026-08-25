@@ -164,6 +164,21 @@ class Net {
     };
 
     /**
+     * Which devices touch each node. Built once per solve, so a walk follows a
+     * node's own edges instead of rescanning every device in the network. Pure
+     * bookkeeping: the reachable set is the same either way, and the differential
+     * test in test/test-device.js holds the two implementations against each
+     * other on random networks.
+     */
+    const adj = new Map();
+    const link = (from, to, i) => {
+      let list = adj.get(from);
+      if (!list) { list = []; adj.set(from, list); }
+      list.push({ i, other: to });
+    };
+    this.devices.forEach((d, i) => { link(d.a, d.b, i); link(d.b, d.a, i); });
+
+    /**
      * Nodes reachable from a rail, following edges the predicate accepts.
      *
      * DRIVEN NODES ARE TERMINALS. A rail or an input is an ideal source: signal
@@ -177,10 +192,12 @@ class Net {
       const stack = [rail];
       while (stack.length) {
         const at = stack.pop();
-        for (const d of this.devices) {
-          if (!accept(d)) continue;
-          const other = d.a === at ? d.b : d.b === at ? d.a : null;
-          if (other === null || seen.has(other)) continue;
+        const edges = adj.get(at);
+        if (edges === undefined) continue;
+        for (const e of edges) {
+          if (!accept(e.i)) continue;
+          const other = e.other;
+          if (seen.has(other)) continue;
           seen.add(other);
           if (!driven.has(other)) stack.push(other);       // do not expand through a source
         }
@@ -189,10 +206,13 @@ class Net {
     };
 
     for (let iter = 0; iter < maxIterations; iter++) {
+      // Conduction is a function of the current state (D1), so it is fixed for
+      // the whole pass. Evaluating it once per device beats once per edge walk.
+      const cond = this.devices.map(conducts);
       const definite = {}, possible = {};
       for (const rail of Object.keys(this.rails)) {
-        definite[rail] = reach(rail, d => conducts(d) === true);
-        possible[rail] = reach(rail, d => conducts(d) !== false);
+        definite[rail] = reach(rail, i => cond[i] === true);
+        possible[rail] = reach(rail, i => cond[i] !== false);
       }
       let changed = false;
       for (const nm of nodes) {

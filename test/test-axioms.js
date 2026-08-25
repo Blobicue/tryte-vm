@@ -407,8 +407,8 @@ console.log('\n=== TEETH — break the solver, and the right proofs must notice 
       to: "if (g === 'Z' || g === 'X' || g === undefined) return false;",
       expect: ['D6', 'N7', 'N8'] },
     { tag: 'reachability runs through rails',
-      from: '      if (!driven.has(other)) stack.push(other);',
-      to: '      stack.push(other);',
+      from: '          if (!driven.has(other)) stack.push(other);',
+      to: '          stack.push(other);',
       expect: ['N2', 'N7', 'T3'] },
   ];
 
