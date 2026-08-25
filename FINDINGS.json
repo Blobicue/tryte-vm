@@ -629,7 +629,7 @@
         {
           "id": "Z2",
           "claim": "buffering cannot take ternary pass depth below 4, and binary gets 3 for free",
-          "outcome": "HELD",
+          "outcome": "FAILED",
           "measured": {
             "ternary_depths": {
               "none": 6,
@@ -643,9 +643,13 @@
             },
             "ternary_floor": 4,
             "binary_floor": 2,
-            "binary_unrestored": 3
+            "binary_unrestored": 3,
+            "decoded_cell_switches": 90,
+            "decoded_cell_depth": 3,
+            "selector_tree_cell_switches": 104,
+            "selector_tree_cell_depth": 6
           },
-          "note": "The reason is structural and traceable to an earlier result: a selector LOW or HIGH arm is one switch, but its MID arm is the series pair X4 proved irreducible, and a restoring buffer output already sits two hops from a rail. Two plus two. So the best depth ternary can buy at any price is worse than the depth binary has for nothing. D3 inclusive threshold is what bought the middle level; this is the invoice."
+          "note": "FAILED on its conclusion, not its numbers. The buffered floors are exactly as registered: 6 -> 4 -> 4 ternary and 3 -> 2 -> 2 binary. What failed is the clause that followed -- that 4 is the best depth ternary can buy AT ANY PRICE. Nothing measured quantified over designs; it quantified over where buffers go inside one family of selector trees. Decode the select instead of gating on it: a four-switch detector pulls to vss for LOW and HIGH and passes vmid for MID, paid once per select signal rather than once per selector, and then every selector arm is a single device including the middle one. The decoded adder cell reaches depth 3 -- equal to binary unrestored -- at 90 switches against 104, so it is shallower AND cheaper than the design the floors were measured on. Third time a clause in this repository outran its measurement; P3 and X2 were the others. Kept as FAILED, and the refutation is checked in test/test-midrail.js."
         },
         {
           "id": "Z3",

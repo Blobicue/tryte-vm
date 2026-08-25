@@ -81,11 +81,12 @@ console.log('\n=== 2. Z2 — THE RESTORATION FLOOR ===');
   check(`Z2 — ternary depth goes 6 -> 4 -> 4: buffering stops helping`,
     JSON.stringify(tern) === '[6,4,4]', tern.join(' '));
   check(`Z2 — binary goes 3 -> 2 -> 2`, JSON.stringify(bin) === '[3,2,2]', bin.join(' '));
-  check('Z2 — ternary\'s floor of 4 is deeper than binary\'s UNRESTORED 3',
+  check('Z2 — buffering this design floors at 4, against binary\'s unrestored 3',
     Math.min(...tern) === 4 && bin[0] === 3 && Math.min(...tern) > bin[0]);
-  check('   and the reason is the series MID arm X4 proved irreducible', (() => {
+  check('   because a selector gated by the RAW select has a two-switch MID arm', (() => {
     // A selector's LOW and HIGH arms are one switch; its MID arm is two, because
-    // isolating the middle level needs the overlap D3 provides and nothing less.
+    // isolating the middle level from the raw select needs the D3 overlap and
+    // nothing less. True only while the select is the only gate — section 5.
     const mux = new D.Net(); D.tmux(mux, 'sel', 'vss', 'vmid', 'vdd', 'o');
     const bmux = D.binaryNet(); D.bmux(bmux, 'sel', 'vss', 'vdd', 'o');
     return mux.cost().switches === 4 && bmux.cost().switches === 2
@@ -165,11 +166,112 @@ console.log('\n=== 4. Z4, Z5 — THE RESTORED CIRCUITS STILL ADD, AND TAKE LONGE
     const p = ab => exactPasses(net, { ...spread('a', ab[0]), ...spread('b', ab[1]), cin: 0 });
     return p([364, 1]) === p([0, 0]) && p([0, 0]) === p([121, 121]);
   })());
-  check('   so restoration is the only thing in this model that ever costs time',
+  check('   what costs passes is gate-dependency depth, of which restoration is one source',
+    // NOT "the only source", which an earlier wording of this claimed. The
+    // unrestored adder already takes seven passes, and those come from the carry
+    // chaining one cell's output into the next cell's gates — Y2's whole result.
+    // Restoration adds to that depth; it does not introduce it.
     tAdder({ restore: 'mid' }).cost().switches > tAdder().cost().switches);
 }
 
-console.log('\n=== 5. THE DEPTH MEASURE HAS TEETH ===');
+console.log('\n=== 5. Z2 FAILED — A DECODED SELECTOR REACHES DEPTH 3 ===');
+{
+  /* Z2 predicted the buffered floors and got them: 6 -> 4 -> 4 and 3 -> 2 -> 2.
+   * Then it drew a conclusion the measurement did not support — that 4 is "the
+   * best depth ternary can buy at any price". Nothing measured quantified over
+   * DESIGNS. It quantified over where buffers go, inside one family of trees.
+   *
+   * Decode the select instead of gating on it. A four-switch detector pulls to
+   * vss for LOW and for HIGH and passes vmid for MID, and then every selector arm
+   * is a SINGLE device — including the middle one, which is where the second hop
+   * came from. The detector is paid for once per select signal, not once per
+   * selector, so it is shared by every selector in every tree using that signal.
+   *
+   * The result is both shallower and cheaper than what Z2 measured, so the clause
+   * is refuted twice over. The registration text is left exactly as written.
+   */
+  const ismid = (net, sel, out) => {
+    net.p(sel, D.LOW, 'vss', out);          // LOW  -> vss
+    net.n(sel, D.HIGH, 'vss', out);         // HIGH -> vss
+    const m = `${out}$m`;
+    net.n(sel, D.MID, 'vmid', m);           // MID  -> vmid, through the series pair
+    net.p(sel, D.MID, m, out);              // once per signal, not once per selector
+    return net;
+  };
+  const dmux = (net, sel, lo, mid, hi, out) => {
+    net.p(sel, D.LOW, lo, out);
+    net.n(sel, D.HIGH, hi, out);
+    net.n(`${sel}$im`, D.MID, mid, out);    // conducts exactly when the detector says MID
+    return net;
+  };
+  const RAIL = { '-1': 'vss', 0: 'vmid', 1: 'vdd' };
+  const dtable3 = (net, a, b, c, cells, out, tag) => {
+    const mids = [];
+    for (let av = -1; av <= 1; av++) {
+      const leaves = [];
+      for (let bv = -1; bv <= 1; bv++) {
+        const leaf = `${tag}$l${av}_${bv}`;
+        dmux(net, c, ...[-1, 0, 1].map(cv => RAIL[cells[D.cellIndex(av, bv, cv)]]), leaf);
+        leaves.push(leaf);
+      }
+      const mid = `${tag}$m${av}`;
+      dmux(net, b, leaves[0], leaves[1], leaves[2], mid);
+      mids.push(mid);
+    }
+    dmux(net, a, mids[0], mids[1], mids[2], out);
+    return net;
+  };
+
+  const decoded = new D.Net();
+  for (const sel of ['a', 'b', 'c']) ismid(decoded, sel, `${sel}$im`);
+  const tables = D.adderTables();
+  dtable3(decoded, 'a', 'b', 'c', tables.sum, 'sum', 'S');
+  dtable3(decoded, 'a', 'b', 'c', tables.carry, 'cout', 'C');
+
+  const rows = L.flatMap(a => L.flatMap(b => L.map(c => ({ a, b, c }))));
+  let wrong = 0;
+  for (const r of rows) {
+    const sol = decoded.solve(r);
+    if (sol.sum !== T.lowTrit(r.a + r.b + r.c)) wrong++;
+    if (sol.cout !== T.shiftRight(r.a + r.b + r.c, 1)) wrong++;
+  }
+
+  check('the MID detector reads (-1, 0, -1) in four switches, at depth 2', (() => {
+    const n = new D.Net(); ismid(n, 'sel', 'im');
+    return L.map(sel => n.solve({ sel }).im).join(' ') === '-1 0 -1'
+      && n.cost().switches === 4
+      && n.readDepth(L.map(sel => ({ sel })), ['im']).depth === 2;
+  })());
+  check('a decoded selector still selects, with every arm a single device', (() => {
+    const n = new D.Net(); ismid(n, 'sel', 'sel$im');
+    dmux(n, 'sel', 'vss', 'vmid', 'vdd', 'o');
+    return L.map(sel => n.solve({ sel }).o).join(' ') === '-1 0 1' && n.devices.length === 7;
+  })());
+  check('the decoded adder cell is correct on all 27 inputs', wrong === 0, `${wrong} wrong`);
+
+  const plain = new D.Net(); D.tAdderCell(plain, 'a', 'b', 'c', 's', 'co', 'A');
+  const depth = decoded.readDepth(rows, ['sum', 'cout']).depth;
+  const plainDepth = plain.readDepth(rows, ['s', 'co']).depth;
+  check(`Z2 REFUTED — the decoded cell reaches depth ${depth}, matching binary's unrestored 3`,
+    depth === 3, `depth ${depth}`);
+  check(`   and it is CHEAPER while being shallower: ${decoded.cost().switches} switches against ${plainDepth === 6 ? plain.cost().switches : '?'}`,
+    decoded.cost().switches === 90 && plain.cost().switches === 104 && depth < plainDepth);
+  check('   so "at any price" was quantifying over buffer placements, not over designs',
+    depth <= 3 && Math.min(6, 4, 4) === 4);
+  check('   Z2\'s measured numbers still hold — it is the conclusion that failed', (() => {
+    // Kept as FAILED rather than corrected away. What it measured about buffering
+    // the selector-tree family is exactly what it registered.
+    const cellIn = L.flatMap(a => L.flatMap(b => L.map(c => ({ a, b, c }))));
+    const d = restore => {
+      const n = new D.Net();
+      D.ttable3(n, 'a', 'b', 'c', D.adderTables().sum, 'o', 'C', { restore });
+      return n.readDepth(cellIn, ['o']).depth;
+    };
+    return d('none') === 6 && d('mid') === 4 && d('leafmid') === 4;
+  })());
+}
+
+console.log('\n=== 6. THE DEPTH MEASURE HAS TEETH ===');
 {
   // readDepth is a new instrument, so it needs to be shown reporting something
   // other than a constant, and shown ignoring what it says it ignores.

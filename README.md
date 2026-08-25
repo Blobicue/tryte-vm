@@ -5,7 +5,7 @@ arithmetic, a 25-instruction machine, an assembler, an emulator written in its o
 assembly, and ten audits establishing exactly what its instruction set can reach
 and what the device model beneath it rests on.
 
-**542 checks**, all passing. Every number below is recomputed by one of them.
+**549 checks**, all passing. Every number below is recomputed by one of them.
 
 ```bash
 npm test              # everything (~55s; the monoid and switch sweeps are real work)
@@ -49,7 +49,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-Ten prediction sets, registered before their runs. **43 held, 2 failed** — the
+Ten prediction sets, registered before their runs. **42 held, 3 failed** — the
 failures are kept, and both produced the most useful results here. Full detail,
 with registering commits and the tests that assert each one, in
 [`FINDINGS.json`](FINDINGS.json).
@@ -65,7 +65,7 @@ with registering commits and the tests that assert each one, in
 | **W1–W3** | the gates rebuilt from switches, and what they cost | all held |
 | **X1–X5** | the axioms the device model rests on | 4 held, **X2 failed** |
 | **Y1–Y5** | the carry cell and the adder, built from switches | all held |
-| **Z1–Z5** | pricing the free mid rail and the missing restoration | all held |
+| **Z1–Z5** | pricing the free mid rail and the missing restoration | 4 held, **Z2 failed** |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:
@@ -271,18 +271,35 @@ shortest path when there are several, counted only for nodes something actually
 | **ternary read depth** | 6 | **4** | **4** |
 | **binary read depth** | 3 | **2** | **2** |
 
-The repeated 4 and 2 are the finding. **Buffering cannot take ternary below depth
-4 at any price** — a selector's middle arm is the series pair X4 proved
-irreducible, and a restoring buffer's own output already sits two hops from a
-rail. Two plus two. Binary's floor is 2. So *the best depth ternary can buy is
-worse than the depth binary gets for free*. `D3`'s inclusive threshold is what
-bought the middle level in the first place; this is the invoice for it.
+The repeated 4 and 2 are real: buffering this design stops helping once it hits
+them. A selector's middle arm is two switches, because isolating the middle level
+from the raw select needs the `D3` overlap, and a restoring buffer's own output
+already sits two hops from a rail. Two plus two.
+
+**Z2 then overreached, and is kept as a failed prediction.** It concluded that 4
+is the best depth ternary can buy *at any price*. Nothing measured quantified over
+designs — only over where buffers go inside one family of trees. Decode the select
+instead of gating on it: a four-switch detector pulls to `vss` for both outer
+levels and passes `vmid` for the middle one, **paid once per select signal rather
+than once per selector**, and then every selector arm is a single device, middle
+one included.
+
+| ternary full-adder cell | switches | read depth |
+|---|---|---|
+| selector tree, gated on the raw select | 104 | 6 |
+| **decoded select** | **90** | **3** |
+
+Shallower *and* cheaper than the design the floors were measured on — matching
+binary's unrestored 3. The clause is refuted twice over. Third time a sentence
+here has outrun its measurement, after P3 and X2; the registration is left as
+written and the counterexample is checked in
+[`test-midrail.js`](test/test-midrail.js).
 
 And restoring makes the cost ratio worse, not better: **2.23 → 3.26**. The
 `leaf+mid` column costs nearly double the `mid` column and buys no depth at all,
 on either side.
 
-**Restoration is also the only thing in this model that ever costs time.** Y2
+**Restoration also costs time — the only currency this model measures it in.** Y2
 found the adder settles in exactly seven passes whatever the data. Buffered, it
 takes 19; buffered twice, 31 — because each inverter is its own dependency stage.
 Still independent of the data. Depth here is structural, never arithmetic.
