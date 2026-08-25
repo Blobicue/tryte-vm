@@ -13,7 +13,7 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-Fourteen prediction sets, **62 registered predictions, 56 held, 6 failed.** Fourteen
+Fifteen prediction sets, **66 registered predictions, 60 held, 6 failed.** Fourteen
 distinct failure classes, which bit **23 times** between them. Fourteen findings
 measured but never registered, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is

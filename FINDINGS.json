@@ -1132,6 +1132,98 @@
           "note": "A single pass gate onto an isolated node writes and holds all three trits. One switch against nineteen, and the 729-word memory drops from 48,114 switches to 4,374 - eleven times, against the five the design phase estimated. Since memory is about 93% of the machine, this is the whole decision, and it costs nothing in the existing corpus by H3. The design documents ranking this change fourth by blast radius and first by leverage were right about the ordering and understated the size."
         }
       ]
+    },
+    {
+      "id": "I",
+      "subject": "Whether four switches is minimal for the MID detector, which the adder pays for eighteen times",
+      "tool": "tools/detector-audit.js",
+      "registered_at": "d7b3041",
+      "results_at": "fc6a838",
+      "asserted_in": "test/test-detector.js",
+      "predictions": [
+        {
+          "id": "I1",
+          "claim": "four switches is minimal, for every contract the selector accepts",
+          "outcome": "HELD",
+          "measured": {
+            "device_space": 42,
+            "contracts": 4,
+            "solutions_at_1_2_3_switches": [
+              0,
+              0,
+              0
+            ],
+            "tables": [
+              [
+                -1,
+                0,
+                -1
+              ],
+              [
+                -1,
+                1,
+                -1
+              ],
+              [
+                1,
+                0,
+                1
+              ],
+              [
+                1,
+                -1,
+                1
+              ]
+            ]
+          },
+          "note": "Reading dmux before the search is what made this worth doing properly. Its middle arm is n(selMid, MID, ...), which conducts iff the detector output is at or above MID, so the CONTRACT is that the output be non-negative exactly at MID -- not the particular table that was built. Four tables satisfy it and only one had ever been considered. Nothing at one, two or three switches computes any of them."
+        },
+        {
+          "id": "I2",
+          "claim": "and the positive control finds the detector already in use",
+          "outcome": "HELD",
+          "measured": {
+            "networks_searched_at_4": 148995,
+            "solutions_for_built_contract": 4,
+            "built_detector_found": true
+          },
+          "note": "A search that finds nothing proves nothing unless it can find something. Four distinct four-switch networks compute the built contract, the one in use among them -- the same count X5 found for NEG."
+        },
+        {
+          "id": "I3",
+          "claim": "the four contracts all cost the same",
+          "outcome": "HELD",
+          "measured": {
+            "minimum_per_contract": [
+              4,
+              4,
+              4,
+              4
+            ],
+            "solutions_per_contract": [
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          "note": "So the choice between an n-type and a p-type middle arm is free, and the selector cannot be improved by switching polarity."
+        },
+        {
+          "id": "I4",
+          "claim": "so the decoded adder stands at 540",
+          "outcome": "HELD",
+          "measured": {
+            "switches_saved": 0,
+            "adder_before": 540,
+            "adder_after": 540,
+            "ratio_before": 1.929,
+            "ratio_after": 1.929,
+            "detectors_in_adder": 18
+          },
+          "note": "A negative result, and the arithmetic for the other outcome was registered in advance so it could not be massaged afterwards: a three-switch detector would have taken the adder to 522 and the ratio to 1.864. The detector count of 18 is derived from the netlist rather than assumed."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
