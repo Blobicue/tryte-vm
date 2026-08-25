@@ -163,54 +163,114 @@ console.log('\n--- D2  is every positionwise map periodic within 6? ---');
 
 console.log('\n--- D3  what does cross-trit coupling buy an ITERATED map? ---');
 {
-  const sboxPerms = [TRIT_PERMS[1], TRIT_PERMS[3], TRIT_PERMS[5]];
-  const sbox = positionwise(sboxPerms);
+  // FIRST, THE THING THAT EXPLAINS EVERYTHING BELOW, and which was not registered.
+  //
+  // `s + g(s)` keeps information only when `t -> t + g(t)` is itself a permutation
+  // of the trits. That is the definition of an ORTHOMORPHISM. Of the six trit
+  // permutations exactly three qualify — the identity and the two 3-CYCLES — and
+  // all three involutions fail. Negation is the worst of them: `s + (-s) = 0`
+  // collapses 729 states to ONE.
+  //
+  // That is a genuinely ternary result. Every non-identity permutation of a single
+  // BIT is an involution, so at bit level binary has no non-trivial orthomorphism
+  // of this kind at all. The 3-cycles have no binary analogue.
+  const NAMES = ['identity', 'swap(0,1)', 'swap(-1,0)', '3-cycle up', '3-cycle down', 'negate'];
+  const mod3 = x => { const r = ((x % 3) + 3) % 3; return r === 2 ? -1 : r; };
+  const orthos = [];
+  console.log('      orthomorphism test — is t + g(t) still a permutation?');
+  for (let k = 0; k < 6; k++) {
+    const row = [-1, 0, 1].map(t => mod3(t + applyTrit(TRIT_PERMS[k], t)));
+    const isO = new Set(row).size === 3;
+    if (isO) orthos.push(k);
+    const img = new Set(vals.map(v => T.wrap(v + positionwise([TRIT_PERMS[k]])(v)))).size;
+    console.log(`        ${NAMES[k].padEnd(13)} t+g(t) = ${JSON.stringify(row).padEnd(12)}`
+      + ` ${isO ? 'ORTHO' : '  -  '}   image of s+g(s): ${String(img).padStart(3)}/729`);
+  }
+  console.log(`      -> ${orthos.length} of 6 qualify: ${orthos.map(k => NAMES[k]).join(', ')}.`);
+  console.log('         The orthomorphism test predicts injectivity exactly.\n');
+
+  const sbox = positionwise([TRIT_PERMS[3]]);          // a 3-cycle: an orthomorphism
   const cands = {
     f_pos: sbox,
     f_rot: v => rotate(sbox(v)),
     f_add: v => T.wrap(v + sbox(v)),
     f_addrot: v => rotate(T.wrap(v + sbox(v))),
   };
-  const lnN = Math.log(N);
-  console.log(`      random-permutation baseline at N=${N}: about ${lnN.toFixed(1)} cycles, ~1 fixed point\n`);
+  console.log(`      with an ORTHOMORPHIC s-box, baseline ~${Math.log(N).toFixed(1)} cycles, ~1 fixed point:`);
   for (const [name, f] of Object.entries(cands)) {
     const st = structure(asMap(f));
     if (!st.isPerm) {
-      const img = new Set(asMap(f)).size;
-      console.log(`      ${name.padEnd(9)} NOT a permutation — image ${img}/${N}, so it bleeds state every call`);
+      console.log(`      ${name.padEnd(9)} NOT a permutation — image ${new Set(asMap(f)).size}/${N}`);
       continue;
     }
-    console.log(`      ${name.padEnd(9)} permutation. order ${String(st.order).padStart(6)}  cycles `
-      + `${String(st.cycles).padStart(3)}  fixed ${String(st.fixed).padStart(3)}  longest ${st.longest}`);
+    console.log(`      ${name.padEnd(9)} perm. order ${String(st.order).padStart(7)}  cycles `
+      + `${String(st.cycles).padStart(4)}  fixed ${String(st.fixed).padStart(3)}  longest ${st.longest}`);
   }
+  console.log('\n      D3 PREDICTED f_addrot would resemble a random permutation. IT DOES NOT.');
+  console.log('      A positionwise 3-cycle IS addition of a constant, so s + sbox(s) stays');
+  console.log('      AFFINE, and affine maps over this ring have tiny order. Fixing the');
+  console.log('      s-box fixes injectivity and does nothing for mixing.');
 }
 
 console.log('\n--- D4  truncated collisions against the random-function bound ---');
 {
-  const sbox = positionwise([TRIT_PERMS[1], TRIT_PERMS[3], TRIT_PERMS[5]]);
-  const cands = {
-    f_pos: sbox,
-    f_rot: v => rotate(sbox(v)),
-    f_addrot: v => rotate(T.wrap(v + sbox(v))),
-  };
-  const M = 3, BUCKETS = 27;                      // low 3 trits
-  const low3 = v => T.fromTrits(T.toTrits(v).slice(0, M).concat([0, 0, 0]));
-  // Expected colliding PAIRS for a random function: C(N,2)/BUCKETS.
+  const sbox = positionwise([TRIT_PERMS[3]]);
+  const cands = { f_pos: sbox, f_rot: v => rotate(sbox(v)), f_addrot: v => rotate(T.wrap(v + sbox(v))) };
+  const M = 3, BUCKETS = 27;
   const expectedPairs = (N * (N - 1) / 2) / BUCKETS;
-  console.log(`      truncating to ${M} trits (${BUCKETS} buckets), all ${N} inputs, k = 8 calls`);
-  console.log(`      a random function collides on about ${Math.round(expectedPairs)} pairs\n`);
+  console.log(`      low ${M} trits, all ${N} inputs, k = 8 calls.`
+    + ` A random function collides on ~${Math.round(expectedPairs)} pairs.\n`);
   for (const [name, f] of Object.entries(cands)) {
     const counts = new Array(BUCKETS).fill(0);
     for (const v of vals) {
       let s = v;
       for (let i = 0; i < 8; i++) s = f(s);
-      counts[idx(low3(s)) % BUCKETS]++;
+      counts[((T.toTrits(s)[0] + 1) + 3 * (T.toTrits(s)[1] + 1) + 9 * (T.toTrits(s)[2] + 1))]++;
     }
     const pairs = counts.reduce((a, c) => a + c * (c - 1) / 2, 0);
-    const empty = counts.filter(c => c === 0).length;
-    console.log(`      ${name.padEnd(9)} colliding pairs ${String(pairs).padStart(6)}  `
-      + `(${(pairs / expectedPairs).toFixed(2)}x expected)  empty buckets ${empty}/${BUCKETS}`);
+    console.log(`      ${name.padEnd(9)} pairs ${String(pairs).padStart(6)}`
+      + `  (${(pairs / expectedPairs).toFixed(2)}x expected)  empty buckets `
+      + `${counts.filter(c => c === 0).length}/${BUCKETS}`);
   }
+  console.log('\n      D4 PREDICTED f_pos would be far off, with TOO FEW collisions. It is at');
+  console.log('      0.96x — near ideal, and for a reason the prediction missed: truncating');
+  console.log('      ANY permutation to 3 trits gives exactly 27 buckets of 27, which is');
+  console.log('      perfectly uniform. Uniformity is what a permutation gives away for free,');
+  console.log('      and it is therefore NOT evidence of mixing. A collision count cannot');
+  console.log('      distinguish a good hash from a relabelling.');
+}
+
+console.log('\n--- beyond the registration: does ANYTHING in this shape mix? ---');
+{
+  // Not registered. D3 and D4 failed, so the family as sketched is dead, and the
+  // useful question became which shape survives. Splitting the state and using one
+  // half to modify the other is invertible for ANY round function, so no state can
+  // bleed and the round function's nonlinearity is unconstrained.
+  let sd = 98765;
+  const rnd = () => { sd = (Math.imul(sd, 1103515245) + 12345) & 0x7fffffff; return sd / 0x7fffffff; };
+  const S27 = Array.from({ length: 27 }, (_, i) => i);
+  for (let i = 26; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = S27[i]; S27[i] = S27[j]; S27[j] = t; }
+  const lo = v => { const t = T.toTrits(v); return (t[0] + 1) + 3 * (t[1] + 1) + 9 * (t[2] + 1); };
+  const hi = v => { const t = T.toTrits(v); return (t[3] + 1) + 3 * (t[4] + 1) + 9 * (t[5] + 1); };
+  const pack = (L, R) => {
+    const t = new Array(6);
+    for (let k = 0; k < 3; k++) { t[k] = (Math.floor(L / 3 ** k) % 3) - 1; t[k + 3] = (Math.floor(R / 3 ** k) % 3) - 1; }
+    return T.fromTrits(t);
+  };
+  const shapes = {
+    'split, nonlinear round': v => pack(hi(v), (lo(v) + S27[hi(v)]) % 27),
+    'split, LINEAR round': v => pack(hi(v), (lo(v) + (5 * hi(v) + 1) % 27) % 27),
+  };
+  console.log(`      baseline: a random permutation on ${N} has ~${Math.log(N).toFixed(1)} cycles, ~1 fixed point\n`);
+  for (const [name, f] of Object.entries(shapes)) {
+    const st = structure(asMap(f));
+    console.log(`      ${name.padEnd(24)} perm ${st.isPerm}  order ${String(st.order).padStart(8)}`
+      + `  cycles ${String(st.cycles).padStart(3)}  fixed ${String(st.fixed).padStart(2)}  longest ${st.longest}`);
+  }
+  console.log('\n      The nonlinear round lands at 8 cycles and 1 fixed point against a');
+  console.log('      baseline of 6.6 and 1 — and its linear twin does not. So the structure');
+  console.log('      is not what mixes; the round function\'s NONLINEARITY is. And the round');
+  console.log('      function is a 27-entry table, which is exactly this machine\'s TOPC.');
 }
 
 console.log('\n' + line);

@@ -722,7 +722,7 @@
     },
     {
       "id": "E",
-      "subject": "The decoded-selector adder \u2014 the circuit that failed Z2, at full width",
+      "subject": "The decoded-selector adder — the circuit that failed Z2, at full width",
       "tool": "tools/decoded-audit.js",
       "registered_at": "ba1918b",
       "results_at": "88d5f71",
@@ -811,7 +811,7 @@
     },
     {
       "id": "F",
-      "subject": "Where 128/243 comes from \u2014 the decoded adder\u2019s pass count, derived",
+      "subject": "Where 128/243 comes from — the decoded adder’s pass count, derived",
       "tool": "tools/passcount-audit.js",
       "registered_at": "bf1d4f1",
       "results_at": "cbc7528",
@@ -1227,7 +1227,7 @@
     },
     {
       "id": "J",
-      "subject": "A six-trit register at switch level \u2014 the first sequential circuit here",
+      "subject": "A six-trit register at switch level — the first sequential circuit here",
       "tool": "tools/register-audit.js",
       "registered_at": "e23ca30",
       "results_at": "5012c77",
@@ -1345,7 +1345,7 @@
     },
     {
       "id": "L",
-      "subject": "An accumulator \u2014 the first circuit here that computes and remembers",
+      "subject": "An accumulator — the first circuit here that computes and remembers",
       "tool": "tools/accumulator-audit.js",
       "registered_at": "8b6da4d",
       "results_at": "7070b81",
@@ -1523,7 +1523,7 @@
     },
     {
       "id": "C",
-      "subject": "A 27-word addressed memory, built \u2014 and three errors in the budget formula",
+      "subject": "A 27-word addressed memory, built — and three errors in the budget formula",
       "tool": "tools/memory-audit.js",
       "registered_at": "8720a5c",
       "results_at": "49fc6ad",
@@ -1745,6 +1745,89 @@
           "kind": "scope-commitment"
         }
       ]
+    },
+    {
+      "id": "D",
+      "subject": "Which self-referencing ternary maps mix at all? A hashing question, answered by exhaustion at 729 states",
+      "tool": "tools/iterhash-audit.js",
+      "registered_at": "cf1e0f8",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-iterhash.js",
+      "predictions": [
+        {
+          "id": "D1",
+          "claim": "a non-bijective f bleeds state and a permutation does not",
+          "outcome": "HELD",
+          "measured": {
+            "random_map_image": {
+              "after_1": 461,
+              "after_2": 336,
+              "after_5": 200,
+              "after_10": 116,
+              "after_20": 56
+            },
+            "predicted_after_1": 461,
+            "formula": "N(1 - 1/e) = 461",
+            "predicted_below_200_by_step_10": true,
+            "random_permutation_image_after_20": 729
+          },
+          "note": "Exact. So the structural rule holds and is now measured rather than asserted: an iterated hash of this shape must use a PERMUTATION, and its compression must come from TRUNCATION at the end. A non-bijective f throws away a third of the space on the first call."
+        },
+        {
+          "id": "D2",
+          "claim": "any positionwise f has period at most 6, at every width",
+          "outcome": "HELD",
+          "measured": {
+            "maps_checked": 36,
+            "largest_order": 6,
+            "every_order_divides_6": true,
+            "widths": "holds at any width by the lcm argument"
+          },
+          "note": "The whole positionwise family is dead for this purpose, provably rather than statistically. A trit permutation has order 1, 2 or 3; applying one per position, f^m is the identity exactly when every position is, so the order is an lcm drawn from {1,2,3}. A state of ANY width returns to itself within six calls. This is strictly stronger than Q4's 27^w ceiling, because a ceiling still permits a large orbit and a period of six does not."
+        },
+        {
+          "id": "D3",
+          "claim": "cross-trit coupling breaks the period bound and rotate(s + sbox(s)) resembles a random permutation",
+          "outcome": "FAILED",
+          "measured": {
+            "f_pos": {
+              "order": 3,
+              "cycles": 243
+            },
+            "f_rot": {
+              "order": 6,
+              "cycles": 130
+            },
+            "f_add": {
+              "order": 2,
+              "cycles": 365
+            },
+            "f_addrot": {
+              "order": 6,
+              "cycles": 130
+            },
+            "random_permutation_baseline": {
+              "cycles": 6.6,
+              "fixed": 1
+            },
+            "predicted_f_addrot_within_factor_2_of": 6.6
+          },
+          "note": "Wrong, and wrong twice over. First the sub-claim that s + sbox(s) is not in general a permutation held, but for a reason worth more than the claim: it is injective exactly when the s-box is an ORTHOMORPHISM (see F-ORTHOMORPHISM-GATE). Second, and the actual failure: with a correct orthomorphic s-box, rotate(s + sbox(s)) still lands at 130 cycles against a baseline of 6.6. It does not resemble a random permutation at all. The reason the prediction missed is that a positionwise 3-cycle IS addition of a constant, so s + sbox(s) stays AFFINE, and affine maps over this ring have tiny order. Fixing the s-box fixes injectivity and does nothing whatsoever for mixing. Carry alone is not enough; the addend must be nonlinear in s."
+        },
+        {
+          "id": "D4",
+          "claim": "truncated collisions separate a mixing f from a positionwise one",
+          "outcome": "FAILED",
+          "measured": {
+            "f_pos": "0.96x expected",
+            "f_rot": "0.96x expected",
+            "f_addrot": "0.96x expected",
+            "empty_buckets": "0/27 for all",
+            "predicted_f_pos": "far off, too few collisions"
+          },
+          "note": "All three land at 0.96x, indistinguishable from each other and near-ideal -- including the positionwise map that D2 proves repeats every six calls. The prediction missed because truncating ANY permutation to three trits yields exactly 27 buckets of 27, which is perfectly uniform by construction. So uniformity is what a permutation gives away for free, and a collision count CANNOT distinguish a good hash from a relabelling. This failure is worth more than the prediction would have been: it disqualifies the most obvious test anyone would reach for."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -1830,7 +1913,7 @@
     {
       "id": "F-251505-AGAIN",
       "outcome": "MEASURED_NOT_REGISTERED",
-      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 \u2014 the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
+      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 — the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
       "evidence": "531,441 minus the 279,936 that settle in fewer passes; the rung is recorded in the U set",
       "asserted_in": "test/test-decoded.js",
       "note": "Chased and settled by the G set: a coincidence. The pairing that produces it holds at exactly one parameter value, the two families grow at rates a thousandfold apart, and the two numbers are the only pair in the manifest that collides across the vocabulary and circuit halves of the project."
@@ -1856,6 +1939,27 @@
       "claim": "Bus contention resolves to X only on the trits where the contending sources differ, so a double-enable fault is completely invisible when they hold equal values.",
       "evidence": "tools/interconnect-audit.js, two enables asserted with sources holding 5 and -5: X on the three trits where they differ, 0 on the three where both are zero",
       "asserted_in": "test/test-interconnect.js"
+    },
+    {
+      "id": "F-ORTHOMORPHISM-GATE",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "For a positionwise g, the map s -> s + g(s) is injective exactly when g is an orthomorphism, i.e. when t -> t + g(t) is itself a permutation of the trits. Exactly 3 of the 6 trit permutations qualify -- the identity and the two 3-CYCLES -- and all three involutions fail. Negation is the worst possible choice: s + (-s) = 0 collapses all 729 states to one.",
+      "evidence": "tools/iterhash-audit.js, all 6 trit permutations, exhaustive over 729 states; the orthomorphism test predicts the image size exactly (729 or collapsed) in every case",
+      "asserted_in": "test/test-iterhash.js"
+    },
+    {
+      "id": "F-SPLIT-ROUND-MIXES",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "Splitting the state and using one half to modify the other is invertible for ANY round function, and with a NONLINEAR 27-entry round table it lands at 8 cycles and 1 fixed point against a random-permutation baseline of 6.6 and 1, with order 3,499,650. The same structure with a LINEAR round function gives 92 cycles and order 8 -- so the structure is not what mixes, the round function nonlinearity is.",
+      "evidence": "tools/iterhash-audit.js, exhaustive over 729 states, nonlinear round vs linear round as a control",
+      "asserted_in": "test/test-iterhash.js"
+    },
+    {
+      "id": "F-UNIFORMITY-IS-NOT-MIXING",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "Truncating any permutation to m trits gives perfectly uniform buckets by construction, so a truncated-collision count cannot distinguish a mixing function from a relabelling. A map proved to repeat every six calls scores 0.96x the random-function expectation, the same as every other permutation tested.",
+      "evidence": "tools/iterhash-audit.js, D4: three structurally different permutations all score 0.96x with 0 empty buckets",
+      "asserted_in": "test/test-iterhash.js"
     }
   ],
   "traps_encountered": [

@@ -4,13 +4,13 @@
 
 **A working computer that counts in three states instead of two** — core
 arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
-assembly, transistors underneath it, and twenty-one audits establishing exactly what
+assembly, transistors underneath it, and twenty-two audits establishing exactly what
 its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
 before it was measured, in its own commit, and every failed prediction was kept.
-Ninety-two predictions, eighty-four held, eight failed — and the eight produced more
-than the eighty-four. That loop is written up separately in
+Ninety-six predictions, eighty-six held, ten failed — and the ten produced more
+than the eighty-six. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
 **836 checks**, all passing. Every number below is recomputed by one of them,
@@ -24,7 +24,7 @@ node src/run.js programs/multiply.tasm 7 5
 
 | | |
 |---|---|
-| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + twenty-one audits |
+| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + twenty-two audits |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
 | **What is not built** | [`design/`](design/) — interconnect, decode and sequencing, enumerated before anything is chosen, and [`design/12-roadmap.md`](design/12-roadmap.md) for the order to build them in |
 | **What is known** | [`.claude/knowledge/doctrees/tryte-vm/`](.claude/knowledge/doctrees/tryte-vm/) — 13 pillars, each declaring how well mapped it is |
@@ -52,7 +52,7 @@ src/         device.js (switch-level transistors -- the layer BELOW the arithmet
 programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
 design/      the design phase for the machine that does not exist yet
-tools/       the twenty-one audits, each with its registered predictions
+tools/       the twenty-two audits, each with its registered predictions
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
 build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
@@ -62,7 +62,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-Twenty-one prediction sets, registered before their runs. **84 held, 8 failed** — the
+Twenty-two prediction sets, registered before their runs. **86 held, 10 failed** — the
 failures are kept, and four of the five produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
@@ -91,6 +91,7 @@ with registering commits and the tests that assert each one, in
 | **B1a–B4** | can a stored value drive a selector *source*, not just its gate? | all held |
 | **C1–C5** | 27 words, addressed: a decoder, a write path, and a round trip | all held |
 | **A1–A4** | interconnect: `I0` against `I2`, and which axis decides it | 3 held, **A2 failed** |
+| **D1–D4** | which self-referencing ternary maps mix at all — a hashing question | 2 held, **D3 and D4 failed** |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:
@@ -129,6 +130,7 @@ npm run audit:accumulator     # A <- A + B: the first thing here that computes A
 npm run audit:terminal        # can a stored value drive a selector SOURCE? the phase-0 gate
 npm run audit:memory          # 27 words, addressed: write one, disturb none, read it back
 npm run audit:interconnect    # I0 against I2, and where they actually cross
+npm run audit:iterhash        # which self-referencing ternary maps mix, and which cannot
 npm run budget                # what the machine costs, parametric in how much memory
 ```
 
