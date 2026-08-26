@@ -722,7 +722,7 @@
     },
     {
       "id": "E",
-      "subject": "The decoded-selector adder \u2014 the circuit that failed Z2, at full width",
+      "subject": "The decoded-selector adder — the circuit that failed Z2, at full width",
       "tool": "tools/decoded-audit.js",
       "registered_at": "ba1918b",
       "results_at": "88d5f71",
@@ -811,7 +811,7 @@
     },
     {
       "id": "F",
-      "subject": "Where 128/243 comes from \u2014 the decoded adder\u2019s pass count, derived",
+      "subject": "Where 128/243 comes from — the decoded adder’s pass count, derived",
       "tool": "tools/passcount-audit.js",
       "registered_at": "bf1d4f1",
       "results_at": "cbc7528",
@@ -1227,7 +1227,7 @@
     },
     {
       "id": "J",
-      "subject": "A six-trit register at switch level \u2014 the first sequential circuit here",
+      "subject": "A six-trit register at switch level — the first sequential circuit here",
       "tool": "tools/register-audit.js",
       "registered_at": "e23ca30",
       "results_at": "5012c77",
@@ -1345,7 +1345,7 @@
     },
     {
       "id": "L",
-      "subject": "An accumulator \u2014 the first circuit here that computes and remembers",
+      "subject": "An accumulator — the first circuit here that computes and remembers",
       "tool": "tools/accumulator-audit.js",
       "registered_at": "8b6da4d",
       "results_at": "7070b81",
@@ -1523,7 +1523,7 @@
     },
     {
       "id": "C",
-      "subject": "A 27-word addressed memory, built \u2014 and three errors in the budget formula",
+      "subject": "A 27-word addressed memory, built — and three errors in the budget formula",
       "tool": "tools/memory-audit.js",
       "registered_at": "8720a5c",
       "results_at": "49fc6ad",
@@ -1913,6 +1913,103 @@
           "note": "One gate changed from non-affine to affine -- same widths, same wiring, same four generators -- and universality disappears by twenty-three orders of magnitude. Checked by MEMBERSHIP and not by an order bound: all 151,632 elements were enumerated and every one is of the form x -> Ax + b. An order bound would have passed for any small group. The group is index 2 in AGL(3,3) because all four generators are even."
         }
       ]
+    },
+    {
+      "id": "O",
+      "subject": "Ternary is born nonlinear at one control — and the whole economic margin is borrowed from the free mid rail",
+      "tool": "tools/nonlinearity-audit.js",
+      "registered_at": "779a0ee",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-nonlinearity.js",
+      "predictions": [
+        {
+          "id": "O1",
+          "claim": "one-control single-value indicators are affine in GF(2) and never in GF(3)",
+          "outcome": "HELD",
+          "measured": {
+            "GF2": {
+              "indicators": 2,
+              "affine": 2,
+              "non_affine": 0
+            },
+            "GF3": {
+              "indicators": 3,
+              "affine": 0,
+              "non_affine": 3
+            }
+          },
+          "note": "Exhaustive over one variable in both fields. This is set M's advantage traced to its root: the simplest possible conditional -- act if the control equals a specific value -- is LINEAR in binary and NONLINEAR in ternary, so binary must AND two controls together to get nonlinearity and that is why it needs a three-bit gate. Restricted to ONE control digit on purpose: the indicator of a single POINT of two binary digits is quadratic too, which is what x AND y is, so the general claim would be false."
+        },
+        {
+          "id": "O2",
+          "claim": "the cheapest non-affine trigger is an outer state, not the middle",
+          "outcome": "HELD",
+          "measured": {
+            "outer_trigger_switches": 1,
+            "middle_trigger_switches": 5,
+            "middle_mid_taps": 1
+          },
+          "note": "The direction held and the magnitude was understated. The registration said \"equals MID needs two\", counting THRESHOLD COMPARISONS; the switch cost is five, because the interval test needs the whole isMid detector at four plus one select switch. So an outer trigger is five times cheaper per gate, not twice. Caveat as registered: this is the per-gate marginal cost, and E/I showed a MID detector amortises across every selector sharing a control, so in a machine it may be a wash."
+        },
+        {
+          "id": "O3",
+          "claim": "the operand advantage does not become a switch advantage",
+          "outcome": "HELD",
+          "measured": {
+            "ternary": {
+              "gate": "C1INC",
+              "operands": "2 trits",
+              "states": 9,
+              "switches": 10,
+              "mid_taps": 2,
+              "wrong": "0/9"
+            },
+            "binary": {
+              "gate": "Toffoli",
+              "operands": "3 bits",
+              "states": 8,
+              "switches": 12,
+              "mid_taps": 0,
+              "wrong": "0/8"
+            },
+            "ratio": 1.2,
+            "predicted_band": "1.0 to 1.5",
+            "derived_before_the_run": {
+              "ternary": 10,
+              "binary": 12
+            }
+          },
+          "note": "Both derived numbers hit exactly, and both gates verified correct exhaustively. Built in the SAME pass-network idiom with T5 obeyed on both sides -- every source rail-driven, buffers counted, no trick used on one side and withheld from the other. An earlier estimate put the binary side at ~22 by building it from NAND gates while giving the ternary side pass-transistor tricks; that strawman is recorded rather than quietly dropped. Two operands instead of three buys 1.2x, not 3x."
+        },
+        {
+          "id": "O4",
+          "claim": "and what margin remains is borrowed entirely from the free mid rail",
+          "outcome": "HELD",
+          "measured": {
+            "at_price_0": {
+              "ternary": 10,
+              "binary": 12,
+              "winner": "ternary"
+            },
+            "at_price_1": {
+              "ternary": 12,
+              "binary": 12,
+              "winner": "tie"
+            },
+            "at_price_2": {
+              "ternary": 14,
+              "binary": 12,
+              "winner": "binary"
+            },
+            "at_price_4": {
+              "ternary": 18,
+              "binary": 12,
+              "winner": "binary"
+            }
+          },
+          "note": "The tie lands at exactly the predicted price. The device model's FIRST stated limit is that vmid is free and it calls that the largest of the four; the ternary gate takes two mid taps and the binary gate takes none. So the honest statement is not \"ternary is cheaper\" -- it is that ternary's advantage is STRUCTURAL and not economic, and every switch of the economic margin is borrowed from the one assumption this model flags as its biggest. A myth killed before it was built on."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -1998,7 +2095,7 @@
     {
       "id": "F-251505-AGAIN",
       "outcome": "MEASURED_NOT_REGISTERED",
-      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 \u2014 the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
+      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 — the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
       "evidence": "531,441 minus the 279,936 that settle in fewer passes; the rung is recorded in the U set",
       "asserted_in": "test/test-decoded.js",
       "note": "Chased and settled by the G set: a coincidence. The pairing that produces it holds at exactly one parameter value, the two families grow at rates a thousandfold apart, and the two numbers are the only pair in the manifest that collides across the vocabulary and circuit halves of the project."
@@ -2052,6 +2149,13 @@
       "claim": "The split-state construction has EXACTLY ONE fixed point for every round table -- 1 in all 20 sampled, never 0 and never 2 -- where a random permutation gives Poisson(1) and would have none about 37% of the time. The state with L = R and round(R) = 0 is fixed; the round table is a permutation, so exactly one R maps to 0. That is a structural fingerprint rather than a statistic, and a fixed point is an input that no number of rounds ever moves. The standard remedy is a per-round CONSTANT, which collides with the one-function-called-repeatedly rule unless the round counter is carried inside the state.",
       "evidence": "tools/iterhash-audit.js, 20 shuffled round tables, exhaustive over 729 states; the fixed state is -336, where L=R=1 and round(1)=0",
       "asserted_in": "test/test-iterhash.js"
+    },
+    {
+      "id": "F-BORN-NONLINEAR",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "The design intuition inverts between the two bases. In binary, linear operations are cheap and nonlinearity is something you construct by combining controls; in ternary, the simplest one-control conditional is ALREADY nonlinear and linearity is the special case you have to work to obtain -- t_b += t_a is affine and needs deliberate choosing, while \"if t_a equals 1\" is not and comes for free.",
+      "evidence": "O1 exhaustively over both fields at one variable; M1/M3 showing 0.119% of reversible 2-trit gates are affine against binary's 100%",
+      "asserted_in": "test/test-nonlinearity.js"
     }
   ],
   "traps_encountered": [
