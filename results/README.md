@@ -60,13 +60,13 @@ cross-reference names a set that does not exist.
 
 | file | owns | depth |
 |---|---|---|
-| [`00-model.md`](00-model.md) — the device model and its axioms | `W` `X` `Z` | stub |
-| [`01-vocabulary.md`](01-vocabulary.md) — what an instruction vocabulary generates | `P` `Q` `R` `S` `U` `V` | stub |
-| [`02-arithmetic.md`](02-arithmetic.md) — gates, adders, the detector | `Y` `E` `F` `G` `I` | stub |
-| [`03-sequential.md`](03-sequential.md) — storage, registers, an accumulator | `J` `K` `L` | stub |
-| [`04-machine.md`](04-machine.md) — headroom, terminals, memory, interconnect | `H` `B` `C` `A` | stub |
+| [`00-model.md`](00-model.md) — the device model and its axioms | `W` `X` `Z` | **rich** |
+| [`01-vocabulary.md`](01-vocabulary.md) — what an instruction vocabulary generates | `P` `Q` `R` `S` `U` `V` | **rich** |
+| [`02-arithmetic.md`](02-arithmetic.md) — gates, adders, the detector | `Y` `E` `F` `G` `I` | **rich** |
+| [`03-sequential.md`](03-sequential.md) — storage, registers, an accumulator | `J` `K` `L` | **rich** |
+| [`04-machine.md`](04-machine.md) — headroom, terminals, memory, interconnect | `H` `B` `C` `A` | **rich** |
 | [`05-algebra.md`](05-algebra.md) — reversibility, universality, nonlinearity, mixing | `D` `M` `O` | **rich** |
-| [`06-economics.md`](06-economics.md) — currencies, and the price of the mid rail | `N` | stub |
+| [`06-economics.md`](06-economics.md) — currencies, and the price of the mid rail | `N` | **rich** |
 | [`07-negative.md`](07-negative.md) — every failed prediction, and every lying instrument | — | **rich** |
 | [`08-limits.md`](08-limits.md) — what this project does not show | — | seeded |
 | [`99-ledger.md`](99-ledger.md) — the complete record, generated | — | generated |
@@ -82,10 +82,14 @@ exist in the ledger and have not yet been synthesised here. **No result is lost 
 stub** — the ownership check guarantees every set has a home, and
 [`99-ledger.md`](99-ledger.md) carries every prediction in full regardless.
 
-The two rich files are the ones a reader coming to this project cold should read
-first: `05-algebra.md` because it is what ternary uniquely offers, and
-`07-negative.md` because eleven failed predictions and seven lying instruments are
-the load-bearing evidence that the rest is worth anything.
+**Every topic file is now rich**; only `08-limits.md` remains seeded, and
+deliberately so — it is an index of limits stated elsewhere, and writing fresh prose
+there would create a second place limits live.
+
+Two files are where a reader coming cold should start. `05-algebra.md` is what
+ternary uniquely offers. `07-negative.md` is eleven failed predictions and seven
+lying instruments — the load-bearing evidence that the other ninety-seven are worth
+anything.
 
 ---
 
