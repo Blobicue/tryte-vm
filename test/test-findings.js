@@ -84,7 +84,11 @@ console.log('\n=== 2. COMPLETENESS AGAINST THE TOOLS ===');
     // (A first attempt at widening this added a `(?=[A-Z])` lookahead, which
     // assumed every claim opens with a capital. Several do not, and fifteen older
     // ids vanished from the corpus at once — the fix broke more than the bug.)
-    for (const m of block.matchAll(/^ \*\s{3}([A-Z]\d+[a-z]?)\s/gm)) found.add(m[1]);
+    // Set ids run out of single letters at `T`. After that the scheme continues
+    // `AA`, `AB`, `AC`, … — two letters, which collide with nothing, because no
+    // design document uses a two-letter option prefix. This is where that was
+    // pre-announced, one set in advance, rather than arriving as a rider.
+    for (const m of block.matchAll(/^ \*\s{3}([A-Z]{1,2}\d+[a-z]?)\s/gm)) found.add(m[1]);
   }
   const declared = new Set(allPreds.map(p => p.id));
   const missing = [...found].filter(id => !declared.has(id));

@@ -79,9 +79,10 @@ console.log('\n=== 3. OWNERSHIP — EVERY SET OWNED EXACTLY ONCE ===');
     const src = read(f);
     const ids = new Set();
     const inline = /\*\*Owned sets:?\*\*([^\n]*)/.exec(src);
-    if (inline) for (const m of inline[1].matchAll(/`([A-Z])`/g)) ids.add(m[1]);
+    // One or two letters: the scheme continues `AA`, `AB`, … past `T`.
+    if (inline) for (const m of inline[1].matchAll(/`([A-Z]{1,2})`/g)) ids.add(m[1]);
     const tail = src.slice(src.lastIndexOf('## Owned sets'));
-    for (const m of tail.matchAll(/^\|\s*`([A-Z])`\s*\|/gm)) ids.add(m[1]);
+    for (const m of tail.matchAll(/^\|\s*`([A-Z]{1,2})`\s*\|/gm)) ids.add(m[1]);
     for (const id of ids) {
       if (!ownedBy.has(id)) ownedBy.set(id, []);
       ownedBy.get(id).push(f);
@@ -125,7 +126,7 @@ console.log('\n=== 4. CITATION — EVERY CITED ID EXISTS ===');
   let cited = 0;
   for (const f of files) {
     if (kindOf(read(f)) === 'results-ledger') continue;        // generated
-    for (const m of read(f).matchAll(/`((?:[A-Z]\d+[a-z]?)|(?:[TF]-[A-Z0-9-]+))`/g)) {
+    for (const m of read(f).matchAll(/`((?:[A-Z]{1,2}\d+[a-z]?)|(?:[TF]-[A-Z0-9-]+))`/g)) {
       cited++;
       if (!known.has(m[1])) bogus.add(`${f}:${m[1]}`);
     }
