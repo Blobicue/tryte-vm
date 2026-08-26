@@ -13,8 +13,8 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-Twenty-eight prediction sets, **121 registered predictions, 107 held, 14 failed.** Seventeen
-distinct failure classes, which bit **35 times** between them. Twenty-one findings
+Twenty-eight prediction sets, **121 registered predictions, 107 held, 14 failed.** Eighteen
+distinct failure classes, which bit **41 times** between them. Twenty-three findings
 measured but never registered, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
@@ -32,6 +32,8 @@ still in the manifest, marked `FAILED`, with the result it led to:
 | **E5** | the new design would use less of the scarce rail | it uses **more**; the design that wins on area wins by spending elsewhere |
 | **J4** | a register read during a write sees the old value | it sees the **new** one — the write holds the feedback open, so the cell is a transparent latch. Master-slave is required and the register file doubles |
 | **T4** | the best set of control fields packable directly into the opcode's spare trits is six wide and separates every opcode | it is **five**, and separates nothing on its own. Six trits of spare capacity exist, but the fields are chunky and no combination summing to six distinguishes all 25 opcodes. Optimistic by exactly one trit |
+| **AB4** | the erasure charge is not recoverable from a program's text, the way a static count is | **six of eight programs charge exactly their text bound**, and the largest gap is 1.21x rather than the predicted 2x. The operand-dependent opcodes simply do not appear in those six, so the worst case IS the actual case. A static price transfers exactly when the instruction mix is operand-independent — conditional, and sharper than either the prediction or its negation |
+| **AB5** | admitting every information-preserving operation lifts the reversible fragment to the full symmetric group, so the machine erases by convention | it does not come close. The orders land on a closed form, **2^W · 3^((3^W − 1)/2)**, matching at every width the stabiliser chain reaches; width 1 is the only place reversibility is free, and by width 4 the fragment is 10^-100 of all permutations. **The eraser is load-bearing.** The closed form is the replacement the failure produced |
 | **N1** | a mid-rail tap is unavoidable exactly where a node must carry MID, and the selectors need none | the test asked "does this BUILD put MID on a node", not "does the FUNCTION require it" — and scored the detector FORCED while the very next section built the same function with zero taps. A circuit that uses the mid rail is not a circuit that needs it |
 | **D3** | `rotate(s + sbox(s))` mixes, once the s-box is chosen so the sum stays injective | it does not — 130 cycles against a random permutation's 6.6. A positionwise 3-cycle *is* addition of a constant, so the sum stays affine. Fixing injectivity does nothing for mixing |
 | **D4** | a truncated-collision count separates a mixing map from a positionwise one | it separates nothing — truncating **any** permutation is uniform by construction, so a map that provably repeats every six calls scores 0.96x, same as everything else. The obvious test is disqualified |
@@ -214,7 +216,7 @@ wasteful when it does not.
 
 ## The failure catalogue, off ternary
 
-These are the seventeen classes that actually bit, stated so they transfer. The count
+These are the eighteen classes that actually bit, stated so they transfer. The count
 is how many times each recurred *after* being named — which is itself a measure of
 how well naming a thing prevents it.
 
@@ -235,6 +237,8 @@ how well naming a thing prevents it.
 | **a criterion in the noise** | a registered threshold whose verdict depends on run-to-run variation. The same world produced both a pass and a fail. Widen it until it cannot flip, or measure the quantity and report it without asserting a bound. |
 | **computed control, unknown at pass one** | a control signal that is derived rather than given is unknown on the first pass of a fixed point, and unknown conduction counts as possible -- so it bridges or breaks everything it gates before it settles. Bit twice, the second time taking down 26 of 27 memory words at once. A circuit correct at its fixed point can be unreachable from a cold start. |
 | **a transcribed table** | a fact that could have been *run* was hand-copied. A detector's truth table, copied from a comment into a seed, came out inverted -- and produced 36 failures out of 54 whose pattern exactly matched what a real contention bug would look like. Wrong instruments do not produce noise; they produce clean, mechanistic, entirely wrong findings. |
+| **a tool checked only by import** | a tool exercised only through require(), so the path it takes when actually run is never covered. A mechanical rename made an audit silent on import and rewrote the body of the logging function into a call to itself; it crashed on every run while every check stayed green. Cover both paths, and cap the expensive sweep so covering the run path is cheap. |
+| **the scope decides the verdict** | a correct computation scoring a prediction wrongly, because the measurement drew its state boundary somewhere the prediction did not. Bit twice. Neither instrument computed anything wrong; both answered a question adjacent to the one registered. Declare the boundary in the registration, and where a question admits more than one, report every reading. |
 | **a census that counts itself** | a measurement over a corpus that the measurement is then written into. A survey of repeated numbers in the record failed on its next run, because recording its own answer added those numbers to the record. Nothing was wrong with the first answer, or with the world. |
 
 Two further shapes, from the prose rather than the code:

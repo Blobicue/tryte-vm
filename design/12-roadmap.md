@@ -316,13 +316,19 @@ question — could the ISA be renumbered so decode disappears? — is a search o
 opcode assignments and is the only item here that changes something outside the
 device layer.
 
-### Phase 5 — sequencing, and the `Q3` handshake experiment
+### Phase 5 — sequencing, and the `Q3` handshake experiment  ← **done, set `AA`**
 
-`Q1` is already forced and measured. The remaining question is whether a **driven**
-handshake settles, which `N7` suggests it may not. If it does, `Q3` becomes
-available and the sequencer stops being JavaScript. If it does not, `Q0`/`Q1` stand
-and [`09-sequencing.md`](09-sequencing.md)'s concession is permanent — which should
-be stated plainly rather than discovered by a reader.
+`Q1` was already forced and measured. The open question was whether a **driven**
+handshake settles, which `N7` suggested it may not. **It does not**, and the reason
+turned out to be stronger than the experiment was designed to find: every state the
+solver returns is a genuine fixed point (45 of 45), so a sequence would need a
+network that does not settle, and not settling is an error rather than an output.
+`Q3` is therefore unavailable **in principle rather than merely in practice**, and
+[`09-sequencing.md`](09-sequencing.md)'s concession is permanent and forced by the
+model rather than chosen by the design. Stated plainly here, as this section asked.
+
+The sequencer itself is cheap once the step is external: 390 switches for a
+three-trit state register plus incrementer, cycling all 27 states (`AA4`).
 
 ### Phase 6 — assembly, and the V0/V2 run
 
@@ -354,7 +360,7 @@ Stated so it can happen, which is the point.
 
 ## What this plan does not decide
 
-Three calls belong to a person, and this file deliberately does not make them.
+Four calls belong to a person, and this file deliberately does not make them.
 
 1. **Whether charge retention is allowed.** It is measured — 11× on storage, zero
    differences across the existing corpus — but it changes what the model *is*, and
@@ -364,5 +370,17 @@ Three calls belong to a person, and this file deliberately does not make them.
    prices both; it does not choose.
 3. **Whether `Q0`'s concession is acceptable.** If the step boundary lives in the
    harness, the sequencer is JavaScript and "a computer built of simulated ternary
-   transistors" means a *datapath* built of them. Phase 5 may remove the
-   concession; if it does not, someone has to decide whether it matters.
+   transistors" means a *datapath* built of them. Phase 5 has now run and did **not**
+   remove the concession — `AA3` showed it is forced by the model — so this one is
+   live and waiting rather than pending an experiment.
+4. **Whether erasure joins the currencies.** `AB` measured a seventh cost this
+   project could count: **bits destroyed**, at 9.5098 for an overwrite, 4.5033 mean
+   for `MIN`, zero for `ADD`. Unlike the mid-rail tap it needs no exchange rate to be
+   argued — Landauer fixes it — but adopting it into
+   [`01-currencies.md`](01-currencies.md) and [`../tools/budget.js`](../tools/budget.js)
+   would mean the project starts ranking designs by what they destroy as well as by
+   what they cost to build, and those two orders are not the same. `AB4` showed the
+   charge is recoverable from program text only when the instruction mix is
+   operand-independent, so a budget column would be honest for some programs and a
+   lower bound for others. That is a choice about what the project is measuring, not
+   a measurement.

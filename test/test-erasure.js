@@ -26,6 +26,8 @@ const T = require('../src/ternary.js');
 const { OPS } = require('../src/isa.js');
 const E = require('../tools/erasure-audit.js');
 const { idPerm, chainOf } = require('../tools/perm-lib.js');
+const { execFileSync } = require('child_process');
+const path = require('path');
 
 let pass = 0; const fails = [];
 const check = (name, cond, detail = '') => {
@@ -56,6 +58,26 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY FINDING ===');
       const e = E.erasureOf(img, N);
       return e > 0 && e < MAXBITS;
     })());
+}
+
+console.log('\n=== 0b. THE TOOL AS IT IS ACTUALLY RUN, NOT ONLY AS AN IMPORT ===');
+{
+  // Every other check here imports the audit, and importing never executes a print
+  // path. A mechanical rename once rewrote log()'s own body into a call to itself:
+  // the tool crashed on every run and the whole suite stayed green, because
+  // importing sets MAIN false. Run it as a subprocess, capped so it costs seconds.
+  let out = '', code = 0;
+  try {
+    out = execFileSync(process.execPath,
+      [path.join(__dirname, '..', 'tools', 'erasure-audit.js')],
+      { encoding: 'utf8', env: { ...process.env, ERASURE_MAX_WIDTH: '2' } });
+  } catch (e) { code = 1; out = (e.stdout || '') + (e.message || ''); }
+  check('the audit runs to completion as a program, not only as an import',
+    code === 0, out.split('\n').slice(-3).join(' | '));
+  check('and every one of its five sections printed, so every log path executed',
+    [/1\. AB1/, /2\. AB2/, /3\. AB3/, /4\. AB4/, /5\. AB5/].every(r => r.test(out)));
+  check('and the cap is honoured, so the cheap run is the same code path as the full one',
+    /W=2: measured 324   closed form 324   MATCH/.test(out) && !/W=3: measured/.test(out));
 }
 
 console.log('\n=== 1. AB1 — INFORMATION-PRESERVING TWO-INPUT OPERATIONS ARE RARE ===');

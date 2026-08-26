@@ -135,7 +135,13 @@ const line = '='.repeat(78);
 // re-derives what it asserts from the exported builders rather than trusting a
 // printed table, which is this repository's idiom for every other audit.
 const MAIN = require.main === module;
-const log = (...a) => { if (MAIN) log(...a); };
+// Width 5 costs about a minute, so the ladder is capped by an environment variable.
+// That exists so a TEST can run this file as a subprocess cheaply: the suite used to
+// exercise only the import path, and a mechanical rename once rewrote the body of
+// log() into a call to itself -- broken on every run, invisible to every check,
+// because importing sets MAIN false and no print path ever executes.
+const MAX_W = Math.max(1, Math.min(5, Number(process.env.ERASURE_MAX_WIDTH) || 5));
+const log = (...a) => { if (MAIN) console.log(...a); };
 const f4 = x => x.toFixed(4);
 
 log('ERASURE AUDIT — what this machine destroys, in bits\n');
@@ -251,7 +257,7 @@ log(`  of the ${ternaryReversible} reversible: ${ternaryAffine} affine over GF(3
 // import — 100 full pair sweeps is half a minute, and the test does its own.
 if (MAIN) {
   let agree = 0, checked = 0;
-  for (let k = 0; k < 19683; k += 197) {
+  for (let k = 0; k < 19683; k += (MAX_W < 5 ? 6561 : 197)) {
     const t = tableOf(k);
     const img = new Int32Array(PAIRS);
     for (let a = 0; a < N; a++)
@@ -567,6 +573,15 @@ log(`    729 translations extended by negation would be: ${729n * 2n}`);
  */
 const factorial = n => { let r = 1n; for (let i = 2n; i <= BigInt(n); i++) r *= i; return r; };
 
+// Both the fragment order and N! overflow a double well before width 5, so a log is
+// taken from the digit count plus the leading mantissa. Dividing two Number() casts
+// printed "10^1" for a fraction of exactly one — a wrong number in a column nothing
+// asserted, which is the quietest kind there is.
+const bigLog10 = b => {
+  const d = b.toString();
+  return (d.length - 1) + Math.log10(Number('0.' + d.slice(0, 17)) * 10);
+};
+
 function arena(W) {
   const M = 3 ** W, mid = (M - 1) / 2;
   const tr = s => { const t = []; let r = s; for (let i = 0; i < W; i++) { t.push(r % 3); r = Math.floor(r / 3); } return t; };
@@ -606,12 +621,12 @@ log(`\n  plus the ${reversibleTables.length} reversible TOP tables from AB1, swe
 log('   width   states   named ALU   reversible fragment            S_N digits   fraction of S_N');
 log('  ' + '-'.repeat(88));
 const ladder = [];
-for (let W = 1; MAIN && W <= 5; W++) {
+for (let W = 1; MAIN && W <= MAX_W; W++) {
   const r = reversibleFragment(W);
-  const frac = Math.round(Math.log10(Number(r.full) || 1) - (r.SN.toString().length - 1));
+  const frac = (bigLog10(r.full) - bigLog10(r.SN)).toFixed(1);
   ladder.push(r);
   const shown = r.full.toString().length > 26 ? r.full.toString().slice(0, 23) + '...' : r.full.toString();
-  log(`   ${String(W).padStart(5)}   ${String(r.M).padStart(6)}   ${String(r.named).padStart(9)}   ${shown.padEnd(28)}   ${String(r.SN.toString().length).padStart(10)}   ${Number.isFinite(frac) ? '10^' + frac : 'below 10^-300'}`);
+  log(`   ${String(W).padStart(5)}   ${String(r.M).padStart(6)}   ${String(r.named).padStart(9)}   ${shown.padEnd(28)}   ${String(r.SN.toString().length).padStart(10)}   ${('10^' + frac).padStart(12)}`);
 }
 
 log('\n  the closed form the ladder lands on:  |G_W| = 2^W * 3^((3^W - 1)/2)');

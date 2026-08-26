@@ -13,7 +13,7 @@ One hundred and twenty-one predictions, one hundred and seven held, fourteen fai
 and the twelve produced more than the hundred and four. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**976 checks**, all passing. Every number below is recomputed by one of them,
+**1,027 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -99,6 +99,7 @@ with registering commits and the tests that assert each one, in
 | **N1–N4** | pricing the free mid rail, the model's own largest assumption | 3 held, **N1 failed** |
 | **T1–T4** | the control word, and whether instruction decode can disappear | 3 held, **T4 failed** |
 | **AA1–AA4** | sequencing: can the step boundary live inside the circuit? | all held |
+| **AB1–AB5** | erasure: what the machine destroys, and whether the price is in the object | 3 held, **AB4 and AB5 failed** |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:

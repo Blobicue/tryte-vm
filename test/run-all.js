@@ -34,9 +34,11 @@ if (unparsed.length) {
   console.log(`  [FAIL] no check count found in: ${unparsed.join(', ')}`);
 } else {
   const README = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
-  const claimed = /\*\*(\d+) checks\*\*/.exec(README);
+  // The count crossed a thousand and the README groups its digits. Match the grouped
+  // form and strip the separators, rather than forcing the prose to read "1027".
+  const claimed = /\*\*([\d,]+) checks\*\*/.exec(README);
   if (!claimed) { failed = true; console.log('  [FAIL] the README states no check count'); }
-  else if (Number(claimed[1]) !== total) {
+  else if (Number(claimed[1].replace(/,/g, '')) !== total) {
     failed = true;
     console.log(`  [FAIL] the README says ${claimed[1]} checks; the suites ran ${total}`);
   } else {

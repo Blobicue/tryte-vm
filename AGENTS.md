@@ -174,6 +174,16 @@ input: find it once, then check it twice thereafter -- settles at k, does not
 settle at k-1. Two solves, not eighty. When an instrument is slow, check whether
 it is searching for something it already knows how to confirm.
 
+`T-TOOL-CHECKED-ONLY-BY-IMPORT` **A tool exercised only through require(), so the
+path it takes when actually run is never covered.** Making an audit silent on import
+by mechanically renaming every `console.log` call to `log` also rewrote the body of
+`log` itself into a call to itself. The tool crashed with a stack overflow on every
+run while its whole suite stayed green -- importing sets the main-module flag false,
+so no print path ever executes. The numbers were all correct; the program was broken
+in the half nobody looked at. If a tool has a run path and an import path, cover
+both: spawn it as a subprocess, assert it exits cleanly and printed what it should,
+and give its most expensive sweep a cap so that check costs seconds.
+
 `T-SCOPE-DECIDES-THE-VERDICT` **A correct computation scoring a prediction wrongly,
 because the measurement drew its state boundary somewhere the prediction did not.**
 Bit twice. `N1` registered "must some node carry MID for the FUNCTION to compute"

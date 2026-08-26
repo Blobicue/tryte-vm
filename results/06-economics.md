@@ -209,15 +209,15 @@ matching exactly at every width the stabiliser chain can reach:
 
 | width | states | named ALU | reversible fragment | fraction of S_N |
 |---|---|---|---|---|
-| 1 | 3 | 6 | **6 — the whole symmetric group** | 1 |
-| 2 | 9 | 18 | 324 | ~10⁻³ |
-| 3 | 27 | 54 | 12,754,584 | ~10⁻²¹ |
-| 4 | 81 | 162 | 1.945 × 10²⁰ | 10⁻¹⁰⁰ |
-| 5 | 243 | 486 | ~1.73 × 10⁵⁹ | ~10⁻⁴¹⁷ |
+| 1 | 3 | 6 | **6 — the whole symmetric group** | 10⁰, all of it |
+| 2 | 9 | 18 | 324 | 10⁻³·⁰ |
+| 3 | 27 | 54 | 12,754,584 | 10⁻²⁰·⁹ |
+| 4 | 81 | 162 | 1.945 × 10²⁰ | 10⁻¹⁰⁰·⁵ |
+| 5 | 243 | 486 | ~1.73 × 10⁵⁹ | 10⁻⁴¹⁶·⁵ |
 
 **Width 1 is the only place reversibility is free.** From width 2 the reachable
 fraction collapses super-exponentially. Extrapolated to the real accumulator the
-fragment is 2⁶·3³⁶⁴ — 176 digits against 729!'s 1,773.
+fragment is 2⁶·3³⁶⁴ — 176 digits against 729!'s 1,773, a fraction of 10⁻¹⁵⁹⁶·⁷.
 
 So the conclusion inverts: **the eraser is load-bearing, not a convention of the
 opcode table.** It is the same shape as the classical result that no term over
@@ -263,7 +263,9 @@ so much.
   modelling choice that has to be declared before any number means anything, and the
   first version of this census drew it somewhere the prediction did not.
 - **That the width-6 group order was measured.** It was not: the stabiliser chain
-  does not finish at 729 points. 2⁶·3³⁶⁴ is the closed form extrapolated from five
+  had not finished after two hours on this host, which is an observation and not the
+  absolute claim "does not finish" — that would be a duration assertion, the class
+  this project has already bitten twice. 2⁶·3³⁶⁴ is the closed form extrapolated from five
   widths that were measured exactly.
 - **Anything about static power.** A real ternary mid level is typically generated
   with dividers that burn power continuously; this model has no notion of power at

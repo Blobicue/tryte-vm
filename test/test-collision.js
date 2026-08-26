@@ -163,7 +163,15 @@ console.log('\n=== 5. G4 — HOW RARE IS A COLLISION HERE AT ALL ===');
   // collisions. The measurement became part of the corpus it measures. Excluded
   // by matching the censusing tool, not by hardcoding an id.
   const CENSUS = 'collision-audit.js';
-  const sets = M.prediction_sets.filter(st => !st.tool.endsWith(CENSUS));
+  // Second, related failure, from a later set rather than from this one. G4's claim
+  // is about a crossing between the VOCABULARY and CIRCUIT halves. half() returns a
+  // third value, 'other', for a tool that requires neither -- and the crossing test
+  // counted 'other' as a side, so set AB arriving with 19,683 (the two-input tritwise
+  // function space, which Q also holds) read as a brand new six-digit collision. The
+  // computation was right and the question was not the registered one: a set outside
+  // both halves cannot cross between them. T-SCOPE-DECIDES-THE-VERDICT.
+  const sets = M.prediction_sets.filter(st => !st.tool.endsWith(CENSUS))
+    .filter(st => half(st) !== 'other');
   const sides = new Map(sets.map(st => [st.id, half(st)]));
   const where = new Map();
   for (const st of sets) for (const p of st.predictions) {

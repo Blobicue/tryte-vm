@@ -135,7 +135,7 @@ mechanistically plausible wrong answer. They are catalogued as
 | 9 | a handshake rig counted the driving values that **disable** the loop | a self-timed handshake reported as working | no handshake occurs in either of those two cases |
 | 10 | a claim's own qualifier dropped between registration and check (`G4`) | a quantity restated in a second set scored as colliding with itself | the registered sentence carried the qualifier all along |
 | 11 | an interconnect rig **seeded** its sources instead of driving them | both topologies routing Z — "interconnect does not work at all" | a seed is an initial value, not a driver; these were never sources |
-| 12 | an erasure census folded the operand **into** the state | MIN as a single fixed 4.5033 bits | the prediction was about a range, 0 to 9.5098, and it held |
+| 12 | an erasure census folded the operand **into** the state | MIN as a single fixed 4.5033 bits | the clauses spoke of a range, 0 to 9.5098, and it held |
 
 **The common shape, and the reason this list exists:** a wrong instrument does not
 produce noise. **It produces a clean, mechanistic, entirely plausible finding.**
@@ -176,6 +176,23 @@ the *specification* was wrong:
   section 5 was quietly doing what section 4 forbids. Repaired the way the class
   prescribes: assert the **ratio**, which survives any host, and report the hours
   without checking them.
+- **A tool covered only where it was not broken.** Making the erasure audit silent
+  on import, by mechanically renaming every `console.log` call to `log`, also
+  rewrote the body of `log` itself into a call to itself. The tool crashed with a
+  stack overflow on **every run**, and its whole suite stayed green — a test that
+  imports the module sets the main-module flag false, so no print path ever
+  executes. Every number it produced was correct; the program was broken in the
+  half nobody looked at. Caught only by running it end to end before committing.
+  (`T-TOOL-CHECKED-ONLY-BY-IMPORT`, 1)
+- **A census whose universe grew underneath it.** `G4` counts integers appearing
+  in both the vocabulary half of the manifest and the circuit half, and its
+  classifier has a third bucket — `other` — for a tool requiring neither. The
+  crossing test treated that bucket as a side. Set `AB` then recorded **19,683**,
+  the size of the two-input tritwise function space, which `Q` already held; a set
+  belonging to **neither half** read as a brand-new six-digit collision. The
+  computation was right and the question was not the one registered.
+  (`T-SCOPE-DECIDES-THE-VERDICT`, third bite — and the only one of the three found
+  by a check going red rather than by reading.)
 - **A check forbidding a healthy state.** One demanded that the number of tools equal
   the number of prediction sets. They are equal only *between* phases — during a
   registration there is deliberately one more tool than there are results. **The check

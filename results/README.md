@@ -100,7 +100,7 @@ anything.
 | prediction sets | 28 |
 | registered predictions | 121 — **107 held, 14 failed** |
 | measured but never registered | 23 |
-| defect classes | 17, recurring 39 times |
+| defect classes | 18, recurring 41 times |
 
 The suite's check count is deliberately **not** repeated here — it lives in
 [`../README.md`](../README.md), where `run-all.js` verifies it, and a second copy
