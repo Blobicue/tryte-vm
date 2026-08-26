@@ -37,7 +37,8 @@
     "audit:interconnect": "node tools/interconnect-audit.js",
     "audit:iterhash": "node tools/iterhash-audit.js",
     "audit:reversible": "node tools/reversible-audit.js",
-    "audit:nonlinearity": "node tools/nonlinearity-audit.js"
+    "audit:nonlinearity": "node tools/nonlinearity-audit.js",
+    "audit:midprice": "node tools/midrail-price-audit.js"
   },
   "license": "MIT",
   "private": true
