@@ -48,6 +48,29 @@ whatever produced it and resolves; what poisons a network is an unresolved
 and being wrong is what separated control from data — which is why the trap class is
 named after control.
 
+**`AB5` — "the reversible fragment of this instruction set reaches the full
+symmetric group, so the machine erases by convention rather than necessity."** The
+first clause held exactly — the named zero-erasure ALU generates 1,458, the 729
+translations extended by negation. The second **failed, and inverted the
+conclusion.** Admitting every one of the 216 information-preserving tritwise tables
+at every operand does not come close: the orders land on a closed form,
+**2^W · 3^((3^W − 1)/2)**, matching exactly at every width the stabiliser chain can
+reach. Width 1 is the only place reversibility is free. By width 4 the fragment is
+10⁻¹⁰⁰ of all permutations. So **the eraser is load-bearing** — take away the one
+information-destroying primitive and what remains cannot compute, which is the same
+shape as the classical result about selection. The closed form is the replacement
+the failure produced, and nobody predicted it.
+
+**`AB4` — "the erasure charge is not recoverable from the program text."** Predicted
+a gap for every program and a factor above two somewhere. **Six of eight programs
+charge exactly their text bound**, and the largest gap is 1.21×. The reason is the
+instruction mix: the operand-dependent opcodes do not appear in those six, so the
+worst case *is* the actual case. The corrected claim is conditional and sharper than
+either the prediction or its negation — **a static price transfers exactly when the
+instruction mix is operand-independent.** That distinction is the whole answer to
+the question the set was opened to ask, and it only exists because the prediction
+was too strong.
+
 #### The ones that corrected the record
 
 **`P3` — "reach is a direct product across trit positions."** 47 at width two, not
@@ -96,7 +119,7 @@ equivalent circuits that the test did not do.
 
 None of these was ever a registered prediction. Each produced a confident, clean,
 mechanistically plausible wrong answer. They are catalogued as
-`T-INSTRUMENT-FALSE-VERDICT` (9 occurrences) and the detail lives in
+`T-INSTRUMENT-FALSE-VERDICT` (12 occurrences) and the detail lives in
 [`99-ledger.md`](99-ledger.md); what follows is what they have in common.
 
 | # | the instrument | what it reported | what was true |
@@ -110,6 +133,9 @@ mechanistically plausible wrong answer. They are catalogued as
 | 7 | a verification case paired a 3-cycle with a **25**-cycle and called it `A₂₇` | the tool scored WRONG | the tool returned 25!/2, exactly right for what was built |
 | 8 | an adder cell built **without its tag**, which names its internal nodes | the sequencer visiting 2 states instead of 27 | three cells shared node names and merged into one circuit |
 | 9 | a handshake rig counted the driving values that **disable** the loop | a self-timed handshake reported as working | no handshake occurs in either of those two cases |
+| 10 | a claim's own qualifier dropped between registration and check (`G4`) | a quantity restated in a second set scored as colliding with itself | the registered sentence carried the qualifier all along |
+| 11 | an interconnect rig **seeded** its sources instead of driving them | both topologies routing Z — "interconnect does not work at all" | a seed is an initial value, not a driver; these were never sources |
+| 12 | an erasure census folded the operand **into** the state | MIN as a single fixed 4.5033 bits | the prediction was about a range, 0 to 9.5098, and it held |
 
 **The common shape, and the reason this list exists:** a wrong instrument does not
 produce noise. **It produces a clean, mechanistic, entirely plausible finding.**

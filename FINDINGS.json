@@ -2284,6 +2284,103 @@
           "note": "A master-slave state register plus a next-state incrementer, stepped from outside, cycles through all 27 states and returns to its start. Every part already existed. What does not exist in this model is time."
         }
       ]
+    },
+    {
+      "id": "AB",
+      "subject": "Erasure: what this machine destroys, and whether the price is in the object",
+      "tool": "tools/erasure-audit.js",
+      "registered_at": "152a70c",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-erasure.js",
+      "predictions": [
+        {
+          "id": "AB1",
+          "claim": "information-preserving two-input operations are rare in ternary, and much rarer than in binary",
+          "outcome": "HELD",
+          "measured": {
+            "ternary_reversible_tables": 216,
+            "ternary_tables_total": 19683,
+            "ternary_fraction": "1.097%",
+            "binary_reversible_tables": 4,
+            "binary_tables_total": 16,
+            "binary_fraction": "25.0%",
+            "ratio_of_fractions": 22.8,
+            "affine_over_GF3": 18,
+            "non_affine": 198,
+            "column_criterion_vs_full_pair_sweep": "100/100 agree"
+          },
+          "note": "Predicted 216, 4, 18 and 198 exactly, and every one landed. The instruction map is (A,W) -> (f(A,W), W), injective exactly when each of the three columns of the table is a bijection of the three trit values -- 6^3 = 216. Binary has 2 columns and 2 permutations each, so 4 of 16. The argument was not trusted: the column criterion was checked against a direct sweep of all 531,441 pairs on a sample of tables, and agrees on every one. The gap is the point -- a randomly chosen two-input ternary operation is about 23 times less likely to be reversible than a binary one, which is the same asymmetry M1 found on the 27-point arena arriving on the 729-point one."
+        },
+        {
+          "id": "AB2",
+          "claim": "the erasing instructions are not the ones that overwrite the accumulator",
+          "outcome": "HELD",
+          "measured": {
+            "preserving": 11,
+            "erasing_fixed": 4,
+            "erasing_operand_dependent": 5,
+            "families_or_three_place": 5,
+            "STORE_bits_erased": 9.5098,
+            "STORE_writes_accumulator": false,
+            "LOAD_bits_erased": 9.5098,
+            "ADD_bits_erased": 0
+          },
+          "note": "Every predicted count and every predicted membership held. The load-bearing part held too: STORE erases the full 9.5098 bits and never touches the accumulator. Under the pair state it maps (A,W) to (A,A), destroying the addressed word outright -- the textbook Landauer erasure sitting in plain sight in an instruction set nobody wrote for thermodynamics, and the instruction whose name says it is SAVING something. ADD by contrast is a permutation of the entire 531,441-pair datapath, because the operand survives in memory: it is exactly the difference between ADD and K."
+        },
+        {
+          "id": "AB3",
+          "claim": "erasure is data-dependent, exactly as settling time turned out to be in E4",
+          "outcome": "HELD",
+          "measured": {
+            "MIN_min_bits": 0,
+            "MIN_max_bits": 9.5098,
+            "MIN_mean_bits": 4.5033,
+            "MIN_at_all_plus_one": 0,
+            "MIN_at_all_minus_one": 9.5098,
+            "MAX_mirrors_MIN": true,
+            "CSUM_min_bits": 0,
+            "CSUM_max_bits": 4,
+            "CSUM_mean_bits": 2.6667,
+            "SHL_equals_SHR_for_every_n": true,
+            "shift_bits_per_trit": 1.5849625
+          },
+          "note": "The mean 4.5033 was derived before the run as 6*(0 + 2/3 + log2 3)/3 and measured at 4.5033. CSUM was predicted never to reach the maximum and does not -- it tops out at exactly 4 bits, so a single tritwise gate cannot erase a whole tryte however hostile its operand. SHL n and SHR n erase identically at n*log2 3: one drops the high trits and one the low, and an information count cannot tell those apart, which is a real limit of this measure and not a fact about the machine."
+        },
+        {
+          "id": "AB4",
+          "claim": "and therefore the charge is not recoverable from the program text, which is precisely the property the static count has and this does not",
+          "outcome": "FAILED",
+          "measured": {
+            "programs": 8,
+            "programs_priced": 8,
+            "programs_where_text_bound_exceeds_actual": 2,
+            "programs_where_text_bound_is_exact": 6,
+            "largest_overcharge": 1.21,
+            "predicted_largest_overcharge": "> 2"
+          },
+          "note": "FAILED, and the failure is the answer to the question the set was opened to ask. Predicted a gap for every program and a factor above two for at least one; measured a gap for two of eight and a largest factor of 1.21. Six of the eight programs charge EXACTLY their text bound, because every opcode they execute is fixed-price -- the operand-dependent instructions (MIN, MAX, CSUM, SHL, SHR) simply do not appear in them. So the static count DOES transfer, conditionally: erasure is recoverable from the program text exactly when the instruction mix is operand-independent, and this repository's programs mostly are. The tick's virtue is not lost here, it is contingent on the ISA subset in use, which is a sharper claim than either the prediction or its negation."
+        },
+        {
+          "id": "AB5",
+          "claim": "the machine erases by convention, not by necessity: the named zero-erasure ALU generates 1,458, and admitting the reversible tables lifts it to the full symmetric group",
+          "outcome": "FAILED",
+          "measured": {
+            "named_ALU_group_order_at_width_6": 1458,
+            "named_ALU_closed_form": "2 * 3^W",
+            "reversible_fragment_width_1": 6,
+            "reversible_fragment_width_2": 324,
+            "reversible_fragment_width_3": 12754584,
+            "reversible_fragment_width_4": "194522647344910860816",
+            "reversible_fragment_width_5": "172512988791785396199665263632922083814221660243633706214496",
+            "reversible_fragment_closed_form": "2^W * 3^((3^W - 1)/2)",
+            "closed_form_matches_at_widths": "1 through 5",
+            "symmetric_group_reached": "only at width 1",
+            "width_6_extrapolated_digits": 176,
+            "symmetric_group_729_digits": 1773
+          },
+          "note": "The first clause HELD exactly: 1,458, which is the 729 translations extended by negation, verified by sifting all 1,459 instruction maps through a chain built from two of them. The second clause FAILED, and inverts the conclusion. Admitting every one of AB1's 216 reversible tables at every operand does NOT reach the symmetric group. The orders land on a closed form, 2^W * 3^((3^W-1)/2), matching exactly at widths 1 through 5. Width 1 is the only place reversibility is free -- there the fragment IS S_3. From width 2 the fraction collapses: 324 of 362,880, then 10^-21, then 10^-100. So REVERSIBILITY DOES NOT BUY UNIVERSALITY here, and the eraser is load-bearing rather than a convention of the opcode table -- the same shape as the result that no term over {B,C,W,I} can select. Registered honestly: at width 6 the stabiliser chain does not finish, so that number is the closed form extrapolated and checked for consistency, not measured."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -2430,6 +2527,20 @@
       "claim": "The design intuition inverts between the two bases. In binary, linear operations are cheap and nonlinearity is something you construct by combining controls; in ternary, the simplest one-control conditional is ALREADY nonlinear and linearity is the special case you have to work to obtain -- t_b += t_a is affine and needs deliberate choosing, while \"if t_a equals 1\" is not and comes for free.",
       "evidence": "O1 exhaustively over both fields at one variable; M1/M3 showing 0.119% of reversible 2-trit gates are affine against binary's 100%",
       "asserted_in": "test/test-nonlinearity.js"
+    },
+    {
+      "id": "F-REVERSIBLE-FRAGMENT-CLOSED-FORM",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "The group generated on 3^W accumulator states by every information-preserving instruction -- translation, negation, and all 216 reversible tritwise tables at every operand -- has order exactly 2^W * 3^((3^W - 1)/2). Nobody predicted a closed form; it was read off a ladder of exactly computed orders and then checked against every width the chain could reach.",
+      "evidence": "AB5, widths 1 through 5: 6, 324, 12754584, 194522647344910860816, and a 60-digit value, each matching the formula exactly",
+      "asserted_in": "test/test-erasure.js"
+    },
+    {
+      "id": "F-STATE-BOUNDARY-DECIDES-THE-READING",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "An instruction has two different and equally correct erasure figures depending on where the state boundary is drawn. MIN reads as a single fixed 4.5033 bits when the operand is folded into the state, and as a range from 0 to 9.5098 when the operand is a known parameter -- and the fixed figure is exactly the mean of the range. Neither reading is wrong; the boundary is a modelling choice that must be declared before any number means anything.",
+      "evidence": "AB2, both readings computed side by side for MIN, MAX and CSUM",
+      "asserted_in": "test/test-erasure.js"
     }
   ],
   "traps_encountered": [
@@ -2465,8 +2576,8 @@
     },
     {
       "id": "T-INSTRUMENT-FALSE-VERDICT",
-      "count": 10,
-      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit. Sixth bite: the interconnect rig named its sources `src0_0`, `src1_0`, ... and SEEDED them, without building anything behind them. A seed is an initial value, not a driver -- T5 says reachability starts at rails and only at rails -- so every source resolved to Z on pass one and stayed there. Both topologies routed Z, which read as \"interconnect does not work at all\" rather than \"these are not sources\". The same fact this repository already records as \"an input gates but never sources\", arriving in a form nobody recognised. Seventh bite, and inverted: a TEST CASE accused a correct instrument. The Schreier-Sims verification paired a 3-cycle with a 25-cycle and called the pair \"A_27\"; between them they move 25 of 27 points, so the tool returned 25!/2 -- exactly right for what was actually built -- and was scored WRONG. When a verification case fails, the case is as suspect as the thing it checks. Eighth bite: the sequencer rig called tAdderCell without its TAG, which names every internal node of the cells two tables. All three cells received the tag `undefined`, so their internal trees shared node names and merged into one circuit -- the incrementer resolved to unknown and the sequencer appeared to visit two states instead of twenty-seven. An omitted parameter that looks optional silently welded three circuits together. Ninth bite, in the same phase and pointing the other way: the handshake section counted the two driving values that DISABLE the loop as \"settled cleanly\", which would have reported a self-timed handshake as working on the strength of two circuits in which no handshake occurs. A false positive and a false negative from one tool in one run."
+      "count": 12,
+      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit. Sixth bite: the interconnect rig named its sources `src0_0`, `src1_0`, ... and SEEDED them, without building anything behind them. A seed is an initial value, not a driver -- T5 says reachability starts at rails and only at rails -- so every source resolved to Z on pass one and stayed there. Both topologies routed Z, which read as \"interconnect does not work at all\" rather than \"these are not sources\". The same fact this repository already records as \"an input gates but never sources\", arriving in a form nobody recognised. Seventh bite, and inverted: a TEST CASE accused a correct instrument. The Schreier-Sims verification paired a 3-cycle with a 25-cycle and called the pair \"A_27\"; between them they move 25 of 27 points, so the tool returned 25!/2 -- exactly right for what was actually built -- and was scored WRONG. When a verification case fails, the case is as suspect as the thing it checks. Eighth bite: the sequencer rig called tAdderCell without its TAG, which names every internal node of the cells two tables. All three cells received the tag `undefined`, so their internal trees shared node names and merged into one circuit -- the incrementer resolved to unknown and the sequencer appeared to visit two states instead of twenty-seven. An omitted parameter that looks optional silently welded three circuits together. Ninth bite, in the same phase and pointing the other way: the handshake section counted the two driving values that DISABLE the loop as \"settled cleanly\", which would have reported a self-timed handshake as working on the strength of two circuits in which no handshake occurs. A false positive and a false negative from one tool in one run. Two more, found by reconciling this list against results/07-negative.md, which had one occurrence the manifest never named and lacked two the manifest did: the detector truth table hand-copied from a comment and INVERTED, which produced 36 failures out of 54 -- every one where the middle word disagreed with the selected word and none where they agreed, the exact signature real contention would leave, reading as the publishable headline that the decoded selector cannot read storage. Two views of one list drifted apart in opposite directions, which is what a second copy of a record is for and against. Twelfth bite: AB2s first erasure census folded the operand INTO the state, which is a defensible boundary and not the one AB2 asked about, so MIN read as a single fixed 4.5033 bits when the registered prediction was about a range from 0 to 9.5098 -- a correct computation about a different question, which would have recorded a prediction as FAILED when it held in full."
     },
     {
       "id": "T-PREMISE-NOT-ANSWER",
@@ -2512,6 +2623,11 @@
       "id": "T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE",
       "count": 1,
       "description": "A control signal that is a COMPUTED node rather than a primary input is unknown on the first pass of the fixed point, and unknown conduction is treated as possible -- so on pass one it bridges or breaks everything it gates. Counted ONCE, not twice: B1a predicted exactly this shape for a decoded selector's middle leg in its own registration commit BEFORE the run, which is the protocol working rather than a trap anyone fell into. It bit in C, where nothing in the registration anticipated it: every hold gate in a 27-word array is a decoder output, and all 26 unaddressed words went to X on every write. The cells hold perfectly when hold is a primary input and not at all when it is a decoder output. The fix is not a workaround -- solve the control cone on its own and seed it. The general shape is that a circuit correct at its fixed point can be unreachable from a cold start, and the larger the control fan-out the more it takes with it."
+    },
+    {
+      "id": "T-SCOPE-DECIDES-THE-VERDICT",
+      "count": 2,
+      "description": "A correct computation scored a prediction wrongly because the measurement drew its state boundary somewhere the prediction did not. N1 asked whether a BUILD puts MID on a node when the registered rule was whether the FUNCTION requires it, and scored the detector FORCED while the next section built the same function with zero taps. AB2's first census folded the operand into the state, which is a defensible boundary and not the one AB2 asked about, so MIN came out as a single fixed figure when the prediction was about a range -- the prediction would have been recorded as FAILED when it held in full. The defence is to state the boundary in the registration and to report every reading the question admits rather than one."
     }
   ]
 }

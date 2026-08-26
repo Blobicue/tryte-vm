@@ -66,7 +66,7 @@ cross-reference names a set that does not exist.
 | [`03-sequential.md`](03-sequential.md) — storage, registers, an accumulator | `J` `K` `L` | **rich** |
 | [`04-machine.md`](04-machine.md) — headroom, terminals, memory, interconnect, decode | `H` `B` `C` `A` `T` | **rich** |
 | [`05-algebra.md`](05-algebra.md) — reversibility, universality, nonlinearity, mixing | `D` `M` `O` | **rich** |
-| [`06-economics.md`](06-economics.md) — currencies, and the price of the mid rail | `N` | **rich** |
+| [`06-economics.md`](06-economics.md) — currencies: the price of the mid rail, and the price of erasure | `N` `AB` | **rich** |
 | [`07-negative.md`](07-negative.md) — every failed prediction, and every lying instrument | — | **rich** |
 | [`08-limits.md`](08-limits.md) — what this project does not show | — | seeded |
 | [`99-ledger.md`](99-ledger.md) — the complete record, generated | — | generated |
@@ -97,10 +97,10 @@ anything.
 
 | | |
 |---|---|
-| prediction sets | 27 |
-| registered predictions | 116 — **104 held, 12 failed** |
-| measured but never registered | 21 |
-| defect classes | 16, recurring 35 times |
+| prediction sets | 28 |
+| registered predictions | 121 — **107 held, 14 failed** |
+| measured but never registered | 23 |
+| defect classes | 17, recurring 39 times |
 
 The suite's check count is deliberately **not** repeated here — it lives in
 [`../README.md`](../README.md), where `run-all.js` verifies it, and a second copy

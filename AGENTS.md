@@ -174,6 +174,20 @@ input: find it once, then check it twice thereafter -- settles at k, does not
 settle at k-1. Two solves, not eighty. When an instrument is slow, check whether
 it is searching for something it already knows how to confirm.
 
+`T-SCOPE-DECIDES-THE-VERDICT` **A correct computation scoring a prediction wrongly,
+because the measurement drew its state boundary somewhere the prediction did not.**
+Bit twice. `N1` registered "must some node carry MID for the FUNCTION to compute"
+and the test asked "does this BUILD put MID on a node" -- so it scored the detector
+FORCED while the next section built the same function with zero taps. `AB2`
+registered a classification of opcodes by whether their erasure depends on the
+operand, and the first census folded the operand INTO the state being measured,
+which is a defensible boundary under which the question is not even well-formed:
+MIN came out as a single fixed figure where the prediction spoke of a range. Neither
+instrument computed anything wrong. Declare the boundary in the registration, and
+where a question admits more than one boundary report every reading rather than
+picking one silently -- the tool now prints both, and their relationship (the fixed
+figure is exactly the mean of the range) is itself a result.
+
 `T-CENSUS-COUNTS-ITSELF` **A measurement over a corpus it is then written into.**
 A survey of the manifest for repeated integers failed on its second run, because
 recording the first run's result added those very integers back to the manifest --

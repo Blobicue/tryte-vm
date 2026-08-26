@@ -119,7 +119,7 @@ const T = require('../src/ternary.js');
 const { OPS, BY_CODE } = require('../src/isa.js');
 const { TryteVM } = require('../src/vm.js');
 const { loadInto } = require('../src/assembler.js');
-const { idPerm, groupOrder } = require('./perm-lib.js');
+const { idPerm, groupOrder, chainOf } = require('./perm-lib.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -129,9 +129,16 @@ const MAXBITS = Math.log2(N);             // 9.5098
 const val = i => i + T.TRYTE_MIN;         // state index -> tryte value
 const ix = v => T.wrap(v) - T.TRYTE_MIN;  // tryte value -> state index
 const line = '='.repeat(78);
+
+// Required by a test as well as run from the command line, so the reporting is
+// silent on import and the two expensive sweeps below are skipped. The test
+// re-derives what it asserts from the exported builders rather than trusting a
+// printed table, which is this repository's idiom for every other audit.
+const MAIN = require.main === module;
+const log = (...a) => { if (MAIN) log(...a); };
 const f4 = x => x.toFixed(4);
 
-console.log('ERASURE AUDIT — what this machine destroys, in bits\n');
+log('ERASURE AUDIT — what this machine destroys, in bits\n');
 
 /**
  * Erased information in bits, for a map given as an array image[x] = phi(x).
@@ -159,9 +166,9 @@ function imageSize(image, size) {
  * 0. INSTRUMENT CHECK — before any finding, show the measure reports the two
  *    ends of its own scale and that a wrong answer is visible.
  * ========================================================================== */
-console.log(line);
-console.log('0. INSTRUMENT CHECK');
-console.log(line);
+log(line);
+log('0. INSTRUMENT CHECK');
+log(line);
 {
   const identity = idPerm(N);
   const constant = new Array(N).fill(0);
@@ -169,14 +176,14 @@ console.log(line);
   const eI = erasureOf(identity, N);
   const eC = erasureOf(constant, N);
   const e2 = erasureOf(twoToOne, N);
-  console.log(`  identity over ${N} states        E = ${f4(eI)} bits   (must be 0)`);
-  console.log(`  constant map                     E = ${f4(eC)} bits   (must be ${f4(MAXBITS)})`);
-  console.log(`  two-to-one map                   E = ${f4(e2)} bits   (must be near 1)`);
+  log(`  identity over ${N} states        E = ${f4(eI)} bits   (must be 0)`);
+  log(`  constant map                     E = ${f4(eC)} bits   (must be ${f4(MAXBITS)})`);
+  log(`  two-to-one map                   E = ${f4(e2)} bits   (must be near 1)`);
   const ok = eI === 0 && Math.abs(eC - MAXBITS) < 1e-12 && Math.abs(e2 - 1) < 0.01;
-  console.log(`  scale endpoints correct: ${ok ? 'YES' : 'NO — the measure is wrong, stop here'}`);
+  log(`  scale endpoints correct: ${ok ? 'YES' : 'NO — the measure is wrong, stop here'}`);
   // A three-to-one map must read exactly log2 3, which is the SHL/SHR prediction's unit.
   const threeToOne = Array.from({ length: N }, (_, i) => Math.floor(i / 3));
-  console.log(`  three-to-one map                 E = ${f4(erasureOf(threeToOne, N))} bits   (must be ${f4(Math.log2(3))})`);
+  log(`  three-to-one map                 E = ${f4(erasureOf(threeToOne, N))} bits   (must be ${f4(Math.log2(3))})`);
 }
 
 /* ============================================================================
@@ -185,9 +192,9 @@ console.log(line);
  * The direct analogue of the collision census that separates K from I and S: form
  * every operation of the shape, and count how much each destroys.
  * ========================================================================== */
-console.log('\n' + line);
-console.log('1. AB1 — how many two-input tritwise operations preserve information?');
-console.log(line);
+log('\n' + line);
+log('1. AB1 — how many two-input tritwise operations preserve information?');
+log(line);
 
 const TRITS = [-1, 0, 1];
 
@@ -234,14 +241,15 @@ for (let k = 0; k < 16; k++) {
   if (cols.every(c => new Set(c).size === 2)) binaryReversible++;
 }
 
-console.log(`  ternary: ${ternaryReversible} of 19,683 tables are information-preserving  (${(100 * ternaryReversible / 19683).toFixed(3)}%)`);
-console.log(`  binary:  ${binaryReversible} of 16 tables are information-preserving      (${(100 * binaryReversible / 16).toFixed(1)}%)`);
-console.log(`  ratio of fractions: binary is ${((binaryReversible / 16) / (ternaryReversible / 19683)).toFixed(1)}x more likely to preserve`);
-console.log(`  of the ${ternaryReversible} reversible: ${ternaryAffine} affine over GF(3), ${ternaryReversible - ternaryAffine} NOT affine`);
+log(`  ternary: ${ternaryReversible} of 19,683 tables are information-preserving  (${(100 * ternaryReversible / 19683).toFixed(3)}%)`);
+log(`  binary:  ${binaryReversible} of 16 tables are information-preserving      (${(100 * binaryReversible / 16).toFixed(1)}%)`);
+log(`  ratio of fractions: binary is ${((binaryReversible / 16) / (ternaryReversible / 19683)).toFixed(1)}x more likely to preserve`);
+log(`  of the ${ternaryReversible} reversible: ${ternaryAffine} affine over GF(3), ${ternaryReversible - ternaryAffine} NOT affine`);
 
 // Instrument check on the column criterion: verify it against a direct sweep of
-// the 531,441-pair space on a sample, rather than trusting the argument.
-{
+// the 531,441-pair space on a sample, rather than trusting the argument. Skipped on
+// import — 100 full pair sweeps is half a minute, and the test does its own.
+if (MAIN) {
   let agree = 0, checked = 0;
   for (let k = 0; k < 19683; k += 197) {
     const t = tableOf(k);
@@ -254,15 +262,15 @@ console.log(`  of the ${ternaryReversible} reversible: ${ternaryAffine} affine o
     if (byCriterion === bySweep) agree++;
     checked++;
   }
-  console.log(`  column criterion vs a full 531,441-pair sweep: ${agree}/${checked} agree`);
+  log(`  column criterion vs a full 531,441-pair sweep: ${agree}/${checked} agree`);
 }
 
 /* ============================================================================
  * 2. AB2 — the ISA census.
  * ========================================================================== */
-console.log('\n' + line);
-console.log('2. AB2 — every opcode, and what it destroys');
-console.log(line);
+log('\n' + line);
+log('2. AB2 — every opcode, and what it destroys');
+log(line);
 
 /**
  * The datapath map for one opcode at one value of its second input.
@@ -306,6 +314,46 @@ function datapathMap(name, v) {
   return { img, size };
 }
 
+/**
+ * The same instruction seen from the OTHER side of the state boundary: the map on
+ * the accumulator alone, with the second input fixed at a known value v, plus a
+ * flag for whether a memory word was destroyed on the way.
+ *
+ * INSTRUMENT REPAIR, recorded rather than hidden. The first version of this section
+ * had only datapathMap above, and it silently answered a different question than the
+ * one AB2 asked. Under the pair state an address-operand instruction has ONE erasure
+ * figure, because its operand is part of the state being censused rather than a
+ * parameter of the map — so MIN came out as "erases a fixed 4.5033 bits" when the
+ * prediction was about MIN erasing a DIFFERENT amount for different operands. Both
+ * readings are correct and they are readings of different maps. Reporting only one
+ * of them would have scored AB2 against a question it was not asking.
+ */
+function accMap(name, v) {
+  if (['TGATE', 'LOADX', 'STOREX', 'TOP', 'TOPC'].includes(name)) return null;
+  const img = new Int32Array(N);
+  for (let a = 0; a < N; a++) {
+    const A = val(a);
+    let A2 = A;
+    switch (name) {
+      case 'LOADI': case 'LOAD': A2 = v;                 break;
+      case 'ADD':   case 'ADDI': A2 = T.add(A, v);       break;
+      case 'SUB':                A2 = T.sub(A, v);       break;
+      case 'NEG':                A2 = T.neg(A);          break;
+      case 'MIN':                A2 = T.tMIN(A, v);      break;
+      case 'MAX':                A2 = T.tMAX(A, v);      break;
+      case 'CSUM':               A2 = T.tCLAMPSUM(A, v); break;
+      case 'SHL':                A2 = T.shiftLeft(A, v); break;
+      case 'SHR':                A2 = T.shiftRight(A, v); break;
+      case 'IN':                 A2 = 0;                 break;
+      default:                   A2 = A;                 break;   // datapath untouched
+    }
+    img[a] = ix(A2);
+  }
+  return img;
+}
+/** Instructions that overwrite a memory word, destroying a full tryte of prior state. */
+const WRITES_WORD = name => name === 'STORE' || name === 'STOREX';
+
 // The operand range each opcode is actually swept over, and why.
 const SWEEP = {
   SHL: [0, 1, 2, 3, 4, 5, 6],   // 3^n overflows a double well before the tryte range
@@ -315,53 +363,70 @@ const fullSweep = Array.from({ length: N }, (_, i) => val(i));
 
 const census = [];
 for (const name of Object.keys(OPS)) {
-  const vs = OPS[name].operand === 'addr' ? [0] : (SWEEP[name] || fullSweep);
-  let min = Infinity, max = -Infinity, sum = 0, imgAt = null, n = 0;
-  let family = false;
+  const pair = datapathMap(name, 0);
+  if (!pair) { census.push({ name, family: true }); continue; }
+  const pairE = OPS[name].operand === 'addr'
+    ? erasureOf(pair.img, pair.size)
+    : null;                                   // an immediate is text, so there is no pair
+  const vs = SWEEP[name] || fullSweep;
+  let min = Infinity, max = -Infinity, sum = 0, n = 0;
   for (const v of vs) {
-    const m = datapathMap(name, v);
-    if (!m) { family = true; break; }
-    const e = erasureOf(m.img, m.size);
+    const img = accMap(name, v);
+    const e = erasureOf(img, N) + (WRITES_WORD(name) ? MAXBITS : 0);
     if (e < min) min = e;
-    if (e > max) { max = e; imgAt = imageSize(m.img, m.size); }
+    if (e > max) max = e;
     sum += e; n++;
   }
-  census.push(family
-    ? { name, family: true }
-    : { name, min, max, mean: sum / n, states: OPS[name].operand === 'addr' ? PAIRS : N, imgAt, sweep: n });
+  census.push({ name, pairE, min, max, mean: sum / n, sweep: n, writesWord: WRITES_WORD(name) });
 }
 
-console.log('  opcode   state space   min bits   mean bits   max bits   class');
-console.log('  ' + '-'.repeat(70));
+log('  Two readings, because the state boundary decides the answer:');
+log('    pair E   — the whole datapath (A and the addressed word), operand INSIDE the state');
+log('    acc      — the accumulator alone with the operand fixed, plus 9.51 for a word overwritten');
+log('');
+log('  opcode     pair E     acc min   acc mean    acc max   class (accumulator reading)');
+log('  ' + '-'.repeat(76));
 const CLASS = r => {
   if (r.family) return 'family / out of scope';
   if (r.max === 0) return 'preserves';
-  if (r.min === r.max) return 'erases, fixed';
+  if (Math.abs(r.min - r.max) < 1e-12) return 'erases, fixed';
   return 'erases, operand-dependent';
 };
 for (const r of census) {
-  if (r.family) { console.log(`  ${r.name.padEnd(8)} ${'—'.padStart(11)}   ${'—'.padStart(8)}   ${'—'.padStart(9)}   ${'—'.padStart(8)}   ${CLASS(r)}`); continue; }
-  console.log(`  ${r.name.padEnd(8)} ${String(r.states).padStart(11)}   ${f4(r.min).padStart(8)}   ${f4(r.mean).padStart(9)}   ${f4(r.max).padStart(8)}   ${CLASS(r)}`);
+  if (r.family) { log(`  ${r.name.padEnd(8)} ${'—'.padStart(9)}   ${'—'.padStart(9)}  ${'—'.padStart(9)}  ${'—'.padStart(9)}   ${CLASS(r)}`); continue; }
+  log(`  ${r.name.padEnd(8)} ${(r.pairE === null ? '—' : f4(r.pairE)).padStart(9)}   ${f4(r.min).padStart(9)}  ${f4(r.mean).padStart(9)}  ${f4(r.max).padStart(9)}   ${CLASS(r)}`);
 }
 
-const preserves = census.filter(r => !r.family && r.max === 0).map(r => r.name);
-const fixedMax = census.filter(r => !r.family && r.min === r.max && r.max > 0).map(r => r.name);
-const varying = census.filter(r => !r.family && r.min !== r.max).map(r => r.name);
-const families = census.filter(r => r.family).map(r => r.name);
-console.log(`\n  preserving (${preserves.length}): ${preserves.join(' ')}`);
-console.log(`  erasing a fixed amount (${fixedMax.length}): ${fixedMax.join(' ')}`);
-console.log(`  erasing an operand-dependent amount (${varying.length}): ${varying.join(' ')}`);
-console.log(`  families / three-place (${families.length}): ${families.join(' ')}`);
+const byClass = c => census.filter(r => CLASS(r) === c).map(r => r.name);
+const preserves = byClass('preserves');
+const fixedMax = byClass('erases, fixed');
+const varying = byClass('erases, operand-dependent');
+const families = byClass('family / out of scope');
+log(`\n  ACCUMULATOR READING — the one AB2 was asking about:`);
+log(`    preserving (${preserves.length}): ${preserves.join(' ')}`);
+log(`    erasing a fixed amount (${fixedMax.length}): ${fixedMax.join(' ')}`);
+log(`    erasing an operand-dependent amount (${varying.length}): ${varying.join(' ')}`);
+log(`    families / three-place (${families.length}): ${families.join(' ')}`);
+
+const pairVarying = census.filter(r => !r.family && r.pairE !== null && Math.abs(r.min - r.max) > 1e-12).map(r => r.name);
+log(`\n  PAIR READING — the same opcodes, operand folded into the state:`);
+log(`    opcodes that are operand-dependent on the accumulator but a SINGLE`);
+log(`    figure on the pair: ${pairVarying.join(' ') || '(none)'}`);
+for (const nm of pairVarying) {
+  const r = census.find(x => x.name === nm);
+  log(`      ${nm.padEnd(6)} pair ${f4(r.pairE)} bits   vs accumulator ${f4(r.min)} .. ${f4(r.max)}, mean ${f4(r.mean)}`);
+}
+
 const storeRow = census.find(r => r.name === 'STORE');
-console.log(`\n  STORE, which never writes the accumulator: ${f4(storeRow.max)} bits erased — ` +
-  `${storeRow.max >= MAXBITS - 1e-9 ? 'the maximum' : 'NOT the maximum'}`);
+log(`\n  STORE, which never writes the accumulator: ${f4(storeRow.pairE)} bits erased on the pair — ` +
+  `${storeRow.pairE >= MAXBITS - 1e-9 ? 'the maximum' : 'NOT the maximum'}`);
 
 /* ============================================================================
  * 3. AB3 — data dependence.
  * ========================================================================== */
-console.log('\n' + line);
-console.log('3. AB3 — the same instruction, a different price');
-console.log(line);
+log('\n' + line);
+log('3. AB3 — the same instruction, a different price');
+log(line);
 
 for (const name of ['MIN', 'MAX', 'CSUM']) {
   // Sweep the operand explicitly, over the accumulator map alone, so the corners
@@ -376,36 +441,43 @@ for (const name of ['MIN', 'MAX', 'CSUM']) {
   };
   let min = Infinity, max = -Infinity, sum = 0;
   for (let w = 0; w < N; w++) { const e = at(val(w)); if (e < min) min = e; if (e > max) max = e; sum += e; }
-  console.log(`  ${name.padEnd(5)} over all 729 operands:  min ${f4(min)}   mean ${f4(sum / N)}   max ${f4(max)} bits`);
-  console.log(`         at operand +364 (all +1): ${f4(at(T.TRYTE_MAX))}    at -364 (all -1): ${f4(at(T.TRYTE_MIN))}    at 0: ${f4(at(0))}`);
+  log(`  ${name.padEnd(5)} over all 729 operands:  min ${f4(min)}   mean ${f4(sum / N)}   max ${f4(max)} bits`);
+  log(`         at operand +364 (all +1): ${f4(at(T.TRYTE_MAX))}    at -364 (all -1): ${f4(at(T.TRYTE_MIN))}    at 0: ${f4(at(0))}`);
 }
 
-console.log('');
+log('');
 for (let n = 0; n <= 6; n++) {
   const sh = fn => { const img = new Int32Array(N); for (let a = 0; a < N; a++) img[a] = ix(fn(val(a), n)); return erasureOf(img, N); };
   const l = sh(T.shiftLeft), r = sh(T.shiftRight);
-  console.log(`  SHL ${n}: ${f4(l)} bits    SHR ${n}: ${f4(r)} bits    ${n} * log2 3 = ${f4(n * Math.log2(3))}` +
+  log(`  SHL ${n}: ${f4(l)} bits    SHR ${n}: ${f4(r)} bits    ${n} * log2 3 = ${f4(n * Math.log2(3))}` +
     `    ${Math.abs(l - r) < 1e-12 ? 'identical' : 'DIFFER'}`);
 }
 
 /* ============================================================================
  * 4. AB4 — is the charge in the object, the way a tick is?
  * ========================================================================== */
-console.log('\n' + line);
-console.log('4. AB4 — actual erasure along a trace, against the bound from the text');
-console.log(line);
+log('\n' + line);
+log('4. AB4 — actual erasure along a trace, against the bound from the text');
+log(line);
 
-// Worst case per opcode, over the operand range swept above. This is what a static
-// reader of the program text could charge without running it.
+// Worst case per opcode over its operand range: what a static reader of the program
+// text could charge WITHOUT running it. This is the tick's position — a price
+// computed from the artifact alone.
 const worst = {};
 for (const r of census) if (!r.family) worst[r.name] = r.max;
 
-/** Erasure of one instruction, given the opcode name and the effective second input. */
+/**
+ * Erasure actually incurred by one executed instruction: the accumulator map at the
+ * operand the instruction really saw, plus a full tryte for any memory word it
+ * overwrote. The accumulator is the state the charge is levied on, and the operand
+ * is known at that point in the trace — it came from the text or from data already
+ * present. Cheap by construction: 729 states, not 531,441.
+ */
 function erasureAt(name, v) {
   if (worst[name] === undefined) return null;             // family / three-place
-  const m = datapathMap(name, v);
-  if (!m) return null;
-  return erasureOf(m.img, m.size);
+  const img = accMap(name, v);
+  if (!img) return null;
+  return erasureOf(img, N) + (WRITES_WORD(name) ? MAXBITS : 0);
 }
 
 const progDir = path.join(__dirname, '..', 'programs');
@@ -433,58 +505,139 @@ for (const file of fs.readdirSync(progDir).filter(f => f.endsWith('.tasm')).sort
   rows.push({ file, steps, actual, bound, skipped, note });
 }
 
-console.log('  program              steps   actual bits   text bound   ratio   unpriced');
-console.log('  ' + '-'.repeat(74));
+log('  program              steps   actual bits   text bound   ratio   unpriced');
+log('  ' + '-'.repeat(74));
 for (const r of rows) {
   const ratio = r.actual > 0 ? (r.bound / r.actual).toFixed(2) : '—';
-  console.log(`  ${r.file.padEnd(20)} ${String(r.steps).padStart(5)}   ${f4(r.actual).padStart(11)}   ${f4(r.bound).padStart(10)}   ${ratio.padStart(5)}   ${String(r.skipped).padStart(8)}${r.note ? '   (' + r.note + ')' : ''}`);
+  log(`  ${r.file.padEnd(20)} ${String(r.steps).padStart(5)}   ${f4(r.actual).padStart(11)}   ${f4(r.bound).padStart(10)}   ${ratio.padStart(5)}   ${String(r.skipped).padStart(8)}${r.note ? '   (' + r.note + ')' : ''}`);
 }
 const strictlyBelow = rows.filter(r => r.actual > 0 && r.bound > r.actual + 1e-9).length;
 const priced = rows.filter(r => r.actual > 0).length;
 const best = rows.filter(r => r.actual > 0).reduce((m, r) => Math.max(m, r.bound / r.actual), 0);
-console.log(`\n  programs where the text bound exceeds the actual charge: ${strictlyBelow} of ${priced}`);
-console.log(`  largest overcharge from reading the text alone: ${best.toFixed(2)}x`);
+log(`\n  programs where the text bound exceeds the actual charge: ${strictlyBelow} of ${priced}`);
+log(`  largest overcharge from reading the text alone: ${best.toFixed(2)}x`);
 
 /* ============================================================================
  * 5. AB5 — what the reversible fragment can do.
  * ========================================================================== */
-console.log('\n' + line);
-console.log('5. AB5 — the group generated by the instructions that erase nothing');
-console.log(line);
+log('\n' + line);
+log('5. AB5 — the group generated by the instructions that erase nothing');
+log(line);
 
 const permOf = fn => { const g = new Array(N); for (let a = 0; a < N; a++) g[a] = ix(fn(val(a))); return g; };
 
-// The named ALU's zero-erasure accumulator maps, over every operand.
-const namedGens = [];
+/*
+ * INSTRUMENT NOTE, and the reason perm-lib now returns a chain rather than a number.
+ * A Schreier-Sims chain on 729 points does not finish in usable time when handed the
+ * 1,459 instruction maps directly — the closure loop is quadratic in the strong
+ * generating set. It finishes in seconds from a handful. So the chain is built from
+ * a SMALL set and then every one of the 1,459 is sifted through it: if all of them
+ * sift to the identity, the small set generates a group containing all of them, and
+ * since each small generator IS one of the instruction maps the two groups are
+ * equal. Membership is the cheap direction, and this turns "these few suffice" from
+ * an argument into a measurement.
+ */
+const allNamed = [];
 for (let w = 0; w < N; w++) {
-  namedGens.push(permOf(A => T.add(A, val(w))));
-  namedGens.push(permOf(A => T.sub(A, val(w))));
+  allNamed.push(permOf(A => T.add(A, val(w))));
+  allNamed.push(permOf(A => T.sub(A, val(w))));
 }
-namedGens.push(permOf(A => T.neg(A)));
-const namedOrder = groupOrder(namedGens, N);
-console.log(`  named zero-erasure ALU (ADD, ADDI, SUB, NEG over every operand)`);
-console.log(`    generators: ${namedGens.length}`);
-console.log(`    group order: ${namedOrder}`);
-console.log(`    729 translations x negation would be: ${729n * 2n}`);
+allNamed.push(permOf(A => T.neg(A)));
 
-// Now admit the reversible TOP tables from AB1.
-const topGens = namedGens.slice();
-for (const t of reversibleTables)
-  for (const w of [T.TRYTE_MIN, 0, T.TRYTE_MAX, 1, -1])
-    topGens.push(permOf(A => T.ttable(t, A, w)));
-const topOrder = groupOrder(topGens, N);
+const seedNamed = [permOf(A => T.add(A, 1)), permOf(A => T.neg(A))];   // ADDI 1, NEG
+const namedChain = chainOf(seedNamed, N);
+const namedCovered = allNamed.filter(g => namedChain.contains(g)).length;
+log(`  named zero-erasure ALU: ADD, ADDI, SUB, NEG over every operand`);
+log(`    instruction maps: ${allNamed.length}`);
+log(`    chain built from ${seedNamed.length} of them (ADDI 1, NEG)`);
+log(`    of the ${allNamed.length} maps, ${namedCovered} sift to the identity through that chain`);
+log(`    so the two generate the same group: ${namedCovered === allNamed.length ? 'YES' : 'NO'}`);
+log(`    group order: ${namedChain.order}`);
+log(`    729 translations extended by negation would be: ${729n * 2n}`);
+
+/*
+ * Now admit the reversible TOP tables from AB1, and sweep the accumulator WIDTH.
+ *
+ * The width sweep is not decoration. AB5 predicted the full symmetric group at
+ * width 6 and the chain would not finish there, which is the honest signature of a
+ * prediction registered beyond the instrument's reach. Running the same
+ * construction at widths 1..5 answered the question anyway — the orders are small
+ * enough to compute exactly, they land on a closed form, and the closed form is
+ * then a prediction about width 6 that CAN be checked by containment.
+ */
 const factorial = n => { let r = 1n; for (let i = 2n; i <= BigInt(n); i++) r *= i; return r; };
+
+function arena(W) {
+  const M = 3 ** W, mid = (M - 1) / 2;
+  const tr = s => { const t = []; let r = s; for (let i = 0; i < W; i++) { t.push(r % 3); r = Math.floor(r / 3); } return t; };
+  const st = t => t.reduce((a, v, i) => a + v * 3 ** i, 0);
+  const bal = s => tr(s).reduce((a, v, i) => a + (v - 1) * 3 ** i, 0);
+  const pm = f => Array.from({ length: M }, (_, s) => f(s));
+  return {
+    M, tr,
+    named: [pm(s => ((bal(s) + 1 + mid) % M + M) % M), pm(s => st(tr(s).map(v => 2 - v)))],
+    table: (t, mt) => pm(s => st(tr(s).map((a, i) => TRITS.indexOf(t[3 * a + mt[i]])))),
+  };
+}
+
+/**
+ * The reversible fragment at accumulator width W: the group generated on 3^W states
+ * by the named zero-erasure maps plus every reversible TOP table at every operand.
+ *
+ * Exported so the test can re-derive the ladder at the widths it can afford. Width 5
+ * takes about a minute and width 6 does not finish, which is the honest reason AB5's
+ * second half is answered by a closed form checked at five widths rather than by a
+ * single number at the width the machine actually has.
+ */
+function reversibleFragment(W) {
+  const A = arena(W);
+  const gens = A.named.slice();
+  for (const t of reversibleTables) for (let m = 0; m < A.M; m++) gens.push(A.table(t, A.tr(m)));
+  return {
+    W, M: A.M,
+    named: chainOf(A.named, A.M).order,
+    full: chainOf(gens, A.M).order,
+    SN: factorial(A.M),
+    closed: (2n ** BigInt(W)) * (3n ** BigInt((3 ** W - 1) / 2)),
+  };
+}
+
+log(`\n  plus the ${reversibleTables.length} reversible TOP tables from AB1, swept by accumulator width`);
+log('   width   states   named ALU   reversible fragment            S_N digits   fraction of S_N');
+log('  ' + '-'.repeat(88));
+const ladder = [];
+for (let W = 1; MAIN && W <= 5; W++) {
+  const r = reversibleFragment(W);
+  const frac = Math.round(Math.log10(Number(r.full) || 1) - (r.SN.toString().length - 1));
+  ladder.push(r);
+  const shown = r.full.toString().length > 26 ? r.full.toString().slice(0, 23) + '...' : r.full.toString();
+  log(`   ${String(W).padStart(5)}   ${String(r.M).padStart(6)}   ${String(r.named).padStart(9)}   ${shown.padEnd(28)}   ${String(r.SN.toString().length).padStart(10)}   ${Number.isFinite(frac) ? '10^' + frac : 'below 10^-300'}`);
+}
+
+log('\n  the closed form the ladder lands on:  |G_W| = 2^W * 3^((3^W - 1)/2)');
+for (const r of ladder)
+  log(`    W=${r.W}: measured ${r.full}   closed form ${r.closed}   ${r.full === r.closed ? 'MATCH' : 'DIFFERS'}`);
+const allMatch = ladder.every(r => r.full === r.closed);
+log(`  every measured width matches: ${allMatch ? 'YES' : 'NO'}`);
+log(`  named ALU is 2 * 3^W at every width: ${ladder.every(r => r.named === 2n * 3n ** BigInt(r.W)) ? 'YES' : 'NO'}`);
+
+const W6 = (2n ** 6n) * (3n ** 364n);
 const FULL = factorial(N);
-console.log(`\n  plus the ${reversibleTables.length} reversible TOP tables`);
-console.log(`    generators: ${topGens.length}`);
-console.log(`    group order has ${topOrder.toString().length} digits`);
-console.log(`    729! has ${FULL.toString().length} digits`);
-console.log(`    is the full symmetric group: ${topOrder === FULL ? 'YES' : 'NO'}`);
-console.log(`    is the alternating group:    ${topOrder === FULL / 2n ? 'YES' : 'NO'}`);
+log(`\n  extrapolated to the real accumulator, W=6: 2^6 * 3^364`);
+log(`    = a number with ${W6.toString().length} digits`);
+log(`    729! has ${FULL.toString().length} digits`);
+log(`    so the reversible fragment is about 10^-${FULL.toString().length - W6.toString().length} of all permutations`);
+log(`  AB5 predicted the FULL symmetric group at W=6. At every width the sweep`);
+log(`  could reach, it is not close: reversibility does not buy universality.`);
 
-console.log('\n' + line);
-console.log('Registered predictions AB1-AB5 are in this file\'s docstring. Outcomes go to');
-console.log('FINDINGS.json and are asserted in test/test-erasure.js.');
-console.log(line);
+log('\n' + line);
+log('Registered predictions AB1-AB5 are in this file\'s docstring. Outcomes go to');
+log('FINDINGS.json and are asserted in test/test-erasure.js.');
+log(line);
 
-module.exports = { erasureOf, imageSize, datapathMap, erasureAt, census, reversibleTables, MAXBITS };
+module.exports = {
+  erasureOf, imageSize, datapathMap, accMap, erasureAt, WRITES_WORD,
+  census, reversibleTables, tableOf, columnOf, isBijection, arena,
+  reversibleFragment, factorial, programRows: rows, MAXBITS, N, PAIRS,
+  ternaryReversible, ternaryAffine, binaryReversible,
+};

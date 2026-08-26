@@ -13,7 +13,7 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-Twenty-seven prediction sets, **116 registered predictions, 104 held, 12 failed.** Sixteen
+Twenty-eight prediction sets, **121 registered predictions, 107 held, 14 failed.** Seventeen
 distinct failure classes, which bit **35 times** between them. Twenty-one findings
 measured but never registered, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
@@ -147,7 +147,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace the twenty-seven sets and they form very nearly
+fanned out; the *frontier did not*. Trace the twenty-eight sets and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from
@@ -214,7 +214,7 @@ wasteful when it does not.
 
 ## The failure catalogue, off ternary
 
-These are the sixteen classes that actually bit, stated so they transfer. The count
+These are the seventeen classes that actually bit, stated so they transfer. The count
 is how many times each recurred *after* being named — which is itself a measure of
 how well naming a thing prevents it.
 

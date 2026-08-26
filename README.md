@@ -4,12 +4,12 @@
 
 **A working computer that counts in three states instead of two** — core
 arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
-assembly, transistors underneath it, and twenty-seven audits establishing exactly what
+assembly, transistors underneath it, and twenty-eight audits establishing exactly what
 its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
 before it was measured, in its own commit, and every failed prediction was kept.
-One hundred and sixteen predictions, one hundred and four held, twelve failed —
+One hundred and twenty-one predictions, one hundred and seven held, fourteen failed —
 and the twelve produced more than the hundred and four. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
@@ -24,7 +24,7 @@ node src/run.js programs/multiply.tasm 7 5
 
 | | |
 |---|---|
-| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + twenty-seven audits |
+| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + twenty-eight audits |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
 | **What was found** | [`results/`](results/) — every result keyed by subject, with a generated ledger of every prediction |
 | **What is not built** | [`design/`](design/) — interconnect, decode and sequencing, enumerated before anything is chosen, and [`design/12-roadmap.md`](design/12-roadmap.md) for the order to build them in |
@@ -54,7 +54,7 @@ programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
 design/      the design phase for the machine that does not exist yet
 results/     the same corpus keyed by SUBJECT rather than by date, plus 99-ledger.md
-tools/       the twenty-seven audits, each with its registered predictions
+tools/       the twenty-eight audits, each with its registered predictions
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
 build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
@@ -64,7 +64,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-Twenty-seven prediction sets, registered before their runs. **104 held, 12 failed** — the
+Twenty-eight prediction sets, registered before their runs. **107 held, 14 failed** — the
 failures are kept, and four of them produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in

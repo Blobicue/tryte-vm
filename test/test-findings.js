@@ -172,7 +172,13 @@ console.log('\n=== 4. CHRONOLOGY — registration really came first ===');
   if (!git) {
     check('git history unavailable, chronology unchecked (not a pass)', false, 'no .git');
   } else {
+    // PENDING is the manifest's own word for 'the results commit exists, the commit
+    // that pins its hash does not yet' -- the reachability check below already skips
+    // it and this one never learned to, so a results commit could not be cut without
+    // failing its own suite. Skipped here, and bounded by the check underneath so it
+    // cannot quietly become a permanent hole.
     for (const s of M.prediction_sets) {
+      if (s.results_at === 'PENDING') continue;
       let ok = false, why = '';
       try {
         run(['cat-file', '-e', `${s.registered_at}^{commit}`]);
@@ -181,6 +187,13 @@ console.log('\n=== 4. CHRONOLOGY — registration really came first ===');
         ok = true;
       } catch (e) { why = e.message.split('\n')[0]; }
       check(`set ${s.id}: ${s.registered_at} precedes ${s.results_at}`, ok, why);
+    }
+    {
+      const pending = M.prediction_sets.filter(s => s.results_at === 'PENDING');
+      const last = M.prediction_sets[M.prediction_sets.length - 1];
+      check('an unpinned results_at is allowed only on the newest set, and only one of them',
+        pending.length === 0 || (pending.length === 1 && pending[0] === last),
+        pending.map(s => s.id).join(' ') || '');
     }
     check('no registration commit contains its own result', (() => {
       // The registering commit for the P set must not mention the number it went

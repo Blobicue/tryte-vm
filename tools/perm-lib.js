@@ -34,7 +34,7 @@ const parity = g => {
  * set near n log n instead of letting it square at every level. The naive version
  * without sifting reaches tens of thousands of generators by level three.
  */
-function groupOrder(gens, n) {
+function chainOf(gens, n) {
   const base = [], S = [], T = [];
   const rebuild = i => {
     const tr = new Array(n).fill(null);
@@ -90,7 +90,16 @@ function groupOrder(gens, n) {
   }
   let order = 1n;
   for (let i = 0; i < base.length; i++) order *= BigInt(T[i].filter(Boolean).length);
-  return order;
+  // contains() is why the chain is returned rather than just its order: a group on
+  // 729 points cannot be built from 1,459 generators in reasonable time, but it CAN
+  // be built from a handful and then have all 1,459 sifted through it. Membership is
+  // the cheap direction, and it makes "this small set generates the same group" a
+  // measurement rather than an argument.
+  const contains = g => isId(sift(g).h);
+  return { order, contains, base };
 }
 
-module.exports = { idPerm, mul, inv, isId, parity, groupOrder };
+/** Order alone, for callers that do not need membership. */
+const groupOrder = (gens, n) => chainOf(gens, n).order;
+
+module.exports = { idPerm, mul, inv, isId, parity, groupOrder, chainOf };
