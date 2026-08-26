@@ -41,7 +41,8 @@
     "audit:midprice": "node tools/midrail-price-audit.js",
     "ledger": "node tools/render-ledger.js --write",
     "audit:decode": "node tools/decode-audit.js",
-    "audit:sequencer": "node tools/sequencer-audit.js"
+    "audit:sequencer": "node tools/sequencer-audit.js",
+    "audit:erasure": "node tools/erasure-audit.js"
   },
   "license": "MIT",
   "private": true
