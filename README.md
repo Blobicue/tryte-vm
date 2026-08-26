@@ -4,13 +4,13 @@
 
 **A working computer that counts in three states instead of two** — core
 arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
-assembly, transistors underneath it, and twenty-four audits establishing exactly what
+assembly, transistors underneath it, and twenty-five audits establishing exactly what
 its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
 before it was measured, in its own commit, and every failed prediction was kept.
-One hundred and four predictions, ninety-four held, ten failed — and the ten
-produced more than the ninety-four. That loop is written up separately in
+One hundred and eight predictions, ninety-seven held, eleven failed — and the
+eleven produced more than the ninety-seven. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
 **899 checks**, all passing. Every number below is recomputed by one of them,
@@ -24,7 +24,7 @@ node src/run.js programs/multiply.tasm 7 5
 
 | | |
 |---|---|
-| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + twenty-four audits |
+| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + twenty-five audits |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
 | **What is not built** | [`design/`](design/) — interconnect, decode and sequencing, enumerated before anything is chosen, and [`design/12-roadmap.md`](design/12-roadmap.md) for the order to build them in |
 | **What is known** | [`.claude/knowledge/doctrees/tryte-vm/`](.claude/knowledge/doctrees/tryte-vm/) — 13 pillars, each declaring how well mapped it is |
@@ -52,7 +52,7 @@ src/         device.js (switch-level transistors -- the layer BELOW the arithmet
 programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
 design/      the design phase for the machine that does not exist yet
-tools/       the twenty-four audits, each with its registered predictions
+tools/       the twenty-five audits, each with its registered predictions
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
 build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
@@ -62,7 +62,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-Twenty-four prediction sets, registered before their runs. **94 held, 10 failed** — the
+Twenty-five prediction sets, registered before their runs. **97 held, 11 failed** — the
 failures are kept, and four of the five produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
@@ -94,6 +94,7 @@ with registering commits and the tests that assert each one, in
 | **D1–D4** | which self-referencing ternary maps mix at all — a hashing question | 2 held, **D3 and D4 failed** |
 | **M0–M3** | reversible universality: ternary at two operands, binary at none | all held |
 | **O1–O4** | what that advantage is worth in switches — and where it comes from | all held |
+| **N1–N4** | pricing the free mid rail, the model's own largest assumption | 3 held, **N1 failed** |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:
@@ -135,6 +136,7 @@ npm run audit:interconnect    # I0 against I2, and where they actually cross
 npm run audit:iterhash        # which self-referencing ternary maps mix, and which cannot
 npm run audit:reversible      # how many operands ternary needs for reversible universality
 npm run audit:nonlinearity    # what a born-nonlinear conditional actually costs
+npm run audit:midprice        # how much of this project rests on the free mid rail
 npm run budget                # what the machine costs, parametric in how much memory
 ```
 

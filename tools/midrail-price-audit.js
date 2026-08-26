@@ -138,6 +138,24 @@ console.log('--- N1  which taps are forced, and which are chosen ---');
   }
   const one = cost(n => cell(n, 'x', 'd', 'q', 'we', 'hold'));
   console.log(`      storage cell ${one.switches} sw, ${one.midRailConnections} taps — two sti inverters, both trit-valued: FORCED`);
+  console.log('');
+  console.log('      N1 FAILED, two ways, and the second is the interesting one.');
+  console.log('');
+  console.log('      (i)  tmux and dmux were predicted to "carry no tap of their own and');
+  console.log('           need none". They show 1 and 2 — because this rig wires their');
+  console.log('           SOURCES to vss/vmid/vdd, and the vmid source is the tap. With');
+  console.log('           abstract sources they are 4 and 3 switches at zero taps. Both');
+  console.log('           readings are true of different questions: a selector has no tap');
+  console.log('           of its own, and acquires one the moment it must be able to pass');
+  console.log('           MID. The prediction did not say which question it was asking.');
+  console.log('');
+  console.log('      (ii) isMid is scored FORCED and N2 proves it is not. The test asks');
+  console.log('           "does THIS BUILD put MID on a node", which is not the registered');
+  console.log('           rule — the rule was "must some node carry MID for the FUNCTION to');
+  console.log('           compute". A circuit that happens to use the mid rail is not a');
+  console.log('           circuit that needs it, and the counterexample was sitting in the');
+  console.log('           next section the whole time. Distinguishing the two needs a search');
+  console.log('           over equivalent circuits, which this test does not do.');
 }
 
 console.log('\n--- N2  a detector with no mid tap at all ---');
@@ -173,27 +191,35 @@ console.log('\n--- N2  a detector with no mid tap at all ---');
   }
   console.log(`      dmux driven by each, all ${3 ** 4} (select x three sources): ${bad} differences`);
 
-  // And the whole decoded adder, rebuilt on the variant.
-  const swap = n => {
-    const orig = D.isMid;
-    for (let i = 0; i < 6; i++) { /* dRippleAdder builds its own detectors */ }
-    return orig;
-  };
-  const ref = new D.Net(); D.dRippleAdder(ref, 6);
-  let sums = 0, wrong = 0;
-  for (let a2 = -40; a2 <= 40; a2 += 7) for (let b2 = -40; b2 <= 40; b2 += 11) {
-    const inp = { cin: 0 };
-    T.toTrits(a2).forEach((t, i) => { inp[`a${i}`] = t; });
-    T.toTrits(b2).forEach((t, i) => { inp[`b${i}`] = t; });
-    const sol = ref.solve(inp, 60);
-    const got = T.fromTrits(Array.from({ length: 6 }, (_, i) => sol[`s${i}`]));
-    sums++; if (got !== T.wrap(a2 + b2)) wrong++;
+  // The consumer PATTERNS, enumerated by reading every use of a detector output in
+  // the repository. There are exactly two, and both gate at threshold MID:
+  //   1. dmux's middle arm         n(selMid, MID, mid, out)
+  //   2. the decoder route-in leg  n(am,     MID, in,  out)   (sets C and A)
+  // Both are swept exhaustively. Nothing else reads a detector: the seeds in
+  // terminal-audit and test-terminal SOLVE it rather than transcribe it, which was
+  // the T-TRANSCRIBED-TABLE fix, so they adapt on their own.
+  let dbad = 0;
+  for (const sel of V) for (const inV of V) {
+    const mk = det => {
+      const n = new D.Net();
+      det(n, 'sel', 'am');
+      n.n('am', D.MID, 'src', 'out');
+      n.n('sel', D.MID, 'vss', 'out');
+      return n.solve({ sel, src: inV }, 40).out;
+    };
+    if (mk(D.isMid) !== mk(isMidHigh)) dbad++;
   }
-  console.log(`      the shipped decoded adder still checks out on ${sums} sampled pairs: ${wrong} wrong`);
-  console.log('      (the variant is a drop-in for every consumer, all of which gate at');
-  console.log('       threshold MID and so conduct for anything at or above it.)');
+  console.log(`      the decoder route-in leg, all ${3 ** 2} cases: ${dbad} differences`);
+  console.log('      those are the only two consumer patterns in the repository, and the');
+  console.log('      seeds that touch a detector SOLVE it rather than transcribe it.');
+  console.log('');
+  console.log('      NOT tested: a decoded adder rebuilt on the variant. dRippleAdder calls');
+  console.log('      isMid internally and cannot be swapped without editing device.js. An');
+  console.log('      earlier version of this section printed "the shipped decoded adder');
+  console.log('      still checks out", which exercised the ORIGINAL detector and said');
+  console.log('      nothing whatever about the variant — a check that could not fail for');
+  console.log('      the reason it claimed.');
 }
-
 console.log('\n--- N3  the blast radius ---');
 {
   const one = cost(n => cell(n, 'x', 'd', 'q', 'we', 'hold'));

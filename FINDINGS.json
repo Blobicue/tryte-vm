@@ -722,7 +722,7 @@
     },
     {
       "id": "E",
-      "subject": "The decoded-selector adder \u2014 the circuit that failed Z2, at full width",
+      "subject": "The decoded-selector adder — the circuit that failed Z2, at full width",
       "tool": "tools/decoded-audit.js",
       "registered_at": "ba1918b",
       "results_at": "88d5f71",
@@ -811,7 +811,7 @@
     },
     {
       "id": "F",
-      "subject": "Where 128/243 comes from \u2014 the decoded adder\u2019s pass count, derived",
+      "subject": "Where 128/243 comes from — the decoded adder’s pass count, derived",
       "tool": "tools/passcount-audit.js",
       "registered_at": "bf1d4f1",
       "results_at": "cbc7528",
@@ -1227,7 +1227,7 @@
     },
     {
       "id": "J",
-      "subject": "A six-trit register at switch level \u2014 the first sequential circuit here",
+      "subject": "A six-trit register at switch level — the first sequential circuit here",
       "tool": "tools/register-audit.js",
       "registered_at": "e23ca30",
       "results_at": "5012c77",
@@ -1345,7 +1345,7 @@
     },
     {
       "id": "L",
-      "subject": "An accumulator \u2014 the first circuit here that computes and remembers",
+      "subject": "An accumulator — the first circuit here that computes and remembers",
       "tool": "tools/accumulator-audit.js",
       "registered_at": "8b6da4d",
       "results_at": "7070b81",
@@ -1523,7 +1523,7 @@
     },
     {
       "id": "C",
-      "subject": "A 27-word addressed memory, built \u2014 and three errors in the budget formula",
+      "subject": "A 27-word addressed memory, built — and three errors in the budget formula",
       "tool": "tools/memory-audit.js",
       "registered_at": "8720a5c",
       "results_at": "49fc6ad",
@@ -1916,7 +1916,7 @@
     },
     {
       "id": "O",
-      "subject": "Ternary is born nonlinear at one control \u2014 and the whole economic margin is borrowed from the free mid rail",
+      "subject": "Ternary is born nonlinear at one control — and the whole economic margin is borrowed from the free mid rail",
       "tool": "tools/nonlinearity-audit.js",
       "registered_at": "779a0ee",
       "results_at": "c3ed57f",
@@ -2010,6 +2010,99 @@
           "note": "The tie lands at exactly the predicted price. The device model's FIRST stated limit is that vmid is free and it calls that the largest of the four; the ternary gate takes two mid taps and the binary gate takes none. So the honest statement is not \"ternary is cheaper\" -- it is that ternary's advantage is STRUCTURAL and not economic, and every switch of the economic margin is borrowed from the one assumption this model flags as its biggest. A myth killed before it was built on."
         }
       ]
+    },
+    {
+      "id": "N",
+      "subject": "Pricing the free mid rail: how much of this project rests on its largest assumption",
+      "tool": "tools/midrail-price-audit.js",
+      "registered_at": "394979b",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-midprice.js",
+      "predictions": [
+        {
+          "id": "N1",
+          "claim": "a tap is unavoidable iff some node must carry MID, and tmux/dmux need none",
+          "outcome": "FAILED",
+          "measured": {
+            "tmux": {
+              "predicted": "0 taps, needs none",
+              "measured_with_rail_sources": 1,
+              "measured_with_abstract_sources": 0
+            },
+            "dmux": {
+              "predicted": "0 taps, needs none",
+              "measured_with_rail_sources": 2,
+              "measured_with_abstract_sources": 0
+            },
+            "isMid": {
+              "scored": "FORCED",
+              "actually": "not forced -- N2 builds it with zero taps"
+            }
+          },
+          "note": "Failed two ways. (i) The selectors were predicted to need no tap; measured at 1 and 2, because the rig wires their SOURCES to the rails and the vmid source IS the tap. With abstract sources they are zero. Both readings are true of different questions -- a selector has no tap of its own and acquires one the moment it must be able to pass MID -- and the prediction did not say which it was asking. (ii) The more interesting failure: the test asks \"does THIS BUILD put MID on a node\", which is not the rule as registered. The rule was \"must some node carry MID for the FUNCTION to compute\". isMid is scored FORCED and N2 proves it is not, and the counterexample was sitting in the next section the whole time. Telling the two apart needs a search over equivalent circuits, which this test does not do."
+        },
+        {
+          "id": "N2",
+          "claim": "the detector's mid tap is a choice, and a zero-tap variant drives every consumer identically",
+          "outcome": "HELD",
+          "measured": {
+            "isMid": {
+              "switches": 4,
+              "mid_taps": 1,
+              "table": "(LOW, MID, LOW)"
+            },
+            "variant": {
+              "switches": 4,
+              "mid_taps": 0,
+              "table": "(LOW, HIGH, LOW)"
+            },
+            "dmux_sweep": {
+              "cases": 81,
+              "differences": 0
+            },
+            "decoder_leg_sweep": {
+              "cases": 9,
+              "differences": 0
+            },
+            "consumer_patterns_in_repo": 2
+          },
+          "note": "Same four switches, one fewer rail. Every consumer in the repository gates a detector at threshold MID, which conducts for anything at or above it, so HIGH serves exactly as MID does. Both consumer patterns swept exhaustively. NOT tested: a decoded adder rebuilt on the variant, because dRippleAdder calls isMid internally and cannot be swapped without editing device.js -- an earlier version of this section printed \"the shipped decoded adder still checks out\", which exercised the ORIGINAL detector and could not have failed for the reason it claimed. Removed rather than left standing."
+        },
+        {
+          "id": "N3",
+          "claim": "the blast radius, derived: 339 taps on the built memory, 1.15x at a price of one, and two named comparisons",
+          "outcome": "HELD",
+          "measured": {
+            "density": {
+              "storage_cell": "2 of 11 = 18%",
+              "tBuffer": "2 of 8 = 25%",
+              "decoded_adder": "186 of 540 = 34%",
+              "tree_adder": "168 of 624 = 27%",
+              "tmux_read_tree": "0%"
+            },
+            "built_27_word_memory": {
+              "switches": 2301,
+              "taps": 339,
+              "density": "14.7%",
+              "multiplier_at_price_1": 1.15
+            },
+            "decoded_vs_tree_crossover": 4.67,
+            "read_path_decision": "does not flip -- tmux was never cheaper (960 vs 736 at 81 words); B chose it on correctness"
+          },
+          "note": "Every derived number exact. The memory multiplier is 1.15x and not the doubling that 34% on the adder would suggest, because the memory is dominated by storage cells at 18% and a read tree at zero. The decoded adder -- this repository's best circuit result -- is the MORE tap-hungry of the two families and loses to the tree adder above a price of 4.67. So the headline result survives a moderate price and not a high one."
+        },
+        {
+          "id": "N4",
+          "claim": "and almost none of it can be engineered away",
+          "outcome": "HELD",
+          "measured": {
+            "forced": 336,
+            "chosen": 3,
+            "forced_share": "99.1%"
+          },
+          "note": "N2 removes three taps of 339. The other 336 come from sti inverters and tBuffers whose outputs are trit-valued, and by T5 a node that must take MID must reach vmid. So the assumption cannot be designed around, only priced -- which lands \"ternary is optimal for general compute\" on a single physical question this model is structurally unable to answer, with a number attached to how much depends on the answer."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -2095,7 +2188,7 @@
     {
       "id": "F-251505-AGAIN",
       "outcome": "MEASURED_NOT_REGISTERED",
-      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 \u2014 the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
+      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 — the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
       "evidence": "531,441 minus the 279,936 that settle in fewer passes; the rung is recorded in the U set",
       "asserted_in": "test/test-decoded.js",
       "note": "Chased and settled by the G set: a coincidence. The pairing that produces it holds at exactly one parameter value, the two families grow at rates a thousandfold apart, and the two numbers are the only pair in the manifest that collides across the vocabulary and circuit halves of the project."
