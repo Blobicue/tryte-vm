@@ -53,7 +53,7 @@ the territory is named and not mapped; it is not a failure and it is not padding
 | 8 | [Cost currencies](08-cost-currencies.md) | six costs that disagree, and every comparison made in them | seeded | substrate |
 | 9 | [The machine, part-built](09-unbuilt-machine.md) | storage, registers, an accumulator and a 27-word addressed memory built; interconnect, decode and sequencing not | seeded | project |
 | 10 | [Method](10-method.md) | register, run, record; the two error classes | rich | **substrate** |
-| 11 | [Failure catalogue](11-failure-catalogue.md) | 16 classes, 32 bites, each now an antibody | rich | **substrate** |
+| 11 | [Failure catalogue](11-failure-catalogue.md) | 16 classes, 34 bites, each now an antibody | rich | **substrate** |
 | 12 | [Provenance](12-provenance.md) | the source conversation, and what of it survived checking | seeded | project |
 
 Plus [research-topics.md](research-topics.md) — the intake queue for questions

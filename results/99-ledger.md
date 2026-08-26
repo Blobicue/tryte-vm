@@ -7,9 +7,9 @@ Every registered prediction, in the order it was registered, rendered from
 [`FINDINGS.json`](../FINDINGS.json). **Nothing on this page is authored** — if a
 line here is wrong, the manifest is wrong.
 
-**26 sets · 112 predictions · 100 held · 12 failed**
+**27 sets · 116 predictions · 104 held · 12 failed**
 · 21 measured but never registered
-· 16 defect classes, 32 occurrences
+· 16 defect classes, 34 occurrences
 
 Each set names the commit that registered it and the commit that recorded its
 results. Those are checked to be genuinely ordered, and to be reachable from the
@@ -1173,6 +1173,50 @@ branch rather than merely present in a local object store.
 
 ---
 
+## Set `AA` — Sequencing: can the step boundary live inside the circuit?
+
+| | |
+|---|---|
+| outcome | 4 held, 0 failed |
+| tool | `tools/sequencer-audit.js` |
+| asserted in | `test/test-sequencer.js` |
+| registered | `7ad9a8c` |
+| results | `PENDING` |
+
+### `AA1` — HELD
+
+**Claim.** a driven handshake does not settle from a cold start
+
+**Measured.** go_LOW: loop disabled by pull-ups; req=1 ack=-1; go_MID: loop disabled by pull-ups; req=1 ack=-1; go_HIGH: LOOP LIVE -- req=X, ack=X; live_cases: 1; live_cases_resolving_cleanly: 0
+
+**Note.** The only case that is actually a handshake resolves to unknown. A request/acknowledge pair is a feedback loop of mutually COMPUTED control nodes, and this project measured what those do three times before -- unknown at pass one, and unknown conduction poisons whatever it gates. So Q3 is not available and design/09s concession stands. The first version of this section counted the two disabled cases as "settled cleanly", which would have reported Q3 as AVAILABLE on the strength of two circuits in which no handshake occurs.
+
+### `AA2` — HELD
+
+**Claim.** and seeding it makes it settle to a fixed point, which is the problem
+
+**Measured.** seeded_then_resolved: 3; froze: 2; advanced: 0; failed_to_resolve: 1
+
+**Note.** Nothing advanced. Seed the control cone the way the memory array in C had to be seeded and the handshake resolves -- to ONE state, which a second solve does not move. So the seeding is not a workaround for the handshake: the SEEDING IS THE CLOCK, and it is external. That is the concession arriving from a different direction.
+
+### `AA3` — HELD
+
+**Claim.** so the concession is forced by the model, not chosen by the design
+
+**Measured.** solver_outputs_checked: 45; genuine_fixed_points: 45; states_that_moved_on_a_second_solve: 0
+
+**Note.** Every state the solver returns is a genuine fixed point: re-solving from it with the same inputs returns it unchanged, across every circuit family checked. So the solver contract is that it returns a state where nothing changed, or it throws. A sequencer needs SUCCESSIVE DISTINCT states, so sequencing inside one solve would require a network that does not settle -- and not settling is an error rather than an output. Q3 is unavailable in principle here rather than merely difficult, and the concession in design/09 is a consequence of the model rather than a weakness of the design.
+
+### `AA4` — HELD
+
+**Claim.** but the sequencer is cheap once the step is external
+
+**Measured.** width_trits: 3; switches: 390; mid_taps: 99; distinct_states_before_repeating: 27; expected: 27
+
+**Note.** A master-slave state register plus a next-state incrementer, stepped from outside, cycles through all 27 states and returns to its start. Every part already existed. What does not exist in this model is time.
+
+---
+
 ## Measured but never registered
 
 Facts established in passing. Listed separately so the pre-registration record is
@@ -1249,7 +1293,7 @@ recurred, which is itself a measure of how well naming a thing prevents it.
 | `T-ADJACENCY` | 1 | .fold reading nine cells from a table that was shorter, silently borrowing whatever followed it. |
 | `T-EXHAUSTED-NOT-CLOSED` | 3 | Confusing ran out of budget with finished. A search that exhausts its depth limit, one that hits its size cap, and one that genuinely closes are three different outcomes; conflating them produced a false negative verdict on V3. It recurred in the E sweep, where one counter held both settled-sooner-than-predicted and needed-longer-than-predicted, and the correctness check was skipped for the second bucket -- so an exhaustive claim was published while resting on an unmeasured decomposition. That time the numbers happened to be right: the second bucket was empty. Report the outcomes separately and check that they sum to the total. Third bite, this time in a CHECKER rather than an instrument: the staged solver was compared against solve() by crediting agreement only when both settled, so the cases where both agreed precisely that the network does NOT settle were counted as disagreements, and the tool declared its own results suspect. |
 | `T-SOURCE-NOT-TERMINAL` | 1 | Switch-level reachability traversing THROUGH a driven node. A path from one rail that touches another rail and continues out of it makes correct circuits look contended. Rails and inputs are ideal sources and must terminate a path. |
-| `T-INSTRUMENT-FALSE-VERDICT` | 8 | The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of "nothing works" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit. Sixth bite: the interconnect rig named its sources `src0_0`, `src1_0`, ... and SEEDED them, without building anything behind them. A seed is an initial value, not a driver -- T5 says reachability starts at rails and only at rails -- so every source resolved to Z on pass one and stayed there. Both topologies routed Z, which read as "interconnect does not work at all" rather than "these are not sources". The same fact this repository already records as "an input gates but never sources", arriving in a form nobody recognised. Seventh bite, and inverted: a TEST CASE accused a correct instrument. The Schreier-Sims verification paired a 3-cycle with a 25-cycle and called the pair "A_27"; between them they move 25 of 27 points, so the tool returned 25!/2 -- exactly right for what was actually built -- and was scored WRONG. When a verification case fails, the case is as suspect as the thing it checks. |
+| `T-INSTRUMENT-FALSE-VERDICT` | 10 | The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of "nothing works" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit. Sixth bite: the interconnect rig named its sources `src0_0`, `src1_0`, ... and SEEDED them, without building anything behind them. A seed is an initial value, not a driver -- T5 says reachability starts at rails and only at rails -- so every source resolved to Z on pass one and stayed there. Both topologies routed Z, which read as "interconnect does not work at all" rather than "these are not sources". The same fact this repository already records as "an input gates but never sources", arriving in a form nobody recognised. Seventh bite, and inverted: a TEST CASE accused a correct instrument. The Schreier-Sims verification paired a 3-cycle with a 25-cycle and called the pair "A_27"; between them they move 25 of 27 points, so the tool returned 25!/2 -- exactly right for what was actually built -- and was scored WRONG. When a verification case fails, the case is as suspect as the thing it checks. Eighth bite: the sequencer rig called tAdderCell without its TAG, which names every internal node of the cells two tables. All three cells received the tag `undefined`, so their internal trees shared node names and merged into one circuit -- the incrementer resolved to unknown and the sequencer appeared to visit two states instead of twenty-seven. An omitted parameter that looks optional silently welded three circuits together. Ninth bite, in the same phase and pointing the other way: the handshake section counted the two driving values that DISABLE the loop as "settled cleanly", which would have reported a self-timed handshake as working on the strength of two circuits in which no handshake occurs. A false positive and a false negative from one tool in one run. |
 | `T-PREMISE-NOT-ANSWER` | 1 | A prediction failing on an assumption it never stated rather than on the quantity it asked about. X2 asked which seeds are self-consistent and assumed every seed resolves; two do not. The assumption, not the answer, was the falsifiable part. |
 | `T-FAKE-RANDOM` | 1 | A sampling instrument that was not sampling. A seeded generator multiplied a 31-bit seed by a 31-bit constant, which overflows the 53 bits a JS number holds exactly, so the low-order bits it returned were rounding noise: three of its eight node names were drawn essentially never and no random network ever floated or contended. It looked like 400 trials and was closer to 400 repetitions of one. Random input needs a vacuity check on what it actually produced, not on how many times it ran. |
 | `T-CHECK-FORBIDS-HEALTHY-STATE` | 2 | A consistency check that treated a legitimate intermediate state as a defect. It demanded that tools/ and the manifest prediction sets be equal in number; they are equal only between phases, because registering a tool predictions and recording its results are deliberately separate commits. During a registration there is one more tool than there are sets, and that is the protocol working. The check now names the pending tool instead of failing on it. Second bite: the design-folder status-marker check scanned for bare vocabulary words with a word boundary, and a new trap id -- T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE -- contains UNKNOWN between hyphens. The check failed a document whose vocabulary was entirely correct, because an identifier is not a marker. |

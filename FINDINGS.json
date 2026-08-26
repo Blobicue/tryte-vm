@@ -722,7 +722,7 @@
     },
     {
       "id": "E",
-      "subject": "The decoded-selector adder \u2014 the circuit that failed Z2, at full width",
+      "subject": "The decoded-selector adder — the circuit that failed Z2, at full width",
       "tool": "tools/decoded-audit.js",
       "registered_at": "ba1918b",
       "results_at": "88d5f71",
@@ -811,7 +811,7 @@
     },
     {
       "id": "F",
-      "subject": "Where 128/243 comes from \u2014 the decoded adder\u2019s pass count, derived",
+      "subject": "Where 128/243 comes from — the decoded adder’s pass count, derived",
       "tool": "tools/passcount-audit.js",
       "registered_at": "bf1d4f1",
       "results_at": "cbc7528",
@@ -1227,7 +1227,7 @@
     },
     {
       "id": "J",
-      "subject": "A six-trit register at switch level \u2014 the first sequential circuit here",
+      "subject": "A six-trit register at switch level — the first sequential circuit here",
       "tool": "tools/register-audit.js",
       "registered_at": "e23ca30",
       "results_at": "5012c77",
@@ -1345,7 +1345,7 @@
     },
     {
       "id": "L",
-      "subject": "An accumulator \u2014 the first circuit here that computes and remembers",
+      "subject": "An accumulator — the first circuit here that computes and remembers",
       "tool": "tools/accumulator-audit.js",
       "registered_at": "8b6da4d",
       "results_at": "7070b81",
@@ -1523,7 +1523,7 @@
     },
     {
       "id": "C",
-      "subject": "A 27-word addressed memory, built \u2014 and three errors in the budget formula",
+      "subject": "A 27-word addressed memory, built — and three errors in the budget formula",
       "tool": "tools/memory-audit.js",
       "registered_at": "8720a5c",
       "results_at": "49fc6ad",
@@ -1916,7 +1916,7 @@
     },
     {
       "id": "O",
-      "subject": "Ternary is born nonlinear at one control \u2014 and the whole economic margin is borrowed from the free mid rail",
+      "subject": "Ternary is born nonlinear at one control — and the whole economic margin is borrowed from the free mid rail",
       "tool": "tools/nonlinearity-audit.js",
       "registered_at": "779a0ee",
       "results_at": "c3ed57f",
@@ -2225,6 +2225,65 @@
           "note": "Wrong by exactly one trit, and wrong about injectivity. Six trits of spare capacity exist, but NO subset of fields totalling six is jointly injective on the 25 opcodes -- the fields are chunky (widths 1,1,1,1,3,1,1,2) and no combination summing to six separates every opcode. The best is five trits, with a max joint class of 3 that the one remaining trit exactly covers. So the saving is 45% of decode rather than the 55% predicted, still at zero memory cost because the spare trits were already paid for. The prediction being optimistic by one trit is the whole error."
         }
       ]
+    },
+    {
+      "id": "AA",
+      "subject": "Sequencing: can the step boundary live inside the circuit?",
+      "tool": "tools/sequencer-audit.js",
+      "registered_at": "7ad9a8c",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-sequencer.js",
+      "predictions": [
+        {
+          "id": "AA1",
+          "claim": "a driven handshake does not settle from a cold start",
+          "outcome": "HELD",
+          "measured": {
+            "go_LOW": "loop disabled by pull-ups; req=1 ack=-1",
+            "go_MID": "loop disabled by pull-ups; req=1 ack=-1",
+            "go_HIGH": "LOOP LIVE -- req=X, ack=X",
+            "live_cases": 1,
+            "live_cases_resolving_cleanly": 0
+          },
+          "note": "The only case that is actually a handshake resolves to unknown. A request/acknowledge pair is a feedback loop of mutually COMPUTED control nodes, and this project measured what those do three times before -- unknown at pass one, and unknown conduction poisons whatever it gates. So Q3 is not available and design/09s concession stands. The first version of this section counted the two disabled cases as \"settled cleanly\", which would have reported Q3 as AVAILABLE on the strength of two circuits in which no handshake occurs."
+        },
+        {
+          "id": "AA2",
+          "claim": "and seeding it makes it settle to a fixed point, which is the problem",
+          "outcome": "HELD",
+          "measured": {
+            "seeded_then_resolved": 3,
+            "froze": 2,
+            "advanced": 0,
+            "failed_to_resolve": 1
+          },
+          "note": "Nothing advanced. Seed the control cone the way the memory array in C had to be seeded and the handshake resolves -- to ONE state, which a second solve does not move. So the seeding is not a workaround for the handshake: the SEEDING IS THE CLOCK, and it is external. That is the concession arriving from a different direction."
+        },
+        {
+          "id": "AA3",
+          "claim": "so the concession is forced by the model, not chosen by the design",
+          "outcome": "HELD",
+          "measured": {
+            "solver_outputs_checked": 45,
+            "genuine_fixed_points": 45,
+            "states_that_moved_on_a_second_solve": 0
+          },
+          "note": "Every state the solver returns is a genuine fixed point: re-solving from it with the same inputs returns it unchanged, across every circuit family checked. So the solver contract is that it returns a state where nothing changed, or it throws. A sequencer needs SUCCESSIVE DISTINCT states, so sequencing inside one solve would require a network that does not settle -- and not settling is an error rather than an output. Q3 is unavailable in principle here rather than merely difficult, and the concession in design/09 is a consequence of the model rather than a weakness of the design."
+        },
+        {
+          "id": "AA4",
+          "claim": "but the sequencer is cheap once the step is external",
+          "outcome": "HELD",
+          "measured": {
+            "width_trits": 3,
+            "switches": 390,
+            "mid_taps": 99,
+            "distinct_states_before_repeating": 27,
+            "expected": 27
+          },
+          "note": "A master-slave state register plus a next-state incrementer, stepped from outside, cycles through all 27 states and returns to its start. Every part already existed. What does not exist in this model is time."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -2310,7 +2369,7 @@
     {
       "id": "F-251505-AGAIN",
       "outcome": "MEASURED_NOT_REGISTERED",
-      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 \u2014 the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
+      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 — the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
       "evidence": "531,441 minus the 279,936 that settle in fewer passes; the rung is recorded in the U set",
       "asserted_in": "test/test-decoded.js",
       "note": "Chased and settled by the G set: a coincidence. The pairing that produces it holds at exactly one parameter value, the two families grow at rates a thousandfold apart, and the two numbers are the only pair in the manifest that collides across the vocabulary and circuit halves of the project."
@@ -2406,8 +2465,8 @@
     },
     {
       "id": "T-INSTRUMENT-FALSE-VERDICT",
-      "count": 8,
-      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit. Sixth bite: the interconnect rig named its sources `src0_0`, `src1_0`, ... and SEEDED them, without building anything behind them. A seed is an initial value, not a driver -- T5 says reachability starts at rails and only at rails -- so every source resolved to Z on pass one and stayed there. Both topologies routed Z, which read as \"interconnect does not work at all\" rather than \"these are not sources\". The same fact this repository already records as \"an input gates but never sources\", arriving in a form nobody recognised. Seventh bite, and inverted: a TEST CASE accused a correct instrument. The Schreier-Sims verification paired a 3-cycle with a 25-cycle and called the pair \"A_27\"; between them they move 25 of 27 points, so the tool returned 25!/2 -- exactly right for what was actually built -- and was scored WRONG. When a verification case fails, the case is as suspect as the thing it checks."
+      "count": 10,
+      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit. Sixth bite: the interconnect rig named its sources `src0_0`, `src1_0`, ... and SEEDED them, without building anything behind them. A seed is an initial value, not a driver -- T5 says reachability starts at rails and only at rails -- so every source resolved to Z on pass one and stayed there. Both topologies routed Z, which read as \"interconnect does not work at all\" rather than \"these are not sources\". The same fact this repository already records as \"an input gates but never sources\", arriving in a form nobody recognised. Seventh bite, and inverted: a TEST CASE accused a correct instrument. The Schreier-Sims verification paired a 3-cycle with a 25-cycle and called the pair \"A_27\"; between them they move 25 of 27 points, so the tool returned 25!/2 -- exactly right for what was actually built -- and was scored WRONG. When a verification case fails, the case is as suspect as the thing it checks. Eighth bite: the sequencer rig called tAdderCell without its TAG, which names every internal node of the cells two tables. All three cells received the tag `undefined`, so their internal trees shared node names and merged into one circuit -- the incrementer resolved to unknown and the sequencer appeared to visit two states instead of twenty-seven. An omitted parameter that looks optional silently welded three circuits together. Ninth bite, in the same phase and pointing the other way: the handshake section counted the two driving values that DISABLE the loop as \"settled cleanly\", which would have reported a self-timed handshake as working on the strength of two circuits in which no handshake occurs. A false positive and a false negative from one tool in one run."
     },
     {
       "id": "T-PREMISE-NOT-ANSWER",

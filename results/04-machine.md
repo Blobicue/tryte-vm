@@ -1,7 +1,7 @@
 <!-- kind: results-topic -->
 # 04 — Headroom, terminals, addressed memory, interconnect
 
-**Owned sets:** `H` `B` `C` `A` `T`
+**Owned sets:** `H` `B` `C` `A` `T` `AA`
 
 Cross-references `J`/`K`/`L` (the cells this is built from), `E` (the read path's
 alternative), `N` (which prices it), `X` (the axioms that keep biting).
@@ -175,7 +175,39 @@ and no combination summing to six separates all 25 opcodes. So **five of eleven
 control trits become free** and decode falls from 572 switches to 312 — a **45%**
 saving at zero memory cost, rather than the 55% predicted.
 
-### 6. The failed prediction that separated control from data
+### 6. Sequencing, and why the concession was never a design weakness
+
+The design folder named the self-timed handshake as *"the one that would make this
+a real machine"* and also *"the one most likely to be impossible here"*, and carried
+a concession stated in advance: if the step boundary lives in the harness, **the
+sequencer is JavaScript**.
+
+It is impossible here, and the reason is not about handshakes.
+
+A driven request/acknowledge loop resolves to **unknown** in the only case where the
+loop is actually live (`AA1`) — a pair of mutually *computed* control nodes, which
+is the same shape `B1a` and `C` both measured. Seed its cone the way the memory
+array had to be seeded and it settles — to **one** state, which a second solve does
+not move (`AA2`). So the seeding is not a workaround: **the seeding is the clock**,
+and it is external.
+
+The general form is `AA3`, and it is checkable rather than rhetorical. **Every state
+the solver returns is a genuine fixed point** — 45 of 45, re-solving from each one
+returns it unchanged. So the solver's contract is that it returns a state where
+nothing changed, or it throws.
+
+> A sequencer needs **successive distinct states**. Sequencing inside one solve would
+> therefore require a network that does not settle — and not settling is an *error*,
+> not an output.
+
+**The concession is a consequence of the model, not a weakness of the design.** The
+model has no notion of time, and a sequencer is precisely a thing that needs one.
+
+Once the step is external the sequencer is cheap: a master-slave state register plus
+a next-state incrementer, **390 switches**, cycling through all 27 states and
+returning to its start (`AA4`). Every part already existed.
+
+### 7. The failed prediction that separated control from data
 
 `A2` predicted a tree fed by a **computed** source inherits the bus's cold-start
 precondition. **It does not** — 4 of 4 routed. A computed *data* node is rail-driven
@@ -229,5 +261,6 @@ explicitly *so it could be wrong*, and being wrong is what produced the distinct
 | `C` | a 27-word addressed memory, and three errors in the budget | all held |
 | `A` | interconnect: tree against bus, and which axis decides | 3 held, `A2` failed |
 | `T` | the control word, and whether decode can disappear | 3 held, `T4` failed |
+| `AA` | sequencing: can the step boundary live inside the circuit? | all held |
 
 Full text in [`99-ledger.md`](99-ledger.md).

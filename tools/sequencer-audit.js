@@ -97,7 +97,12 @@ function sequencer(width = 3) {
   for (let i = 0; i < width; i++) {
     const cin = i === 0 ? 'one' : `k${i - 1}`;
     D.tmux(net, `s${i}`, 'vss', 'vmid', 'vdd', `sv${i}`);       // re-drive the state
-    D.tAdderCell(net, `sv${i}`, 'zero', cin, `n${i}`, `k${i}`);
+    // The TAG is not optional in practice: tAdderCell names every internal node of
+    // its two tables after it. Omitting it gave all three cells the tag
+    // `undefined`, so their internal trees shared node names and merged into one
+    // circuit — and the whole incrementer resolved to unknown. `tRippleAdder`
+    // passes `A${i}`; this passes `Q${i}` for the same reason.
+    D.tAdderCell(net, `sv${i}`, 'zero', cin, `n${i}`, `k${i}`, `Q${i}`);
   }
   for (let i = 0; i < width; i++) {
     latch(net, `m${i}`, `n${i}`, `m${i}`, 'phA', 'nphA');
@@ -124,19 +129,25 @@ if (require.main === module) {
 
   console.log('--- AA1  does a driven handshake settle from a cold start? ---');
   {
-    let settled = 0, stuck = 0, unknown = 0;
+    // Only `go` HIGH engages the loop. At LOW and MID the pull-ups hold req and
+    // ack at fixed levels and there is no handshake at all — an earlier version of
+    // this section counted those two as "settled cleanly", which scored a disabled
+    // circuit as a working one and would have reported Q3 as available.
     for (const go of V) {
       const net = handshake();
       const inputs = { go };
+      const live = go === D.HIGH;
+      let verdict;
       try {
         const sol = net.solve(inputs, 80, seedAll(net, inputs));
-        if (sol.req === 'X' || sol.ack === 'X') unknown++; else settled++;
-      } catch (e) { stuck++; }
+        verdict = (sol.req === 'X' || sol.ack === 'X')
+          ? `UNKNOWN (req=${sol.req} ack=${sol.ack})` : `settled req=${sol.req} ack=${sol.ack}`;
+      } catch (e) { verdict = 'never settles'; }
+      console.log(`      go=${String(go).padStart(2)}  ${live ? 'LOOP LIVE ' : 'loop off  '} ${verdict}`);
     }
-    console.log(`      over ${V.length} driving values: ${settled} settled cleanly,`
-      + ` ${unknown} resolved to unknown, ${stuck} never settled`);
-    console.log(`      a request/acknowledge pair is a loop of mutually COMPUTED control`);
-    console.log(`      nodes, which B1a and C measured going unknown at pass one.`);
+    console.log(`      only the live case is a handshake, and it resolves to unknown.`);
+    console.log(`      A request/acknowledge pair is a loop of mutually COMPUTED control`);
+    console.log(`      nodes, which B1a and C both measured going unknown at pass one.`);
   }
 
   console.log('\n--- AA2  seed it, and see whether it advances ---');
