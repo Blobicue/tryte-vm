@@ -42,7 +42,8 @@
     "ledger": "node tools/render-ledger.js --write",
     "audit:decode": "node tools/decode-audit.js",
     "audit:sequencer": "node tools/sequencer-audit.js",
-    "audit:erasure": "node tools/erasure-audit.js"
+    "audit:erasure": "node tools/erasure-audit.js",
+    "audit:predict": "node tools/predict-audit.js"
   },
   "license": "MIT",
   "private": true
