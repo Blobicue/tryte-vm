@@ -13,7 +13,7 @@ One hundred and eight predictions, ninety-seven held, eleven failed — and the
 eleven produced more than the ninety-seven. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**917 checks**, all passing. Every number below is recomputed by one of them,
+**944 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -26,6 +26,7 @@ node src/run.js programs/multiply.tasm 7 5
 |---|---|
 | **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + twenty-five audits |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
+| **What was found** | [`results/`](results/) — every result keyed by subject, with a generated ledger of all 108 predictions |
 | **What is not built** | [`design/`](design/) — interconnect, decode and sequencing, enumerated before anything is chosen, and [`design/12-roadmap.md`](design/12-roadmap.md) for the order to build them in |
 | **What is known** | [`.claude/knowledge/doctrees/tryte-vm/`](.claude/knowledge/doctrees/tryte-vm/) — 13 pillars, each declaring how well mapped it is |
 | **Every claim** | [`FINDINGS.json`](FINDINGS.json) — machine-readable, validated by `test/test-findings.js` |
@@ -52,6 +53,7 @@ src/         device.js (switch-level transistors -- the layer BELOW the arithmet
 programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
 design/      the design phase for the machine that does not exist yet
+results/     the same corpus keyed by SUBJECT rather than by date, plus 99-ledger.md
 tools/       the twenty-five audits, each with its registered predictions
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
