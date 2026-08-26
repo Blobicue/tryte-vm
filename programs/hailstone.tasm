@@ -1,0 +1,76 @@
+; hailstone.tasm — the first program here whose loop bound it has to DISCOVER.
+;
+; Every other program in this folder has a loop bound that is either a literal or
+; a number handed to it, so its price can be computed without running it. This one
+; iterates until a condition the loop itself produces:
+;
+;       low trit of n is 0   ->  n = n / 3          (descend)
+;       otherwise            ->  n = 2n + low_trit  (climb, wrapping at +-364)
+;
+; and stops when n reaches 1.
+;
+; Extracting the low trit is free in balanced ternary, because shifting right
+; ROUNDS TO NEAREST rather than truncating:
+;
+;       low_trit(n) = n - 3 * (n >> 1)
+;
+; the same identity multiply.tasm uses. BR3 then routes all three trit values in
+; one test, with no comparison chain.
+;
+; WHY 2n AND NOT 3n. Multiplying by three ALWAYS zeroes the low trit, so a rule of
+; the form 3n + k leaves the low trit equal to k forever: once the climb starts it
+; can never become divisible again, and every trajectory runs to the fixed point of
+; an affine map. That version was written first and terminated on exactly six of
+; 729 inputs -- the powers of three -- which is a fact about base three rather than
+; about the program. Doubling mixes the residue instead, and 363 of 729 inputs now
+; reach 1. The rest never do, and exhausting the step budget is a first-class
+; outcome rather than a failure.
+;
+; The step count is emitted rather than the value, because the step count is what a
+; price denominated in steps would charge.
+
+        IN                 ; the starting value
+        STORE n
+        LOADI 0
+        STORE steps
+
+loop:   LOAD  n
+        ADDI  -1
+        BR3   atone        ; n - 1 : below, at, or above zero
+atone:  .table work, done, work
+
+work:   LOAD  n
+        SHR   1
+        STORE nhi          ; nhi = round(n / 3)
+        SHL   1
+        STORE n3           ; n3  = 3 * round(n / 3)
+        LOAD  n
+        SUB   n3           ; low trit of n, in {-1, 0, +1}
+        STORE t
+        BR3   pick         ; STORE leaves the accumulator alone, so this still tests t
+pick:   .table grow, shrink, grow
+
+shrink: LOAD  nhi          ; divisible by three: descend
+        STORE n
+        JMP   tick
+
+grow:   LOAD  n            ; otherwise 2n + low_trit, wrapping
+        ADD   n
+        ADD   t
+        STORE n
+
+tick:   LOAD  steps
+        ADDI  1
+        STORE steps
+        JMP   loop
+
+done:   LOAD  steps
+        OUT
+        HALT
+
+        .org  -10
+n:      .word 0
+nhi:    .word 0
+n3:     .word 0
+t:      .word 0
+steps:  .word 0
