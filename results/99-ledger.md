@@ -1137,7 +1137,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/decode-audit.js` |
 | asserted in | `test/test-decode.js` |
 | registered | `d951dc7` |
-| results | `PENDING` |
+| results | `c4be374` |
 
 ### `T1` — HELD
 
