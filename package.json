@@ -39,7 +39,8 @@
     "audit:reversible": "node tools/reversible-audit.js",
     "audit:nonlinearity": "node tools/nonlinearity-audit.js",
     "audit:midprice": "node tools/midrail-price-audit.js",
-    "ledger": "node tools/render-ledger.js --write"
+    "ledger": "node tools/render-ledger.js --write",
+    "audit:decode": "node tools/decode-audit.js"
   },
   "license": "MIT",
   "private": true
