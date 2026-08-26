@@ -1277,7 +1277,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/predict-audit.js` |
 | asserted in | `test/test-predict.js` |
 | registered | `e5ffa3f` |
-| results | `PENDING` |
+| results | `acebf26` |
 
 ### `AC1` — FAILED
 

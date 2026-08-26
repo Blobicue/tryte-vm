@@ -2387,7 +2387,7 @@
       "subject": "Can a program's cost be learned without paying it? The implied-receipt question",
       "tool": "tools/predict-audit.js",
       "registered_at": "e5ffa3f",
-      "results_at": "PENDING",
+      "results_at": "acebf26",
       "asserted_in": "test/test-predict.js",
       "predictions": [
         {
