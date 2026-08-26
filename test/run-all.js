@@ -9,7 +9,7 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const SUITES = ['test-device.js', 'test-axioms.js', 'test-adder.js', 'test-midrail.js', 'test-decoded.js', 'test-passcount.js', 'test-collision.js', 'test-design.js', 'test-doctree.js', 'test-headroom.js', 'test-detector.js', 'test-register.js', 'test-msregister.js', 'test-accumulator.js', 'test-budget.js', 'test-terminal.js', 'test-memory.js', 'test-interconnect.js', 'test-iterhash.js', 'test-core.js', 'test-vm.js',
+const SUITES = ['test-device.js', 'test-axioms.js', 'test-adder.js', 'test-midrail.js', 'test-decoded.js', 'test-passcount.js', 'test-collision.js', 'test-design.js', 'test-doctree.js', 'test-headroom.js', 'test-detector.js', 'test-register.js', 'test-msregister.js', 'test-accumulator.js', 'test-budget.js', 'test-terminal.js', 'test-memory.js', 'test-interconnect.js', 'test-iterhash.js', 'test-reversible.js', 'test-core.js', 'test-vm.js',
   'test-selfhost.js', 'test-bench.js', 'test-logic.js', 'test-monoid.js',
   'test-fold.js', 'test-page.js', 'test-style.js', 'test-findings.js'];
 

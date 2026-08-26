@@ -722,7 +722,7 @@
     },
     {
       "id": "E",
-      "subject": "The decoded-selector adder \u2014 the circuit that failed Z2, at full width",
+      "subject": "The decoded-selector adder — the circuit that failed Z2, at full width",
       "tool": "tools/decoded-audit.js",
       "registered_at": "ba1918b",
       "results_at": "88d5f71",
@@ -811,7 +811,7 @@
     },
     {
       "id": "F",
-      "subject": "Where 128/243 comes from \u2014 the decoded adder\u2019s pass count, derived",
+      "subject": "Where 128/243 comes from — the decoded adder’s pass count, derived",
       "tool": "tools/passcount-audit.js",
       "registered_at": "bf1d4f1",
       "results_at": "cbc7528",
@@ -1227,7 +1227,7 @@
     },
     {
       "id": "J",
-      "subject": "A six-trit register at switch level \u2014 the first sequential circuit here",
+      "subject": "A six-trit register at switch level — the first sequential circuit here",
       "tool": "tools/register-audit.js",
       "registered_at": "e23ca30",
       "results_at": "5012c77",
@@ -1345,7 +1345,7 @@
     },
     {
       "id": "L",
-      "subject": "An accumulator \u2014 the first circuit here that computes and remembers",
+      "subject": "An accumulator — the first circuit here that computes and remembers",
       "tool": "tools/accumulator-audit.js",
       "registered_at": "8b6da4d",
       "results_at": "7070b81",
@@ -1523,7 +1523,7 @@
     },
     {
       "id": "C",
-      "subject": "A 27-word addressed memory, built \u2014 and three errors in the budget formula",
+      "subject": "A 27-word addressed memory, built — and three errors in the budget formula",
       "tool": "tools/memory-audit.js",
       "registered_at": "8720a5c",
       "results_at": "49fc6ad",
@@ -1834,6 +1834,85 @@
           "note": "All three land at 0.96x, indistinguishable from each other and near-ideal -- including the positionwise map that D2 proves repeats every six calls. The prediction missed because truncating ANY permutation to three trits yields exactly 27 buckets of 27, which is perfectly uniform by construction. So uniformity is what a permutation gives away for free, and a collision count CANNOT distinguish a good hash from a relabelling. This failure is worth more than the prediction would have been: it disqualifies the most obvious test anyone would reach for."
         }
       ]
+    },
+    {
+      "id": "M",
+      "subject": "Reversible universality: ternary reaches it at two operands, binary provably cannot",
+      "tool": "tools/reversible-audit.js",
+      "registered_at": "8ce0662",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-reversible.js",
+      "predictions": [
+        {
+          "id": "M0",
+          "claim": "the Schreier-Sims instrument reproduces four known group orders exactly, in BigInt",
+          "outcome": "HELD",
+          "measured": {
+            "27-cycle": 27,
+            "S_27": "27! = 10888869450418352160768000000",
+            "A_27": "27!/2 = 5444434725209176080384000000",
+            "AGL(3,3)": 303264,
+            "cross_check": "the M3 group enumerated by brute force (151,632 elements) matches the chain exactly"
+          },
+          "note": "Four of five on the first run, and the fifth was the TEST CASE rather than the tool: it paired a 3-cycle with a 25-CYCLE, which between them move only 25 of the 27 points, and the tool correctly returned 25!/2 -- the right answer to the question actually asked. Scored WRONG against an expectation of 27!/2. A test case that does not generate what its name says is an instrument-false-verdict aimed at the instrument instead of at itself. Both cases are now kept, the 27-point one and the 25-point one, with their correct expectations."
+        },
+        {
+          "id": "M1",
+          "claim": "binary has no non-affine two-bit reversible gate and ternary has 362,448",
+          "outcome": "HELD",
+          "measured": {
+            "binary": {
+              "states": 4,
+              "all_reversible": 24,
+              "affine": 24,
+              "non_affine": 0,
+              "affine_share": "100.000%"
+            },
+            "ternary": {
+              "states": 9,
+              "all_reversible": 362880,
+              "affine": 432,
+              "non_affine": 362448,
+              "affine_share": "0.119%"
+            },
+            "closure_verified_by": "membership, x -> Ax + b, on every element of the generated group"
+          },
+          "note": "Exact, no sampling. Reversible 2-bit gates are 4! = 24 and |AGL(2,2)| = 6 x 4 = 24, so every one of them is affine. Reversible 2-trit gates are 9! = 362,880 and |AGL(2,3)| = 48 x 9 = 432. Since affine maps compose to affine, an all-affine gate set generates a subgroup of AGL however it is wired -- so binary two-bit gate sets cannot reach the symmetric group at ANY width, which is why binary reversible computation needs a three-bit gate."
+        },
+        {
+          "id": "M2",
+          "claim": "a named width-two ternary gate set generates exactly A_27, as its parity forces",
+          "outcome": "HELD",
+          "measured": {
+            "generators": [
+              "INC(t0)",
+              "C1INC(t0,t1)",
+              "C1INC(t1,t2)",
+              "C1INC(t2,t0)"
+            ],
+            "parities": "all even",
+            "non_affine_generators": "3 of 4",
+            "order": "5444434725209176080384000000",
+            "equals": "A_27 exactly",
+            "family_sample": "20 of 20 random non-affine 2-trit gates reach at least A_27, against a predicted 15 of 20"
+          },
+          "note": "Predicted from parity rather than left to chance: INC is nine disjoint 3-cycles and each C1INC is three, a 3-cycle is even, so the group lies inside the alternating group and S_27 was forbidden before the run. It came out exactly A_27. C1INC is non-affine because the indicator of t == 1 is quadratic over GF(3). The family half was registered separately so one gate would not be read as the family, and 20 of 20 cleared the bar."
+        },
+        {
+          "id": "M3",
+          "claim": "the same wiring with an affine gate stays inside AGL(3,3)",
+          "outcome": "HELD",
+          "measured": {
+            "order": 151632,
+            "agl_3_3": 303264,
+            "index_in_agl": 2,
+            "fraction_of_symmetric_group": "1.39e-23",
+            "elements_enumerated": 151632,
+            "elements_failing_membership": 0
+          },
+          "note": "One gate changed from non-affine to affine -- same widths, same wiring, same four generators -- and universality disappears by twenty-three orders of magnitude. Checked by MEMBERSHIP and not by an order bound: all 151,632 elements were enumerated and every one is of the form x -> Ax + b. An order bound would have passed for any small group. The group is index 2 in AGL(3,3) because all four generators are even."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -1919,7 +1998,7 @@
     {
       "id": "F-251505-AGAIN",
       "outcome": "MEASURED_NOT_REGISTERED",
-      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 \u2014 the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
+      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 — the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
       "evidence": "531,441 minus the 279,936 that settle in fewer passes; the rung is recorded in the U set",
       "asserted_in": "test/test-decoded.js",
       "note": "Chased and settled by the G set: a coincidence. The pairing that produces it holds at exactly one parameter value, the two families grow at rates a thousandfold apart, and the two numbers are the only pair in the manifest that collides across the vocabulary and circuit halves of the project."
@@ -2008,8 +2087,8 @@
     },
     {
       "id": "T-INSTRUMENT-FALSE-VERDICT",
-      "count": 7,
-      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit. Sixth bite: the interconnect rig named its sources `src0_0`, `src1_0`, ... and SEEDED them, without building anything behind them. A seed is an initial value, not a driver -- T5 says reachability starts at rails and only at rails -- so every source resolved to Z on pass one and stayed there. Both topologies routed Z, which read as \"interconnect does not work at all\" rather than \"these are not sources\". The same fact this repository already records as \"an input gates but never sources\", arriving in a form nobody recognised."
+      "count": 8,
+      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit. Sixth bite: the interconnect rig named its sources `src0_0`, `src1_0`, ... and SEEDED them, without building anything behind them. A seed is an initial value, not a driver -- T5 says reachability starts at rails and only at rails -- so every source resolved to Z on pass one and stayed there. Both topologies routed Z, which read as \"interconnect does not work at all\" rather than \"these are not sources\". The same fact this repository already records as \"an input gates but never sources\", arriving in a form nobody recognised. Seventh bite, and inverted: a TEST CASE accused a correct instrument. The Schreier-Sims verification paired a 3-cycle with a 25-cycle and called the pair \"A_27\"; between them they move 25 of 27 points, so the tool returned 25!/2 -- exactly right for what was actually built -- and was scored WRONG. When a verification case fails, the case is as suspect as the thing it checks."
     },
     {
       "id": "T-PREMISE-NOT-ANSWER",

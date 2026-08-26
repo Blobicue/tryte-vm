@@ -213,10 +213,18 @@ console.log('--- M0  the instrument, before anything rests on it ---');
   const cases = [
     ['a single 27-cycle', [cyc], 27n],
     ['S_27 from a transposition and a 27-cycle', [swap, cyc], fact(27)],
-    ['A_27 from 3-cycles and a 25-cycle', (() => {
+    // The first version of this case paired a 3-cycle with a 25-CYCLE, which
+    // between them move only 25 of the 27 points. The tool returned 25!/2 exactly
+    // — the right answer to the question actually asked — and the case was scored
+    // WRONG against an expectation of 27!/2. A test case that does not generate
+    // what its name says generates is a `T-INSTRUMENT-FALSE-VERDICT` aimed at the
+    // instrument instead of at itself. A 27-cycle is even (26 transpositions), so
+    // pairing it with a 3-cycle stays inside A_27 and, by Jordan, fills it.
+    ['A_27 from a 3-cycle and a 27-cycle', [threeA, cyc], fact(27) / 2n],
+    ['   and the 25-point case the first version actually built', (() => {
       const c25 = idPerm(N); for (let i = 0; i < 25; i++) c25[i] = (i + 1) % 25;
       return [threeA, c25];
-    })(), fact(27) / 2n],
+    })(), fact(25) / 2n],
     ['AGL(3,3) from its own generators', affGens, 303264n],
   ];
   for (const [name, gens, want] of cases) {
@@ -280,6 +288,23 @@ console.log('\n--- M3  the same wiring with an AFFINE gate ---');
   const ord = groupOrder(gens, N);
   console.log(`      order ${ord}   |AGL(3,3)| = 303264   within it: ${ord <= 303264n}`);
   console.log(`      as a fraction of 27!: ${(Number(ord) / Number(fact(27))).toExponential(2)}`);
+
+  // MEMBERSHIP, not an order bound. An order bound is satisfied by any small
+  // group and would pass for the wrong reason. The group is small enough to
+  // enumerate, so every element is tested for the form x -> Ax + b.
+  const seen = new Map([[gens[0].join(','), idPerm(N)]]);
+  seen.clear(); seen.set(idPerm(N).join(','), idPerm(N));
+  const queue = [idPerm(N)];
+  while (queue.length) {
+    const g = queue.shift();
+    for (const h of gens) {
+      const p = mul(h, g), k = p.join(',');
+      if (!seen.has(k)) { seen.set(k, p); queue.push(p); }
+    }
+  }
+  const nonAffine = [...seen.values()].filter(g => !isAffine(g)).length;
+  console.log(`      enumerated all ${seen.size} elements; matches the chain: ${BigInt(seen.size) === ord}`);
+  console.log(`      elements failing the x -> Ax + b membership test: ${nonAffine}`);
   console.log('      one gate changed from non-affine to affine, same widths, same wiring.');
 }
 
