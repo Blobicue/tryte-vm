@@ -13,8 +13,8 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-Twenty-eight prediction sets, **121 registered predictions, 107 held, 14 failed.** Eighteen
-distinct failure classes, which bit **41 times** between them. Twenty-three findings
+Twenty-nine prediction sets, **125 registered predictions, 108 held, 17 failed.** Eighteen
+distinct failure classes, which bit **42 times** between them. Twenty-four findings
 measured but never registered, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
@@ -32,6 +32,9 @@ still in the manifest, marked `FAILED`, with the result it led to:
 | **E5** | the new design would use less of the scarce rail | it uses **more**; the design that wins on area wins by spending elsewhere |
 | **J4** | a register read during a write sees the old value | it sees the **new** one — the write holds the feedback open, so the cell is a transparent latch. Master-slave is required and the register file doubles |
 | **T4** | the best set of control fields packable directly into the opcode's spare trits is six wide and separates every opcode | it is **five**, and separates nothing on its own. Six trits of spare capacity exist, but the fields are chunky and no combination summing to six distinguishes all 25 opcodes. Optimistic by exactly one trit |
+| **AC1** | only two of the eight programs have an input-dependent step count, and they are countdown and fold | wrong on the count, the membership, and its own premise. fold does not vary; multiply and threeway do; and ALL EIGHT programs execute IN, not the five a broken detector reported. Cost-invariance turned out to be the norm — five of eight cost the same number of steps whatever data they are handed |
+| **AC3** | two programs of identical static shape differ in cost by more than 300x | the structural claim held and the number failed at 182.5x. The cheap program's four-step floor sits in the denominator, so the ratio is 730/4 and not 364/1 — quoting a ratio without accounting for constant overhead |
+| **AC4** | erasure per executed instruction spans more than 2x across the eight programs | it spans 1.68x. They are more alike in erasure intensity than in anything else measured about them, all between 3.6 and 6.1 bits per instruction. The ordering clause held — the longest-running program is not the hungriest per step — so the finding survives at a narrower margin than claimed |
 | **AB4** | the erasure charge is not recoverable from a program's text, the way a static count is | **six of eight programs charge exactly their text bound**, and the largest gap is 1.21x rather than the predicted 2x. The operand-dependent opcodes simply do not appear in those six, so the worst case IS the actual case. A static price transfers exactly when the instruction mix is operand-independent — conditional, and sharper than either the prediction or its negation |
 | **AB5** | admitting every information-preserving operation lifts the reversible fragment to the full symmetric group, so the machine erases by convention | it does not come close. The orders land on a closed form, **2^W · 3^((3^W − 1)/2)**, matching at every width the stabiliser chain reaches; width 1 is the only place reversibility is free, and by width 4 the fragment is 10^-100 of all permutations. **The eraser is load-bearing.** The closed form is the replacement the failure produced |
 | **N1** | a mid-rail tap is unavoidable exactly where a node must carry MID, and the selectors need none | the test asked "does this BUILD put MID on a node", not "does the FUNCTION require it" — and scored the detector FORCED while the very next section built the same function with zero taps. A circuit that uses the mid rail is not a circuit that needs it |
@@ -149,7 +152,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace the twenty-eight sets and they form very nearly
+fanned out; the *frontier did not*. Trace the twenty-nine sets and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from

@@ -1,7 +1,7 @@
 <!-- kind: results-topic -->
 # 06 — The currencies: what the mid rail costs, and what erasure costs
 
-**Owned sets:** `N` `AB`
+**Owned sets:** `N` `AB` `AC`
 
 Cross-references `Z` (which first priced the two limits), `O` (whose whole margin
 turned out to be borrowed), `E`/`Y` (the adders it re-ranks), `C` (the memory it
@@ -226,12 +226,91 @@ remains cannot compute.
 
 ---
 
+### 8. Can you learn what a program costs without paying for it?
+
+A currency has been proposed whose unit is one step of computation, secured by an
+argument from physics: you cannot perform unbounded steps per second, so a large
+step count is evidence that large work was done. **The receipt is implied rather
+than issued** — holding the number is the proof, because the number could only have
+been obtained by paying.
+
+The argument is sound and it rests on one thing. Physics bounds what a machine can
+**do**; it says nothing about what anyone can **claim**. The gap closes only if
+
+> the cheapest way to learn a program's cost is to run it.
+
+`AC` measured that, and answered it in **two directions at once**. Three of its four
+predictions failed. `MEASURED`
+
+#### The cost is not in the program's shape
+
+Two programs, differing in **one immediate operand** — `LOADI 1` against
+`LOADI 364` — have identical instruction counts and identical opcode histograms
+under both a naive linear reader and the assembler's own tokenizer. They cost
+**4 steps and 730** (`AC3`).
+
+Any predictor reading only the static shape of a program returns one number for
+both and is **wrong on one of them by a factor of 183**. That is a counterexample
+rather than a failed search, and it settles the question against symbol counting
+specifically: **a price computed from a program's text cannot track what running it
+costs.** The two quantities are not merely different units — across this pair they
+are not even correlated.
+
+`AC3` was registered predicting a ratio above 300 and failed on the number, for a
+reason worth keeping: the cheap program's **four-step floor sits in the
+denominator**, so the ratio is 730/4 and not 364/1. Predicting a ratio without
+accounting for constant overhead is the same error as quoting a speedup without the
+serial fraction.
+
+#### But the cost is cheap to obtain anyway
+
+**Five of the eight programs cost exactly the same number of steps whatever data
+they are handed** (`AC1`). Their price can be published once and nobody ever needs
+to run them again. All eight execute `IN`; reading input is universal here and
+**cost-invariance is still the norm.**
+
+Where the cost does vary, it is priced by a straight line. `countdown`'s step count
+is exactly `5N + 3` — fitted from two runs and **exact on 200 of 200 inputs, worst
+error zero** (`AC2`). Two executions price two hundred, and the ratio only improves
+with the sweep.
+
+So data-dependence alone establishes **nothing**. It is necessary for an implied
+receipt and nowhere near sufficient.
+
+| | for a step count used as evidence of work |
+|---|---|
+| the cost is not readable from the program's **shape** | in favour — `AC3` |
+| five of eight programs cost a **constant** | against — `AC1` |
+| the one that varies is priced by **two runs** | against — `AC2` |
+
+**The honest reading is that neither extreme holds on this corpus.** You cannot
+read the price off the text, and you do not have to run the program to know it
+either — you have to look at the operand values, and once you are evaluating
+operands you have begun executing. Where a given program falls between those two
+depends on the program, and this repository's eight are all small and
+fixed-shaped. The case that would settle it is a program whose runtime is genuinely
+unpredictable, which is to say general computation, and **that case is not in this
+corpus.** `AC` measured what is here and does not reach past it.
+
+#### And a step is not a bit
+
+Bits erased per executed instruction spans only **1.68×** across the eight programs,
+against a predicted 2× (`AC4` failed) — they are more alike in erasure intensity
+than in anything else measured about them, all falling between 3.6 and 6.1 bits per
+instruction. But the ordering clause held: **the longest-running program is not the
+hungriest per step** (`interp-core` against `fold`). Two currencies, denominated in
+steps and in destroyed information, rank the same programs differently — on a
+narrower margin than predicted, but they do rank them differently. Choosing between
+them is a decision, not a units conversion.
+
+---
+
 ## How it was established
 
 | | |
 |---|---|
-| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js) |
-| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js` |
+| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js) |
+| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js` |
 | method | tap counts read from built netlists; crossovers solved algebraically and confirmed at sampled prices; the detector variant swept exhaustively against both consumer patterns |
 
 The six cost currencies this project measures in — switches, mid-rail taps, pass
@@ -267,6 +346,14 @@ so much.
   absolute claim "does not finish" — that would be a duration assertion, the class
   this project has already bitten twice. 2⁶·3³⁶⁴ is the closed form extrapolated from five
   widths that were measured exactly.
+- **That `AC` reaches general computation.** Its eight programs are small and
+  fixed-shaped. The case that would settle whether a step count can be evidence of
+  work is a program whose runtime is genuinely unpredictable, and that case is not
+  in this corpus. What was measured is what is here.
+- **That "no cheap predictor exists".** `AC3` refutes predictors that read the
+  static **shape** of a program, which is the specific class a symbol-counting
+  price belongs to. It says nothing about analyses that partially evaluate, and a
+  proof that none exists would be a halting argument rather than a measurement.
 - **Anything about static power.** A real ternary mid level is typically generated
   with dividers that burn power continuously; this model has no notion of power at
   all, and the tap count is a proxy for a cost it cannot express.
@@ -279,5 +366,6 @@ so much.
 |---|---|---|
 | `N` | pricing the free mid rail, the model's largest assumption | 3 held, `N1` failed |
 | `AB` | erasure: what the machine destroys, and whether the price is in the object | 3 held, `AB4` and `AB5` failed |
+| `AC` | whether a program's cost can be learned without paying it | 1 held, `AC1`, `AC3` and `AC4` failed |
 
 Full text in [`99-ledger.md`](99-ledger.md).

@@ -71,6 +71,26 @@ instruction mix is operand-independent.** That distinction is the whole answer t
 the question the set was opened to ask, and it only exists because the prediction
 was too strong.
 
+**`AC1` — "only two of the eight programs have an input-dependent step count, and
+they are `countdown` and `fold`."** Failed on the count, on the membership, and on
+its own premise. `fold` does not vary; `multiply` and `threeway` do. And the premise
+that five of eight execute `IN` was itself the output of a broken detector — **all
+eight do.** The corrected picture is sharper than the prediction: reading input is
+universal here and **cost-invariance is still the norm**, with five of eight
+programs costing exactly the same number of steps whatever data they are given.
+
+**`AC3` — "a ratio above 300×."** The structural claim held and the number failed at
+182.5×, for a reason worth keeping: **the cheap program's four-step floor sits in
+the denominator**, so the ratio is 730/4 rather than 364/1. Predicting a ratio
+without accounting for constant overhead is the same error as quoting a speedup
+without the serial fraction.
+
+**`AC4` — "erasure per step spans more than 2× across the programs."** It spans
+**1.68×**. The eight programs are more alike in erasure intensity than in anything
+else this project has measured about them. The ordering clause held — the
+longest-running program is not the hungriest per step — so the finding survives at a
+narrower margin than the prediction claimed.
+
 #### The ones that corrected the record
 
 **`P3` — "reach is a direct product across trit positions."** 47 at width two, not
@@ -119,7 +139,7 @@ equivalent circuits that the test did not do.
 
 None of these was ever a registered prediction. Each produced a confident, clean,
 mechanistically plausible wrong answer. They are catalogued as
-`T-INSTRUMENT-FALSE-VERDICT` (12 occurrences) and the detail lives in
+`T-INSTRUMENT-FALSE-VERDICT` (13 occurrences) and the detail lives in
 [`99-ledger.md`](99-ledger.md); what follows is what they have in common.
 
 | # | the instrument | what it reported | what was true |
@@ -136,6 +156,7 @@ mechanistically plausible wrong answer. They are catalogued as
 | 10 | a claim's own qualifier dropped between registration and check (`G4`) | a quantity restated in a second set scored as colliding with itself | the registered sentence carried the qualifier all along |
 | 11 | an interconnect rig **seeded** its sources instead of driving them | both topologies routing Z — "interconnect does not work at all" | a seed is an initial value, not a driver; these were never sources |
 | 12 | an erasure census folded the operand **into** the state | MIN as a single fixed 4.5033 bits | the clauses spoke of a range, 0 to 9.5098, and it held |
+| 13 | a hand-rolled regex missed every **labelled** instruction | a deterministic program costing different amounts for data it never reads | `threeway.tasm` carries `body:   IN`, and all eight programs read input |
 
 **The common shape, and the reason this list exists:** a wrong instrument does not
 produce noise. **It produces a clean, mechanistic, entirely plausible finding.**
@@ -144,6 +165,12 @@ Number 5 is the sharpest illustration. Every one of its 36 failures was a case w
 the middle word disagreed with the selected word, and none where they agreed — the
 exact signature real contention would leave. It read as a publishable headline: *the
 decoded selector cannot read storage.* It was an inverted seed.
+
+Number 13 is the sharpest recent illustration of the first paragraph. The wrong
+answer was **more interesting than the right one** — a deterministic machine whose
+price depends on data it never touches would have been the finding of the set, and
+it was a line-anchored regex sitting next to an exported tokenizer that would have
+answered correctly. A hand-rolled parser beside a real one is the whole defect.
 
 Number 7 points the other way and is worth its own sentence: **a verification case is
 as suspect as the thing it checks.** The tool was right and the check was wrong.

@@ -79,7 +79,7 @@
 const T = require('../src/ternary.js');
 const { BY_CODE } = require('../src/isa.js');
 const { TryteVM } = require('../src/vm.js');
-const { loadInto } = require('../src/assembler.js');
+const { loadInto, tokenize } = require('../src/assembler.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -134,6 +134,20 @@ function staticShape(src) {
 
 const histKey = h => Object.keys(h).sort().map(k => `${k}:${h[k]}`).join(',');
 
+/**
+ * Does this program execute IN? Answered with the assembler's own tokenizer.
+ *
+ * INSTRUMENT REPAIR, recorded rather than quietly fixed. The first version tested a
+ * regex anchored at the start of the line, which misses every LABELLED instruction.
+ * `threeway.tasm` carries `body:   IN`, so it was reported as never reading input
+ * while its step count plainly varied with the input — a clean, mechanistic, and
+ * entirely wrong headline about a deterministic program costing different amounts
+ * for data it never reads. That would have been the most interesting finding in the
+ * set and it was a broken parser. A hand-rolled parser standing next to an exported
+ * real one is the whole defect.
+ */
+const readsInput = src => tokenize(src).some(l => l.mnemonic === 'IN');
+
 /* ============================================================================
  * 0. INSTRUMENT CHECK
  * ========================================================================== */
@@ -169,14 +183,18 @@ for (const f of FILES) {
   const src = fs.readFileSync(path.join(PROGDIR, f), 'utf8');
   const counts = INPUTS.map(inp => execute(src, inp).steps);
   const uniq = [...new Set(counts)];
-  const readsInput = /^\s*IN\s*(;.*)?$/m.test(src);
+  const reads = readsInput(src);
   if (uniq.length > 1) varying.push(f);
-  log(`  ${f.padEnd(20)} reads IN: ${(readsInput ? 'yes' : 'no ')}   steps: ${counts.join(' ')}` +
+  log(`  ${f.padEnd(20)} reads IN: ${(reads ? 'yes' : 'no ')}   steps: ${counts.join(' ')}` +
     `   ${uniq.length > 1 ? '<- VARIES' : 'constant'}`);
 }
 log(`\n  programs whose step count depends on input: ${varying.length} of ${FILES.length}` +
   `  (${varying.join(' ') || 'none'})`);
-log(`  programs that execute IN: ${FILES.filter(f => /^\s*IN\s*(;.*)?$/m.test(fs.readFileSync(path.join(PROGDIR, f), 'utf8'))).length}`);
+const inCount = FILES.filter(f => readsInput(fs.readFileSync(path.join(PROGDIR, f), 'utf8')));
+log(`  programs that execute IN: ${inCount.length}  (${inCount.join(' ')})`);
+log(`  programs that read input and STILL cost a constant: ` +
+  `${inCount.filter(f => !varying.includes(f)).length}  ` +
+  `(${inCount.filter(f => !varying.includes(f)).join(' ') || 'none'})`);
 
 /* ============================================================================
  * 2. AC2 — where it varies, how cheap is a predictor?
@@ -227,6 +245,16 @@ done:   HALT
   log(`  program B: LOADI ${T.TRYTE_MAX}               static ${sd.count} instructions, ran ${rd.steps}`);
   log(`  identical instruction count: ${sc.count === sd.count}`);
   log(`  identical opcode histogram:  ${histKey(sc.hist) === histKey(sd.hist)}   (${histKey(sc.hist)})`);
+  // The walk above is a NAIVE static reader: instructions are two cells and the
+  // three-cell jump table desyncs it, so LOAD and MAX above are misparsed table
+  // data. Both programs desync identically, so the claim survives — but a claim
+  // this load-bearing should not rest on a parser that is visibly wrong. Repeat it
+  // with the assembler's own tokenizer, which is the strongest reader available.
+  const tokHist = src => { const h = {}; for (const l of tokenize(src)) if (l.mnemonic) h[l.mnemonic] = (h[l.mnemonic] || 0) + 1; return h; };
+  log(`  and by the assembler's own tokenizer, which does not desync:`);
+  log(`    ${histKey(tokHist(cheap))}`);
+  log(`    ${histKey(tokHist(dear))}`);
+  log(`    identical: ${histKey(tokHist(cheap)) === histKey(tokHist(dear))}`);
   log(`  cost ratio: ${(rd.steps / rc.steps).toFixed(1)}x`);
   log('');
   log(`  Any predictor reading only instruction count or opcode histogram returns ONE`);
