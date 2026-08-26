@@ -43,6 +43,36 @@ Two things this protocol exists to prevent, both of which have been tempting her
   The most useful result this repository has produced came from a prediction that
   was wrong.
 
+### This tree has more than one writer, and the protocol depends on commit order
+
+**Check `git log --oneline -3` before trusting HEAD to be where you left it.** During
+set `AB` another writer committed the entire in-flight working set — a half-finished
+result, mid-edit tools, a manifest field still reading `PENDING` — as one commit
+messaged "Some things", and **pushed it**, inside a single session. Nothing warned
+anyone. It was found because files just edited showed as clean.
+
+This is a direct hazard to the protocol above, not merely an annoyance. The whole
+method rests on git supplying an ordering an editable file cannot. A stray commit
+landing between step 1 and step 2 bundles measurements into what is supposed to be a
+registration, and the guarantee is gone silently — the commit still *looks* like a
+registration.
+
+**How to work here:**
+
+- **Never rewrite what another writer committed.** Check `git branch -r --contains
+  <sha>` first; if it is on a remote, amending or rebasing is off the table. Build
+  the proper commit on top, and say in its message where the work actually landed.
+- **Pin hashes to the commit that truly carries the thing**, even if its message is
+  worthless. `results_at` may legitimately point at someone else's "Some things" —
+  truthful beats tidy, and `PENDING` exists for the gap before a hash is known.
+- **Stage explicit paths, never `-A` and never a bare directory**, and read
+  `git status` before every commit to confirm every staged file is one you touched.
+- **Re-render generated files and re-run the suite after any long gap**, because the
+  tree can move under a run that is still going.
+- **A mid-flight push can leave `origin` red.** If you find the published tip failing
+  its own suite because someone pushed your work half-done, push the repair rather
+  than leaving it broken for whoever arrives next.
+
 ## Tests
 
 - **Exhaustive where exhaustive is possible.** The value space is small; sweep it
