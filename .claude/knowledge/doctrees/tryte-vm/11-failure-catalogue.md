@@ -1,6 +1,6 @@
 ---
 name: failure-catalogue
-description: Sixteen defect classes, thirty-one bites, each now a permanent check. Substrate - the classes are not about ternary.
+description: Sixteen defect classes, thirty-two bites, each now a permanent check. Substrate - the classes are not about ternary.
 type: reference
 last_updated: 2026-08-25
 ---
@@ -12,7 +12,7 @@ last_updated: 2026-08-25
 
 ## What is established
 
-Sixteen classes, thirty-one occurrences. The ones that recurred after being
+Sixteen classes, thirty-two occurrences. The ones that recurred after being
 named are the interesting ones, because naming a thing is supposed to prevent it:
 
 - **one point is not a function** - bit three times

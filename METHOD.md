@@ -13,8 +13,8 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-Twenty-five prediction sets, **108 registered predictions, 97 held, 11 failed.** Sixteen
-distinct failure classes, which bit **31 times** between them. Twenty-one findings
+Twenty-six prediction sets, **112 registered predictions, 100 held, 12 failed.** Sixteen
+distinct failure classes, which bit **32 times** between them. Twenty-one findings
 measured but never registered, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
@@ -31,6 +31,7 @@ still in the manifest, marked `FAILED`, with the result it led to:
 | **E4** | a fixed settling time for the new adder | settling turned out to depend on the data — and then to be derivable exactly |
 | **E5** | the new design would use less of the scarce rail | it uses **more**; the design that wins on area wins by spending elsewhere |
 | **J4** | a register read during a write sees the old value | it sees the **new** one — the write holds the feedback open, so the cell is a transparent latch. Master-slave is required and the register file doubles |
+| **T4** | the best set of control fields packable directly into the opcode's spare trits is six wide and separates every opcode | it is **five**, and separates nothing on its own. Six trits of spare capacity exist, but the fields are chunky and no combination summing to six distinguishes all 25 opcodes. Optimistic by exactly one trit |
 | **N1** | a mid-rail tap is unavoidable exactly where a node must carry MID, and the selectors need none | the test asked "does this BUILD put MID on a node", not "does the FUNCTION require it" — and scored the detector FORCED while the very next section built the same function with zero taps. A circuit that uses the mid rail is not a circuit that needs it |
 | **D3** | `rotate(s + sbox(s))` mixes, once the s-box is chosen so the sum stays injective | it does not — 130 cycles against a random permutation's 6.6. A positionwise 3-cycle *is* addition of a constant, so the sum stays affine. Fixing injectivity does nothing for mixing |
 | **D4** | a truncated-collision count separates a mixing map from a positionwise one | it separates nothing — truncating **any** permutation is uniform by construction, so a map that provably repeats every six calls scores 0.96x, same as everything else. The obvious test is disqualified |
@@ -146,7 +147,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace the twenty-five sets and they form very nearly
+fanned out; the *frontier did not*. Trace the twenty-six sets and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from

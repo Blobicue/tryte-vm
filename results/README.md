@@ -64,7 +64,7 @@ cross-reference names a set that does not exist.
 | [`01-vocabulary.md`](01-vocabulary.md) — what an instruction vocabulary generates | `P` `Q` `R` `S` `U` `V` | **rich** |
 | [`02-arithmetic.md`](02-arithmetic.md) — gates, adders, the detector | `Y` `E` `F` `G` `I` | **rich** |
 | [`03-sequential.md`](03-sequential.md) — storage, registers, an accumulator | `J` `K` `L` | **rich** |
-| [`04-machine.md`](04-machine.md) — headroom, terminals, memory, interconnect | `H` `B` `C` `A` | **rich** |
+| [`04-machine.md`](04-machine.md) — headroom, terminals, memory, interconnect, decode | `H` `B` `C` `A` `T` | **rich** |
 | [`05-algebra.md`](05-algebra.md) — reversibility, universality, nonlinearity, mixing | `D` `M` `O` | **rich** |
 | [`06-economics.md`](06-economics.md) — currencies, and the price of the mid rail | `N` | **rich** |
 | [`07-negative.md`](07-negative.md) — every failed prediction, and every lying instrument | — | **rich** |
@@ -97,10 +97,10 @@ anything.
 
 | | |
 |---|---|
-| prediction sets | 25 |
-| registered predictions | 108 — **97 held, 11 failed** |
+| prediction sets | 26 |
+| registered predictions | 112 — **100 held, 12 failed** |
 | measured but never registered | 21 |
-| defect classes | 16, recurring 31 times |
+| defect classes | 16, recurring 32 times |
 
 The suite's check count is deliberately **not** repeated here — it lives in
 [`../README.md`](../README.md), where `run-all.js` verifies it, and a second copy

@@ -82,7 +82,8 @@ const { TryteVM } = require('../src/vm.js');
 const { assemble } = require('../src/assembler.js');
 
 const line = '='.repeat(78);
-console.log('DECODE AUDIT — the control word, and whether decode can disappear.\n');
+// The report runs only when this file is executed directly: test-decode.js
+// imports it for CONTROL and blindStep, and a module that prints on import
 
 /** PROPOSED: one control word per opcode. A microarchitecture choice. */
 const CONTROL = {
@@ -165,6 +166,8 @@ function blindStep(vm) {
   return !vm.halted;
 }
 
+// would pour the whole audit into the middle of a test run.
+if (require.main === module) {
 console.log('--- T1  is the control word sufficient? opcode-blind against src/vm.js ---');
 {
   const dir = path.join(__dirname, '..', 'programs');
@@ -240,6 +243,7 @@ console.log('\n--- T3  can any field be a direct slice of a 3-trit opcode? ---')
   console.log(`      any field fits at three opcode trits: ${anyFits}`);
 }
 
+let BEST = null;
 console.log('\n--- T4  the largest jointly direct-encodable subset, at six trits ---');
 {
   let best = null;
@@ -264,23 +268,50 @@ console.log('\n--- T4  the largest jointly direct-encodable subset, at six trits
     + ` and decode shrinks to ${totalW - best.W} outputs`);
   console.log(`      saving ${(100 * best.W / totalW).toFixed(0)}% of the decode logic,`
     + ` at zero memory cost — the spare trits were already paid for.`);
+  console.log(`      PREDICTED 6 trits and jointly injective; measured ${best.W} and max class ${best.mx}.`);
+  BEST = best;
 }
 
 console.log('\n--- decode, built and costed at this table\'s width ---');
 {
   const totalW = FIELDS.reduce((a, f) => a + widthOf(f), 0);
-  const perLine = net => { D.tmux(net, 'x', 'a', 'b', 'c', 'o'); return net; };
   // one 3-input trit function per output trit: a 27-leaf tree = 13 selector nodes
   const nodes = 13;
   const tree = new D.Net();
   for (let i = 0; i < nodes; i++) D.tmux(tree, `s${i}`, 'vss', 'vmid', 'vdd', `n${i}`);
-  const perTrit = tree.cost().switches / nodes * nodes;
+  const perTrit = tree.cost().switches;
+  const taps = tree.cost().midRailConnections;
   console.log(`      one control trit = a 3-input trit function = ${nodes} tree nodes`
-    + ` = ${perTrit} switches`);
+    + ` = ${perTrit} switches, ${taps} mid taps`);
   console.log(`      full decode, ${totalW} trits: ${perTrit * totalW} switches`);
-  const best = 6;
-  console.log(`      after direct-encoding ${best}: ${perTrit * (totalW - best)} switches`);
+  // BEST comes from the search above. An earlier version hardcoded 6 here and
+  // printed a saving the search two lines up had already refuted — a stale constant
+  // sitting immediately below the measurement that contradicts it.
+  console.log(`      after direct-encoding ${BEST.W}: ${perTrit * (totalW - BEST.W)} switches`
+    + `   (the search found ${BEST.W}, not the 6 predicted)`);
   console.log(`      design/08 estimated ~480 for "12 lines" — a different unit, quoted as context`);
 }
 
 console.log('\n' + line);
+}
+
+// Exported so test-decode.js checks the same objects the audit measured, rather
+// than a second copy that could drift from them.
+function bestSubset() {
+  let best = null;
+  for (let mask = 1; mask < (1 << FIELDS.length); mask++) {
+    const sub = FIELDS.filter((_, i) => mask & (1 << i));
+    const W = sub.reduce((a, f) => a + widthOf(f), 0);
+    if (W > 6) continue;
+    const classes = {};
+    for (const n of NAMES) {
+      const k = sub.map(f => CONTROL[n][f]).join('|');
+      classes[k] = (classes[k] || 0) + 1;
+    }
+    const mx = Math.max(...Object.values(classes));
+    if (mx > 3 ** (6 - W)) continue;
+    if (!best || W > best.W || (W === best.W && mx < best.mx)) best = { sub, W, mx };
+  }
+  return best;
+}
+module.exports = { CONTROL, FIELDS, widthOf, blindStep, bestSubset };

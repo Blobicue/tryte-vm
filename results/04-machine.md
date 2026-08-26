@@ -1,7 +1,7 @@
 <!-- kind: results-topic -->
 # 04 — Headroom, terminals, addressed memory, interconnect
 
-**Owned sets:** `H` `B` `C` `A`
+**Owned sets:** `H` `B` `C` `A` `T`
 
 Cross-references `J`/`K`/`L` (the cells this is built from), `E` (the read path's
 alternative), `N` (which prices it), `X` (the axioms that keep biting).
@@ -144,7 +144,38 @@ result rather than an omission: the bus is cheaper and costs a second control co
 solved and seeded every step, and whether that is affordable is a *sequencing*
 question with sequencing unbuilt.
 
-### 5. The failed prediction that separated control from data
+### 5. Instruction decode, and the free version of `C5` killed
+
+The design folder called one option the interesting one: **could the ISA be
+renumbered so decode vanishes?** It is the only option there that changes something
+outside the device layer, and nobody had costed it.
+
+First, ground truth. The control table is a **design**, not a measurement — no
+datapath consumes control lines yet — so what is checkable is **sufficiency**: an
+interpreter driven only by control words, never seeing an opcode, reproduces
+`src/vm.js` state for state across **566 steps of all eight programs** (`T1`).
+`MEASURED`
+
+Then the arithmetic. The control word is **11 trits wide and injective** — 25
+distinct words for 25 opcodes, carrying exactly the opcode's information spread
+eleven trits wide instead of three (`T2`). The opcode needs 3 trits and its cell
+holds 6, so **three are spare** — and **11 does not fit in 6.**
+
+> **The free version of `C5` is dead.** Decode cannot be made to vanish by widening
+> the opcode into its own cell's spare trits.
+
+And no field can be a direct slice of a three-trit opcode (`T3`). A field of width
+`w` fits only if its largest class is at most `3^(3−w)`; the class sizes are 16/5/4,
+14/11, 23/2, 23/2, 7/6/2, 16/7/2, 22/2/1 and 22/1/1/1, and **none fits**.
+
+What the spare trits *do* buy is `T4`, and the prediction there **failed by exactly
+one trit**: the best jointly direct-encodable subset is **five** trits, not six, and
+is **not** jointly injective. Six trits of capacity exist, but the fields are chunky
+and no combination summing to six separates all 25 opcodes. So **five of eleven
+control trits become free** and decode falls from 572 switches to 312 — a **45%**
+saving at zero memory cost, rather than the 55% predicted.
+
+### 6. The failed prediction that separated control from data
 
 `A2` predicted a tree fed by a **computed** source inherits the bus's cold-start
 precondition. **It does not** — 4 of 4 routed. A computed *data* node is rail-driven
@@ -197,5 +228,6 @@ explicitly *so it could be wrong*, and being wrong is what produced the distinct
 | `B` | can a stored value drive a selector source terminal? | all held |
 | `C` | a 27-word addressed memory, and three errors in the budget | all held |
 | `A` | interconnect: tree against bus, and which axis decides | 3 held, `A2` failed |
+| `T` | the control word, and whether decode can disappear | 3 held, `T4` failed |
 
 Full text in [`99-ledger.md`](99-ledger.md).

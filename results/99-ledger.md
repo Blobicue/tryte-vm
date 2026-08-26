@@ -7,9 +7,9 @@ Every registered prediction, in the order it was registered, rendered from
 [`FINDINGS.json`](../FINDINGS.json). **Nothing on this page is authored** — if a
 line here is wrong, the manifest is wrong.
 
-**25 sets · 108 predictions · 97 held · 11 failed**
+**26 sets · 112 predictions · 100 held · 12 failed**
 · 21 measured but never registered
-· 16 defect classes, 31 occurrences
+· 16 defect classes, 32 occurrences
 
 Each set names the commit that registered it and the commit that recorded its
 results. Those are checked to be genuinely ordered, and to be reachable from the
@@ -1129,6 +1129,50 @@ branch rather than merely present in a local object store.
 
 ---
 
+## Set `T` — The control word, and whether instruction decode can be made to disappear
+
+| | |
+|---|---|
+| outcome | 3 held, 1 failed |
+| tool | `tools/decode-audit.js` |
+| asserted in | `test/test-decode.js` |
+| registered | `d951dc7` |
+| results | `PENDING` |
+
+### `T1` — HELD
+
+**Claim.** the control word is sufficient: an opcode-blind interpreter reproduces src/vm.js exactly
+
+**Measured.** programs: 8; agreed: 8; steps_compared: 566; compared_on: A, C, PC, output length, halted, every step
+
+**Note.** The ground truth the rest of the set rests on. The interpreter takes the opcode only to look up its control word and then never refers to it again -- every branch is driven by a control field. If the table were missing a distinction, some program would diverge. None does. Note that this establishes SUFFICIENCY, not that the table is a good design: a table can be sufficient and still be poorly factored.
+
+### `T2` — HELD
+
+**Claim.** and it is eleven trits wide, injective, and too wide to fit the opcode cell
+
+**Measured.** field_widths: {"op":1,"rd":1,"wr":1,"ix":1,"alu":3,"dst":1,"pc":1,"io":2}; total_trits: 11; distinct_control_words: 25; opcodes: 25; injective: true; opcode_trits_needed: 3; cell_trits: 6; spare: 3; fits: false
+
+**Note.** Exactly as derived. The control word is injective, so it carries precisely the opcode information -- spread across eleven trits instead of three. And eleven does not fit in six, so the FREE version of C5 is dead: decode cannot be made to vanish by widening the opcode into the spare trits of its own cell. That is the headline, and it is a fact about this control table rather than about ternary.
+
+### `T3` — HELD
+
+**Claim.** and no field can be direct-encoded into a three-trit opcode
+
+**Measured.** rule: a field of width w fits iff max class <= 3^(3-w); class_sizes: {"op":[16,5,4],"rd":[14,11],"wr":[23,2],"ix":[23,2],"alu":[7,6,2],"dst":[16,7,2],"pc":[22,2,1],"io":[22,1,1,1]}; verdicts: 16>9, 14>9, 23>9, 23>9, 7>1, 16>9, 22>9, 22>3 -- none fits; any_fits: false
+
+**Note.** Every registered class size matched. Registering them exactly is what made a miscount catchable, and it caught one during the derivation: an earlier version of the fit rule asked only "max class <= 9", which is correct for a ONE-trit field, and reported the three-trit ALU field as fitting on a max class of 7. The cap for width w is 3^(3-w), which for that field is 1. Caught before the registration was written rather than after.
+
+### `T4` — FAILED
+
+**Claim.** the best jointly direct-encodable subset totals 6 trits and is jointly injective
+
+**Measured.** best_subset: ["op","rd","alu"]; best_width: 5; max_joint_class: 3; jointly_injective: false; predicted_width: 6; predicted_injective: true; trits_freed: 5 of 11; decode_outputs_remaining: 6; saving: 45%; decode_full: 572 switches; decode_after: 312 switches
+
+**Note.** Wrong by exactly one trit, and wrong about injectivity. Six trits of spare capacity exist, but NO subset of fields totalling six is jointly injective on the 25 opcodes -- the fields are chunky (widths 1,1,1,1,3,1,1,2) and no combination summing to six separates every opcode. The best is five trits, with a max joint class of 3 that the one remaining trit exactly covers. So the saving is 45% of decode rather than the 55% predicted, still at zero memory cost because the spare trits were already paid for. The prediction being optimistic by one trit is the whole error.
+
+---
+
 ## Measured but never registered
 
 Facts established in passing. Listed separately so the pre-registration record is
@@ -1200,7 +1244,7 @@ recurred, which is itself a measure of how well naming a thing prevents it.
 | class | times | shape |
 |---|---|---|
 | `T-ONE-POINT` | 3 | Comparing two functions at a single input and concluding they are equal. Bit the mixed-TGATE test, the folded-vs-unfolded programs, and the TOP-vs-ADD comparison, where 81 of 19,683 tables matched at one pair. |
-| `T-STALE-CONSTANT` | 3 | A hardcoded count in a test or a document going stale when the thing it counted grew. The closure test kept passing against an opcode list the source no longer had; test-findings.js miscounted its own prediction sets; and the README stated both a check total and a prediction tally that had drifted. The first two were fixed by deriving them. The third could not be owned by any one suite, because it is the sum of all of them, so run-all.js sums the suites and test-findings.js recomputes the tally. |
+| `T-STALE-CONSTANT` | 4 | A hardcoded count in a test or a document going stale when the thing it counted grew. The closure test kept passing against an opcode list the source no longer had; test-findings.js miscounted its own prediction sets; and the README stated both a check total and a prediction tally that had drifted. The first two were fixed by deriving them. The third could not be owned by any one suite, because it is the sum of all of them, so run-all.js sums the suites and test-findings.js recomputes the tally. Fifth bite: the decode audit hardcoded the direct-encodable width as 6 in its cost section, two lines below the search that had just measured it as 5 -- so it printed a saving the measurement immediately above it had already refuted. The cost section now reads the search result. A constant is not safe merely because the thing it duplicates is nearby. |
 | `T-SILENT-NAN` | 1 | Writing through a missing label produced an undefined address, so the write silently did nothing. The core interpreter ran with no control register and no complaint. |
 | `T-ADJACENCY` | 1 | .fold reading nine cells from a table that was shorter, silently borrowing whatever followed it. |
 | `T-EXHAUSTED-NOT-CLOSED` | 3 | Confusing ran out of budget with finished. A search that exhausts its depth limit, one that hits its size cap, and one that genuinely closes are three different outcomes; conflating them produced a false negative verdict on V3. It recurred in the E sweep, where one counter held both settled-sooner-than-predicted and needed-longer-than-predicted, and the correctness check was skipped for the second bucket -- so an exhaustive claim was published while resting on an unmeasured decomposition. That time the numbers happened to be right: the second bucket was empty. Report the outcomes separately and check that they sum to the total. Third bite, this time in a CHECKER rather than an instrument: the staged solver was compared against solve() by crediting agreement only when both settled, so the cases where both agreed precisely that the network does NOT settle were counted as disagreements, and the tool declared its own results suspect. |

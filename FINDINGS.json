@@ -722,7 +722,7 @@
     },
     {
       "id": "E",
-      "subject": "The decoded-selector adder \u2014 the circuit that failed Z2, at full width",
+      "subject": "The decoded-selector adder — the circuit that failed Z2, at full width",
       "tool": "tools/decoded-audit.js",
       "registered_at": "ba1918b",
       "results_at": "88d5f71",
@@ -811,7 +811,7 @@
     },
     {
       "id": "F",
-      "subject": "Where 128/243 comes from \u2014 the decoded adder\u2019s pass count, derived",
+      "subject": "Where 128/243 comes from — the decoded adder’s pass count, derived",
       "tool": "tools/passcount-audit.js",
       "registered_at": "bf1d4f1",
       "results_at": "cbc7528",
@@ -1227,7 +1227,7 @@
     },
     {
       "id": "J",
-      "subject": "A six-trit register at switch level \u2014 the first sequential circuit here",
+      "subject": "A six-trit register at switch level — the first sequential circuit here",
       "tool": "tools/register-audit.js",
       "registered_at": "e23ca30",
       "results_at": "5012c77",
@@ -1345,7 +1345,7 @@
     },
     {
       "id": "L",
-      "subject": "An accumulator \u2014 the first circuit here that computes and remembers",
+      "subject": "An accumulator — the first circuit here that computes and remembers",
       "tool": "tools/accumulator-audit.js",
       "registered_at": "8b6da4d",
       "results_at": "7070b81",
@@ -1523,7 +1523,7 @@
     },
     {
       "id": "C",
-      "subject": "A 27-word addressed memory, built \u2014 and three errors in the budget formula",
+      "subject": "A 27-word addressed memory, built — and three errors in the budget formula",
       "tool": "tools/memory-audit.js",
       "registered_at": "8720a5c",
       "results_at": "49fc6ad",
@@ -1916,7 +1916,7 @@
     },
     {
       "id": "O",
-      "subject": "Ternary is born nonlinear at one control \u2014 and the whole economic margin is borrowed from the free mid rail",
+      "subject": "Ternary is born nonlinear at one control — and the whole economic margin is borrowed from the free mid rail",
       "tool": "tools/nonlinearity-audit.js",
       "registered_at": "779a0ee",
       "results_at": "c3ed57f",
@@ -2103,6 +2103,128 @@
           "note": "N2 removes three taps of 339. The other 336 come from sti inverters and tBuffers whose outputs are trit-valued, and by T5 a node that must take MID must reach vmid. So the assumption cannot be designed around, only priced -- which lands \"ternary is optimal for general compute\" on a single physical question this model is structurally unable to answer, with a number attached to how much depends on the answer."
         }
       ]
+    },
+    {
+      "id": "T",
+      "subject": "The control word, and whether instruction decode can be made to disappear",
+      "tool": "tools/decode-audit.js",
+      "registered_at": "d951dc7",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-decode.js",
+      "predictions": [
+        {
+          "id": "T1",
+          "claim": "the control word is sufficient: an opcode-blind interpreter reproduces src/vm.js exactly",
+          "outcome": "HELD",
+          "measured": {
+            "programs": 8,
+            "agreed": 8,
+            "steps_compared": 566,
+            "compared_on": "A, C, PC, output length, halted, every step"
+          },
+          "note": "The ground truth the rest of the set rests on. The interpreter takes the opcode only to look up its control word and then never refers to it again -- every branch is driven by a control field. If the table were missing a distinction, some program would diverge. None does. Note that this establishes SUFFICIENCY, not that the table is a good design: a table can be sufficient and still be poorly factored."
+        },
+        {
+          "id": "T2",
+          "claim": "and it is eleven trits wide, injective, and too wide to fit the opcode cell",
+          "outcome": "HELD",
+          "measured": {
+            "field_widths": {
+              "op": 1,
+              "rd": 1,
+              "wr": 1,
+              "ix": 1,
+              "alu": 3,
+              "dst": 1,
+              "pc": 1,
+              "io": 2
+            },
+            "total_trits": 11,
+            "distinct_control_words": 25,
+            "opcodes": 25,
+            "injective": true,
+            "opcode_trits_needed": 3,
+            "cell_trits": 6,
+            "spare": 3,
+            "fits": false
+          },
+          "note": "Exactly as derived. The control word is injective, so it carries precisely the opcode information -- spread across eleven trits instead of three. And eleven does not fit in six, so the FREE version of C5 is dead: decode cannot be made to vanish by widening the opcode into the spare trits of its own cell. That is the headline, and it is a fact about this control table rather than about ternary."
+        },
+        {
+          "id": "T3",
+          "claim": "and no field can be direct-encoded into a three-trit opcode",
+          "outcome": "HELD",
+          "measured": {
+            "rule": "a field of width w fits iff max class <= 3^(3-w)",
+            "class_sizes": {
+              "op": [
+                16,
+                5,
+                4
+              ],
+              "rd": [
+                14,
+                11
+              ],
+              "wr": [
+                23,
+                2
+              ],
+              "ix": [
+                23,
+                2
+              ],
+              "alu": [
+                7,
+                6,
+                2
+              ],
+              "dst": [
+                16,
+                7,
+                2
+              ],
+              "pc": [
+                22,
+                2,
+                1
+              ],
+              "io": [
+                22,
+                1,
+                1,
+                1
+              ]
+            },
+            "verdicts": "16>9, 14>9, 23>9, 23>9, 7>1, 16>9, 22>9, 22>3 -- none fits",
+            "any_fits": false
+          },
+          "note": "Every registered class size matched. Registering them exactly is what made a miscount catchable, and it caught one during the derivation: an earlier version of the fit rule asked only \"max class <= 9\", which is correct for a ONE-trit field, and reported the three-trit ALU field as fitting on a max class of 7. The cap for width w is 3^(3-w), which for that field is 1. Caught before the registration was written rather than after."
+        },
+        {
+          "id": "T4",
+          "claim": "the best jointly direct-encodable subset totals 6 trits and is jointly injective",
+          "outcome": "FAILED",
+          "measured": {
+            "best_subset": [
+              "op",
+              "rd",
+              "alu"
+            ],
+            "best_width": 5,
+            "max_joint_class": 3,
+            "jointly_injective": false,
+            "predicted_width": 6,
+            "predicted_injective": true,
+            "trits_freed": "5 of 11",
+            "decode_outputs_remaining": 6,
+            "saving": "45%",
+            "decode_full": "572 switches",
+            "decode_after": "312 switches"
+          },
+          "note": "Wrong by exactly one trit, and wrong about injectivity. Six trits of spare capacity exist, but NO subset of fields totalling six is jointly injective on the 25 opcodes -- the fields are chunky (widths 1,1,1,1,3,1,1,2) and no combination summing to six separates every opcode. The best is five trits, with a max joint class of 3 that the one remaining trit exactly covers. So the saving is 45% of decode rather than the 55% predicted, still at zero memory cost because the spare trits were already paid for. The prediction being optimistic by one trit is the whole error."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -2188,7 +2310,7 @@
     {
       "id": "F-251505-AGAIN",
       "outcome": "MEASURED_NOT_REGISTERED",
-      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 \u2014 the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
+      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 — the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
       "evidence": "531,441 minus the 279,936 that settle in fewer passes; the rung is recorded in the U set",
       "asserted_in": "test/test-decoded.js",
       "note": "Chased and settled by the G set: a coincidence. The pairing that produces it holds at exactly one parameter value, the two families grow at rates a thousandfold apart, and the two numbers are the only pair in the manifest that collides across the vocabulary and circuit halves of the project."
@@ -2259,8 +2381,8 @@
     },
     {
       "id": "T-STALE-CONSTANT",
-      "count": 3,
-      "description": "A hardcoded count in a test or a document going stale when the thing it counted grew. The closure test kept passing against an opcode list the source no longer had; test-findings.js miscounted its own prediction sets; and the README stated both a check total and a prediction tally that had drifted. The first two were fixed by deriving them. The third could not be owned by any one suite, because it is the sum of all of them, so run-all.js sums the suites and test-findings.js recomputes the tally."
+      "count": 4,
+      "description": "A hardcoded count in a test or a document going stale when the thing it counted grew. The closure test kept passing against an opcode list the source no longer had; test-findings.js miscounted its own prediction sets; and the README stated both a check total and a prediction tally that had drifted. The first two were fixed by deriving them. The third could not be owned by any one suite, because it is the sum of all of them, so run-all.js sums the suites and test-findings.js recomputes the tally. Fifth bite: the decode audit hardcoded the direct-encodable width as 6 in its cost section, two lines below the search that had just measured it as 5 -- so it printed a saving the measurement immediately above it had already refuted. The cost section now reads the search result. A constant is not safe merely because the thing it duplicates is nearby."
     },
     {
       "id": "T-SILENT-NAN",
