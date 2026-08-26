@@ -7,7 +7,7 @@ which is the authoritative record and is ordered the only way a record can be
 honestly ordered: chronologically, by when each prediction was registered.
 
 Chronological order is right for a ledger and useless for a reader. Nobody can
-answer *"what is known about adders?"* without reading twenty-five sets in
+answer *"what is known about adders?"* without reading every set in
 sequence. This folder is that same corpus keyed by subject instead of by date.
 
 ---
@@ -87,8 +87,8 @@ deliberately so — it is an index of limits stated elsewhere, and writing fresh
 there would create a second place limits live.
 
 Two files are where a reader coming cold should start. `05-algebra.md` is what
-ternary uniquely offers. `07-negative.md` is eleven failed predictions and seven
-lying instruments — the load-bearing evidence that the other ninety-seven are worth
+ternary uniquely offers. `07-negative.md` is every failed prediction and every
+lying instrument — the load-bearing evidence that the ones which held are worth
 anything.
 
 ---
@@ -97,10 +97,10 @@ anything.
 
 | | |
 |---|---|
-| prediction sets | 26 |
-| registered predictions | 112 — **100 held, 12 failed** |
+| prediction sets | 27 |
+| registered predictions | 116 — **104 held, 12 failed** |
 | measured but never registered | 21 |
-| defect classes | 16, recurring 32 times |
+| defect classes | 16, recurring 35 times |
 
 The suite's check count is deliberately **not** repeated here — it lives in
 [`../README.md`](../README.md), where `run-all.js` verifies it, and a second copy

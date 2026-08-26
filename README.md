@@ -13,7 +13,7 @@ One hundred and sixteen predictions, one hundred and four held, twelve failed �
 and the twelve produced more than the hundred and four. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**964 checks**, all passing. Every number below is recomputed by one of them,
+**976 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -26,7 +26,7 @@ node src/run.js programs/multiply.tasm 7 5
 |---|---|
 | **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + twenty-seven audits |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
-| **What was found** | [`results/`](results/) — every result keyed by subject, with a generated ledger of all 108 predictions |
+| **What was found** | [`results/`](results/) — every result keyed by subject, with a generated ledger of every prediction |
 | **What is not built** | [`design/`](design/) — interconnect, decode and sequencing, enumerated before anything is chosen, and [`design/12-roadmap.md`](design/12-roadmap.md) for the order to build them in |
 | **What is known** | [`.claude/knowledge/doctrees/tryte-vm/`](.claude/knowledge/doctrees/tryte-vm/) — 13 pillars, each declaring how well mapped it is |
 | **Every claim** | [`FINDINGS.json`](FINDINGS.json) — machine-readable, validated by `test/test-findings.js` |
@@ -65,7 +65,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 ## Findings at a glance
 
 Twenty-seven prediction sets, registered before their runs. **104 held, 12 failed** — the
-failures are kept, and four of the five produced the result that replaced them.
+failures are kept, and four of them produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
 [`FINDINGS.json`](FINDINGS.json).

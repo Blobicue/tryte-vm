@@ -14,7 +14,7 @@ for *this* repository. What follows is the part that is not about ternary.
 ## What it produced
 
 Twenty-seven prediction sets, **116 registered predictions, 104 held, 12 failed.** Sixteen
-distinct failure classes, which bit **34 times** between them. Twenty-one findings
+distinct failure classes, which bit **35 times** between them. Twenty-one findings
 measured but never registered, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this

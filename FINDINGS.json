@@ -722,7 +722,7 @@
     },
     {
       "id": "E",
-      "subject": "The decoded-selector adder — the circuit that failed Z2, at full width",
+      "subject": "The decoded-selector adder â€” the circuit that failed Z2, at full width",
       "tool": "tools/decoded-audit.js",
       "registered_at": "ba1918b",
       "results_at": "88d5f71",
@@ -811,7 +811,7 @@
     },
     {
       "id": "F",
-      "subject": "Where 128/243 comes from — the decoded adder’s pass count, derived",
+      "subject": "Where 128/243 comes from â€” the decoded adderâ€™s pass count, derived",
       "tool": "tools/passcount-audit.js",
       "registered_at": "bf1d4f1",
       "results_at": "cbc7528",
@@ -1227,7 +1227,7 @@
     },
     {
       "id": "J",
-      "subject": "A six-trit register at switch level — the first sequential circuit here",
+      "subject": "A six-trit register at switch level â€” the first sequential circuit here",
       "tool": "tools/register-audit.js",
       "registered_at": "e23ca30",
       "results_at": "5012c77",
@@ -1345,7 +1345,7 @@
     },
     {
       "id": "L",
-      "subject": "An accumulator — the first circuit here that computes and remembers",
+      "subject": "An accumulator â€” the first circuit here that computes and remembers",
       "tool": "tools/accumulator-audit.js",
       "registered_at": "8b6da4d",
       "results_at": "7070b81",
@@ -1523,7 +1523,7 @@
     },
     {
       "id": "C",
-      "subject": "A 27-word addressed memory, built — and three errors in the budget formula",
+      "subject": "A 27-word addressed memory, built â€” and three errors in the budget formula",
       "tool": "tools/memory-audit.js",
       "registered_at": "8720a5c",
       "results_at": "49fc6ad",
@@ -1916,7 +1916,7 @@
     },
     {
       "id": "O",
-      "subject": "Ternary is born nonlinear at one control — and the whole economic margin is borrowed from the free mid rail",
+      "subject": "Ternary is born nonlinear at one control â€” and the whole economic margin is borrowed from the free mid rail",
       "tool": "tools/nonlinearity-audit.js",
       "registered_at": "779a0ee",
       "results_at": "c3ed57f",
@@ -2231,7 +2231,7 @@
       "subject": "Sequencing: can the step boundary live inside the circuit?",
       "tool": "tools/sequencer-audit.js",
       "registered_at": "7ad9a8c",
-      "results_at": "PENDING",
+      "results_at": "d33c244",
       "asserted_in": "test/test-sequencer.js",
       "predictions": [
         {
@@ -2369,7 +2369,7 @@
     {
       "id": "F-251505-AGAIN",
       "outcome": "MEASURED_NOT_REGISTERED",
-      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 — the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
+      "claim": "The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 â€” the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.",
       "evidence": "531,441 minus the 279,936 that settle in fewer passes; the rung is recorded in the U set",
       "asserted_in": "test/test-decoded.js",
       "note": "Chased and settled by the G set: a coincidence. The pairing that produces it holds at exactly one parameter value, the two families grow at rates a thousandfold apart, and the two numbers are the only pair in the manifest that collides across the vocabulary and circuit halves of the project."
@@ -2500,8 +2500,8 @@
     },
     {
       "id": "T-CRITERION-IN-THE-NOISE",
-      "count": 1,
-      "description": "A registered criterion whose verdict depends on run-to-run variation. H1 predicted a spread under 3x and measured 3.72 on one run and 2.89 on the next, either side of its own line, so the same world produced both a pass and a fail. The attempt to salvage a more robust shape from it flipped too. A threshold placed near the noise floor is a defect in the prediction rather than a fact about the subject; either widen it until it cannot flip, or measure the quantity and report it without asserting a bound."
+      "count": 2,
+      "description": "A registered criterion whose verdict depends on run-to-run variation. H1 predicted a spread under 3x and measured 3.72 on one run and 2.89 on the next, either side of its own line, so the same world produced both a pass and a fail. The attempt to salvage a more robust shape from it flipped too. A threshold placed near the noise floor is a defect in the prediction rather than a fact about the subject; either widen it until it cannot flip, or measure the quantity and report it without asserting a bound. Second bite, and it was sitting inside the suite that records the first. test-headroom section 5 checked \"the six-trit adder is sweepable inside an hour\" against a LIVE timing. It passed on an idle machine and failed at 1.84 h inside a full suite run on a loaded one -- the same world returning both verdicts. Section 4 of the same file already refuses to assert durations and enforces that refusal by grepping itself; section 5 was quietly doing what section 4 forbids, four sections below the comment explaining why not to. The repair is the one the class prescribes: assert the RATIO, which survives any host -- a 50,000-device sweep costs about 80x a 624-device one -- and report the hour figures without checking them. On the loaded host the measured sweep budget is 335 devices against H2 recorded 4,806, so the figure was never a constant of nature and is now labelled as a measurement taken on a stated machine."
     },
     {
       "id": "T-TRANSCRIBED-TABLE",

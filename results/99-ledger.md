@@ -9,7 +9,7 @@ line here is wrong, the manifest is wrong.
 
 **27 sets · 116 predictions · 104 held · 12 failed**
 · 21 measured but never registered
-· 16 defect classes, 34 occurrences
+· 16 defect classes, 35 occurrences
 
 Each set names the commit that registered it and the commit that recorded its
 results. Those are checked to be genuinely ordered, and to be reachable from the
@@ -449,7 +449,7 @@ branch rather than merely present in a local object store.
 
 ---
 
-## Set `E` — The decoded-selector adder — the circuit that failed Z2, at full width
+## Set `E` — The decoded-selector adder â€” the circuit that failed Z2, at full width
 
 | | |
 |---|---|
@@ -499,7 +499,7 @@ branch rather than merely present in a local object store.
 
 ---
 
-## Set `F` — Where 128/243 comes from — the decoded adder’s pass count, derived
+## Set `F` — Where 128/243 comes from â€” the decoded adderâ€™s pass count, derived
 
 | | |
 |---|---|
@@ -675,7 +675,7 @@ branch rather than merely present in a local object store.
 
 ---
 
-## Set `J` — A six-trit register at switch level — the first sequential circuit here
+## Set `J` — A six-trit register at switch level â€” the first sequential circuit here
 
 | | |
 |---|---|
@@ -761,7 +761,7 @@ branch rather than merely present in a local object store.
 
 ---
 
-## Set `L` — An accumulator — the first circuit here that computes and remembers
+## Set `L` — An accumulator â€” the first circuit here that computes and remembers
 
 | | |
 |---|---|
@@ -857,7 +857,7 @@ branch rather than merely present in a local object store.
 
 ---
 
-## Set `C` — A 27-word addressed memory, built — and three errors in the budget formula
+## Set `C` — A 27-word addressed memory, built â€” and three errors in the budget formula
 
 | | |
 |---|---|
@@ -1041,7 +1041,7 @@ branch rather than merely present in a local object store.
 
 ---
 
-## Set `O` — Ternary is born nonlinear at one control — and the whole economic margin is borrowed from the free mid rail
+## Set `O` — Ternary is born nonlinear at one control â€” and the whole economic margin is borrowed from the free mid rail
 
 | | |
 |---|---|
@@ -1181,7 +1181,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/sequencer-audit.js` |
 | asserted in | `test/test-sequencer.js` |
 | registered | `7ad9a8c` |
-| results | `PENDING` |
+| results | `d33c244` |
 
 ### `AA1` — HELD
 
@@ -1250,7 +1250,7 @@ not inflated by things that were never at risk.
 - **`F-INPUTS-DO-NOT-SOURCE`** — An input gates a device and terminates a path, but never sources one: a conducting device between an input and a node transfers nothing, and the node is Z. Reachability starts at rails and only at rails.
   <br>*Evidence:* proved as the second half of T5; no circuit in the repository had ever used an input as a pass terminal, so nothing had depended on it either way
   <br>*Asserted in:* `test/test-axioms.js`
-- **`F-251505-AGAIN`** — The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 — the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.
+- **`F-251505-AGAIN`** — The number of operand pairs on which the decoded adder settles in exactly thirteen passes is 251,505 â€” the same figure the monoid audits found for what positionwise logic plus one carrying ADD reaches at width two. Two different objects counted inside the same 3^12 space, landing on the same six-digit number.
   <br>*Evidence:* 531,441 minus the 279,936 that settle in fewer passes; the rung is recorded in the U set
   <br>*Asserted in:* `test/test-decoded.js`
 - **`F-WRAP-VERSUS-STEP`** — The sum and carry halves of a balanced-ternary adder save in exactly complementary currencies, and for one reason. The low trit WRAPS, so its rows repeat across operand sums -- nine leaf selectors collapse to three -- but its cells never agree within a row, so it can never settle early. The carry STEPS, so its rows never repeat -- five of nine, no collapse -- but it is flat over stretches, so twelve of eighteen cells agree within a row and it settles early constantly.
@@ -1300,7 +1300,7 @@ recurred, which is itself a measure of how well naming a thing prevents it.
 | `T-SEARCH-WHERE-A-CHECK-WOULD-DO` | 1 | An instrument that searched for a value it could have verified. Finding the exact pass count by scanning k = 1 upward cost up to eighty solves per input on a 1,776-switch network and did not finish inside ten minutes. The count is the same for every input, so it needs finding once and checking twice thereafter -- settles at k, does not settle at k-1. Two solves, not eighty. |
 | `T-CLAIM-NARROWED-BY-A-DESIGN` | 2 | A measured result stated as a property of the SUBJECT when it was a property of the DESIGN measured. Z2 swept buffer placements in one family of trees and concluded a depth floor for ternary at any price; a different selector beat it. E4, and Y2 and Z5 before it, measured raw-select circuits and concluded settling time is never data-dependent; a decoded selector made it data-dependent. Both times the numbers were right and the noun was too big. Before writing ternary, or this model, ask whether the sweep visited more than one design. |
 | `T-CENSUS-COUNTS-ITSELF` | 1 | A measurement over a corpus that the measurement is then written into. G4 surveyed the manifest for repeated integers, and recording its own result added those integers to the manifest a second time -- as the values it had excluded -- so the next run found them colliding and the prediction failed against its own record. Nothing was wrong with the world or the first answer. If a result is stored where it will later be read as data, exclude the storing record from the read, and derive the exclusion from something structural rather than an id. |
-| `T-CRITERION-IN-THE-NOISE` | 1 | A registered criterion whose verdict depends on run-to-run variation. H1 predicted a spread under 3x and measured 3.72 on one run and 2.89 on the next, either side of its own line, so the same world produced both a pass and a fail. The attempt to salvage a more robust shape from it flipped too. A threshold placed near the noise floor is a defect in the prediction rather than a fact about the subject; either widen it until it cannot flip, or measure the quantity and report it without asserting a bound. |
+| `T-CRITERION-IN-THE-NOISE` | 2 | A registered criterion whose verdict depends on run-to-run variation. H1 predicted a spread under 3x and measured 3.72 on one run and 2.89 on the next, either side of its own line, so the same world produced both a pass and a fail. The attempt to salvage a more robust shape from it flipped too. A threshold placed near the noise floor is a defect in the prediction rather than a fact about the subject; either widen it until it cannot flip, or measure the quantity and report it without asserting a bound. Second bite, and it was sitting inside the suite that records the first. test-headroom section 5 checked "the six-trit adder is sweepable inside an hour" against a LIVE timing. It passed on an idle machine and failed at 1.84 h inside a full suite run on a loaded one -- the same world returning both verdicts. Section 4 of the same file already refuses to assert durations and enforces that refusal by grepping itself; section 5 was quietly doing what section 4 forbids, four sections below the comment explaining why not to. The repair is the one the class prescribes: assert the RATIO, which survives any host -- a 50,000-device sweep costs about 80x a 624-device one -- and report the hour figures without checking them. On the loaded host the measured sweep budget is 335 devices against H2 recorded 4,806, so the figure was never a constant of nature and is now labelled as a measurement taken on a stated machine. |
 | `T-TRANSCRIBED-TABLE` | 1 | A fact that could have been RUN was hand-copied instead. The terminal audit seeded a detector output from its truth table as written in a comment. The comment was right; the transcription inverted it, putting an n-type gate above its threshold so a selector leg conducted on exactly the addresses where it must be off. The result was not noise: 36 of 54 cases failed, every one of them a case where the middle word disagreed with the selected word and none where they agreed -- the exact mechanistic signature real contention would produce, and a plausible headline finding. A wrong instrument does not look wrong. When a value is derivable by running a two-line network, run it rather than copying it. |
 | `T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE` | 1 | A control signal that is a COMPUTED node rather than a primary input is unknown on the first pass of the fixed point, and unknown conduction is treated as possible -- so on pass one it bridges or breaks everything it gates. Counted ONCE, not twice: B1a predicted exactly this shape for a decoded selector's middle leg in its own registration commit BEFORE the run, which is the protocol working rather than a trap anyone fell into. It bit in C, where nothing in the registration anticipated it: every hold gate in a 27-word array is a decoder output, and all 26 unaddressed words went to X on every write. The cells hold perfectly when hold is a primary input and not at all when it is a decoder output. The fix is not a workaround -- solve the control cone on its own and seed it. The general shape is that a circuit correct at its fixed point can be unreachable from a cold start, and the larger the control fan-out the more it takes with it. |
 

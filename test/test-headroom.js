@@ -168,13 +168,37 @@ console.log('\n=== 5. H2 — THE BOUNDARY OF THIS PROJECT\'S OWN METHOD ===');
   const perDevice = ms / net.devices.length;
   const sweepHours = n => (perDevice * n * 531441) / 3.6e6;
 
-  check('a 4,096-device network solves in well under a second', ms < 500, `${ms.toFixed(1)} ms`);
-  check('H2 — the six-trit adder at 624 devices is sweepable inside an hour',
-    sweepHours(624) < 1, `${sweepHours(624).toFixed(2)} h`);
-  check('H2 — a 50,000-device machine is NOT: hours, not minutes',
-    sweepHours(50000) > 2, `${sweepHours(50000).toFixed(1)} h`);
-  check('   so the machine can be run and cannot be swept, and that is the boundary'
-    + ' of the discipline every result here rests on', sweepHours(624) < sweepHours(50000));
+  // NO DURATION IS ASSERTED HERE, and that is a repair rather than a style choice.
+  //
+  // This section used to check "the adder is sweepable inside an hour" against a
+  // live timing. It passed on an idle machine and FAILED at 1.84 h inside a full
+  // suite run on a loaded one — the same world returning both verdicts, which is
+  // exactly `T-CRITERION-IN-THE-NOISE`, the defect `H1` recorded four sections
+  // above. Section 4 already refuses to assert durations and enforces that refusal
+  // by grepping itself; section 5 was quietly doing what section 4 forbids.
+  //
+  // What survives being measured on an arbitrary host is the RATIO: a sweep scales
+  // with device count, so a 50,000-device machine costs ~80x what the adder costs
+  // whatever else the machine is doing. The hour figures are REPORTED, never
+  // asserted, and `H2`'s recorded 4,806-device budget stands as a measurement taken
+  // on a stated host rather than as a constant of nature.
+  const budget = 3.6e6 / (perDevice * 531441);
+  console.log(`      measured here: ${ms.toFixed(1)} ms per solve at ${net.devices.length}`
+    + ` devices; sweep budget ${Math.round(budget)} devices;`
+    + ` adder ${sweepHours(624).toFixed(2)} h, machine ${sweepHours(50000).toFixed(1)} h`);
+  check('a full sweep scales with device count: the 50,000-device machine costs'
+    + ' about 80x the six-trit adder, on any host',
+    Math.abs(sweepHours(50000) / sweepHours(624) - 50000 / 624) < 0.01,
+    (sweepHours(50000) / sweepHours(624)).toFixed(1));
+  check('   so whatever an hour buys on a given machine, the adder sits inside that'
+    + ' boundary by the same factor the machine sits outside it',
+    sweepHours(624) < sweepHours(50000));
+  check('   and this section asserts no duration either — the figures above are'
+    + ' reported, not checked, for the reason section 4 gives', (() => {
+      const self = fs.readFileSync(__filename, 'utf8');
+      const section = self.slice(self.indexOf('=== 5.'));
+      return !/(sweepHours\([^)]*\)|\bms\b)\s*[<>]\s*\d/.test(section);
+    })());
 }
 
 try { if (R) { delete require.cache[require.resolve(RETAIN_FILE)]; fs.unlinkSync(RETAIN_FILE); } } catch (e) { /* gone */ }

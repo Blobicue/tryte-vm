@@ -1,11 +1,11 @@
 <!-- kind: results-topic -->
-# 07 — What was wrong: eleven failed predictions, and seven lying instruments
+# 07 — What was wrong: every failed prediction, and every lying instrument
 
 **Owns no sets.** Cross-references `P`, `X`, `Z`, `E`, `H`, `J`, `A`, `D`, `N`.
 
-This is the load-bearing file. Ninety-seven predictions held, and a reader has no
-way to know whether that means the method works or the predictions were safe. **The
-eleven that failed are the evidence.** Every one is kept, none was quietly corrected,
+This is the load-bearing file. The great majority of predictions held, and a reader has
+no way to know whether that means the method works or the predictions were safe.
+**The ones that failed are the evidence.** Every one is kept, none was quietly corrected,
 and four produced the result that replaced them.
 
 A scientific negative-results section owes two lists, not one: **predictions that
@@ -17,7 +17,7 @@ the more dangerous of the two.
 
 ## What is established
 
-### Part one — the eleven failed predictions, ordered by what they taught
+### Part one — the failed predictions, ordered by what they taught
 
 #### The ones that produced their own replacement
 
@@ -75,6 +75,13 @@ uniform by construction, so a map proved to repeat every six calls scores 0.96×
 ideal. The second failure **disqualifies the most obvious test of a hash**, which is
 worth more than the prediction would have been.
 
+**`T4` — "the best set of control fields packable into the opcode's spare trits
+is six wide and separates every opcode."** It is **five**, and separates nothing on
+its own. Six trits of spare capacity exist, but the fields are chunky — widths
+1,1,1,1,3,1,1,2 — and no combination summing to six distinguishes all 25 opcodes.
+Optimistic by exactly one trit, which still leaves a 45% cut to decode at zero
+memory cost.
+
 **`N1` — "a tap is unavoidable iff some node must carry MID."** Failed two ways, and
 the second is the instructive one. The test asked *"does this **build** put MID on a
 node"*, which is not the rule as registered — the rule was *"must some node carry MID
@@ -85,11 +92,11 @@ equivalent circuits that the test did not do.
 
 ---
 
-### Part two — the seven instruments that lied
+### Part two — the instruments that lied
 
 None of these was ever a registered prediction. Each produced a confident, clean,
 mechanistically plausible wrong answer. They are catalogued as
-`T-INSTRUMENT-FALSE-VERDICT` (7 occurrences) and the detail lives in
+`T-INSTRUMENT-FALSE-VERDICT` (9 occurrences) and the detail lives in
 [`99-ledger.md`](99-ledger.md); what follows is what they have in common.
 
 | # | the instrument | what it reported | what was true |
@@ -101,6 +108,8 @@ mechanistically plausible wrong answer. They are catalogued as
 | 5 | a detector's truth table hand-copied from a comment, inverted | 36 of 54 failures, **every one** where the middle word disagreed | a leg conducted on exactly the addresses where it must be off |
 | 6 | decoder and read tree disagreed about **endianness** | writes landing in the wrong word, every read-back failing | each half was internally consistent |
 | 7 | a verification case paired a 3-cycle with a **25**-cycle and called it `A₂₇` | the tool scored WRONG | the tool returned 25!/2, exactly right for what was built |
+| 8 | an adder cell built **without its tag**, which names its internal nodes | the sequencer visiting 2 states instead of 27 | three cells shared node names and merged into one circuit |
+| 9 | a handshake rig counted the driving values that **disable** the loop | a self-timed handshake reported as working | no handshake occurs in either of those two cases |
 
 **The common shape, and the reason this list exists:** a wrong instrument does not
 produce noise. **It produces a clean, mechanistic, entirely plausible finding.**
@@ -112,6 +121,10 @@ decoded selector cannot read storage.* It was an inverted seed.
 
 Number 7 points the other way and is worth its own sentence: **a verification case is
 as suspect as the thing it checks.** The tool was right and the check was wrong.
+
+Numbers 8 and 9 came from **one tool in one run**, pointing opposite ways — a false
+negative and a false positive together. Number 8 is the quieter danger of the two: an
+argument that *looks* optional, omitted, silently welding three circuits into one.
 
 The operational rule this produced, now in [`../AGENTS.md`](../AGENTS.md): *when a
 result contradicts a prediction, suspect the instrument first — it is cheaper to rule
@@ -128,6 +141,15 @@ the *specification* was wrong:
   commonest status marker, "which is correct for a design phase". It stopped being
   true at 53-to-53, because the design was being **built**. The check was asserting a
   phase of the project as though it were a property of it.
+- **A duration asserted in a test.** `test-headroom` section 5 checked "the adder is
+  sweepable inside an hour" against a live timing. It passed on an idle machine and
+  failed at 1.84 h in a suite run on a loaded one — **the same world returning both
+  verdicts**, which is `T-CRITERION-IN-THE-NOISE` sitting four sections below the
+  comment in the same file explaining why not to do it. Section 4 of that file
+  already refused to assert durations and enforced the refusal by grepping itself;
+  section 5 was quietly doing what section 4 forbids. Repaired the way the class
+  prescribes: assert the **ratio**, which survives any host, and report the hours
+  without checking them.
 - **A check forbidding a healthy state.** One demanded that the number of tools equal
   the number of prediction sets. They are equal only *between* phases — during a
   registration there is deliberately one more tool than there are results. **The check
@@ -154,7 +176,7 @@ working here are in [`../AGENTS.md`](../AGENTS.md).
 
 ## What it does not show
 
-- **Eleven failures out of 108 is not a calibration claim.** The predictions were not
+- **The ratio of failures to predictions is not a calibration claim.** The predictions were not
   drawn from any distribution, and there is no control arm. It is entirely possible
   the finite domain and the reference implementation did the work rather than the
   protocol.
