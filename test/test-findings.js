@@ -269,7 +269,12 @@ console.log('\n=== 5. REFERENCES ===');
     check(`the README's tally matches the manifest: ${held} held, ${failedCount} failed`,
       stated !== null && Number(stated[1]) === held && Number(stated[2]) === failedCount,
       stated ? `README says ${stated[1]} held, ${stated[2]} failed` : 'README states no tally');
-    const unnamed = M.prediction_sets.filter(s => !README.includes(`**${s.id}1`));
+    // A set's first prediction is not always numbered 1: set `M` opens with `M0`,
+    // the instrument check, deliberately numbered zero because it must pass before
+    // any claim may rest on it. This assumed `**<id>1` and reported the README as
+    // missing a set it names in full.
+    const unnamed = M.prediction_sets.filter(s =>
+      !s.predictions.some(p => README.includes(`**${p.id}`)));
     check('the README names every prediction set in the manifest',
       unnamed.length === 0, `missing: ${unnamed.map(s => s.id).join(' ')}`);
     // One set per tool is checked above, so the audit count is the tool count.
