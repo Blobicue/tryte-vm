@@ -44,7 +44,8 @@
     "audit:sequencer": "node tools/sequencer-audit.js",
     "audit:erasure": "node tools/erasure-audit.js",
     "audit:predict": "node tools/predict-audit.js",
-    "audit:hailstone": "node tools/hailstone-audit.js"
+    "audit:hailstone": "node tools/hailstone-audit.js",
+    "audit:setclass": "node tools/setclass-audit.js"
   },
   "license": "MIT",
   "private": true
