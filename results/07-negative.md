@@ -167,7 +167,7 @@ equivalent circuits that the test did not do.
 
 None of these was ever a registered prediction. Each produced a confident, clean,
 mechanistically plausible wrong answer. They are catalogued as
-`T-INSTRUMENT-FALSE-VERDICT` (14 occurrences) and the detail lives in
+`T-INSTRUMENT-FALSE-VERDICT` (16 occurrences) and the detail lives in
 [`99-ledger.md`](99-ledger.md); what follows is what they have in common.
 
 | # | the instrument | what it reported | what was true |
@@ -185,6 +185,8 @@ mechanistically plausible wrong answer. They are catalogued as
 | 11 | an interconnect rig **seeded** its sources instead of driving them | both topologies routing Z — "interconnect does not work at all" | a seed is an initial value, not a driver; these were never sources |
 | 12 | an erasure census folded the operand **into** the state | MIN as a single fixed 4.5033 bits | the clauses spoke of a range, 0 to 9.5098, and it held |
 | 13 | a hand-rolled regex missed every **labelled** instruction | a deterministic program costing different amounts for data it never reads | `threeway.tasm` carries `body:   IN`, and all eight programs read input |
+| 15 | a reuse instrument walked **divergent** trajectories to a 3,000-step guard | hailstone at 1,513x reuse, when a tabulator gains nothing from a cycle | the true figure is 10.43x, and 3,777 visits reproduces `AD2` exactly |
+| 16 | an external spec's **indices** misread — `Σ prev` taken to include the last term | the Ladder's central operator reported as generating powers of two, not Fibonacci | `L(n+1) = 1 + Σ L(0..n−1)`; `prev` excludes the last term, and one term changes the species |
 | 14 | a tabulator memoised only the **terminating** values | a patient predictor 300x **worse** than re-running — the answer that flattered the hypothesis | non-termination is an answer too; recording it costs 728 evaluations, not 1,098,362 |
 
 **The common shape, and the reason this list exists:** a wrong instrument does not

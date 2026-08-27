@@ -1,7 +1,7 @@
 <!-- kind: results-topic -->
 # 05 — The algebra of a trit: what three states actually buy
 
-**Owned sets: `D`, `M`, `O`, `AE`, `AF`.** Cross-references `P`–`V` (the reach ladder), `E`/`I`
+**Owned sets: `D`, `M`, `O`, `AE`, `AF`, `AI`.** Cross-references `P`–`V` (the reach ladder), `E`/`I`
 (the decoded family), `B` (control versus data), `N` (the price).
 
 This is the file to read first. Everything else in this project could in principle
@@ -351,6 +351,82 @@ consonance to divisions two and four times its size.**
 
 ---
 
+### 8. The arity ladder, and the feedback that makes a trajectory graph tree-like
+
+`AH2` found the binding constraint on an implied receipt, and it was not state size:
+a control space 500,000× larger than `hailstone`'s still handed a tabulator 3.20×
+reuse. **Trajectory convergence** is what a tabulator eats.
+
+`AI` takes the proposal to grow by **arity** rather than by width — climb n → n+1
+inputs, with the truth table of an n-input function as the object — and finds the
+thing that was missing. `MEASURED`
+
+#### The Ladder's history operator, replicated
+
+The layer sequence comes from one total operator over the whole history rather than
+a two-term recurrence:
+
+> **H(prev) = Σ prev + [prev ≠ ∅]** — *"everything that has happened, plus one if
+> anything has happened at all"*
+
+Defined on the empty history, no cases. It reproduces Fibonacci-with-two-zeros for
+all **40 terms** checked here, against the 9 its own page verified (`AI1`). Three of
+the four rival rules it names fail exactly where it says.
+
+The point is the genesis. The two-term recurrence **holds from term three and fails
+at term two**; the operator has no such exception. Fibonacci is a *consequence*.
+
+#### Arity cubes where width multiplies
+
+| n | rows | functions 3^(3^n) | cube of the last? |
+|---|---|---|---|
+| 1 | 3 | 27 | — |
+| 2 | 9 | 19,683 | **yes** |
+| 3 | 27 | 7,625,597,484,987 | **yes** |
+| 4 | 81 | 39 digits | **yes** |
+
+`AD4`'s width ladder multiplies by **729 per live word**. The arity ladder **cubes**
+(`AI2`), passes width at n = 3, and by n = 4 they are not in the same range — 39
+digits against 15. **Adding an input is not a bigger version of adding a word.**
+
+#### And `AB1` turns out to have been one rung of a closed form
+
+A function is reversible in its leading argument exactly when each of its 3^(n−1)
+columns is a bijection, so the count is **6^(3^(n−1))** and the fraction
+**(2/9)^(3^(n−1))** (`AI3`):
+
+| n | reversible | fraction |
+|---|---|---|
+| 1 | 6 | 22.22% |
+| 2 | **216** | **1.097%** |
+| 3 | 10,077,696 | 0.000132% |
+
+`AB1` measured 216 of 19,683 by sweeping every table one at a time. The formula
+gives the same figure without a sweep, and **216 = 6³ exactly.**
+
+#### The payoff: `AB1`'s 216 tables are the receipt
+
+Take an n-input function as shift-register feedback — state (x₁..xₙ), next
+(x₂..xₙ, f(x₁..xₙ)). Over all 531,441 states of the two-input register (`AI4`):
+
+| feedback | max in-degree | unreachable |
+|---|---|---|
+| **reversible** (an `AB1` table) | **1** | **0** |
+| MIN (collapsing) | 729 | **484,785 — 91.22%** |
+
+A reversible feedback makes the state map a **bijection**: every state has in-degree
+exactly one, no two trajectories ever merge, and **a tabulator's reuse is exactly
+1.00** — against `AH2`'s 3.20 and `hailstone`'s 10.43. There is nothing to amortise.
+
+The collapsing case is far worse than predicted rather than better: a quarter
+unreachable was the guess, and 91.22% is the answer. **A collapsing feedback is not
+a weak receipt, it is a state space that mostly does not exist.**
+
+> **`AB1`'s 216 tables are exactly the feedback functions that make the fourth factor
+> come out right — measured four sets before anyone knew what they were for.**
+
+---
+
 ## How it was established
 
 | | |
@@ -398,5 +474,6 @@ order comparison could not tell `A₂₇` from a group one element smaller.
 | `O` | what that advantage costs, and where it comes from | all held |
 | `AE` | the T/I group, and the harmonic vocabulary of a ternary space | 3 held, `AE4` failed |
 | `AF` | which musical layers favour which base | 3 held, `AF4` failed |
+| `AI` | the arity ladder, and the feedback that makes a trajectory graph tree-like | all four held |
 
 Full text in [`99-ledger.md`](99-ledger.md).

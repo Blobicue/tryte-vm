@@ -84,14 +84,29 @@ log(line);
 log('1. AI1 — H(prev) = SUM prev + [prev != empty]');
 log(line);
 
-/** The Ladder's operator, defined on the empty history, no cases. */
+/**
+ * The Ladder's operator, defined on the empty history, no cases.
+ *
+ * INSTRUMENT REPAIR, and the error was a MISREADING OF SOMEONE ELSE'S SPEC rather
+ * than a bug of my own invention. The first version read "SUM prev" as the sum of
+ * everything so far INCLUDING the most recent term, which generates 0, 1, 2, 4, 8,
+ * 16 -- the powers of two -- and agrees with Fibonacci at exactly one of forty
+ * terms. The Ladder's own derivation line states the indexing unambiguously:
+ *
+ *     L(n+1) = 1 + SUM L(0..n-1)
+ *
+ * so `prev` at step n is L(0..n-1) and EXCLUDES L(n). One term short, and the whole
+ * sequence changes species. Reading a formula off a page is not the same as reading
+ * the indices off it, and this project has a rule about transcribing what could be
+ * run instead.
+ */
 function ladder(terms) {
-  const seq = [];
-  while (seq.length < terms) {
-    const sum = seq.reduce((a, b) => a + b, 0);
-    seq.push(sum + (seq.length > 0 ? 1 : 0));
+  const seq = [0];                                    // L(0) = 0, given
+  for (let n = 0; seq.length < terms; n++) {
+    const prev = seq.slice(0, n);                     // L(0..n-1), not L(0..n)
+    seq.push(prev.reduce((a, b) => a + b, 0) + (prev.length > 0 ? 1 : 0));
   }
-  return seq;
+  return seq.slice(0, terms);
 }
 /** Fibonacci with two zeros at the front, computed independently. */
 function fibTwoZeros(terms) {
@@ -109,25 +124,33 @@ let AI1_MATCH = 0;
   log(`  agreeing terms out of ${N}: ${AI1_MATCH}`);
   log(`  the Ladder verified 9 steps; this checks ${N} and finds no genesis exception: ${AI1_MATCH === N}`);
 
-  // The four rules the Ladder names as failing, checked at the steps it names.
+  // The four rules the Ladder names as failing. Their DEFINITIONS here are my
+  // reconstruction from four-word labels, so a mismatch with the Ladder's stated
+  // failure step is a fact about my reading and not about its result. Reported
+  // rather than tuned until it agrees, which would be fitting the instrument to the
+  // answer.
   const rivals = {
-    'cur + last(prev)': seq => (seq.length ? seq[seq.length - 1] : 0) + (seq.length > 1 ? seq[seq.length - 2] : 0),
-    'sum(prev)': seq => seq.reduce((a, b) => a + b, 0),
-    'sum(prev) + 1': seq => seq.reduce((a, b) => a + b, 0) + 1,
-    'cur + len(prev)': seq => (seq.length ? seq[seq.length - 1] : 0) + seq.length,
+    'cur + last(prev)': (L, n) => (n >= 1 ? L[n] : 0) + (n >= 1 ? L[n - 1] : 0),
+    'sum(prev)': (L, n) => L.slice(0, n).reduce((a, b) => a + b, 0),
+    'sum(prev) + 1': (L, n) => L.slice(0, n).reduce((a, b) => a + b, 0) + 1,
+    'cur + len(prev)': (L, n) => (n >= 0 ? L[n] : 0) + n,
   };
   log('');
-  log('   competing rule            first step it gets wrong    steps wrong of 9');
-  log('  ' + '-'.repeat(70));
+  log('   competing rule            first step wrong    steps wrong of 9    Ladder says');
+  log('  ' + '-'.repeat(76));
+  const SAYS = { 'cur + last(prev)': 'step 1', 'sum(prev)': '8 of 9', 'sum(prev) + 1': 'step 0', 'cur + len(prev)': 'step 6' };
   for (const [name, rule] of Object.entries(rivals)) {
-    const seq = []; let first = null, wrong = 0;
-    for (let i = 0; i < 9; i++) {
-      const got = rule(seq), want = f[i];
-      if (got !== want) { wrong++; if (first === null) first = i; }
-      seq.push(want);
+    let first = null, wrong = 0;
+    for (let n = 0; n < 9; n++) {
+      const got = rule(f, n), want = f[n + 1];
+      if (got !== want) { wrong++; if (first === null) first = n; }
     }
-    log(`   ${name.padEnd(22)} ${String(first).padStart(20)} ${String(wrong).padStart(20)}`);
+    log(`   ${name.padEnd(22)} ${String(first).padStart(16)} ${String(wrong).padStart(19)}    ${SAYS[name]}`);
   }
+  log('');
+  log('  The rival definitions above are reconstructed from short labels; where a');
+  log('  failure step disagrees with the Ladder, that is my reading of the label.');
+  log('  The operator itself is given as a formula and is not open to reading.');
 }
 
 /* ============================================================================

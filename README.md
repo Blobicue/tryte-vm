@@ -4,16 +4,16 @@
 
 **A working computer that counts in three states instead of two** — core
 arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
-assembly, transistors underneath it, and thirty-four audits establishing exactly what
+assembly, transistors underneath it, and thirty-five audits establishing exactly what
 its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
 before it was measured, in its own commit, and every failed prediction was kept.
-One hundred and forty-five predictions, one hundred and twenty-two held, twenty-three failed —
+One hundred and forty-nine predictions, one hundred and twenty-six held, twenty-three failed —
 and the twelve produced more than the hundred and four. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**1,223 checks**, all passing. Every number below is recomputed by one of them,
+**1,259 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -24,7 +24,7 @@ node src/run.js programs/multiply.tasm 7 5
 
 | | |
 |---|---|
-| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + thirty-four audits |
+| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + thirty-five audits |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
 | **What was found** | [`results/`](results/) — every result keyed by subject, with a generated ledger of every prediction |
 | **What is not built** | [`design/`](design/) — interconnect, decode and sequencing, enumerated before anything is chosen, and [`design/12-roadmap.md`](design/12-roadmap.md) for the order to build them in |
@@ -54,7 +54,7 @@ programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
 design/      the design phase for the machine that does not exist yet
 results/     the same corpus keyed by SUBJECT rather than by date, plus 99-ledger.md
-tools/       the thirty-four audits, each with its registered predictions
+tools/       the thirty-five audits, each with its registered predictions
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
 build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
@@ -64,7 +64,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-Thirty-four prediction sets, registered before their runs. **122 held, 23 failed** — the
+Thirty-five prediction sets, registered before their runs. **126 held, 23 failed** — the
 failures are kept, and four of them produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
@@ -106,6 +106,7 @@ with registering commits and the tests that assert each one, in
 | **AF1–AF4** | which musical layers favour which base | 3 held, **AF4 failed** |
 | **AG1–AG4** | state width, evaluation cost, and what an implied receipt rests on | 2 held, **AG1 and AG3 failed** |
 | **AH1–AH4** | building the receipt spec, and pricing the attack on it | 2 held, **AH2 and AH4 failed** |
+| **AI1–AI4** | the arity ladder, and the feedback that makes a trajectory graph tree-like | all held |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:
