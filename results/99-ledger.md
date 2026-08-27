@@ -1717,7 +1717,7 @@ branch rather than merely present in a local object store.
 | tool | `bench/grok.py` |
 | asserted in | `test/test-grok.js` |
 | registered | `03565cb` |
-| results | `PENDING` |
+| results | `7ccd521` |
 
 ### `AM1` — HELD
 

@@ -3144,7 +3144,7 @@
       "subject": "Does the algebra of a task predict when a network generalises? A grokking sweep with the algebraic label as the variable",
       "tool": "bench/grok.py",
       "registered_at": "03565cb",
-      "results_at": "PENDING",
+      "results_at": "7ccd521",
       "asserted_in": "test/test-grok.js",
       "predictions": [
         {
