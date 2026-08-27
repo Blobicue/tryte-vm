@@ -290,6 +290,25 @@ There is a staleness check for exactly this — do not remove it.
   evidence, and its value depends on being untouched.
 - `build/` — inlines `src/` into the published page and fails if the two diverge.
 
+## Starting a set
+
+```bash
+npm run scaffold -- AO "the question this set asks" slug --write
+```
+
+Writes `tools/<slug>-audit.js` and `test/test-<slug>.js` with the fixed shape: a
+`PREDICTED OUTCOMES` block, an instrument section before any verdict, and a subprocess
+check. The set id defaults to the next unused one, derived from the manifest.
+
+It **prints** the manifest entry rather than writing it, and leaves `results_at` as
+`PENDING` — a registration commit must contain no measurement, and an entry written
+before the run would be a claim about something that has not happened.
+
+The scaffolded test **fails until you measure**, on purpose. A placeholder that passes
+is a set that reports success for work nobody did.
+
+---
+
 ## Never type a count. Generate it.
 
 Every number in the prose that restates something the manifest already knows —

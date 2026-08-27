@@ -41,6 +41,7 @@
     "audit:midprice": "node tools/midrail-price-audit.js",
     "ledger": "node tools/render-ledger.js --write",
     "docs": "node tools/render-docs.js --write",
+    "scaffold": "node tools/scaffold-set.js",
     "counts": "node tools/render-docs.js --write && node test/run-all.js --write",
     "audit:decode": "node tools/decode-audit.js",
     "audit:sequencer": "node tools/sequencer-audit.js",

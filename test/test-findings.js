@@ -454,6 +454,40 @@ console.log('\n=== 5. REFERENCES ===');
     M.traps_encountered.find(t => t.id === 'T-ONE-POINT').count === 3);
 }
 
+console.log('\n=== 6. THE SCAFFOLD PRODUCES PAPERWORK THIS FILE CAN READ ===');
+{
+  // tools/scaffold-set.js emits the fixed shape a new set needs. A generator whose
+  // output this validator cannot parse would hand every future set a registration
+  // reported here as inventing predictions -- so the loop is closed: the scaffold's
+  // PREDICTED OUTCOMES block is read back with the SAME pattern used above on the
+  // real tools, and must yield exactly the four ids it claims.
+  const S = require('../tools/scaffold-set.js');
+  const used = M.prediction_sets.map(s => s.id);
+  check('the next set id is derived from the manifest, not typed',
+    !used.includes(S.nextId(used)) && S.nextId(used).length <= 2);
+  check('   and it fills a gap rather than always appending',
+    S.nextId(['A', 'B', 'D']) === 'C');
+
+  const demo = S.scaffold('ZZ', 'a question', 'demo');
+  const vmod = require('vm');
+  for (const f of demo.files) {
+    check(`   and its ${f.path.split('/')[0]}/ output is syntactically valid JavaScript`,
+      (() => { try { new vmod.Script(f.body); return true; } catch (e) { return false; } })());
+  }
+  const tool = demo.files.find(f => f.path.startsWith('tools/')).body;
+  const at = tool.indexOf('PREDICTED OUTCOMES');
+  const block = tool.slice(at, tool.indexOf(' */', at));
+  const ids = [...block.matchAll(/^ \*\s{3}([A-Z]{1,2}\d+[a-z]?)\s/gm)].map(m => m[1]);
+  check('   and the registration block it writes parses to exactly ZZ1..ZZ4',
+    ids.join(' ') === 'ZZ1 ZZ2 ZZ3 ZZ4', ids.join(' '));
+  check('   and the manifest entry it prints leaves results_at PENDING, because a '
+    + 'registration commit carries no measurement',
+    JSON.parse(demo.manifest).results_at === 'PENDING');
+  check('   and the test it writes spawns the tool as a subprocess — the antibody '
+    + 'for T-TOOL-CHECKED-ONLY-BY-IMPORT',
+    demo.files.find(f => f.path.startsWith('test/')).body.includes('execFileSync'));
+}
+
 console.log('\n' + '='.repeat(64));
 console.log(fails.length ? `FAILED (${fails.length}): ${fails.join(', ')}` : `ALL ${pass} CHECKS PASSED`);
 console.log('='.repeat(64));
