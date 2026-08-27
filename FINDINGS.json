@@ -2614,7 +2614,7 @@
       "subject": "Which musical layers favour which base, and whether any pure radix is good for music",
       "tool": "tools/tuning-audit.js",
       "registered_at": "bfa460d",
-      "results_at": "PENDING",
+      "results_at": "568b2bd",
       "asserted_in": "test/test-tuning.js",
       "predictions": [
         {

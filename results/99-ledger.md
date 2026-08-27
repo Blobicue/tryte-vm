@@ -1409,7 +1409,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/tuning-audit.js` |
 | asserted in | `test/test-tuning.js` |
 | registered | `bfa460d` |
-| results | `PENDING` |
+| results | `568b2bd` |
 
 ### `AF1` — HELD
 
