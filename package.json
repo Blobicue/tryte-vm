@@ -56,7 +56,8 @@
     "audit:selfref": "node tools/selfref-audit.js",
     "audit:minimal": "node tools/minimal-audit.js",
     "audit:puzzle": "node tools/puzzle-audit.js",
-    "audit:tasks": "node tools/tasks-audit.js"
+    "audit:tasks": "node tools/tasks-audit.js",
+    "audit:wipe": "node tools/wipe-audit.js"
   },
   "license": "MIT",
   "private": true
