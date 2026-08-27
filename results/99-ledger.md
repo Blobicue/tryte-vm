@@ -1365,7 +1365,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/setclass-audit.js` |
 | asserted in | `test/test-setclass.js` |
 | registered | `92504fb` |
-| results | `PENDING` |
+| results | `19d2a46` |
 
 ### `AE1` — HELD
 

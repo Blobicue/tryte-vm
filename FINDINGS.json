@@ -2530,7 +2530,7 @@
       "subject": "The T/I group, and how much harmonic vocabulary a ternary space has",
       "tool": "tools/setclass-audit.js",
       "registered_at": "92504fb",
-      "results_at": "PENDING",
+      "results_at": "19d2a46",
       "asserted_in": "test/test-setclass.js",
       "predictions": [
         {
