@@ -1541,7 +1541,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/arity-audit.js` |
 | asserted in | `test/test-arity.js` |
 | registered | `de4ff91` |
-| results | `PENDING` |
+| results | `10de5c7` |
 
 ### `AI1` — HELD
 

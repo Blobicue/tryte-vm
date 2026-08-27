@@ -2855,7 +2855,7 @@
       "subject": "The n+1 arity ladder, and the feedback functions that make a trajectory graph tree-like",
       "tool": "tools/arity-audit.js",
       "registered_at": "de4ff91",
-      "results_at": "PENDING",
+      "results_at": "10de5c7",
       "asserted_in": "test/test-arity.js",
       "predictions": [
         {
