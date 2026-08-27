@@ -3067,6 +3067,77 @@
           "note": "Six constructions from this corpus tabulated against the three properties, and NONE HAS ALL THREE. The reversible language has in-degree one and bounded state with a flat cost; hailstone and the three-word program have a varying cost and bounded state with trajectories that merge; and buying the first two together is Bennett's construction -- a reversible machine CAN branch on data, but only by keeping the record of which way it went, so the history grows at least one trit per branch. A thousand data-dependent steps costs 167 trytes that can never be discarded, and AJ4 already measured what happens when bounded memory meets a state that will not stop growing: it wraps at term fifteen. IN-DEGREE ONE, A COST THAT VARIES, BOUNDED STATE -- PICK TWO."
         }
       ]
+    },
+    {
+      "id": "AL",
+      "subject": "The two-input ternary operations as a labelled task ladder for a grokking experiment",
+      "tool": "tools/tasks-audit.js",
+      "registered_at": "3568301",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-tasks.js",
+      "predictions": [
+        {
+          "id": "AL1",
+          "claim": "exactly 27 of the 19,683 two-input ternary operations are affine over GF(3), and 18 of the 216 reversible ones are",
+          "outcome": "HELD",
+          "measured": {
+            "affine": 27,
+            "total": 19683,
+            "percent": 0.137,
+            "reversible": 216,
+            "AB1_reversible": 216,
+            "affine_and_reversible": 18,
+            "cross_check_agrees": true
+          },
+          "note": "Exact. 27 = 3^3, one per (alpha, beta, gamma). The reversible count of 216 reproduces AB1 from a criterion written independently, and the 18 affine-reversible is 2 x 3 x 3 because alpha must be nonzero for every column to be a bijection -- AB1 measured that same 18 by checking affineness of tables it had already found reversible, so the two routes cross-check rather than restate. THE POINT IS THE FRACTION: the grokking literature studies a task drawn from 0.137% of this space and holds the algebraic variable fixed while sweeping everything else."
+        },
+        {
+          "id": "AL2",
+          "claim": "affine is exactly the set a linear map can fit, and nothing else reaches a perfect fit",
+          "outcome": "HELD",
+          "measured": {
+            "perfect_fits": 27,
+            "equals_affine_count": true,
+            "best_non_affine": 8,
+            "of_rows": 9,
+            "histogram": "4 rows:162, 5:3240, 6:11880, 7:3888, 8:486, 9:27"
+          },
+          "note": "Exhaustive over every (alpha,beta,gamma) and every table. Exactly 27 reach 9 of 9 rows and they are exactly the affine ones; the best any non-affine table manages is 8 of 9, and 486 of them get that close. So the label is not a convention -- it is precisely what a model with no nonlinearity can represent, and 19,656 tables need one. Modular addition, the literature task, is among the 27."
+        },
+        {
+          "id": "AL3",
+          "claim": "all four quadrants are non-empty and the erasure varies within each",
+          "outcome": "FAILED",
+          "measured": {
+            "affine_reversible": 18,
+            "affine_erasing": 9,
+            "nonaffine_reversible": 198,
+            "nonaffine_erasing": 19458,
+            "totals": 19683,
+            "all_non_empty": true,
+            "erasure_affine_reversible": "1.585 .. 1.585",
+            "erasure_nonaffine_reversible": "1.585 .. 1.585",
+            "erasure_affine_erasing": "1.585 .. 3.170",
+            "erasure_nonaffine_erasing": "1.585 .. 2.667"
+          },
+          "note": "The quadrant counts held exactly -- 18, 9, 198, 19,458, totalling 19,683 -- and the independence claim with them: reversibility and affineness really are separate axes. The variation clause FAILED, and for a reason that is itself a result. Both REVERSIBLE quadrants are pinned at exactly 1.585 bits with no spread at all, because reversible-in-the-leading-argument means every column is a bijection, so each output value appears exactly three times across the nine pairs and the erasure is log2(3) by construction. Only the erasing quadrants vary. Note also that this column measures the OUTPUT map, nine pairs onto three values, and not AB2 pair map which preserves the second argument -- the same distinction AJ2 drew, arriving again unbidden."
+        },
+        {
+          "id": "AL4",
+          "claim": "the arena ladder is 9, 729 and 531,441 examples, and the three-trit arena is within an order of magnitude of mod-113 addition",
+          "outcome": "FAILED",
+          "measured": {
+            "one_trit": 9,
+            "two_trits": 81,
+            "three_trits": 729,
+            "six_trits": 531441,
+            "mod113": 12769,
+            "ratio": 17.5,
+            "within_order_of_magnitude": false
+          },
+          "note": "The counts held; the comparison failed. 729 against 12,769 is a factor of 17.5, which is not within an order of magnitude however generously read -- the canonical setup sits BETWEEN the three-trit arena and the six-trit one rather than beside either. The ladder still brackets it, which is what an experiment needs, but the sentence claimed something tidier than the arithmetic supports and the arithmetic was available before the claim was written."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
