@@ -2692,6 +2692,83 @@
           "note": "FAILED, and the failure is the useful part because it shows the layers DECOUPLE rather than agree. The n with the lowest total consonance error between 5 and 72 is 53, which is PRIME -- divisible by neither 2 nor 3 -- and 31 is close behind at 18.19. The divisor clause held (60, divisible by both) and the beaten-by-a-smaller-composite clause held for both radices. So the tidy unifying story was wrong: HARMONIC SYMMETRY AND RHYTHM WANT COMPOSITENESS, AND CONSONANCE DOES NOT CARE ABOUT IT AT ALL. Consonance is a question about how well n*log2(r) lands near an integer, which has nothing to do with how n factors, and the prime divisions that microtonalists favour are exactly the counterexample. Predicting that three layers would agree was reaching for a single sentence where the measurement supports two."
         }
       ]
+    },
+    {
+      "id": "AG",
+      "subject": "The second knob: state width, evaluation cost, and what an implied receipt actually rests on",
+      "tool": "tools/workfactor-audit.js",
+      "registered_at": "d2a90c5",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-workfactor.js",
+      "predictions": [
+        {
+          "id": "AG1",
+          "claim": "every program here has a live control-state width of at most 2, including the interpreter, so no program is tier three",
+          "outcome": "FAILED",
+          "measured": {
+            "programs": 9,
+            "widths": "countdown 1, fold 0, hailstone 1, interp-core 0, interp 0, kleene 0, multiply 1, tgate 0, threeway 5",
+            "widest": "threeway.tasm at 5",
+            "predicted_max": 2,
+            "above_three_word_threshold": 1,
+            "interp_width": 0,
+            "threeway_cost_spread": 1.02,
+            "countdown_width": 1,
+            "countdown_cost_spread": 25.38,
+            "step_counter_convention": "counts the instruction about to run, so a bare HALT costs 1 -- matching the convention AC recorded, where countdown is 5N+3 and reads 8 at N=1",
+            "threeway_cost_range": "55 to 56",
+            "countdown_cost_range": "8 to 203"
+          },
+          "note": "FAILED, and the failure produced a factor the whole thread was missing. threeway measures FIVE live input words -- it classifies five values and every one changes the path -- which is above AD4's three-word threshold and refutes the prediction. But its cost spread across the entire sweep is 1.02x, from 55 steps to 56. A tabulator facing 729^6 states to learn a number that is always 55 or 56 would not tabulate; it would guess 54 and be right almost always. Meanwhile countdown has width ONE and a spread of 25.38x. SO WIDTH AND COST VARIANCE ARE INDEPENDENT, AND NEITHER IS THE SECURITY PARAMETER ALONE. The interpreter clause held and then some: interp measures 0, not the predicted 2, because the program it interprets is assembled into its own image and is identical on every run."
+        },
+        {
+          "id": "AG2",
+          "claim": "a purpose-built three-input program measures a live width of exactly 3 in fewer than forty instructions, crossing AD4 threshold",
+          "outcome": "HELD",
+          "measured": {
+            "live_width": 3,
+            "instructions": 28,
+            "predicted_under": 40,
+            "assembled_cells": 67,
+            "state_space": "282429536481",
+            "varying_a_moves_cost": true,
+            "varying_b_moves_cost": true,
+            "varying_c_moves_cost": true
+          },
+          "note": "Held exactly. A nested loop over three loaded words -- outer count, inner subtrahend, starting value -- gives a live width of 3 in 28 instructions, and each of the three demonstrably moves the cost. The state space is 729^4 = 282,429,536,481, past what AD2's tabulator could afford. The point is that WIDTH IS A PROPERTY OF THE HARNESS, NOT THE MACHINE: nothing about the ternary datapath prevented this, and no existing program has it only because none of them was written to take its work as runtime input. Reported in instructions rather than cells because the prediction was in instructions and an instruction is two cells."
+        },
+        {
+          "id": "AG3",
+          "claim": "one device-level solve of the six-trit adder costs more than 5,000 node-updates against 1 for a VM instruction, at 13 passes",
+          "outcome": "FAILED",
+          "measured": {
+            "decoded_devices": 540,
+            "decoded_passes": 10,
+            "decoded_work": 5400,
+            "tree_devices": 624,
+            "tree_passes": 7,
+            "tree_work": 4368,
+            "predicted_over": 5000,
+            "predicted_passes": 13,
+            "vm_instruction_cost": 1
+          },
+          "note": "The magnitude clause held for the decoded family at 5,400 node-updates and failed for the tree family at 4,368; the pass clause failed outright. Two separate errors, both about importing a constant across the conditions it was measured under. First, the registration cited E4's thirteen while the first version of the tool built the TREE adder, and E4's thirteen belongs to the DECODED one -- the same design note records the tree at 7. Second, thirteen is E4's MAXIMUM over operand pairs, not its typical value: E4 measured 9 to 13 and called the data-dependence its finding, so quoting the ceiling as though it were the number was quoting a result against its own headline. Both families are above 1,000x, which is what the argument needed; only one clears 5,000."
+        },
+        {
+          "id": "AG4",
+          "claim": "the device-level work factor is worth between one and two extra words of state",
+          "outcome": "HELD",
+          "measured": {
+            "per_word_multiplier": 729,
+            "work_factor": 5400,
+            "worth_in_words": 1.304,
+            "between_one_and_two": true,
+            "tabulator_bill_instruction_tick": 729,
+            "tabulator_bill_device_tick": 3936600
+          },
+          "note": "Held. log(5,400)/log(729) = 1.304, so redefining a tick from one VM instruction to one device-level solve buys slightly more than one word of state for free. WORTH HAVING AND NOT SUFFICIENT ALONE, which is the honest shape of the answer: the work factor imported from WaveSeeds is a real second knob, it is already built into the switch-level machine this project spent its life on, and it moves the tabulator's bill for a 729-state arena from 729 evaluations to 3,936,600 node-updates. The state still has to be widened."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -2880,6 +2957,13 @@
       "claim": "Summed over the six just ratios swept, 27-EDO totals 45.48 cents of approximation error against 12-EDO's 64.41, and 81-EDO totals 22.84. A ternary division of the octave is a BETTER consonance approximator than the twelve-tone one, chiefly because 12-EDO's harmonic seventh is 31 cents out while 27-EDO's is 9. Nobody predicted this; AF1 only asked about individual intervals.",
       "evidence": "AF1, nine equal divisions swept against six just ratios",
       "asserted_in": "test/test-tuning.js"
+    },
+    {
+      "id": "F-WIDTH-AND-VARIANCE-ARE-INDEPENDENT",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "A program can have a wide live state and a nearly constant cost, or a narrow state and a wide cost range, and the two do not track each other. threeway has five live input words and a cost spread of 1.02x; countdown has one live word and a spread of 25.38x. So an implied receipt rests on THREE factors and not two: reachable state count, cost per evaluation, and the variance of the cost itself -- and if the third is near zero the other two do not matter, because a predictor guesses the commonest answer instead of tabulating.",
+      "evidence": "AG1, nine programs swept over five values at each of eight input positions",
+      "asserted_in": "test/test-workfactor.js"
     }
   ],
   "traps_encountered": [
@@ -2965,8 +3049,8 @@
     },
     {
       "id": "T-SCOPE-DECIDES-THE-VERDICT",
-      "count": 3,
-      "description": "A correct computation scored a prediction wrongly because the measurement drew its state boundary somewhere the prediction did not. N1 asked whether a BUILD puts MID on a node when the registered rule was whether the FUNCTION requires it, and scored the detector FORCED while the next section built the same function with zero taps. AB2's first census folded the operand into the state, which is a defensible boundary and not the one AB2 asked about, so MIN came out as a single fixed figure while the clauses spoke of a range, and AB2 would have been recorded as FAILED. Both readings are defensible and the registration did not say which it meant, so the honest diagnosis is an ambiguous registration as much as a mis-scoped instrument. The defence is to state the boundary in the registration and to report every reading the question admits rather than one. Third bite, and this one arrived from a LATER set rather than from the instrument itself. G4 censuses the manifest for integers appearing in both the vocabulary half and the circuit half; its classifier returns a third value, other, for a tool requiring neither, and the crossing test counted other as a side. Set AB then recorded 19,683 -- the size of the two-input tritwise function space, which Q also holds -- and a set belonging to NEITHER half read as crossing between them. The computation was correct and the question was not the registered one. Scoped to the two named halves, which is a structural exclusion rather than an id."
+      "count": 4,
+      "description": "A correct computation scored a prediction wrongly because the measurement drew its state boundary somewhere the prediction did not. N1 asked whether a BUILD puts MID on a node when the registered rule was whether the FUNCTION requires it, and scored the detector FORCED while the next section built the same function with zero taps. AB2's first census folded the operand into the state, which is a defensible boundary and not the one AB2 asked about, so MIN came out as a single fixed figure while the clauses spoke of a range, and AB2 would have been recorded as FAILED. Both readings are defensible and the registration did not say which it meant, so the honest diagnosis is an ambiguous registration as much as a mis-scoped instrument. The defence is to state the boundary in the registration and to report every reading the question admits rather than one. Third bite, and this one arrived from a LATER set rather than from the instrument itself. G4 censuses the manifest for integers appearing in both the vocabulary half and the circuit half; its classifier returns a third value, other, for a tool requiring neither, and the crossing test counted other as a side. Set AB then recorded 19,683 -- the size of the two-input tritwise function space, which Q also holds -- and a set belonging to NEITHER half read as crossing between them. The computation was correct and the question was not the registered one. Scoped to the two named halves, which is a structural exclusion rather than an id. Fourth bite, and the registration had stated the boundary CORRECTLY. AG1's docstring said a tabulator indexes what varies between runs of the same program, and that a program's own instructions are identical every run and cost it nothing -- then the code poisoned every cell of the assembled image and counted whatever moved the price. That measures the program rather than the input, so interp-core came out at 73 live words and all nine programs cleared AD4's threshold: a result that would have reported an implied receipt as already working here. Naming a class does not stop you walking into it. Once the definition is written down the only place the gap can hide is between the docstring and the code, so that is where to look."
     },
     {
       "id": "T-TOOL-CHECKED-ONLY-BY-IMPORT",

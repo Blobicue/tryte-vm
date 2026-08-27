@@ -13,8 +13,8 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-Thirty-two prediction sets, **137 registered predictions, 118 held, 19 failed.** Eighteen
-distinct failure classes, which bit **44 times** between them. Twenty-seven findings
+Thirty-three prediction sets, **141 registered predictions, 120 held, 21 failed.** Eighteen
+distinct failure classes, which bit **45 times** between them. Twenty-eight findings
 measured but never registered, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
@@ -32,6 +32,8 @@ still in the manifest, marked `FAILED`, with the result it led to:
 | **E5** | the new design would use less of the scarce rail | it uses **more**; the design that wins on area wins by spending elsewhere |
 | **J4** | a register read during a write sees the old value | it sees the **new** one — the write holds the feedback open, so the cell is a transparent latch. Master-slave is required and the register file doubles |
 | **T4** | the best set of control fields packable directly into the opcode's spare trits is six wide and separates every opcode | it is **five**, and separates nothing on its own. Six trits of spare capacity exist, but the fields are chunky and no combination summing to six distinguishes all 25 opcodes. Optimistic by exactly one trit |
+| **AG1** | every program here has a live control-state width of at most two, so none is tier three | threeway measures FIVE — it classifies five values and each changes the path. But its cost spread is 1.02x, from 55 steps to 56, while countdown has width ONE and a spread of 25.38x. WIDTH AND COST VARIANCE ARE INDEPENDENT and neither is the security parameter alone: a tabulator facing 729^6 states to learn a number that is always 55 or 56 would guess instead |
+| **AG3** | one device solve costs more than 5,000 node-updates, at 13 passes | 5,400 for the decoded family and 4,368 for the tree one, at 10 passes not 13. Two errors about importing a constant across the conditions it was measured under: the registration cited E4 while the tool built the OTHER adder family, and 13 was E4 MAXIMUM over operand pairs rather than a typical value — quoting a result against its own headline, since E4 finding WAS the data-dependence |
 | **AF4** | the best consonance and the most divisors both land on a multiple of six, so music wants two and three at every layer | the best equal division for consonance between 5 and 72 is 53, which is PRIME, with 31 close behind and also prime. The divisor clause held at 60. The layers DECOUPLE: harmonic symmetry and rhythm want compositeness, consonance does not care about it at all |
 | **AE4** | above 2% of twelve-tone subsets have nontrivial transpositional symmetry | it is 1.81%, optimistic by a fifth. Every other clause held — Z/27 at 0.00038%, the gap at 3.7 orders of magnitude — so direction and magnitude survived a threshold that did not. A number picked to sound decisive is a worse prediction than the ratio it stands for |
 | **AC1** | only two of the eight programs have an input-dependent step count, and they are countdown and fold | wrong on the count, the membership, and its own premise. fold does not vary; multiply and threeway do; and ALL EIGHT programs execute IN, not the five a broken detector reported. Cost-invariance turned out to be the norm — five of eight cost the same number of steps whatever data they are handed |
@@ -154,7 +156,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace the thirty-two sets and they form very nearly
+fanned out; the *frontier did not*. Trace the thirty-three sets and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from

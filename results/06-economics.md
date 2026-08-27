@@ -1,7 +1,7 @@
 <!-- kind: results-topic -->
 # 06 — The currencies: what the mid rail costs, and what erasure costs
 
-**Owned sets:** `N` `AB` `AC` `AD`
+**Owned sets:** `N` `AB` `AC` `AD` `AG`
 
 Cross-references `Z` (which first priced the two limits), `O` (whose whole margin
 turned out to be borrowed), `E`/`Y` (the adders it re-ranks), `C` (the memory it
@@ -382,12 +382,79 @@ rather than a property you hope for.
 
 ---
 
+### 10. The second knob, and a third one nobody asked for
+
+`AD4` concluded that the security parameter of an implied receipt is **reachable
+state count**. That was half of it, and the other half arrived from outside the
+repository — from `WaveSeeds`, which faces the same problem with a secret carrying
+only 3.17 bits per tap:
+
+> *"Argon2 does not add entropy. It adds a work factor — a cost multiplier per
+> guess."*
+
+`AD2` counted 728 evaluations to tabulate the whole space and treated each as free.
+The bill is **states × cost per evaluation**, and the asymmetry is severe: the honest
+party evaluates **once**, the tabulator **729 times**. `AF` measured both. `MEASURED`
+
+#### This machine already contains the expensive evaluation
+
+| tick defined as | cost of one evaluation |
+|---|---|
+| one **VM instruction** | **1** step, by definition |
+| one **tree** adder solve | 624 devices × 7 passes = **4,368** node-updates |
+| one **decoded** adder solve | 540 devices × 10 passes = **5,400** |
+
+`AG4`: log(5,400)/log(729) = **1.304**, so redefining a tick from an instruction to a
+device-level solve buys slightly **more than one word of state, free** — the
+tabulator's bill for a 729-state arena moves from 729 evaluations to **3,936,600**
+node-updates. Worth having. Not sufficient alone.
+
+#### And the width belongs to the harness
+
+`AG2`: a nested loop over three loaded words reaches a live width of **3 in 28
+instructions**, putting the state space at 729⁴ = **282,429,536,481** — past what
+`AD2`'s tabulator could afford. Nothing about the ternary datapath prevented this.
+No existing program has that width only because **none of them was written to take
+its work as runtime input** — including `interp.tasm`, which measures **0**, because
+the program it interprets is assembled into its own image and is identical on every
+run.
+
+#### `AG1` failed, and produced the factor the whole thread was missing
+
+Predicted every program would measure at most 2 live words. `threeway` measures
+**5** — it classifies five values and each one changes the path taken.
+
+But look at what that width is worth:
+
+| program | live width | cost range | spread |
+|---|---|---|---|
+| `threeway` | **5** | 55 .. 56 | **1.02×** |
+| `countdown` | **1** | 8 .. 203 | **25.38×** |
+
+A tabulator facing 729⁶ states to learn a number that is always 55 or 56 **would not
+tabulate.** It would guess 55 and be right almost always. Meanwhile `countdown` has
+one live word and a cost that moves by a factor of 25.
+
+> **Width and cost variance are independent, and neither is the security parameter
+> alone.**
+
+So an implied receipt rests on **three** factors, not two:
+
+1. reachable state count (`AD4`)
+2. cost per evaluation (`AG3`, `AG4`)
+3. **variance of the cost itself** (`AG1`, by failing)
+
+And the third dominates: if the cost barely moves, a predictor guesses the commonest
+answer and the other two stop mattering entirely.
+
+---
+
 ## How it was established
 
 | | |
 |---|---|
-| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js), [`hailstone-audit.js`](../tools/hailstone-audit.js) |
-| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js`, `test-hailstone.js` |
+| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js), [`hailstone-audit.js`](../tools/hailstone-audit.js), [`workfactor-audit.js`](../tools/workfactor-audit.js) |
+| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js`, `test-hailstone.js`, `test-workfactor.js` |
 | method | tap counts read from built netlists; crossovers solved algebraically and confirmed at sampled prices; the detector variant swept exhaustively against both consumer patterns |
 
 The six cost currencies this project measures in — switches, mid-rail taps, pass
@@ -452,5 +519,6 @@ so much.
 | `AB` | erasure: what the machine destroys, and whether the price is in the object | 3 held, `AB4` and `AB5` failed |
 | `AC` | whether a program's cost can be learned without paying it | 1 held, `AC1`, `AC3` and `AC4` failed |
 | `AD` | a discovered loop bound, and whether that is enough for an implied receipt | all four held |
+| `AG` | state width, evaluation cost, and what a receipt actually rests on | 2 held, `AG1` and `AG3` failed |
 
 Full text in [`99-ledger.md`](99-ledger.md).

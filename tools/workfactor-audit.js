@@ -90,8 +90,13 @@ function steps(src, input = [], poison = null, maxSteps = 60000) {
   const vm = new TryteVM({ input, maxSteps });
   loadInto(vm, src);
   if (poison) vm.write(poison.addr, poison.value);
+  // Count the instruction that is ABOUT to run, so a program consisting only of
+  // HALT costs 1. `while (vm.step()) n++` costs it 0, which disagrees with the
+  // convention AC recorded -- countdown is 5N+3 and reads 8 at N=1 only if the
+  // final HALT is counted. Two step-counters in one repository disagreeing by one
+  // is the kind of thing that survives a long time.
   let n = 0;
-  try { while (vm.step()) n++; } catch (e) { return null; }
+  try { while (!vm.halted) { n++; if (!vm.step()) break; } } catch (e) { return null; }
   return n;
 }
 
@@ -103,32 +108,45 @@ function steps(src, input = [], poison = null, maxSteps = 60000) {
  * The input counts as one word when the program executes IN, because a value
  * arriving from outside is exactly what varies between runs.
  */
-function liveWidth(file, inputs) {
+/*
+ * INSTRUMENT REPAIR, recorded rather than quietly fixed. The first version poisoned
+ * every cell of the assembled image and counted the ones that moved the cost. That
+ * answers "what affects the price", which is not the question this set registered:
+ * a tabulator indexes what VARIES BETWEEN RUNS, and a program's own instructions are
+ * identical on every run. Poisoning them measured the program itself, so interp-core
+ * came out at 73 words and every program cleared AD4's three-word threshold —
+ * a result that would have said an implied receipt already works here.
+ *
+ * T-SCOPE-DECIDES-THE-VERDICT, fourth bite, and the registration DID state the
+ * boundary correctly. Naming a class does not stop you walking into it; the
+ * docstring said one thing and the code did another, which is the only place that
+ * gap can hide once the definition is written down.
+ *
+ * What varies between runs of a fixed program is the input. So the width is the
+ * number of input POSITIONS that move the cost, found by varying one at a time.
+ */
+function liveWidth(file, probes) {
   const src = fs.readFileSync(path.join(PROGDIR, file), 'utf8');
-  const cells = [...assemble(src).cells.keys()].map(Number);
-  const lo = Math.min(...cells), hi = Math.max(...cells);
-  const base = steps(src, inputs[0]);
-  const live = [];
-  for (let a = lo; a <= hi; a++) {
+  const base = probes[0];
+  const baseSteps = steps(src, base);
+  let width = 0;
+  const movers = [];
+  for (let i = 0; i < base.length; i++) {
     let moved = false;
-    for (const v of [7, -7, 121]) {
-      if (steps(src, inputs[0], { addr: a, value: v }) !== base) { moved = true; break; }
+    for (const v of [1, 4, 11, -6, 40]) {
+      const alt = base.slice(); alt[i] = v;
+      if (steps(src, alt) !== baseSteps) { moved = true; break; }
     }
-    if (moved) live.push(a);
+    if (moved) { width++; movers.push(i); }
   }
-  // How many of those are cells the program WRITES before reading — those are
-  // scratch, not inherited state, and a tabulator never indexes them.
-  const written = new Set();
-  {
-    const vm = new TryteVM({ input: inputs[0], maxSteps: 60000 });
+  const consumed = (() => {
+    const vm = new TryteVM({ input: base.slice(), maxSteps: 60000 });
     loadInto(vm, src);
-    const origWrite = vm.write.bind(vm);
-    vm.write = (addr, val) => { written.add(T.wrap(addr)); return origWrite(addr, val); };
+    const before = vm.input.length;
     try { while (vm.step()); } catch (e) { /* fuel */ }
-  }
-  const inherited = live.filter(a => !written.has(T.wrap(a)));
-  const inputVaries = new Set(inputs.map(i => steps(src, i))).size > 1;
-  return { file, live: live.length, inherited: inherited.length, inputVaries, base };
+    return before - vm.input.length;
+  })();
+  return { file, width, movers, consumed, baseSteps };
 }
 
 /* ============================================================================
@@ -156,23 +174,44 @@ log('\n' + line);
 log('1. AG1 — the live control-state width of every program here');
 log(line);
 
-const INPUTS = [[5, 7], [40, 3], [1, 1]];
+const INPUTS = [[5, 7, 3, 9, 2, 6, 4, 8]];
 const rows = [];
 for (const f of fs.readdirSync(PROGDIR).filter(x => x.endsWith('.tasm')).sort()) {
   const r = liveWidth(f, INPUTS);
   rows.push(r);
-  log(`  ${f.padEnd(20)} cost varies with input: ${(r.inputVaries ? 'yes' : 'no ')}   ` +
-    `words whose value moves the cost: ${String(r.live).padStart(3)}   ` +
-    `of those, not overwritten first: ${String(r.inherited).padStart(3)}`);
+  log(`  ${f.padEnd(20)} input values consumed: ${String(r.consumed).padStart(2)}   ` +
+    `positions that move the cost: ${String(r.width).padStart(2)}   ` +
+    `${r.width > 3 ? '<- above the threshold' : ''}`);
 }
 {
-  const worst = rows.reduce((m, r) => (r.inherited > m.inherited ? r : m), rows[0]);
-  log(`\n  widest inherited state: ${worst.file} at ${worst.inherited} word(s)`);
-  log(`  programs above AD4's three-word threshold: ${rows.filter(r => r.inherited > 3).length}`);
+  const worst = rows.reduce((m, r) => (r.width > m.width ? r : m), rows[0]);
+  log(`\n  widest live state: ${worst.file} at ${worst.width} word(s)`);
+  log(`  programs above AD4's three-word threshold: ${rows.filter(r => r.width > 3).length} of ${rows.length}`);
   const interp = rows.find(r => r.file === 'interp.tasm');
-  log(`  interp.tasm, the one that looked like the tier-three candidate: ${interp.inherited} word(s)`);
+  log(`  interp.tasm, the one that looked like the tier-three candidate: ${interp.width} word(s)`);
   log(`  — because the program it interprets is assembled into its own image, so it`);
   log(`  is identical on every run and costs a tabulator nothing.`);
+
+  // Width alone turns out not to be the parameter, and threeway is why. Report the
+  // cost RANGE beside the width: a wide state whose cost barely moves needs no
+  // tabulation at all, because guessing the commonest answer is nearly always right.
+  log('');
+  log('  width is not sufficient on its own — the cost RANGE decides whether');
+  log('  tabulating is even worth doing:');
+  log('   program              width   cost range over the sweep      spread');
+  log('  ' + '-'.repeat(66));
+  for (const r of rows) {
+    const src = fs.readFileSync(path.join(PROGDIR, r.file), 'utf8');
+    const seen = [];
+    for (const v of [1, 4, 11, -6, 40]) {
+      for (let i = 0; i < INPUTS[0].length; i++) {
+        const alt = INPUTS[0].slice(); alt[i] = v;
+        const s = steps(src, alt); if (s !== null) seen.push(s);
+      }
+    }
+    const lo = Math.min(...seen), hi = Math.max(...seen);
+    log(`   ${r.file.padEnd(20)} ${String(r.width).padStart(5)}   ${String(lo).padStart(8)} .. ${String(hi).padEnd(10)}   ${(hi / lo).toFixed(2)}x`);
+  }
 }
 
 /* ============================================================================
@@ -234,8 +273,14 @@ n:      .word 0
   log(`  changing b moves the cost: ${varyB}`);
   log(`  changing c moves the cost: ${varyC}`);
   const width = [varyA, varyB, varyC].filter(Boolean).length;
-  const instrs = assemble(THREE).cells.size;
-  log(`  live width: ${width}   assembled cells: ${instrs}`);
+  // Instructions, not cells: the registration predicted "fewer than forty
+  // instructions" and an instruction is two cells, with tables and data words
+  // occupying one each. Reporting the cell count against that prediction would be
+  // comparing two different units, which this project has a check for elsewhere.
+  const { tokenize } = require('../src/assembler.js');
+  const instrs = tokenize(THREE).filter(l => l.mnemonic && !l.mnemonic.startsWith('.')).length;
+  const cells = assemble(THREE).cells.size;
+  log(`  live width: ${width}   instructions: ${instrs}   assembled cells: ${cells}`);
   log(`  state space at that width: ${3n ** BigInt(6 * (width + 1))}`);
   log(`  AD4's affordable-tabulation ceiling was crossed at three words.`);
 }
@@ -251,17 +296,30 @@ const settles = (net, inputs, k) => { try { net.solve(inputs, k); return true; }
 const spread = (nm, v, n = 6) => Object.fromEntries(T.toTrits(v, n).map((t, i) => [`${nm}${i}`, t]));
 let ADDER_PASSES = 0, ADDER_DEVICES = 0, WORK_RATIO = 0;
 {
-  const net = new D.Net(); D.tRippleAdder(net, 6, false);
-  ADDER_DEVICES = net.devices.length;
   const inputs = { ...spread('a', 121), ...spread('b', -47), cin: D.MID };
-  let k = 1;
-  while (k < 64 && !settles(net, inputs, k)) k++;
-  ADDER_PASSES = k;
-  WORK_RATIO = ADDER_PASSES * ADDER_DEVICES;
-  log(`  six-trit tree adder: ${ADDER_DEVICES} devices, settles in ${ADDER_PASSES} passes`);
-  log(`  node-updates for one solve, taken as passes x devices: ${WORK_RATIO.toLocaleString()}`);
+  const measure = build => {
+    const net = new D.Net(); build(net);
+    let k = 1;
+    while (k < 64 && !settles(net, inputs, k)) k++;
+    return { devices: net.devices.length, passes: k, work: k * net.devices.length };
+  };
+  // BOTH families, because the registration predicted 13 passes citing E4 -- and
+  // E4's thirteen belongs to the DECODED adder, while the first version of this
+  // section built the TREE one, which the same design note records at 7. Measuring
+  // one family and quoting the other family's constant is how a prediction fails
+  // for a reason that has nothing to do with the thing it was asking about.
+  const tree = measure(n => D.tRippleAdder(n, 6, false));
+  const decoded = measure(n => D.dRippleAdder(n, 6));
+  log(`  six-trit TREE adder:    ${tree.devices} devices, ${tree.passes} passes, ` +
+    `${tree.work.toLocaleString()} node-updates`);
+  log(`  six-trit DECODED adder: ${decoded.devices} devices, ${decoded.passes} passes, ` +
+    `${decoded.work.toLocaleString()} node-updates`);
   log(`  a VM instruction costs 1 step by definition`);
-  log(`  ratio: ${WORK_RATIO.toLocaleString()}x`);
+  log('');
+  ADDER_DEVICES = decoded.devices; ADDER_PASSES = decoded.passes; WORK_RATIO = decoded.work;
+  log(`  taking the decoded family, which is the one E4 measured: ratio ${WORK_RATIO.toLocaleString()}x`);
+  log(`  the tree family gives ${tree.work.toLocaleString()}x — both are above 1,000x, and only`);
+  log(`  one of them clears the 5,000 the registration predicted.`);
   log('');
   log(`  Both factors were already measured here: E4 recorded the pass count and the`);
   log(`  device count comes from the builder. This is their product, not a new claim.`);
