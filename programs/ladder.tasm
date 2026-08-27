@@ -1,0 +1,66 @@
+; ladder.tasm — the history operator, written in the machine it would price.
+;
+;       H(prev) = SUM prev + [prev != empty]
+;       "everything that has happened, plus one if anything has happened at all"
+;
+; This is the FORGETFUL version, and it is written that way on purpose. The operator
+; is defined over the whole history, but a running sum makes it computable in two
+; words:
+;
+;       invariant at step n:   sum = SUM L(0..n-1)      lag = L(n)
+;       next    = sum + [n > 0]                          -- this is L(n+1)
+;       newSum  = sum + lag                              -- SUM L(0..n)
+;       newLag  = next
+;
+; So the same sequence comes out of a machine that remembers two numbers instead of
+; all of them. That is the whole trade this program exists to expose: the append-only
+; form cannot lose information and cannot bound its state; this form bounds its state
+; at two words and destroys the history to do it.
+;
+; Reads a count, emits that many terms starting from L(0) = 0.
+
+        IN
+        STORE k            ; how many terms to emit
+        LOADI 0
+        STORE sum          ; SUM L(0..n-1), empty at the start
+        LOADI 0
+        STORE lag          ; L(n), and L(0) = 0
+        LOADI 0
+        STORE bump         ; [n > 0], which is 0 only at the genesis
+
+        LOADI 0            ; emit L(0)
+        OUT
+        LOAD  k
+        ADDI  -1
+        STORE k
+
+loop:   LOAD  k
+        BR3   more
+more:   .table done, done, body
+
+body:   LOAD  sum          ; next = sum + [n > 0]
+        ADD   bump
+        STORE next
+        OUT
+
+        LOAD  sum          ; newSum = sum + lag
+        ADD   lag
+        STORE sum
+        LOAD  next         ; newLag = next
+        STORE lag
+        LOADI 1            ; from here on the history is non-empty
+        STORE bump
+
+        LOAD  k
+        ADDI  -1
+        STORE k
+        JMP   loop
+
+done:   HALT
+
+        .org  -12
+k:      .word 0
+sum:    .word 0
+lag:    .word 0
+bump:   .word 0
+next:   .word 0
