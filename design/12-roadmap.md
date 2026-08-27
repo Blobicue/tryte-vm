@@ -77,7 +77,7 @@ digits do not. Read the ladder, not the digits.
 |---|---|---|
 | 27 | −13..13 | **none** — `countdown` fits only if relocated (span 23) |
 | **81** | **−40..40** | **3** — `countdown`, `threeway`, `kleene` |
-| 243 | −121..121 | 7 — adds `tgate`, `multiply`, `fold`, `hailstone` |
+| 243 | −121..121 | 8 — adds `tgate`, `multiply`, `fold`, `hailstone`, `ladder` |
 | 729 | −364..364 | 8 — adds `interp-core`, `interp` (the self-interpreter) |
 
 **The two ladders intersect in exactly one place: 81 words under `M1`.** It is the

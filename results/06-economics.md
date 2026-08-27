@@ -1,7 +1,7 @@
 <!-- kind: results-topic -->
 # 06 — The currencies: what the mid rail costs, and what erasure costs
 
-**Owned sets:** `N` `AB` `AC` `AD` `AG` `AH`
+**Owned sets:** `N` `AB` `AC` `AD` `AG` `AH` `AJ`
 
 Cross-references `Z` (which first priced the two limits), `O` (whose whole margin
 turned out to be borrowed), `E`/`Y` (the adders it re-ranks), `C` (the memory it
@@ -519,12 +519,91 @@ different questions.
 
 ---
 
+### 12. Self-reference is not the property — reversibility is
+
+The proposal was that **full self-reference** would give a tick currency its
+layer-one security, with the concrete version being to write the history operator in
+the language its own ladder produces.
+
+Half the answer is a negative already proved elsewhere. The Ladder's **Coda III**
+shows that *no system closes over its own semantics*: internalise the observer and
+you have written a new term, reduced by someone with a budget it cannot see, and the
+regress terminates at an axiom rather than at nothing. Its `nf(t)` returns HOLD,
+GREW or RAN, and **two of the three verdicts are not in the term**. Full
+self-reference in the strong sense is unavailable by that artifact's own theorem,
+derived there three separate ways.
+
+The weak sense — self-hosting — is available, and
+[`programs/ladder.tasm`](../programs/ladder.tasm) now does it. But the thing being
+asked for turns out to be cheaper than the thing being proposed. `MEASURED`
+
+#### What a receipt actually needs, and where it comes from
+
+`AI4` established the requirement: a state map with **in-degree one everywhere**.
+The history operator has it — and *not* because it is self-referential.
+
+Carry the operator in two words, `sum = Σ L(0..n−1)` and `lag = L(n)`. The step is
+**(sum, lag) → (sum + lag, sum + 1)**. Over all 531,441 states (`AJ1`):
+
+| | |
+|---|---|
+| maximum in-degree | **1** |
+| unreachable states | **0** |
+
+And the inverse is explicit rather than abstract: `sum = second − 1`,
+`lag = first − sum`, recovered on all five probes including the wrapping corner
+(364, −364).
+
+> **Every component is `ADD`, and `AB2` measured `ADD` at zero bits erased.**
+> A map built of reversible parts is reversible.
+
+Note what that does *not* require. **Not self-reference. Not memory.** A *forgetful*
+two-word carry has the property as fully as an append-only history would. `AI4` had
+to search 19,683 tables to find the 216 that work; this needs nothing but addition.
+
+#### The reversibility is in the state, not the output
+
+`H` takes a whole history to one number. Over all 81 histories of length four from
+the three trit values, it collapses them onto **9 outputs, erasing 3.5944 bits**
+(`AJ2`).
+
+So the state map is a bijection and the emitted value is a nine-to-one channel, at
+the same time and without contradiction — they are different maps. That is `AB2`'s
+accumulator-versus-pair distinction arriving from a completely different direction.
+**Anyone reading only the number is reading an erasing channel.**
+
+#### And self-hosting does not inherit reversibility
+
+`ladder.tasm` reproduces the ladder exactly against an independent implementation, in
+**152 instructions for nine terms** — and erases **6.2564 bits per instruction**
+(`AJ3`), the second-highest figure in the corpus.
+
+The map is a bijection. The program calls `STORE` on every turn of the loop, and
+`AB2` measured `STORE` at the full 9.5098 bits. **A reversible mathematics
+implemented on an erasing machine still erases** — the gap between *having* a
+property and *running* it.
+
+#### The price of never forgetting
+
+The ladder grows like φⁿ and a tryte holds −364..+364, so it exceeds the range at
+**term 15, value 377**: fourteen terms fit (`AJ4`). Asked for eighteen, the machine
+emits 233 then **−352** — wrapping rather than growing, which is the only thing
+bounded memory can do.
+
+> **The price of a trajectory graph that cannot converge is a state that cannot be
+> bounded.** Every real machine erases for exactly that reason.
+
+Which is why `AJ1` matters: **reversibility buys the non-convergence without the
+unbounded state.** It is the way out of the trade, not a way of paying it.
+
+---
+
 ## How it was established
 
 | | |
 |---|---|
-| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js), [`hailstone-audit.js`](../tools/hailstone-audit.js), [`workfactor-audit.js`](../tools/workfactor-audit.js), [`margin-audit.js`](../tools/margin-audit.js) |
-| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js`, `test-hailstone.js`, `test-workfactor.js`, `test-margin.js` |
+| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js), [`hailstone-audit.js`](../tools/hailstone-audit.js), [`workfactor-audit.js`](../tools/workfactor-audit.js), [`margin-audit.js`](../tools/margin-audit.js), [`selfref-audit.js`](../tools/selfref-audit.js) |
+| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js`, `test-hailstone.js`, `test-workfactor.js`, `test-margin.js`, `test-selfref.js` |
 | method | tap counts read from built netlists; crossovers solved algebraically and confirmed at sampled prices; the detector variant swept exhaustively against both consumer patterns |
 
 The six cost currencies this project measures in — switches, mid-rail taps, pass
@@ -591,5 +670,6 @@ so much.
 | `AD` | a discovered loop bound, and whether that is enough for an implied receipt | all four held |
 | `AG` | state width, evaluation cost, and what a receipt actually rests on | 2 held, `AG1` and `AG3` failed |
 | `AH` | building the spec, and what the attack on it costs | 2 held, `AH2` and `AH4` failed |
+| `AJ` | what self-reference buys, and what buys the property it is asked for | all four held |
 
 Full text in [`99-ledger.md`](99-ledger.md).

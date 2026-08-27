@@ -7,8 +7,8 @@ Every registered prediction, in the order it was registered, rendered from
 [`FINDINGS.json`](../FINDINGS.json). **Nothing on this page is authored** — if a
 line here is wrong, the manifest is wrong.
 
-**35 sets · 149 predictions · 126 held · 23 failed**
-· 30 measured but never registered
+**36 sets · 153 predictions · 130 held · 23 failed**
+· 31 measured but never registered
 · 18 defect classes, 47 occurrences
 
 Each set names the commit that registered it and the commit that recorded its
@@ -1577,6 +1577,50 @@ branch rather than merely present in a local object store.
 
 ---
 
+## Set `AJ` — What self-reference buys, and what actually buys the property it is asked for
+
+| | |
+|---|---|
+| outcome | 4 held, 0 failed |
+| tool | `tools/selfref-audit.js` |
+| asserted in | `test/test-selfref.js` |
+| registered | `49520f0` |
+| results | `PENDING` |
+
+### `AJ1` — HELD
+
+**Claim.** the ladder step carried in two words is injective, with in-degree exactly 1 everywhere, because every component is ADD
+
+**Measured.** state_space: 531441; max_in_degree: 1; unreachable: 0; every_state_in_degree_1: true; inverse_recovered: 5 of 5; ADD_bits_erased: 0; special_table_needed: false
+
+**Note.** Maximum in-degree 1, zero unreachable, over all 531,441 (sum, lag) states -- AI4's bijection criterion met with NO special feedback table. The inverse is explicit rather than abstract: given (sum+lag, sum+1), recover sum = second - 1 and lag = first - sum, and it recovered all five probes including the wrapping corner (364,-364). THE PROPERTY IS REVERSIBILITY, NOT SELF-REFERENCE, and not memory either: a FORGETFUL two-word carry has it exactly as much as an append-only history would, because every component is ADD and AB2 measured ADD at zero bits erased. AI4 had to search 19,683 tables to find 216 that work; this needs nothing but addition.
+
+### `AJ2` — HELD
+
+**Claim.** H as a value map erases more than 3 bits, so the reversibility lives in the state rather than in what is emitted
+
+**Measured.** histories_length_4: 81; distinct_outputs: 9; bits_erased: 3.5944; predicted_over: 3
+
+**Note.** Eighty-one histories of length four collapse onto nine outputs, erasing 3.5944 bits by the AB measure. The state map is a bijection and the emitted value is a nine-to-one channel, at the same time and without contradiction, because they are different maps. Anyone reading only the number H produces is reading an erasing channel however well-behaved the state carrying it happens to be -- which is the distinction AB2 already drew between the accumulator reading and the pair reading, arriving here from a completely different direction.
+
+### `AJ3` — HELD
+
+**Claim.** the operator runs in the machine that would price it, and the implementation erases even though the mathematics does not
+
+**Measured.** machine_output: 0, 0, 1, 1, 2, 3, 5, 8, 13; agrees_with_reference: true; instructions_for_9_terms: 152; bits_erased_total: 950.98; priced_instructions: 152; bits_per_instruction: 6.2564; predicted_over: 4
+
+**Note.** programs/ladder.tasm reproduces the ladder exactly against an independent implementation, so the operator is now self-hosting in the weak sense -- expressible in the language its own ladder produces. It costs 152 instructions for nine terms and erases 6.2564 bits per instruction, which is the second-highest figure in the corpus after fold. SELF-HOSTING DOES NOT INHERIT THE REVERSIBILITY OF THE THING HOSTED: the map is a bijection and the program calls STORE on every turn of the loop, and AB2 measured STORE at the full 9.5098 bits. A reversible mathematics implemented on an erasing machine still erases, which is the gap between having a property and running it.
+
+### `AJ4` — HELD
+
+**Claim.** the ladder exceeds a tryte at term 15, so never forgetting is unaffordable in bounded memory
+
+**Measured.** tryte_range: -364 to 364; first_term_over: 15; its_value: 377; terms_that_fit: 14; machine_at_term_15: -352; machine_wraps: true
+
+**Note.** The ladder grows like phi^n and a tryte holds -364..+364, so term 15 at 377 does not fit and fourteen do. Asked for eighteen terms the machine emits 233 then -352, wrapping rather than growing, which is the only thing bounded memory can do. THE PRICE OF A TRAJECTORY GRAPH THAT CANNOT CONVERGE IS A STATE THAT CANNOT BE BOUNDED. Every real machine erases for exactly this reason, and an implied receipt has to buy its way out of that trade rather than assume it away -- which is what AJ1 shows is possible, since reversibility gets the non-convergence without the unbounded state.
+
+---
+
 ## Measured but never registered
 
 Facts established in passing. Listed separately so the pre-registration record is
@@ -1664,6 +1708,9 @@ not inflated by things that were never at risk.
 - **`F-COLLAPSING-FEEDBACK-STRANDS-MOST-OF-THE-SPACE`** — A non-reversible feedback function does not merely merge some trajectories, it strands almost the whole state space. Tritwise MIN as shift-register feedback leaves 484,785 of 531,441 states -- 91.22% -- with no predecessor at all, and concentrates the survivors at a maximum in-degree of 729. AI4 predicted a quarter unreachable and a maximum in-degree of three; the real figures are far more extreme, which means a collapsing feedback is not a weak receipt but a state space that mostly does not exist.
   <br>*Evidence:* AI4, exhaustive in-degree census over all 531,441 states of the two-input shift register
   <br>*Asserted in:* `test/test-arity.js`
+- **`F-SELF-REFERENCE-IS-NOT-THE-PROPERTY`** — The history operator gives a tabulator-proof trajectory graph, and self-reference is not why. Its step map is injective because it is built entirely out of addition, which erases nothing -- so a forgetful two-word carry has the property as fully as an append-only history. Self-reference in the strong sense is separately unavailable by the Ladder's own Coda III, which proves no system closes over its own semantics and shows that two of the three verdicts of nf(t) are not in the term. What was being asked for is reversibility, and it is cheaper than what was being proposed.
+  <br>*Evidence:* AJ1 exhaustive over 531,441 states, AB2's measurement of ADD at zero bits, and Coda III of the external Ladder artifact
+  <br>*Asserted in:* `test/test-selfref.js`
 
 ---
 

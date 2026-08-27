@@ -101,7 +101,7 @@ log(line);
     `${E.erasureOf(E.datapathMap('ADD', 0).img, N * N) === 0}`);
   log(`  STORE erases the maximum (AB2): ` +
     `${Math.abs(E.erasureOf(E.datapathMap('STORE', 0).img, N * N) - Math.log2(N)) < 1e-9}`);
-  log(`  a bare HALT costs one instruction: ${W.steps('        HALT\\n') === 1}`);
+  log(`  a bare HALT costs one instruction: ${W.steps('        HALT\n') === 1}`);
 }
 
 /* ============================================================================

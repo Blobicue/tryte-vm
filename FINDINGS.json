@@ -2932,6 +2932,72 @@
           "note": "HELD, and it answers what AH2 left open. Taking an n-input function as shift-register feedback -- state (x1..xn), next (x2..xn, f(x1..xn)) -- a leading-argument-reversible f makes the state map a BIJECTION: maximum in-degree exactly 1, zero unreachable states, every one of the 531,441 states with in-degree 1. Nothing merges, so a tabulator's reuse is exactly 1.00 against AH2's 3.20 and hailstone's 10.43, and there is nothing to amortise. The non-reversible comparison is worse than predicted rather than better: tritwise MIN gives a maximum in-degree of 729 and leaves 91.22% of the state space UNREACHABLE, against a predicted quarter. So AB1's 216 tables are not a curiosity. THEY ARE EXACTLY THE FEEDBACK FUNCTIONS THAT MAKE THE FOURTH FACTOR COME OUT RIGHT, and this project measured them four sets before it knew what they were for."
         }
       ]
+    },
+    {
+      "id": "AJ",
+      "subject": "What self-reference buys, and what actually buys the property it is asked for",
+      "tool": "tools/selfref-audit.js",
+      "registered_at": "49520f0",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-selfref.js",
+      "predictions": [
+        {
+          "id": "AJ1",
+          "claim": "the ladder step carried in two words is injective, with in-degree exactly 1 everywhere, because every component is ADD",
+          "outcome": "HELD",
+          "measured": {
+            "state_space": 531441,
+            "max_in_degree": 1,
+            "unreachable": 0,
+            "every_state_in_degree_1": true,
+            "inverse_recovered": "5 of 5",
+            "ADD_bits_erased": 0,
+            "special_table_needed": false
+          },
+          "note": "Maximum in-degree 1, zero unreachable, over all 531,441 (sum, lag) states -- AI4's bijection criterion met with NO special feedback table. The inverse is explicit rather than abstract: given (sum+lag, sum+1), recover sum = second - 1 and lag = first - sum, and it recovered all five probes including the wrapping corner (364,-364). THE PROPERTY IS REVERSIBILITY, NOT SELF-REFERENCE, and not memory either: a FORGETFUL two-word carry has it exactly as much as an append-only history would, because every component is ADD and AB2 measured ADD at zero bits erased. AI4 had to search 19,683 tables to find 216 that work; this needs nothing but addition."
+        },
+        {
+          "id": "AJ2",
+          "claim": "H as a value map erases more than 3 bits, so the reversibility lives in the state rather than in what is emitted",
+          "outcome": "HELD",
+          "measured": {
+            "histories_length_4": 81,
+            "distinct_outputs": 9,
+            "bits_erased": 3.5944,
+            "predicted_over": 3
+          },
+          "note": "Eighty-one histories of length four collapse onto nine outputs, erasing 3.5944 bits by the AB measure. The state map is a bijection and the emitted value is a nine-to-one channel, at the same time and without contradiction, because they are different maps. Anyone reading only the number H produces is reading an erasing channel however well-behaved the state carrying it happens to be -- which is the distinction AB2 already drew between the accumulator reading and the pair reading, arriving here from a completely different direction."
+        },
+        {
+          "id": "AJ3",
+          "claim": "the operator runs in the machine that would price it, and the implementation erases even though the mathematics does not",
+          "outcome": "HELD",
+          "measured": {
+            "machine_output": "0, 0, 1, 1, 2, 3, 5, 8, 13",
+            "agrees_with_reference": true,
+            "instructions_for_9_terms": 152,
+            "bits_erased_total": 950.98,
+            "priced_instructions": 152,
+            "bits_per_instruction": 6.2564,
+            "predicted_over": 4
+          },
+          "note": "programs/ladder.tasm reproduces the ladder exactly against an independent implementation, so the operator is now self-hosting in the weak sense -- expressible in the language its own ladder produces. It costs 152 instructions for nine terms and erases 6.2564 bits per instruction, which is the second-highest figure in the corpus after fold. SELF-HOSTING DOES NOT INHERIT THE REVERSIBILITY OF THE THING HOSTED: the map is a bijection and the program calls STORE on every turn of the loop, and AB2 measured STORE at the full 9.5098 bits. A reversible mathematics implemented on an erasing machine still erases, which is the gap between having a property and running it."
+        },
+        {
+          "id": "AJ4",
+          "claim": "the ladder exceeds a tryte at term 15, so never forgetting is unaffordable in bounded memory",
+          "outcome": "HELD",
+          "measured": {
+            "tryte_range": "-364 to 364",
+            "first_term_over": 15,
+            "its_value": 377,
+            "terms_that_fit": 14,
+            "machine_at_term_15": -352,
+            "machine_wraps": true
+          },
+          "note": "The ladder grows like phi^n and a tryte holds -364..+364, so term 15 at 377 does not fit and fourteen do. Asked for eighteen terms the machine emits 233 then -352, wrapping rather than growing, which is the only thing bounded memory can do. THE PRICE OF A TRAJECTORY GRAPH THAT CANNOT CONVERGE IS A STATE THAT CANNOT BE BOUNDED. Every real machine erases for exactly this reason, and an implied receipt has to buy its way out of that trade rather than assume it away -- which is what AJ1 shows is possible, since reversibility gets the non-convergence without the unbounded state."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -3141,6 +3207,13 @@
       "claim": "A non-reversible feedback function does not merely merge some trajectories, it strands almost the whole state space. Tritwise MIN as shift-register feedback leaves 484,785 of 531,441 states -- 91.22% -- with no predecessor at all, and concentrates the survivors at a maximum in-degree of 729. AI4 predicted a quarter unreachable and a maximum in-degree of three; the real figures are far more extreme, which means a collapsing feedback is not a weak receipt but a state space that mostly does not exist.",
       "evidence": "AI4, exhaustive in-degree census over all 531,441 states of the two-input shift register",
       "asserted_in": "test/test-arity.js"
+    },
+    {
+      "id": "F-SELF-REFERENCE-IS-NOT-THE-PROPERTY",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "The history operator gives a tabulator-proof trajectory graph, and self-reference is not why. Its step map is injective because it is built entirely out of addition, which erases nothing -- so a forgetful two-word carry has the property as fully as an append-only history. Self-reference in the strong sense is separately unavailable by the Ladder's own Coda III, which proves no system closes over its own semantics and shows that two of the three verdicts of nf(t) are not in the term. What was being asked for is reversibility, and it is cheaper than what was being proposed.",
+      "evidence": "AJ1 exhaustive over 531,441 states, AB2's measurement of ADD at zero bits, and Coda III of the external Ladder artifact",
+      "asserted_in": "test/test-selfref.js"
     }
   ],
   "traps_encountered": [
