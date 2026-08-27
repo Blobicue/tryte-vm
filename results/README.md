@@ -65,7 +65,7 @@ cross-reference names a set that does not exist.
 | [`02-arithmetic.md`](02-arithmetic.md) — gates, adders, the detector | `Y` `E` `F` `G` `I` | **rich** |
 | [`03-sequential.md`](03-sequential.md) — storage, registers, an accumulator | `J` `K` `L` | **rich** |
 | [`04-machine.md`](04-machine.md) — headroom, terminals, memory, interconnect, decode | `H` `B` `C` `A` `T` | **rich** |
-| [`05-algebra.md`](05-algebra.md) — reversibility, universality, nonlinearity, mixing | `D` `M` `O` | **rich** |
+| [`05-algebra.md`](05-algebra.md) — reversibility, universality, nonlinearity, mixing, and the T/I group | `D` `M` `O` `AE` | **rich** |
 | [`06-economics.md`](06-economics.md) — currencies: the mid rail, erasure, and whether a price can be known without paying it | `N` `AB` `AC` `AD` | **rich** |
 | [`07-negative.md`](07-negative.md) — every failed prediction, and every lying instrument | — | **rich** |
 | [`08-limits.md`](08-limits.md) — what this project does not show | — | seeded |
@@ -97,9 +97,9 @@ anything.
 
 | | |
 |---|---|
-| prediction sets | 30 |
-| registered predictions | 129 — **112 held, 17 failed** |
-| measured but never registered | 25 |
+| prediction sets | 31 |
+| registered predictions | 133 — **115 held, 18 failed** |
+| measured but never registered | 26 |
 | defect classes | 18, recurring 43 times |
 
 The suite's check count is deliberately **not** repeated here — it lives in

@@ -2524,6 +2524,90 @@
           "note": "Every scratch word was poisoned before the run and all 729 answers were unchanged, so the cost really is a function of the accumulator alone and AD2's bound of 729 is tight rather than generous. The arithmetic that follows is DERIVED: each live word beyond the accumulator multiplies the tabulator's one-off cost by 729 while leaving the runner's single query untouched. Taken with AD2 this is the result of the set -- THE SECURITY PARAMETER OF AN IMPLIED RECEIPT IS REACHABLE STATE COUNT, not whether the loop bound is discovered. That is the same shape as key length, and a different design problem from the one the question started with."
         }
       ]
+    },
+    {
+      "id": "AE",
+      "subject": "The T/I group, and how much harmonic vocabulary a ternary space has",
+      "tool": "tools/setclass-audit.js",
+      "registered_at": "92504fb",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-setclass.js",
+      "predictions": [
+        {
+          "id": "AE1",
+          "claim": "the group AB5 measured is the T/I group of musical set theory, and the same code returns 2n at every n",
+          "outcome": "HELD",
+          "measured": {
+            "order_at_12": 24,
+            "order_at_27": 54,
+            "order_at_729": 1458,
+            "two_n_at_12": 24,
+            "two_n_at_27": 54,
+            "two_n_at_729": 1458,
+            "generators": "translation-by-1 and negation, unchanged between cases"
+          },
+          "note": "AB5 measured 1,458 for the zero-erasure ALU fragment on 729 accumulator states and called it \"the translations extended by negation\". Run the identical construction through the identical stabiliser chain on TWELVE points and it returns 24 -- the dihedral group musical set theory has called T/I since the 1960s. So this project independently rebuilt a group that has been studied for sixty years, and AB5's conclusion is the one music theory reached from the other side: transposition and inversion preserve interval content and can never carry one set class into another. AB5 phrased the same fact as \"without an eraser the named set is inert\". The tryte width is not special; 1,458 is 2 x 729."
+        },
+        {
+          "id": "AE2",
+          "claim": "the number of distinct translation orbit-lengths equals the divisor count exactly, and a prime power is divisor-poor",
+          "outcome": "HELD",
+          "measured": {
+            "Z12_divisors": 6,
+            "Z12_orbit_lengths": 6,
+            "Z12_lengths": "1 2 3 4 6 12",
+            "Z27_divisors": 4,
+            "Z27_orbit_lengths": 4,
+            "Z27_lengths": "1 3 9 27",
+            "Z720_divisors": 30,
+            "Z720_orbit_lengths": 30,
+            "Z729_divisors": 7,
+            "Z729_orbit_lengths": 7,
+            "Z729_lengths": "1 3 9 27 81 243 729"
+          },
+          "note": "Exact on all four. The comparison that makes it vivid held too: 720 and 729 are ONE APART in size and have 30 divisors against 7. Every period in a Z/3^k space is a power of three, so consecutive available periods differ by a factor of exactly three and nothing sits between them. Z/27 offers periods 1, 3, 9, 27 and therefore has no analogue of the whole-tone scale, which lives at period 6, or the diminished seventh at period 4 -- not because nobody has looked, but because 6 and 4 do not divide 27. This is a place ternary is structurally WORSE, and the project has few of those recorded."
+        },
+        {
+          "id": "AE3",
+          "claim": "Burnside over the T/I group reproduces published Z/12 musicology, then gives Z/27 between 2.4 and 2.6 million set classes",
+          "outcome": "HELD",
+          "measured": {
+            "Z12_set_classes": 224,
+            "published_Z12_set_classes": 224,
+            "Z12_trichord_classes": 12,
+            "published_trichords": 12,
+            "Z12_tetrachord_classes": 29,
+            "published_tetrachords": 29,
+            "Z12_hexachord_classes": 50,
+            "published_hexachords": 50,
+            "Z27_set_classes": 2493726,
+            "predicted_range": "2.4 to 2.6 million",
+            "two_pow_27_over_54": 2485513,
+            "Z27_trichord_classes": 61,
+            "Z27_tetrachord_classes": 364
+          },
+          "note": "The load-bearing part is the control. Four figures -- 224, 12, 29 and 50 -- are in the musicological literature and were not derived here, and the instrument reproduced all four before its ternary answers were looked at. An audit that agrees with sixty years of published counting on the case where the answer is known has earned the case where it is not. Z/27 lands at 2,493,726, near 2^27/54 because at that size the identity element dominates the Burnside average. Worth noting the nuance the prediction did not ask for: Z/27 has 61 trichord classes against Z/12's 12, so ternary space is RICHER in raw variety while AE4 shows it is far poorer in structure."
+        },
+        {
+          "id": "AE4",
+          "claim": "the fraction of subsets with nontrivial transpositional symmetry is above 2% in Z/12 and below 0.001% in Z/27, a drop of more than three orders of magnitude",
+          "outcome": "FAILED",
+          "measured": {
+            "Z12_symmetric_subsets": 74,
+            "Z12_total_subsets": 4096,
+            "Z12_fraction_percent": 1.81,
+            "predicted_Z12_above_percent": 2,
+            "Z27_symmetric_subsets": 510,
+            "Z27_total_subsets": 134217728,
+            "Z27_fraction_percent": 0.00038,
+            "predicted_Z27_below_percent": 0.001,
+            "ratio": 4755,
+            "orders_of_magnitude": 3.7,
+            "predicted_orders_over": 3
+          },
+          "note": "Failed on one threshold and held on everything that mattered. Z/12 measures 1.81% against a predicted above-2%, so the prediction was optimistic by a fifth. The Z/27 clause held at 0.000380% against a predicted below-0.001%, and the gap held at 3.7 orders of magnitude against a predicted more-than-three: Z/12 is 4,755 times richer in transpositionally symmetric subsets. Those are the chords Western harmony leans on -- the augmented triad, the diminished seventh, the whole-tone scale -- and a prime-power space has a single unbranched chain of subgroups and almost none of them. The failure is a reminder that a threshold picked to sound decisive is a worse prediction than the ratio it was standing in for, which is the same lesson T-CRITERION-IN-THE-NOISE keeps teaching in a different costume."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -2698,6 +2782,13 @@
       "claim": "A hailstone rule of the form 3n + k cannot mix on a base-three machine. Multiplying by three always zeroes the low trit, so the low trit is k forever after the first climb: the value can never become divisible again and every trajectory runs to the fixed point of an affine map. Swept over all 729 inputs, 3n+1 terminates on exactly six of them -- the powers of three. Replacing the climb with 2n + low_trit mixes the residue and terminates on 363. Measured while choosing the rule, not predicted.",
       "evidence": "AD, five candidate growth rules swept over all 729 inputs before the set was registered",
       "asserted_in": "test/test-hailstone.js"
+    },
+    {
+      "id": "F-TERNARY-RICHER-IN-VARIETY-POORER-IN-STRUCTURE",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "A ternary pitch space is simultaneously richer and poorer than the twelve-tone one, along two different axes, and neither prediction asked about the pairing. Z/27 has 61 trichord classes against Z/12's 12 -- five times the raw variety of three-note chords -- while having 4,755 times fewer transpositionally symmetric subsets by fraction. More things to say, far less structure to say them with.",
+      "evidence": "AE3 and AE4, both by exhaustive Burnside over the full T/I group",
+      "asserted_in": "test/test-setclass.js"
     }
   ],
   "traps_encountered": [

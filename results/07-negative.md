@@ -91,6 +91,14 @@ else this project has measured about them. The ordering clause held — the
 longest-running program is not the hungriest per step — so the finding survives at a
 narrower margin than the prediction claimed.
 
+**`AE4` — "above 2% of twelve-tone subsets have transpositional symmetry."** It is
+**1.81%**, optimistic by a fifth. Every other clause held — ℤ/27 at 0.00038%, and
+the gap at 3.7 orders of magnitude — so the direction and the magnitude both
+survived a threshold that did not. **A number picked to sound decisive is a worse
+prediction than the ratio it was standing in for**, which is
+`T-CRITERION-IN-THE-NOISE` wearing a different costume: the claim was made
+brittle for rhetorical reasons rather than measured ones.
+
 #### The ones that corrected the record
 
 **`P3` — "reach is a direct product across trit positions."** 47 at width two, not
