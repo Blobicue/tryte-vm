@@ -37,10 +37,24 @@ if (unparsed.length) {
   // The count crossed a thousand and the README groups its digits. Match the grouped
   // form and strip the separators, rather than forcing the prose to read "1027".
   const claimed = /\*\*([\d,]+) checks\*\*/.exec(README);
-  if (!claimed) { failed = true; console.log('  [FAIL] the README states no check count'); }
+  // This number is the one thing here a manifest cannot supply: it exists only once
+  // every suite has run. `render-docs.js` owns the counts derived from FINDINGS.json
+  // and never touches this one; --write stamps it from the run that produced it.
+  // Typed by hand it needed bumping twice in a single session, once for a new suite
+  // and once for the check that suite's own pinning added.
+  const grouped = String(total).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  if (process.argv.includes('--write')) {
+    if (!claimed) { failed = true; console.log('  [FAIL] the README states no check count to stamp'); }
+    else {
+      fs.writeFileSync(path.join(__dirname, '..', 'README.md'),
+        README.replace(claimed[0], `**${grouped} checks**`));
+      console.log(`  [WROTE] the README now says ${grouped} checks across ${SUITES.length} suites`);
+    }
+  } else if (!claimed) { failed = true; console.log('  [FAIL] the README states no check count'); }
   else if (Number(claimed[1].replace(/,/g, '')) !== total) {
     failed = true;
-    console.log(`  [FAIL] the README says ${claimed[1]} checks; the suites ran ${total}`);
+    console.log(`  [FAIL] the README says ${claimed[1]} checks; the suites ran ${total}`
+      + ' — run `npm run counts` to stamp it');
   } else {
     console.log(`  [PASS] ${total} checks across ${SUITES.length} suites, matching the README`);
   }

@@ -13,9 +13,9 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-Forty prediction sets, **169 registered predictions, 141 held, 28 failed.** Eighteen
+<!--g:method-tally-->Forty prediction sets, **169 registered predictions, 141 held, 28 failed.** Eighteen
 distinct failure classes, which bit **49 times** between them. Thirty-six findings
-measured but never registered, listed separately so the pre-registration record is
+measured but never registered<!--/g-->, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
 document drifts from the manifest, the suite fails.
@@ -163,7 +163,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace the forty sets and they form very nearly
+fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty sets<!--/g--> and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from

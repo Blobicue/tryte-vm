@@ -151,6 +151,27 @@ console.log('\n=== 5. THE LEDGER IS GENERATED, NOT AUTHORED ===');
     + ' quietly leaving the prose behind', fresh === onDisk);
   check('   and the ledger carries every set the manifest has',
     M.prediction_sets.every(s => onDisk.includes(`## Set \`${s.id}\``)));
+
+  // The same contract, extended past the ledger. `render-docs.js` owns every prose
+  // restatement of a manifest count in README.md, METHOD.md, results/README.md and
+  // the failure-catalogue pillar, so those numbers cannot be typed and cannot drift.
+  //
+  // This replaces guarding with generation, and the reason is written inside one of
+  // the guards it retires: "pinning one wording licenses the others to drift". A
+  // check can only chase a phrasing someone already wrote. The six checks in
+  // test-findings.js that watch these files all pass unchanged, which is what proves
+  // the generator reproduces the hand-written text rather than quietly replacing it
+  // -- but from here those phrasings are produced rather than policed.
+  const docs = require('../tools/render-docs.js');
+  const pending = docs.run(false).report.filter(r => r.changed);
+  check('every generated region in the prose is already current',
+    pending.length === 0,
+    pending.map(r => `${r.file}: ${r.changed} stale region(s) — run npm run docs`).join('; '));
+  check('   and the generator reaches all four documents that restate a count',
+    docs.run(false).report.length === 4 && docs.TARGETS.length === 4);
+  check('   and it refuses to spell a number it has no word for, rather than '
+    + 'writing undefined into the README',
+    (() => { try { docs.word(docs.WORDS.length); return false; } catch (e) { return true; } })());
 }
 
 console.log('\n=== 6. DEPTH IS DECLARED AND ALLOWED TO BE LOW ===');

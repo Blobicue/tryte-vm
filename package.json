@@ -40,6 +40,8 @@
     "audit:nonlinearity": "node tools/nonlinearity-audit.js",
     "audit:midprice": "node tools/midrail-price-audit.js",
     "ledger": "node tools/render-ledger.js --write",
+    "docs": "node tools/render-docs.js --write",
+    "counts": "node tools/render-docs.js --write && node test/run-all.js --write",
     "audit:decode": "node tools/decode-audit.js",
     "audit:sequencer": "node tools/sequencer-audit.js",
     "audit:erasure": "node tools/erasure-audit.js",

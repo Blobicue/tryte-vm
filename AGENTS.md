@@ -290,10 +290,48 @@ There is a staleness check for exactly this — do not remove it.
   evidence, and its value depends on being untouched.
 - `build/` — inlines `src/` into the published page and fails if the two diverge.
 
+## Never type a count. Generate it.
+
+Every number in the prose that restates something the manifest already knows —
+prediction sets, predictions held and failed, unregistered findings, defect classes,
+trap bites, the audit count — lives inside a generated region written by
+`tools/render-docs.js`. The regions are HTML comments, invisible when the Markdown
+renders:
+
+```
+<!--g:readme-tally-->Forty prediction sets, ... **141 held, 28 failed**<!--/g-->
+```
+
+**Do not edit the text between those markers.** Change `FINDINGS.json`, then:
+
+```bash
+npm run counts    # render-docs --write, then run-all --write
+```
+
+The suite's own check count is the one number a manifest cannot supply, because it
+exists only after every suite has run. `test/run-all.js --write` stamps that one and
+`render-docs.js` never touches it. Two writers, disjoint regions.
+
+This replaced guarding with generation, and the reason is recorded inside one of the
+guards it retires: **pinning one wording licenses the others to drift.** `METHOD.md`
+once stated the trap count three ways; a check pinned one of them and the other two
+went stale for four phases. A guard can only chase a phrasing somebody already wrote.
+The guards in `test-findings.js` are kept — they still watch these files, and their
+passing unchanged is what proved the generator reproduces the hand-written text
+rather than quietly replacing it.
+
+To add a generated phrase: wrap it in a marker, add a template under the same key in
+`render-docs.js`, and run `npm run counts`. The tool refuses to run if a template is
+never used, and refuses to spell a number it has no word for rather than writing
+`undefined` into the README.
+
+---
+
 ## Before you commit
 
 ```bash
 npm test          # everything, including the manifest validator
+npm run counts    # restamp every generated count
 npm run build     # rebuild the page if src/ or programs/ changed
 ```
 
