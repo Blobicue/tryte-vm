@@ -52,6 +52,7 @@
     "audit:arity": "node tools/arity-audit.js",
     "audit:selfref": "node tools/selfref-audit.js",
     "audit:minimal": "node tools/minimal-audit.js",
+    "audit:puzzle": "node tools/puzzle-audit.js",
     "audit:tasks": "node tools/tasks-audit.js"
   },
   "license": "MIT",
