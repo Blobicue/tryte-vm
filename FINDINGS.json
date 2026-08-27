@@ -2459,7 +2459,7 @@
       "subject": "A loop bound the program discovers, and whether that is enough for an implied receipt",
       "tool": "tools/hailstone-audit.js",
       "registered_at": "8175f9b",
-      "results_at": "PENDING",
+      "results_at": "bc9efb5",
       "asserted_in": "test/test-hailstone.js",
       "predictions": [
         {

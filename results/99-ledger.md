@@ -1321,7 +1321,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/hailstone-audit.js` |
 | asserted in | `test/test-hailstone.js` |
 | registered | `8175f9b` |
-| results | `PENDING` |
+| results | `bc9efb5` |
 
 ### `AD1` — HELD
 
