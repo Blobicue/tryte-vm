@@ -4,7 +4,7 @@
 
 **A working computer that counts in three states instead of two** — core
 arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
-assembly, transistors underneath it, and <!--g:readme-audits-lede-->forty-one audits establishing<!--/g--> exactly what
+assembly, transistors underneath it, and <!--g:readme-audits-lede-->forty-two audits establishing<!--/g--> exactly what
 its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
@@ -24,7 +24,7 @@ node src/run.js programs/multiply.tasm 7 5
 
 | | |
 |---|---|
-| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + <!--g:readme-audits-badge-->forty-one audits<!--/g--> |
+| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + <!--g:readme-audits-badge-->forty-two audits<!--/g--> |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
 | **What was found** | [`results/`](results/) — every result keyed by subject, with a generated ledger of every prediction |
 | **What is not built** | [`design/`](design/) — interconnect, decode and sequencing, enumerated before anything is chosen, and [`design/12-roadmap.md`](design/12-roadmap.md) for the order to build them in |
@@ -54,7 +54,7 @@ programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
 design/      the design phase for the machine that does not exist yet
 results/     the same corpus keyed by SUBJECT rather than by date, plus 99-ledger.md
-tools/       <!--g:readme-audits-tree-->the forty-one audits, each with its registered predictions<!--/g-->
+tools/       <!--g:readme-audits-tree-->the forty-two audits, each with its registered predictions<!--/g-->
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
 build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
