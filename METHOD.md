@@ -14,11 +14,19 @@ for *this* repository. What follows is the part that is not about ternary.
 ## What it produced
 
 <!--g:method-tally-->Forty prediction sets, **169 registered predictions, 141 held, 28 failed.** Eighteen
-distinct failure classes, which bit **49 times** between them. Thirty-six findings
+distinct failure classes, which bit **49 times** between them. Thirty-seven findings
 measured but never registered<!--/g-->, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
 document drifts from the manifest, the suite fails.
+
+A prediction carries two independent labels, and running them together was costing
+something. `outcome` is the prediction against the run — held or failed. **`basis` is
+the scope of the claim**: swept at the width it was swept at, or argued at every width.
+<!--g:method-basis-->Nine of those 169 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
+each with its argument written out beside its measurement. The measurement is still
+required. A proof does not excuse running it — an argument is also a thing that can be
+wrong, and the run is what would say so.
 
 **The five failures produced more than the forty-nine successes.** Each one is
 still in the manifest, marked `FAILED`, with the result it led to:

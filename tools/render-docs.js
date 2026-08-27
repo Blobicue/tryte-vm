@@ -82,6 +82,8 @@ function facts() {
     held: preds.filter(p => p.outcome === 'HELD').length,
     failed: preds.filter(p => p.outcome === 'FAILED').length,
     unregistered: M.unregistered_findings.length,
+    // The second axis: claims argued at every width rather than swept at one.
+    proven: preds.filter(p => p.basis === 'proven').length,
     trapClasses: M.traps_encountered.length,
     bites: M.traps_encountered.reduce((a, t) => a + t.count, 0),
     audits: inTools.length + elsewhere.length,
@@ -110,6 +112,9 @@ const TEMPLATES = {
     `distinct failure classes, which bit **${f.bites} times** between them. ${Word(f.unregistered)} findings\n` +
     `measured but never registered`,
   'method-trace': f => `the ${word(f.sets)} sets`,
+  'method-basis': f =>
+    `${Word(f.proven)} of those ${f.predictions} carry an argument that holds at every ` +
+    `width rather than a sweep at one, and are marked \`proven\` in the manifest`,
 
   'results-table': f =>
     `| prediction sets | ${f.sets} |\n` +

@@ -8,7 +8,7 @@ Every registered prediction, in the order it was registered, rendered from
 line here is wrong, the manifest is wrong.
 
 **40 sets · 169 predictions · 141 held · 28 failed**
-· 36 measured but never registered
+· 37 measured but never registered
 · 18 defect classes, 49 occurrences
 
 Each set names the commit that registered it and the commit that recorded its
@@ -971,9 +971,11 @@ branch rather than merely present in a local object store.
 
 **Note.** Exact. So the structural rule holds and is now measured rather than asserted: an iterated hash of this shape must use a PERMUTATION, and its compression must come from TRUNCATION at the end. A non-bijective f throws away a third of the space on the first call.
 
-### `D2` — HELD
+### `D2` — HELD · PROVEN
 
 **Claim.** any positionwise f has period at most 6, at every width
+
+**Argument.** A trit permutation has order 1, 2 or 3. Applying one per position, f^m is the identity exactly when every position's is, so the order is an lcm drawn from {1,2,3} and is at most 6 — at ANY width, not just the one swept.
 
 **Measured.** maps_checked: 36; largest_order: 6; every_order_divides_6: true; widths: holds at any width by the lcm argument
 
@@ -1015,17 +1017,21 @@ branch rather than merely present in a local object store.
 
 **Note.** Four of five on the first run, and the fifth was the TEST CASE rather than the tool: it paired a 3-cycle with a 25-CYCLE, which between them move only 25 of the 27 points, and the tool correctly returned 25!/2 -- the right answer to the question actually asked. Scored WRONG against an expectation of 27!/2. A test case that does not generate what its name says is an instrument-false-verdict aimed at the instrument instead of at itself. Both cases are now kept, the 27-point one and the 25-point one, with their correct expectations.
 
-### `M1` — HELD
+### `M1` — HELD · PROVEN
 
 **Claim.** binary has no non-affine two-bit reversible gate and ternary has 362,448
+
+**Argument.** The reversible 2-bit gates number 4! = 24 and |AGL(2,2)| = 24, so every one of them is affine. Affine composes to affine, so no 2-bit set reaches the symmetric group at any width. Counting, not sampling.
 
 **Measured.** binary: {"states":4,"all_reversible":24,"affine":24,"non_affine":0,"affine_share":"100.000%"}; ternary: {"states":9,"all_reversible":362880,"affine":432,"non_affine":362448,"affine_share":"0.119%"}; closure_verified_by: membership, x -> Ax + b, on every element of the generated group
 
 **Note.** Exact, no sampling. Reversible 2-bit gates are 4! = 24 and |AGL(2,2)| = 6 x 4 = 24, so every one of them is affine. Reversible 2-trit gates are 9! = 362,880 and |AGL(2,3)| = 48 x 9 = 432. Since affine maps compose to affine, an all-affine gate set generates a subgroup of AGL however it is wired -- so binary two-bit gate sets cannot reach the symmetric group at ANY width, which is why binary reversible computation needs a three-bit gate.
 
-### `M2` — HELD
+### `M2` — HELD · PROVEN
 
 **Claim.** a named width-two ternary gate set generates exactly A_27, as its parity forces
+
+**Argument.** INC is nine disjoint 3-cycles and each C1INC is three; a 3-cycle is even, so the generated group lies inside the alternating group. S_27 was excluded by parity before the run rather than found absent by it.
 
 **Measured.** generators: ["INC(t0)","C1INC(t0,t1)","C1INC(t1,t2)","C1INC(t2,t0)"]; parities: all even; non_affine_generators: 3 of 4; order: 5444434725209176080384000000; equals: A_27 exactly; family_sample: 20 of 20 random non-affine 2-trit gates reach at least A_27, against a predicted 15 of 20
 
@@ -1559,17 +1565,21 @@ branch rather than merely present in a local object store.
 
 **Note.** Exact at every rung: 27, 19,683, 7,625,597,484,987, then a 39-digit number, each the cube of the last because 3^(3^(n+1)) = (3^(3^n))^3. This is a different growth law from the one this project has been using. AD4's width ladder MULTIPLIES by 729 per live word; the arity ladder CUBES. Arity passes width at n = 3 and by n = 4 they are not in the same range -- 39 digits against 15. Adding an input is not a bigger version of adding a word, it is a different operation.
 
-### `AI3` — HELD
+### `AI3` — HELD · PROVEN
 
 **Claim.** the reversible fraction is (2/9)^(3^(n-1)), and it reproduces AB1's swept 1.097% from a formula
+
+**Argument.** A function is reversible in its leading argument exactly when each of its 3^(n-1) columns is a bijection of three values. So the count is 6^(3^(n-1)) and the fraction (2/9)^(3^(n-1)), for every n — a closed form, not a fit.
 
 **Measured.** n1_fraction_percent: 22.22; n2_fraction_percent: 1.097; n3_fraction_percent: 0.0001322; AB1_measured_percent: 1.097; AB1_measured_count: 216; AB1_total: 19683; formula_count_n2: 216; six_cubed: 216; agree_to_four_significant_figures: true
 
 **Note.** A function is reversible in its leading argument exactly when each of its 3^(n-1) columns is a bijection of three values, so the count is 6^(3^(n-1)) and the fraction (2/9)^(3^(n-1)). AB1 measured 216 of 19,683 by sweeping every table one at a time; the formula gives the same figure to four significant figures without a sweep, and 216 is exactly 6^3. SO AB1 WAS ONE RUNG OF A LADDER NOBODY HAD WRITTEN DOWN. The fraction collapses fast -- 22.22%, 1.097%, then 0.000132% -- which is the arity version of the scarcity M1 found at fixed width.
 
-### `AI4` — HELD
+### `AI4` — HELD · PROVEN
 
 **Claim.** a leading-argument-reversible feedback function makes the shift-register state map a bijection, so no two trajectories ever merge
+
+**Argument.** With state (x1..xn) and next (x2..xn, f(x1..xn)), a leading-argument-reversible f makes the state map injective: two states with the same successor would need the same tail and the same f-value, forcing them equal. Holds for every n.
 
 **Measured.** state_space: 531441; reversible_max_in_degree: 1; reversible_unreachable: 0; reversible_every_state_in_degree_1: true; min_feedback_max_in_degree: 729; min_feedback_unreachable: 484785; min_feedback_unreachable_percent: 91.22; predicted_max_in_degree_at_least: 3; predicted_unreachable_over_percent: 25; AH2_reuse: 3.2; hailstone_reuse: 10.43
 
@@ -1587,9 +1597,11 @@ branch rather than merely present in a local object store.
 | registered | `49520f0` |
 | results | `6a1d106` |
 
-### `AJ1` — HELD
+### `AJ1` — HELD · PROVEN
 
 **Claim.** the ladder step carried in two words is injective, with in-degree exactly 1 everywhere, because every component is ADD
+
+**Argument.** Every component is ADD, which erases nothing, and the inverse is explicit: from (sum+lag, sum+1) recover sum = second - 1 and lag = first - sum. An explicit inverse is a proof of injectivity, not evidence of it.
 
 **Measured.** state_space: 531441; max_in_degree: 1; unreachable: 0; every_state_in_degree_1: true; inverse_recovered: 5 of 5; ADD_bits_erased: 0; special_table_needed: false
 
@@ -1631,17 +1643,21 @@ branch rather than merely present in a local object store.
 | registered | `fd62b63` |
 | results | `e02e32a` |
 
-### `AK1` — HELD
+### `AK1` — HELD · PROVEN
 
 **Claim.** the three primitive forms are a universal reversible language: every instance a permutation of order 3, generating A_27
+
+**Argument.** Each form adds a fixed amount mod 3 to one trit under a condition on another, so three applications return every state. Order exactly 3 by construction, which is what makes the inverse derivable and an inverse instruction set unnecessary.
 
 **Measured.** gate_instances: 15; all_permutations: true; all_order_3: true; group_order: 5444434725209176080384000000; A27_computed: 5444434725209176080384000000; equal: true; digits: 28; registration_typed: 5444434725209176080384000 (25 digits)
 
 **Note.** All fifteen gate instances are permutations of the 27 states and every one has order exactly 3, so a program's inverse is that program with each gate applied twice more and THE LANGUAGE NEEDS NO INVERSE INSTRUCTION SET. The group they generate is A_27, agreeing with M's recorded figure from an implementation written separately -- two independent codings landing on one 28-digit number is what makes a re-implementation worth having. ERRATUM, AND THE REASON IT IS ONLY AN ERRATUM: the registration typed A_27 as a 25-digit number, dropping three zeros, so the decimal expansion in the prediction was wrong by a factor of a thousand. The tool COMPUTES 27!/2 rather than comparing against the typed digits, which is why a transcription slip in the registration is a footnote instead of a false verdict. AGENTS.md already says to derive constants and never hardcode them; the tool obeyed it and the prose did not.
 
-### `AK2` — HELD
+### `AK2` — HELD · PROVEN
 
 **Claim.** reversibility is inherited by composition, so every program has in-degree 1 with no analysis
+
+**Argument.** A composition of bijections is a bijection. Every primitive is a bijection, so in-degree 1 holds for every program that can be written — the 400 sampled were a check on the implementation, never the grounds for the claim.
 
 **Measured.** random_programs: 400; lengths: 1 to 12 gates; with_in_degree_1_everywhere: 400; percent: 100; worst_max_in_degree: 1; worst_unreachable: 0
 
@@ -1675,9 +1691,11 @@ branch rather than merely present in a local object store.
 | registered | `3568301` |
 | results | `03565cb` |
 
-### `AL1` — HELD
+### `AL1` — HELD · PROVEN
 
 **Claim.** exactly 27 of the 19,683 two-input ternary operations are affine over GF(3), and 18 of the 216 reversible ones are
+
+**Argument.** 27 = 3^3, one affine table per (alpha, beta, gamma). The 18 affine-and-reversible is 2 x 3 x 3 because alpha must be nonzero for every column to be a bijection. Parameter counting, exhaustive by construction.
 
 **Measured.** affine: 27; total: 19683; percent: 0.137; reversible: 216; AB1_reversible: 216; affine_and_reversible: 18; cross_check_agrees: true
 
@@ -1902,6 +1920,10 @@ not inflated by things that were never at risk.
 - **`F-AFFINE-HIDES-ITS-SOLUTIONS-FROM-A-SCAN`** — An affine puzzle gives every message exactly the right NUMBER of solutions and puts them in the wrong PLACES. At k = 3 every message has exactly 27 valid nonces, as a bijection must, yet a sequential scan needs 248 attempts to reach one where the null says 27 -- so the honest miner does nine times the expected work while the algebraic attack does one operation. The gap between honest and attacker is therefore wider than AN2 measured, and a hit COUNT alone would have missed it.
   <br>*Evidence:* AN1 first-hit column for the affine candidate: 4.0, 5.0, 248.0, 329.0, 356.0, 365.0
   <br>*Asserted in:* `test/test-puzzle.js`
+- **`F-REVERSIBLE-CANNOT-DESTROY`** · PROVEN — A machine built from AK's language cannot destroy a secret, so it cannot run a trusted-setup ceremony. Injectivity is closed under composition (AK2), so no program maps two distinct starting states to the same final state: two different secrets stay distinguishable for ever, and every intermediate state determines the initial one. Erasure, as this project defines it, is exactly the collapse that cannot occur — so the ceremony's "and then delete s" step is not merely unperformed but INEXPRESSIBLE in the language. The property AK was built to guarantee is the property that forbids it.
+  <br>*Argument:* Corollary of AK2 and the definition of erasure. E = 0 for every program in a language all of whose primitives are bijections, and a secret is destroyed only when the final state is constant in it — which requires E > 0.
+  <br>*Evidence:* AK2, and the erasure measure defined in AB; checked in test/test-minimal.js
+  <br>*Asserted in:* `test/test-minimal.js`
 
 ---
 

@@ -454,7 +454,48 @@ console.log('\n=== 5. REFERENCES ===');
     M.traps_encountered.find(t => t.id === 'T-ONE-POINT').count === 3);
 }
 
-console.log('\n=== 6. THE SCAFFOLD PRODUCES PAPERWORK THIS FILE CAN READ ===');
+console.log('\n=== 6. BASIS: MEASURED AT ONE WIDTH, OR ARGUED AT EVERY WIDTH ===');
+{
+  // A second axis, orthogonal to `outcome`. HELD/FAILED is the prediction against the
+  // run. `basis` is the SCOPE of the claim: swept at the width it was swept at, or
+  // argued for all of them. The corpus already contained proofs -- D2's lcm argument,
+  // M1's counting of AGL(2,2), AK2's composition of bijections -- and simply had no
+  // way to say so, which left a theorem indistinguishable from a lucky exhaustion.
+  const BASES = ['measured', 'proven'];
+  check('every prediction declares a basis, and it is one of the two',
+    allPreds.every(p => BASES.includes(p.basis)),
+    allPreds.filter(p => !BASES.includes(p.basis)).map(p => p.id).join(' '));
+
+  const proven = allPreds.filter(p => p.basis === 'proven');
+  // A label that costs nothing gets applied to everything. Claiming a proof requires
+  // writing the argument down, and the argument has to be an argument rather than a
+  // restatement of the claim.
+  check(`${proven.length} of ${allPreds.length} predictions are proven, and each carries `
+    + 'its argument in the manifest',
+    proven.length > 0 && proven.every(p => typeof p.argument === 'string' && p.argument.length > 80),
+    proven.filter(p => !(p.argument || '').length).map(p => p.id).join(' '));
+  check('   and a proof does not excuse a measurement — every proven claim was still run',
+    proven.every(p => p.measured && Object.keys(p.measured).length > 0),
+    proven.filter(p => !p.measured || !Object.keys(p.measured).length).map(p => p.id).join(' '));
+  check('   and the argument does not just repeat the claim back',
+    proven.every(p => p.argument.toLowerCase() !== p.claim.toLowerCase()));
+  // Adding the axis must not quietly relabel a result. The failed set is checked above
+  // for shrinkage; this pins the other direction — basis is additive, never corrective.
+  check('   and no proven claim is a failed one, because an argument that survived a '
+    + 'refutation would be an argument with a hole in it',
+    proven.every(p => p.outcome !== 'FAILED'),
+    proven.filter(p => p.outcome === 'FAILED').map(p => p.id).join(' '));
+
+  const provenFindings = M.unregistered_findings.filter(f => f.basis === 'proven');
+  check(`   and ${provenFindings.length} unregistered finding(s) carry it too, argument included`,
+    provenFindings.every(f => typeof f.argument === 'string' && f.argument.length > 40));
+  check('   the reversibility corollary among them, since it is derivable rather than '
+    + 'discovered and registering it would have been decoration',
+    M.unregistered_findings.some(f => f.id === 'F-REVERSIBLE-CANNOT-DESTROY'
+      && f.basis === 'proven'));
+}
+
+console.log('\n=== 7. THE SCAFFOLD PRODUCES PAPERWORK THIS FILE CAN READ ===');
 {
   // tools/scaffold-set.js emits the fixed shape a new set needs. A generator whose
   // output this validator cannot parse would hand every future set a registration

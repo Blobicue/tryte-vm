@@ -99,7 +99,7 @@ anything.
 |---|---|
 <!--g:results-table-->| prediction sets | 40 |
 | registered predictions | 169 — **141 held, 28 failed** |
-| measured but never registered | 36 |
+| measured but never registered | 37 |
 | defect classes | 18, recurring 49 times |<!--/g-->
 
 The suite's check count is deliberately **not** repeated here — it lives in

@@ -73,10 +73,15 @@ for (const s of M.prediction_sets) {
   w(`| results | \`${s.results_at}\` |`);
   w('');
   for (const p of s.predictions) {
-    w(`### \`${p.id}\` — ${p.outcome}`);
+    // Two axes, not one. `outcome` is the prediction against the run; `basis` is the
+    // scope of the claim -- measured at the width it was swept at, or argued at every
+    // width. A field the ledger does not print is a field that drifts unseen, which is
+    // why this renders as soon as the manifest carries it.
+    w(`### \`${p.id}\` — ${p.outcome}${p.basis === 'proven' ? ' · PROVEN' : ''}`);
     w('');
     w(`**Claim.** ${p.claim}`);
     w('');
+    if (p.argument) { w(`**Argument.** ${p.argument}`); w(''); }
     if (p.measured) { w(`**Measured.** ${compact(p.measured)}`); w(''); }
     if (p.note) { w(`**Note.** ${p.note}`); w(''); }
   }
@@ -90,7 +95,8 @@ w('Facts established in passing. Listed separately so the pre-registration recor
 w('not inflated by things that were never at risk.');
 w('');
 for (const f of M.unregistered_findings) {
-  w(`- **\`${f.id}\`** — ${f.claim}`);
+  w(`- **\`${f.id}\`**${f.basis === 'proven' ? ' · PROVEN' : ''} — ${f.claim}`);
+  if (f.argument) w(`  <br>*Argument:* ${f.argument}`);
   if (f.evidence) w(`  <br>*Evidence:* ${f.evidence}`);
   if (f.asserted_in) w(`  <br>*Asserted in:* \`${f.asserted_in}\``);
 }

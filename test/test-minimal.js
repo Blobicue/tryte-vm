@@ -151,6 +151,44 @@ console.log('\n=== 4. AK4 — PICK TWO ===');
     require('../tools/arity-audit.js').ladder(20)[15] === 377);
 }
 
+console.log('\n=== THE COROLLARY: THIS LANGUAGE CANNOT DESTROY A SECRET ===');
+{
+  // F-REVERSIBLE-CANNOT-DESTROY, and the reason it is a corollary rather than a
+  // prediction: it follows from AK2 plus the definition of erasure, so it was never at
+  // risk. A trusted-setup ceremony ends by deleting the secret s. Deletion IS erasure,
+  // and erasure is exactly what a language of bijections cannot express.
+  const E = require('../tools/erasure-audit.js');
+  let seed = 20260827;
+  const rnd = () => { seed = (Math.imul(seed, 1103515245) + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+  const randomProgram = len => {
+    let p = idPerm(K.N);
+    for (let i = 0; i < len; i++) p = K.compose(K.GATES[Math.floor(rnd() * K.GATES.length)].g, p);
+    return p;
+  };
+  const progs = Array.from({ length: 200 }, () => randomProgram(1 + Math.floor(rnd() * 14)));
+
+  check('200 random programs each erase exactly zero bits',
+    progs.every(p => E.erasureOf(p, K.N) === 0),
+    `worst ${Math.max(...progs.map(p => E.erasureOf(p, K.N)))}`);
+  check('   because every one is a bijection, so no two secrets can share a final state',
+    progs.every(p => new Set(p).size === K.N));
+  check('   so the starting state is recoverable from the ending one, and the secret '
+    + 'survives every program that could be written to delete it',
+    progs.every(p => { const inv = new Array(K.N);
+      p.forEach((to, from) => { inv[to] = from; });
+      return inv.every((from, to) => p[from] === to); }));
+  // The control, so the zero above is a fact about the LANGUAGE and not about the
+  // instrument: a map that does collapse the space must measure as erasing.
+  const collapse = new Array(K.N).fill(0);
+  check('   while a map that collapses all 27 states measures log2(27) = 4.7549 bits, '
+    + 'so the zero is the language rather than a blind meter',
+    Math.abs(E.erasureOf(collapse, K.N) - Math.log2(K.N)) < 1e-9,
+    String(E.erasureOf(collapse, K.N)));
+  check('AK\'s guarantee forbids the ceremony: "and then delete s" is not unperformed '
+    + 'here, it is inexpressible',
+    progs.every(p => E.erasureOf(p, K.N) === 0) && E.erasureOf(collapse, K.N) > 0);
+}
+
 console.log(`\n${'='.repeat(64)}`);
 console.log(fails.length ? `${fails.length} CHECK(S) FAILED:\n  ${fails.join('\n  ')}` : `ALL ${pass} CHECKS PASSED`);
 console.log('='.repeat(64));
