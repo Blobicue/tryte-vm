@@ -74,7 +74,15 @@ console.log('\n=== 2. COMPLETENESS AGAINST THE TOOLS ===');
   const found = new Set();
   for (const s of M.prediction_sets) {
     const src = fs.readFileSync(path.join(ROOT, s.tool), 'utf8');
-    const block = src.slice(src.indexOf('PREDICTED OUTCOMES'), src.indexOf(' */'));
+    // Tools are no longer all JavaScript. A training harness has to live where the
+    // GPU is, so bench/grok.py registers its predictions in a Python docstring —
+    // same discipline, different comment syntax. A checker that knows only one
+    // language reports the set as inventing predictions when the set is fine and
+    // the checker cannot read it, which is what happened the moment AM landed.
+    const py = s.tool.endsWith('.py');
+    const from = src.indexOf('PREDICTED OUTCOMES');
+    const to = py ? src.indexOf('"""', from) : src.indexOf(' */');
+    const block = src.slice(from, to === -1 ? undefined : to);
     // Ids may carry a lowercase suffix — `B1a`/`B1b` are two conditions of one
     // claim, registered separately because they were predicted to differ. The
     // original pattern matched `[A-Z]\d+` followed by exactly two spaces, so it
@@ -88,7 +96,8 @@ console.log('\n=== 2. COMPLETENESS AGAINST THE TOOLS ===');
     // `AA`, `AB`, `AC`, … — two letters, which collide with nothing, because no
     // design document uses a two-letter option prefix. This is where that was
     // pre-announced, one set in advance, rather than arriving as a rider.
-    for (const m of block.matchAll(/^ \*\s{3}([A-Z]{1,2}\d+[a-z]?)\s/gm)) found.add(m[1]);
+    const pat = py ? /^\s{2}([A-Z]{1,2}\d+[a-z]?)\s/gm : /^ \*\s{3}([A-Z]{1,2}\d+[a-z]?)\s/gm;
+    for (const m of block.matchAll(pat)) found.add(m[1]);
   }
   const declared = new Set(allPreds.map(p => p.id));
   const missing = [...found].filter(id => !declared.has(id));
@@ -308,7 +317,16 @@ console.log('\n=== 5. REFERENCES ===');
       'thirty-seven', 'thirty-eight', 'thirty-nine', 'forty', 'forty-one',
       'forty-two', 'forty-three', 'forty-four', 'forty-five', 'forty-six',
       'forty-seven', 'forty-eight', 'forty-nine', 'fifty'];
-    const onDisk = fs.readdirSync(path.join(ROOT, 'tools')).filter(f => /-audit\.js$/.test(f));
+    // An audit is a tool a set names, wherever it lives. This globbed tools/*-audit.js
+    // until a set's tool had to live beside the GPU it runs on -- bench/grok.py --
+    // at which point the count read one short and the check reported the corpus as
+    // wrong rather than its own assumption about where a tool may sit. Count the
+    // tools/ files AND anything else the manifest names, so the number is the number
+    // of audits rather than the number in one directory.
+    const inTools = fs.readdirSync(path.join(ROOT, 'tools')).filter(f => /-audit\.js$/.test(f));
+    const elsewhere = [...new Set(M.prediction_sets.map(x => x.tool))]
+      .filter(t => !t.startsWith('tools/')).map(t => path.basename(t));
+    const onDisk = [...inTools, ...elsewhere];
     // Sets must all have tools; tools need not yet have sets. Between registering
     // a tool's predictions and recording its results the counts differ by one on
     // purpose, and that gap is exactly what a registration commit IS. This check

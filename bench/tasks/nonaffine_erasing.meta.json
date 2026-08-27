@@ -1,0 +1,19 @@
+{
+  "task": "nonaffine_erasing",
+  "table": [
+    0,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+  ],
+  "affine": null,
+  "reversible": false,
+  "erasure_bits": 2.666667,
+  "arena": "3 trits, states -13..13",
+  "examples": 729
+}

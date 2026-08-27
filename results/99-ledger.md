@@ -7,8 +7,8 @@ Every registered prediction, in the order it was registered, rendered from
 [`FINDINGS.json`](../FINDINGS.json). **Nothing on this page is authored** — if a
 line here is wrong, the manifest is wrong.
 
-**37 sets · 157 predictions · 134 held · 23 failed**
-· 32 measured but never registered
+**39 sets · 165 predictions · 138 held · 27 failed**
+· 33 measured but never registered
 · 18 defect classes, 48 occurrences
 
 Each set names the commit that registered it and the commit that recorded its
@@ -1665,6 +1665,94 @@ branch rather than merely present in a local object store.
 
 ---
 
+## Set `AL` — The two-input ternary operations as a labelled task ladder for a grokking experiment
+
+| | |
+|---|---|
+| outcome | 2 held, 2 failed |
+| tool | `tools/tasks-audit.js` |
+| asserted in | `test/test-grok.js` |
+| registered | `3568301` |
+| results | `03565cb` |
+
+### `AL1` — HELD
+
+**Claim.** exactly 27 of the 19,683 two-input ternary operations are affine over GF(3), and 18 of the 216 reversible ones are
+
+**Measured.** affine: 27; total: 19683; percent: 0.137; reversible: 216; AB1_reversible: 216; affine_and_reversible: 18; cross_check_agrees: true
+
+**Note.** Exact. 27 = 3^3, one per (alpha, beta, gamma). The reversible count of 216 reproduces AB1 from a criterion written independently, and the 18 affine-reversible is 2 x 3 x 3 because alpha must be nonzero for every column to be a bijection -- AB1 measured that same 18 by checking affineness of tables it had already found reversible, so the two routes cross-check rather than restate. THE POINT IS THE FRACTION: the grokking literature studies a task drawn from 0.137% of this space and holds the algebraic variable fixed while sweeping everything else.
+
+### `AL2` — HELD
+
+**Claim.** affine is exactly the set a linear map can fit, and nothing else reaches a perfect fit
+
+**Measured.** perfect_fits: 27; equals_affine_count: true; best_non_affine: 8; of_rows: 9; histogram: 4 rows:162, 5:3240, 6:11880, 7:3888, 8:486, 9:27
+
+**Note.** Exhaustive over every (alpha,beta,gamma) and every table. Exactly 27 reach 9 of 9 rows and they are exactly the affine ones; the best any non-affine table manages is 8 of 9, and 486 of them get that close. So the label is not a convention -- it is precisely what a model with no nonlinearity can represent, and 19,656 tables need one. Modular addition, the literature task, is among the 27.
+
+### `AL3` — FAILED
+
+**Claim.** all four quadrants are non-empty and the erasure varies within each
+
+**Measured.** affine_reversible: 18; affine_erasing: 9; nonaffine_reversible: 198; nonaffine_erasing: 19458; totals: 19683; all_non_empty: true; erasure_affine_reversible: 1.585 .. 1.585; erasure_nonaffine_reversible: 1.585 .. 1.585; erasure_affine_erasing: 1.585 .. 3.170; erasure_nonaffine_erasing: 1.585 .. 2.667
+
+**Note.** The quadrant counts held exactly -- 18, 9, 198, 19,458, totalling 19,683 -- and the independence claim with them: reversibility and affineness really are separate axes. The variation clause FAILED, and for a reason that is itself a result. Both REVERSIBLE quadrants are pinned at exactly 1.585 bits with no spread at all, because reversible-in-the-leading-argument means every column is a bijection, so each output value appears exactly three times across the nine pairs and the erasure is log2(3) by construction. Only the erasing quadrants vary. Note also that this column measures the OUTPUT map, nine pairs onto three values, and not AB2 pair map which preserves the second argument -- the same distinction AJ2 drew, arriving again unbidden.
+
+### `AL4` — FAILED
+
+**Claim.** the arena ladder is 9, 729 and 531,441 examples, and the three-trit arena is within an order of magnitude of mod-113 addition
+
+**Measured.** one_trit: 9; two_trits: 81; three_trits: 729; six_trits: 531441; mod113: 12769; ratio: 17.5; within_order_of_magnitude: false
+
+**Note.** The counts held; the comparison failed. 729 against 12,769 is a factor of 17.5, which is not within an order of magnitude however generously read -- the canonical setup sits BETWEEN the three-trit arena and the six-trit one rather than beside either. The ladder still brackets it, which is what an experiment needs, but the sentence claimed something tidier than the arithmetic supports and the arithmetic was available before the claim was written.
+
+---
+
+## Set `AM` — Does the algebra of a task predict when a network generalises? A grokking sweep with the algebraic label as the variable
+
+| | |
+|---|---|
+| outcome | 2 held, 2 failed |
+| tool | `bench/grok.py` |
+| asserted in | `test/test-grok.js` |
+| registered | `03565cb` |
+| results | `PENDING` |
+
+### `AM1` — HELD
+
+**Claim.** grokking reproduces on this task family at all, with a gap of at least 5x between memorisation and generalisation
+
+**Measured.** hardware: NVIDIA GB10; torch: 2.12.1+cu130; arena: 27 states, 729 pairs, 40% train; affine_reversible_gap: 36; nonaffine_reversible_gap: 19; predicted_at_least: 5; train_100_at_step: 200; affine_test90_at_step: 7200; nonaffine_test90_at_step: 3800
+
+**Note.** Held with room to spare. Both reversible tasks memorise 292 training pairs by step 200 and do not reach 90% on the 437 held-out pairs until thousands of steps later -- gaps of 36x and 19x against a predicted 5x. So the phenomenon reproduces on a family that is NOT modular arithmetic, and whose hidden structure is a base-three FACTORISATION rather than a Fourier basis: the network sees a and b as opaque tokens in 0..26 and has to discover that the operation is positionwise in base three.
+
+### `AM2` — FAILED
+
+**Claim.** the affine task groks soonest, so the algebraic label predicts the outcome
+
+**Measured.** affine_test90_by_seed: 7200, 10800, 16400, 10600, never; nonaffine_test90_by_seed: 3800, 8200, 6800, 5400, 6200; affine_median: 10800; nonaffine_median: 6200; nonaffine_faster_in: 4 of 4 paired seeds; affine_failed_to_generalise: 1 of 5 seeds within 40,000 steps; nonaffine_failed: 0 of 5; seeds: 5; identical: architecture, optimiser, split, step budget
+
+**Note.** FAILED, and it inverted rather than merely missing. The AFFINE task -- ternary modular addition, which is what the grokking literature studies almost exclusively -- is the SLOWER of the two on every paired seed, with a median of 10,800 steps against 6,200, and on one seed it never reached 90% at all inside a 40,000-step budget while the non-affine task generalised on all five. Run once this would be a draw; run five times with everything but the algebra held fixed it is a direction. THE CANONICAL GROKKING TASK IS HARDER THAN A NON-AFFINE SIBLING, which is a comparison the literature has not been able to make because it has no labelled task ladder to make it on. Stated limit: one table per quadrant, so this measures seed-stability and not table-stability, and sweeping tables within a quadrant is the obvious next thing.
+
+### `AM3` — FAILED
+
+**Claim.** the erasing tasks have a majority-class baseline above 40% while the reversible ones sit near 3.7%
+
+**Measured.** affine_erasing_baseline: 0.0457; nonaffine_erasing_baseline: 0.1918; affine_reversible_baseline: 0.0457; nonaffine_reversible_baseline: 0.0479; predicted_over: 0.4
+
+**Note.** FAILED, and the reasoning behind it was the error. I conflated "erases in the leading argument" with "has a skewed output distribution", and they are different properties. The affine-erasing table is f = b, which is a BIJECTION in its second argument, so its outputs are perfectly uniform and its baseline is 0.0457 -- identical to the reversible tasks. Only tritwise MIN is genuinely skewed, at 0.1918, and even that is far short of 40%. AL3 had already shown the erasure column for that quadrant spans 1.585 to 3.170 and the table chosen sat at the uniform end, so the information needed to avoid this was on the record before the prediction was written.
+
+### `AM4` — HELD
+
+**Claim.** the affine-erasing quadrant is degenerate and is learned within a tenth of the steps the affine-reversible task needs
+
+**Measured.** affine_erasing_test90: 200; affine_reversible_test90: 7200; ratio: 0.028; predicted_under: 0.1; affine_erasing_gap: 1; seconds: 4.4; tables_in_quadrant: 9; alpha_forced_zero: true
+
+**Note.** Held at 0.028 against a predicted tenth: 200 steps versus 7,200, with no memorisation-to-generalisation gap at all. And it is degenerate BY PROOF rather than by luck -- an affine table is reversible in its leading argument exactly when alpha is nonzero, so affine AND erasing forces alpha = 0 and the function ignores its first input entirely. All nine tables in that quadrant are one-input functions, so the prediction covers the quadrant and not just the table trained.
+
+---
+
 ## Measured but never registered
 
 Facts established in passing. Listed separately so the pre-registration record is
@@ -1758,6 +1846,9 @@ not inflated by things that were never at risk.
 - **`F-REVERSIBILITY-IS-A-PROPERTY-OF-THE-ALPHABET`** — Where factor four is bought decides what it costs to keep. AI4 bought it by searching 19,683 tables for the 216 that work, and AJ1 by building a map deliberately out of addition -- both are properties of a particular program that a later edit could destroy. Choosing a reversible ALPHABET makes it a property of the language: 400 of 400 random programs have it, and no program can be written that does not. The same guarantee, at three different prices, and only the last one survives a programmer.
   <br>*Evidence:* AK2 against AI4 and AJ1, all three measured on in-degree over their own state spaces
   <br>*Asserted in:* `test/test-minimal.js`
+- **`F-CANONICAL-GROKKING-TASK-IS-THE-HARD-ONE`** — Ternary modular addition -- the affine task, and the family the grokking literature studies almost exclusively -- generalises more slowly than a non-affine reversible sibling under a controlled comparison holding architecture, optimiser, split, seed and step budget fixed. Median 10,800 steps against 6,200, slower on 4 of 4 paired seeds, and on a fifth it failed to reach 90% inside 40,000 steps while the non-affine task succeeded on all five. Nobody predicted this; AM2 predicted the opposite.
+  <br>*Evidence:* AM2, five seeds per task on an NVIDIA GB10, 729-pair arena at 40% train
+  <br>*Asserted in:* `test/test-grok.js`
 
 ---
 

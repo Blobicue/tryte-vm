@@ -3073,8 +3073,8 @@
       "subject": "The two-input ternary operations as a labelled task ladder for a grokking experiment",
       "tool": "tools/tasks-audit.js",
       "registered_at": "3568301",
-      "results_at": "PENDING",
-      "asserted_in": "test/test-tasks.js",
+      "results_at": "03565cb",
+      "asserted_in": "test/test-grok.js",
       "predictions": [
         {
           "id": "AL1",
@@ -3136,6 +3136,79 @@
             "within_order_of_magnitude": false
           },
           "note": "The counts held; the comparison failed. 729 against 12,769 is a factor of 17.5, which is not within an order of magnitude however generously read -- the canonical setup sits BETWEEN the three-trit arena and the six-trit one rather than beside either. The ladder still brackets it, which is what an experiment needs, but the sentence claimed something tidier than the arithmetic supports and the arithmetic was available before the claim was written."
+        }
+      ]
+    },
+    {
+      "id": "AM",
+      "subject": "Does the algebra of a task predict when a network generalises? A grokking sweep with the algebraic label as the variable",
+      "tool": "bench/grok.py",
+      "registered_at": "03565cb",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-grok.js",
+      "predictions": [
+        {
+          "id": "AM1",
+          "claim": "grokking reproduces on this task family at all, with a gap of at least 5x between memorisation and generalisation",
+          "outcome": "HELD",
+          "measured": {
+            "hardware": "NVIDIA GB10",
+            "torch": "2.12.1+cu130",
+            "arena": "27 states, 729 pairs, 40% train",
+            "affine_reversible_gap": 36,
+            "nonaffine_reversible_gap": 19,
+            "predicted_at_least": 5,
+            "train_100_at_step": 200,
+            "affine_test90_at_step": 7200,
+            "nonaffine_test90_at_step": 3800
+          },
+          "note": "Held with room to spare. Both reversible tasks memorise 292 training pairs by step 200 and do not reach 90% on the 437 held-out pairs until thousands of steps later -- gaps of 36x and 19x against a predicted 5x. So the phenomenon reproduces on a family that is NOT modular arithmetic, and whose hidden structure is a base-three FACTORISATION rather than a Fourier basis: the network sees a and b as opaque tokens in 0..26 and has to discover that the operation is positionwise in base three."
+        },
+        {
+          "id": "AM2",
+          "claim": "the affine task groks soonest, so the algebraic label predicts the outcome",
+          "outcome": "FAILED",
+          "measured": {
+            "affine_test90_by_seed": "7200, 10800, 16400, 10600, never",
+            "nonaffine_test90_by_seed": "3800, 8200, 6800, 5400, 6200",
+            "affine_median": 10800,
+            "nonaffine_median": 6200,
+            "nonaffine_faster_in": "4 of 4 paired seeds",
+            "affine_failed_to_generalise": "1 of 5 seeds within 40,000 steps",
+            "nonaffine_failed": "0 of 5",
+            "seeds": 5,
+            "identical": "architecture, optimiser, split, step budget"
+          },
+          "note": "FAILED, and it inverted rather than merely missing. The AFFINE task -- ternary modular addition, which is what the grokking literature studies almost exclusively -- is the SLOWER of the two on every paired seed, with a median of 10,800 steps against 6,200, and on one seed it never reached 90% at all inside a 40,000-step budget while the non-affine task generalised on all five. Run once this would be a draw; run five times with everything but the algebra held fixed it is a direction. THE CANONICAL GROKKING TASK IS HARDER THAN A NON-AFFINE SIBLING, which is a comparison the literature has not been able to make because it has no labelled task ladder to make it on. Stated limit: one table per quadrant, so this measures seed-stability and not table-stability, and sweeping tables within a quadrant is the obvious next thing."
+        },
+        {
+          "id": "AM3",
+          "claim": "the erasing tasks have a majority-class baseline above 40% while the reversible ones sit near 3.7%",
+          "outcome": "FAILED",
+          "measured": {
+            "affine_erasing_baseline": 0.0457,
+            "nonaffine_erasing_baseline": 0.1918,
+            "affine_reversible_baseline": 0.0457,
+            "nonaffine_reversible_baseline": 0.0479,
+            "predicted_over": 0.4
+          },
+          "note": "FAILED, and the reasoning behind it was the error. I conflated \"erases in the leading argument\" with \"has a skewed output distribution\", and they are different properties. The affine-erasing table is f = b, which is a BIJECTION in its second argument, so its outputs are perfectly uniform and its baseline is 0.0457 -- identical to the reversible tasks. Only tritwise MIN is genuinely skewed, at 0.1918, and even that is far short of 40%. AL3 had already shown the erasure column for that quadrant spans 1.585 to 3.170 and the table chosen sat at the uniform end, so the information needed to avoid this was on the record before the prediction was written."
+        },
+        {
+          "id": "AM4",
+          "claim": "the affine-erasing quadrant is degenerate and is learned within a tenth of the steps the affine-reversible task needs",
+          "outcome": "HELD",
+          "measured": {
+            "affine_erasing_test90": 200,
+            "affine_reversible_test90": 7200,
+            "ratio": 0.028,
+            "predicted_under": 0.1,
+            "affine_erasing_gap": 1,
+            "seconds": 4.4,
+            "tables_in_quadrant": 9,
+            "alpha_forced_zero": true
+          },
+          "note": "Held at 0.028 against a predicted tenth: 200 steps versus 7,200, with no memorisation-to-generalisation gap at all. And it is degenerate BY PROOF rather than by luck -- an affine table is reversible in its leading argument exactly when alpha is nonzero, so affine AND erasing forces alpha = 0 and the function ignores its first input entirely. All nine tables in that quadrant are one-input functions, so the prediction covers the quadrant and not just the table trained."
         }
       ]
     }
@@ -3361,6 +3434,13 @@
       "claim": "Where factor four is bought decides what it costs to keep. AI4 bought it by searching 19,683 tables for the 216 that work, and AJ1 by building a map deliberately out of addition -- both are properties of a particular program that a later edit could destroy. Choosing a reversible ALPHABET makes it a property of the language: 400 of 400 random programs have it, and no program can be written that does not. The same guarantee, at three different prices, and only the last one survives a programmer.",
       "evidence": "AK2 against AI4 and AJ1, all three measured on in-degree over their own state spaces",
       "asserted_in": "test/test-minimal.js"
+    },
+    {
+      "id": "F-CANONICAL-GROKKING-TASK-IS-THE-HARD-ONE",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "Ternary modular addition -- the affine task, and the family the grokking literature studies almost exclusively -- generalises more slowly than a non-affine reversible sibling under a controlled comparison holding architecture, optimiser, split, seed and step budget fixed. Median 10,800 steps against 6,200, slower on 4 of 4 paired seeds, and on a fifth it failed to reach 90% inside 40,000 steps while the non-affine task succeeded on all five. Nobody predicted this; AM2 predicted the opposite.",
+      "evidence": "AM2, five seeds per task on an NVIDIA GB10, 729-pair arena at 40% train",
+      "asserted_in": "test/test-grok.js"
     }
   ],
   "traps_encountered": [

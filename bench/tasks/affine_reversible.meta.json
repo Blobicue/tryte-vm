@@ -1,0 +1,23 @@
+{
+  "task": "affine_reversible",
+  "table": [
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    -1,
+    -1,
+    -1
+  ],
+  "affine": {
+    "al": 2,
+    "be": 0,
+    "ga": 0
+  },
+  "reversible": true,
+  "erasure_bits": 1.584963,
+  "arena": "3 trits, states -13..13",
+  "examples": 729
+}

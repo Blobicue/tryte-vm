@@ -1,7 +1,7 @@
 <!-- kind: results-topic -->
 # 05 — The algebra of a trit: what three states actually buy
 
-**Owned sets: `D`, `M`, `O`, `AE`, `AF`, `AI`, `AK`.** Cross-references `P`–`V` (the reach ladder), `E`/`I`
+**Owned sets: `D`, `M`, `O`, `AE`, `AF`, `AI`, `AK`, `AL`, `AM`.** Cross-references `P`–`V` (the reach ladder), `E`/`I`
 (the decoded family), `B` (control versus data), `N` (the price).
 
 This is the file to read first. Everything else in this project could in principle
@@ -560,5 +560,7 @@ order comparison could not tell `A₂₇` from a group one element smaller.
 | `AF` | which musical layers favour which base | 3 held, `AF4` failed |
 | `AI` | the arity ladder, and the feedback that makes a trajectory graph tree-like | all four held |
 | `AK` | the smallest reversible ternary language, and the trilemma it exposes | all four held |
+| `AL` | the ternary operations as a labelled task ladder | 2 held, `AL3` and `AL4` failed |
+| `AM` | whether a task algebra predicts when a network generalises | 2 held, `AM2` and `AM3` failed |
 
 Full text in [`99-ledger.md`](99-ledger.md).
