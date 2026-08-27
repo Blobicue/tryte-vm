@@ -486,9 +486,31 @@ function erasureAt(name, v) {
   return erasureOf(img, N) + (WRITES_WORD(name) ? MAXBITS : 0);
 }
 
+/*
+ * The eight programs AB and AC actually measured.
+ *
+ * PINNED, and pinned deliberately. `programs/` is a growing directory, and set AD
+ * added `hailstone.tasm` specifically because it behaves unlike everything already
+ * there. Letting it into this list would silently change AB4's "six of eight charge
+ * exactly their text bound" and AC4's 1.68x spread — figures already recorded in
+ * the manifest against a commit. A corpus that grows under a measurement written
+ * about it is the same shape as the census that counted itself; the remedy is the
+ * same, an explicit exclusion with the reason attached rather than a quiet
+ * recomputation.
+ *
+ * The list is checked against the directory at load, so a rename cannot rot it.
+ */
+const AB_CORPUS = ['countdown.tasm', 'fold.tasm', 'interp-core.tasm', 'interp.tasm',
+  'kleene.tasm', 'multiply.tasm', 'tgate.tasm', 'threeway.tasm'];
+
 const progDir = path.join(__dirname, '..', 'programs');
 const rows = [];
-for (const file of fs.readdirSync(progDir).filter(f => f.endsWith('.tasm')).sort()) {
+{
+  const present = fs.readdirSync(progDir).filter(f => f.endsWith('.tasm'));
+  const missing = AB_CORPUS.filter(f => !present.includes(f));
+  if (missing.length) throw new Error(`pinned corpus names files that are gone: ${missing.join(' ')}`);
+}
+for (const file of AB_CORPUS) {
   const src = fs.readFileSync(path.join(progDir, file), 'utf8');
   let actual = 0, bound = 0, steps = 0, skipped = 0, note = '';
   const cache = new Map();
@@ -652,7 +674,7 @@ log(line);
 
 module.exports = {
   erasureOf, imageSize, datapathMap, accMap, erasureAt, WRITES_WORD,
-  census, reversibleTables, tableOf, columnOf, isBijection, arena,
+  census, reversibleTables, tableOf, columnOf, isBijection, arena, AB_CORPUS,
   reversibleFragment, factorial, programRows: rows, MAXBITS, N, PAIRS,
   ternaryReversible, ternaryAffine, binaryReversible,
 };

@@ -23,6 +23,7 @@
 const T = require('../src/ternary.js');
 const P = require('../tools/predict-audit.js');
 const E = require('../tools/erasure-audit.js');
+const P_ERASURE = E;
 const fs = require('fs');
 const path = require('path');
 
@@ -33,7 +34,14 @@ const check = (name, cond, detail = '') => {
 };
 const PROGDIR = path.join(__dirname, '..', 'programs');
 const src = f => fs.readFileSync(path.join(PROGDIR, f), 'utf8');
-const FILES = fs.readdirSync(PROGDIR).filter(f => f.endsWith('.tasm')).sort();
+// The eight programs AC measured, pinned. `programs/` grew afterwards: set AD added
+// hailstone.tasm precisely because it behaves unlike everything already there, and
+// letting it in would silently rewrite AC1's counts, which are recorded in the
+// manifest against a commit. A corpus that grows under a measurement written about
+// it is the census-counting-itself shape, and the remedy is the same — an explicit
+// exclusion carrying its reason, not a quiet recomputation.
+const FILES = P_ERASURE.AB_CORPUS;
+const PRESENT = fs.readdirSync(PROGDIR).filter(f => f.endsWith('.tasm')).sort();
 
 console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY FINDING ===');
 {
@@ -79,8 +87,16 @@ console.log('\n=== 1. AC1 — FAILED: COST-INVARIANCE IS THE NORM ===');
   const varying = FILES.filter(varies);
   const readsIn = f => require('../src/assembler.js').tokenize(src(f)).some(l => l.mnemonic === 'IN');
 
-  check('all eight programs execute IN — not the five a broken regex reported',
+  check('all eight of the programs AC measured execute IN — not the five a broken regex reported',
     FILES.every(readsIn) && FILES.length === 8, `${FILES.filter(readsIn).length} of ${FILES.length}`);
+  check('and the pinned corpus is a strict subset of what programs/ now holds, so a ' +
+    'rename cannot rot it and a new program cannot silently join it',
+    FILES.every(f => PRESENT.includes(f)) && PRESENT.length > FILES.length,
+    `pinned ${FILES.length}, present ${PRESENT.length}`);
+  check('hailstone.tasm is the one deliberately outside it, and it VARIES — which is ' +
+    'why admitting it would have rewritten AC1 rather than confirmed it',
+    !FILES.includes('hailstone.tasm') && PRESENT.includes('hailstone.tasm') &&
+    varies('hailstone.tasm'));
   check('AC1 FAILED and stays failed: three programs vary, not the predicted two',
     varying.length === 3, varying.join(' '));
   check('and it named the wrong ones: fold does NOT vary, multiply and threeway do',

@@ -1,7 +1,7 @@
 <!-- kind: results-topic -->
 # 06 — The currencies: what the mid rail costs, and what erasure costs
 
-**Owned sets:** `N` `AB` `AC`
+**Owned sets:** `N` `AB` `AC` `AD`
 
 Cross-references `Z` (which first priced the two limits), `O` (whose whole margin
 turned out to be borrowed), `E`/`Y` (the adders it re-ranks), `C` (the memory it
@@ -305,12 +305,89 @@ them is a decision, not a units conversion.
 
 ---
 
+### 9. A loop bound the program discovers — and why that is still not enough
+
+`AC` left a stated gap: every loop in this repository was bounded by a literal or by
+a number handed to it, which is exactly why it found the cost cheap to obtain
+everywhere. The class that matters was missing.
+
+The refinement that names it: a stop condition being *data-dependent* is not enough,
+because `countdown`'s bound is data-dependent and is simply **read** off the input —
+which is why two runs priced two hundred. The condition has to be **discovered**,
+produced by the loop's own work.
+
+[`programs/hailstone.tasm`](../programs/hailstone.tasm) is the first program here
+with one. Low trit zero descends by a third; otherwise it climbs by `2n + low_trit`;
+it stops at 1. **363 of 729 inputs terminate**, and the rest never do — exhausting a
+step budget is a first-class outcome rather than a failure. `MEASURED`
+
+#### Discovered really is different from read
+
+| | `countdown` (read bound) | `hailstone` (discovered bound) |
+|---|---|---|
+| two-point affine fit | exact on **200 of 200** | exact on **2 of 363** |
+| monotone in the input | yes | **no** — 33 of 242 adjacent pairs invert |
+
+The same procedure that priced `countdown` perfectly is right 0.6% of the time here
+(`AD1`). And because the cost is not monotone, no predictor built from the
+*magnitude* of the input can be correct either. So the distinction is real and it is
+measurable.
+
+#### And it is still not enough
+
+A predictor is not obliged to be clever. It is allowed to be **patient**.
+
+The accumulator has 729 states, so a memoised traversal resolves every one of them
+at most once. Measured: **728 map evaluations to price all 729 inputs**, against
+**3,777** to answer the same questions by independent re-running (`AD2`). At a mean
+of 10.4 evaluations per query, tabulating has paid for itself after **70 queries**,
+and every answer after that is free.
+
+**Being genuinely discovered is therefore not sufficient for an implied receipt.**
+
+#### The bound is pigeonhole, not particular
+
+The longest terminating trajectory is **19 steps** against a ceiling of 729 — 2.61%
+of the available headroom (`AD3`). And the ceiling is not a fact about this map:
+every terminating trajectory was checked and **none revisits a value**, so each is a
+simple path through the state space. A longer path would have to repeat, and a
+repeat means it never terminates. **That holds for any single-accumulator map
+whatever.**
+
+#### So the security parameter is state count
+
+Poison every scratch word before the run and **all 729 answers are unchanged**
+(`AD4`), so the cost really is a function of the accumulator alone and the
+tabulation bound is tight rather than generous.
+
+The arithmetic that follows is `DERIVED`:
+
+| live words beyond the accumulator | states to tabulate |
+|---|---|
+| 0 | 729 |
+| 1 | 531,441 |
+| 2 | 387,420,489 |
+| 3 | 282,429,536,481 |
+
+Each word multiplies the tabulator's one-off cost by 729 and leaves the runner's
+single query untouched. So:
+
+> **The security parameter of an implied receipt is reachable state count, not
+> whether the loop bound is discovered.**
+
+That is the same shape as key length — and a different design problem from the one
+the question started with. A step count is evidence of work exactly when the
+reachable state space is too large to tabulate, which is a quantity you choose
+rather than a property you hope for.
+
+---
+
 ## How it was established
 
 | | |
 |---|---|
-| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js) |
-| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js` |
+| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js), [`hailstone-audit.js`](../tools/hailstone-audit.js) |
+| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js`, `test-hailstone.js` |
 | method | tap counts read from built netlists; crossovers solved algebraically and confirmed at sampled prices; the detector variant swept exhaustively against both consumer patterns |
 
 The six cost currencies this project measures in — switches, mid-rail taps, pass
@@ -346,6 +423,13 @@ so much.
   absolute claim "does not finish" — that would be a duration assertion, the class
   this project has already bitten twice. 2⁶·3³⁶⁴ is the closed form extrapolated from five
   widths that were measured exactly.
+- **That `AD` proves no program can resist a predictor.** It shows that no
+  **single-accumulator** program can, because 729 states are tabulatable. A
+  program holding live state in memory is outside that argument, and `AD4`
+  computes how far outside — but no such program was built or measured.
+- **That the tabulator is the best predictor.** It is the one that was
+  implemented. A cleverer analysis might do better; `AD` bounds the problem from
+  one side only, which is the side that matters for a security claim.
 - **That `AC` reaches general computation.** Its eight programs are small and
   fixed-shaped. The case that would settle whether a step count can be evidence of
   work is a program whose runtime is genuinely unpredictable, and that case is not
@@ -367,5 +451,6 @@ so much.
 | `N` | pricing the free mid rail, the model's largest assumption | 3 held, `N1` failed |
 | `AB` | erasure: what the machine destroys, and whether the price is in the object | 3 held, `AB4` and `AB5` failed |
 | `AC` | whether a program's cost can be learned without paying it | 1 held, `AC1`, `AC3` and `AC4` failed |
+| `AD` | a discovered loop bound, and whether that is enough for an implied receipt | all four held |
 
 Full text in [`99-ledger.md`](99-ledger.md).

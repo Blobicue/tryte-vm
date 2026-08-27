@@ -164,17 +164,38 @@ log('\n' + line);
 log('2. AD2 — tabulate once, answer free');
 log(line);
 {
-  // Memoised traversal: every accumulator value is walked at most once, because
-  // once its cost is known every trajectory reaching it stops there.
+  /*
+   * Memoised traversal: every accumulator value is resolved at most once, because
+   * once a value's answer is known every trajectory reaching it stops there.
+   *
+   * INSTRUMENT REPAIR, recorded rather than quietly fixed. The first version
+   * memoised only TERMINATING values. A divergent input therefore walked its full
+   * 3,000-step guard, learned nothing, and the next divergent input did it again --
+   * 366 of them, for 1,098,362 evaluations to price 729 inputs. It reported the
+   * tabulator as three hundred times WORSE than simply re-running, which is the
+   * answer that would have made AD2 fail and the implied receipt look sound. A
+   * wrong instrument pointing toward the hypothesis is the dangerous direction.
+   *
+   * Non-termination is an answer too, and a correct tabulator records it. Walking
+   * until the path meets either a known value or ITSELF resolves every state once.
+   */
+  const DIVERGES = Symbol('never terminates');
   const table = new Map([[1, 0]]);
   let evaluations = 0;
   for (const n of VALUES) {
     const path = [];
-    let v = T.wrap(n), guard = 0;
-    while (!table.has(v) && guard < 3000) { path.push(v); v = step(v); evaluations++; guard++; }
-    if (!table.has(v)) continue;                        // this one never terminates
-    let c = table.get(v);
-    for (let i = path.length - 1; i >= 0; i--) table.set(path[i], ++c);
+    const onPath = new Map();
+    let v = T.wrap(n);
+    while (!table.has(v) && !onPath.has(v)) {
+      onPath.set(v, path.length); path.push(v);
+      v = step(v); evaluations++;
+    }
+    if (onPath.has(v) || table.get(v) === DIVERGES) {
+      for (const p of path) table.set(p, DIVERGES);     // the whole path diverges
+    } else {
+      let c = table.get(v);
+      for (let i = path.length - 1; i >= 0; i--) table.set(path[i], ++c);
+    }
   }
   const naive = terminating.reduce((a, n) => a + cost.get(n), 0);
   log(`  memoised tabulation: ${evaluations} map evaluations to price all ${N} inputs`);
