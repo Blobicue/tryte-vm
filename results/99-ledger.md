@@ -1869,7 +1869,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/keylayer-audit.js` |
 | asserted in | `test/test-keylayer.js` |
 | registered | `5689f7f` |
-| results | `PENDING` |
+| results | `aede782` |
 
 ### `AP1` — HELD
 

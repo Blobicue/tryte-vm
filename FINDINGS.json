@@ -3573,7 +3573,7 @@
       "subject": "Can a hash-only key layer give a minted coin an owner? Lamport one-time signatures at base two and base three, exhaustive over 729 messages",
       "tool": "tools/keylayer-audit.js",
       "registered_at": "5689f7f",
-      "results_at": "PENDING",
+      "results_at": "aede782",
       "asserted_in": "test/test-keylayer.js",
       "predictions": [
         {
