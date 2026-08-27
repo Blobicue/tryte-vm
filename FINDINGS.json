@@ -2938,7 +2938,7 @@
       "subject": "What self-reference buys, and what actually buys the property it is asked for",
       "tool": "tools/selfref-audit.js",
       "registered_at": "49520f0",
-      "results_at": "PENDING",
+      "results_at": "6a1d106",
       "asserted_in": "test/test-selfref.js",
       "predictions": [
         {

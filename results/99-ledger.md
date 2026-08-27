@@ -1585,7 +1585,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/selfref-audit.js` |
 | asserted in | `test/test-selfref.js` |
 | registered | `49520f0` |
-| results | `PENDING` |
+| results | `6a1d106` |
 
 ### `AJ1` — HELD
 
