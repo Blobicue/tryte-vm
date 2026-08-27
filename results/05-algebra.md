@@ -1,7 +1,7 @@
 <!-- kind: results-topic -->
 # 05 — The algebra of a trit: what three states actually buy
 
-**Owned sets: `D`, `M`, `O`, `AE`.** Cross-references `P`–`V` (the reach ladder), `E`/`I`
+**Owned sets: `D`, `M`, `O`, `AE`, `AF`.** Cross-references `P`–`V` (the reach ladder), `E`/`I`
 (the decoded family), `B` (control versus data), `N` (the price).
 
 This is the file to read first. Everything else in this project could in principle
@@ -204,8 +204,11 @@ The claim that survives is narrow and still worth having:
 > **ℤ/27 as a pitch-class space is poor in transpositional symmetry, because 27 is
 > a prime power.**
 
-Note what it does *not* say. **It does not say binary does better** — nothing here
-has measured that, and it is an open question rather than an implication. And it does
+Note what it does *not* say. **It does not say binary does better** — `AF2` went and
+measured that, and it does not: powers of two are divisor-poor on the same scale, so
+the advantage belongs to compositeness rather than to either radix. (This sentence
+first cited `AF2` before `AF` existed, and the citation rule refused it — a number in
+prose that has no code yet fails the same check as one whose code has moved on.) And it does
 not reach the layer where ternary is used as an
 **addressing** scheme rather than a tuning, which is what a 3×3 pad grid is, and
 where the factorisation 9 = 3 × 3 is the whole point.
@@ -270,6 +273,84 @@ prediction than the ratio it was standing in for. That is
 
 ---
 
+### 8. Breaking "good for music" apart — and the layers do not agree
+
+`AE`'s overclaim was withdrawn without a replacement, which leaves a question open
+rather than answered. `AF` measures the two layers the withdrawal stepped on:
+**consonance** and **rhythm**. Neither had ever been touched here.
+
+The result is that **music is not one thing, and the layers decouple.** `MEASURED`
+
+| layer | what it wants | ternary |
+|---|---|---|
+| harmonic symmetry | many divisors | poor — but so is binary (`AF2`) |
+| rhythm | many divisors | poor — **worse than binary** (`AF3`) |
+| consonance | nothing to do with divisors | **better than twelve** (`AF1`) |
+
+#### The withdrawn claim was wrong in the opposite direction
+
+For an equal division into *n* steps and a just ratio *r*, the nearest available
+interval is round(n·log₂r) steps. Summed over six just ratios:
+
+| EDO | fifth | major 3rd | minor 3rd | harmonic 7th | **total** |
+|---|---|---|---|---|---|
+| **12** | **1.96** | 13.69 | 15.64 | 31.17 | **64.41** |
+| **27** | 9.16 | 13.69 | **4.53** | **8.95** | **45.48** |
+| **81** | 5.66 | **1.13** | **4.53** | 5.86 | **22.84** |
+
+`AF1` predicted 27-EDO's fifth would be more than 4× worse (it is 4.68×) and its
+harmonic seventh more than 3× better (3.48×). Both held. But the sweep answered a
+question nobody asked: **27-EDO totals 45.48 cents of error against 12-EDO's 64.41,
+and 81-EDO totals 22.84.**
+
+A ternary division of the octave is not merely defensible on consonance — it
+**beats twelve**, chiefly because 12-EDO's harmonic seventh is 31 cents out while
+27-EDO's is 9. The claim withdrawn in §7 was not only too broad; on the axis it
+never measured it pointed **the wrong way**.
+
+#### Compositeness, not binary
+
+`AF2`: no power of two or three below 100 exceeds **7** divisors, while 60 has
+**12**. The counts of 32 and 27 differ by exactly 2. **Powers of two are poor on the
+same scale as powers of three**, so `AE2` was never a binary-versus-ternary result —
+and 12 = 2²·3 is a power of neither radix.
+
+#### Rhythm goes to binary, and that was said here without measuring it
+
+| 1/d | base 2 | base 3 | base 6 |
+|---|---|---|---|
+| 1/2, 1/4, 1/8 | **exact** | — | exact |
+| 1/3 | — | **exact** | exact |
+| 1/6, 1/12 | — | — | **exact** |
+
+Base two gets **3 of 6**; base three gets **1** (`AF3`). The offhand claim that
+rhythm favours base three is **wrong on the ordinary repertoire** — Western notation
+is halves, quarters and eighths. The two neither base gets are exactly those with
+both 2 and 3 as factors, and base six gets all of them.
+
+#### And `AF4` failed, which is the finding
+
+`AF4` predicted a tidy unifying story: that the *n* minimising consonance error and
+the *n* maximising divisor count would both be divisible by 2 and 3, so music would
+want both primes at every layer.
+
+**The best consonance in 5–72 is n = 53. It is prime.** 31 is close behind at 18.19
+cents — also prime. The divisor clause held (60), and the two do not agree.
+
+> **Harmonic symmetry and rhythm want compositeness. Consonance does not care about
+> it at all.**
+
+Consonance is a question about whether n·log₂(r) lands near an integer, which has
+nothing to do with how *n* factors — and the prime divisions microtonalists favour
+are exactly the counterexample. Predicting that three layers would agree was
+reaching for a single sentence where the measurement supports two.
+
+**The honest summary is that no pure radix is good for music, and neither is any
+single number: twelve earned its place on symmetry and rhythm while losing on
+consonance to divisions two and four times its size.**
+
+---
+
 ## How it was established
 
 | | |
@@ -316,5 +397,6 @@ order comparison could not tell `A₂₇` from a group one element smaller.
 | `M` | reversible universality at two operands | all held |
 | `O` | what that advantage costs, and where it comes from | all held |
 | `AE` | the T/I group, and the harmonic vocabulary of a ternary space | 3 held, `AE4` failed |
+| `AF` | which musical layers favour which base | 3 held, `AF4` failed |
 
 Full text in [`99-ledger.md`](99-ledger.md).

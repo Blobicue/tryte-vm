@@ -7,8 +7,8 @@ Every registered prediction, in the order it was registered, rendered from
 [`FINDINGS.json`](../FINDINGS.json). **Nothing on this page is authored** — if a
 line here is wrong, the manifest is wrong.
 
-**31 sets · 133 predictions · 115 held · 18 failed**
-· 26 measured but never registered
+**32 sets · 137 predictions · 118 held · 19 failed**
+· 27 measured but never registered
 · 18 defect classes, 44 occurrences
 
 Each set names the commit that registered it and the commit that recorded its
@@ -1401,6 +1401,50 @@ branch rather than merely present in a local object store.
 
 ---
 
+## Set `AF` — Which musical layers favour which base, and whether any pure radix is good for music
+
+| | |
+|---|---|
+| outcome | 3 held, 1 failed |
+| tool | `tools/tuning-audit.js` |
+| asserted in | `test/test-tuning.js` |
+| registered | `bfa460d` |
+| results | `PENDING` |
+
+### `AF1` — HELD
+
+**Claim.** a division is good at some intervals and bad at others, so "ternary tuning is bad" is false as stated
+
+**Measured.** fifth_error_12EDO_cents: 1.955; fifth_error_27EDO_cents: 9.156; fifth_ratio_worse_for_27: 4.68; predicted_worse_over: 4; harmonic7_error_12EDO_cents: 31.174; harmonic7_error_27EDO_cents: 8.952; harmonic7_ratio_better_for_27: 3.48; predicted_better_over: 3; minor3_error_12EDO_cents: 15.641; minor3_error_27EDO_cents: 4.53; total_error_12EDO_cents: 64.41; total_error_27EDO_cents: 45.48; total_error_81EDO_cents: 22.84
+
+**Note.** All three clauses held: 27-EDO's fifth is 4.68x worse than 12-EDO's, its harmonic seventh 3.48x better, and its minor third better at 4.53 against 15.64. But the sweep answered a bigger question nobody asked. SUMMED OVER THE SIX JUST RATIOS, 27-EDO TOTALS 45.48 CENTS OF ERROR AGAINST 12-EDO'S 64.41, and 81-EDO totals 22.84. A ternary division of the octave is not merely defensible on consonance, it BEATS twelve. The withdrawn claim that "ternary is genuinely worse for music" was not just too broad, it was wrong in the opposite direction on the axis it never measured.
+
+### `AF2` — HELD
+
+**Claim.** the divisor advantage AE2 found belongs to compositeness rather than to binary
+
+**Measured.** best_divisor_count_among_powers_of_2_or_3_to_100: 7; best_divisor_count_among_all_n_to_100: 12; argmax: 60; predicted_at_least: 12; divisors_of_32: 6; divisors_of_27: 4; difference: 2; predicted_difference_at_most: 2; divisors_of_12: 6; twelve_is_a_power_of_either_radix: false
+
+**Note.** Exact on every clause. No power of two or three below 100 exceeds 7 divisors, while 60 has 12. The counts of 32 and 27 differ by exactly the predicted maximum of 2, so POWERS OF TWO ARE POOR ON THE SAME SCALE AS POWERS OF THREE. AE2 was never a binary-versus-ternary result and should never have been written up as one: 12 = 2^2 x 3 is a power of neither radix, and the advantage it has belongs to compositeness.
+
+### `AF3` — HELD
+
+**Claim.** rhythm does not favour ternary either, and base two gets more of the common subdivisions
+
+**Measured.** subdivisions: 1/2 1/3 1/4 1/6 1/8 1/12; exact_in_base_2: 3; exact_in_base_3: 1; exact_in_base_6: 6; predicted_base_2: 3; predicted_base_3: 1; neither_base_gets: 1/6 1/12; those_have_both_factors: true
+
+**Note.** Held exactly, and it refutes something said in this conversation without measuring: that rhythm favours base three. It does not, on the ordinary repertoire. Base two represents three of the six common subdivisions exactly and base three represents one, because Western notation is halves, quarters and eighths. The two neither base gets -- a sixth and a twelfth -- are exactly those with both 2 and 3 as prime factors, and base six gets all of them. Compositeness again, from a completely different direction.
+
+### `AF4` — FAILED
+
+**Claim.** the n minimising consonance error and the n maximising divisor count are both divisible by 2 and 3, so music wants both primes at every layer
+
+**Measured.** best_consonance_n: 53; best_consonance_total_cents: 7.64; best_consonance_divisible_by_6: false; best_consonance_is_prime: true; runners_up: 72 (10.1), 65 (12.8), 68 (13.5), 46 (16.0), 41 (16.1); best_divisor_n: 60; best_divisor_divisible_by_6: true; best_power_of_three_in_range: 27; best_power_of_two_in_range: 64; smaller_n_beating_27: 3; smaller_n_beating_64: 18
+
+**Note.** FAILED, and the failure is the useful part because it shows the layers DECOUPLE rather than agree. The n with the lowest total consonance error between 5 and 72 is 53, which is PRIME -- divisible by neither 2 nor 3 -- and 31 is close behind at 18.19. The divisor clause held (60, divisible by both) and the beaten-by-a-smaller-composite clause held for both radices. So the tidy unifying story was wrong: HARMONIC SYMMETRY AND RHYTHM WANT COMPOSITENESS, AND CONSONANCE DOES NOT CARE ABOUT IT AT ALL. Consonance is a question about how well n*log2(r) lands near an integer, which has nothing to do with how n factors, and the prime divisions that microtonalists favour are exactly the counterexample. Predicting that three layers would agree was reaching for a single sentence where the measurement supports two.
+
+---
+
 ## Measured but never registered
 
 Facts established in passing. Listed separately so the pre-registration record is
@@ -1476,6 +1520,9 @@ not inflated by things that were never at risk.
 - **`F-TERNARY-RICHER-IN-VARIETY-POORER-IN-STRUCTURE`** — A ternary pitch space is simultaneously richer and poorer than the twelve-tone one, along two different axes, and neither prediction asked about the pairing. Z/27 has 61 trichord classes against Z/12's 12 -- five times the raw variety of three-note chords -- while having 4,755 times fewer transpositionally symmetric subsets by fraction. More things to say, far less structure to say them with.
   <br>*Evidence:* AE3 and AE4, both by exhaustive Burnside over the full T/I group
   <br>*Asserted in:* `test/test-setclass.js`
+- **`F-27-EDO-BEATS-12-EDO-ON-CONSONANCE`** — Summed over the six just ratios swept, 27-EDO totals 45.48 cents of approximation error against 12-EDO's 64.41, and 81-EDO totals 22.84. A ternary division of the octave is a BETTER consonance approximator than the twelve-tone one, chiefly because 12-EDO's harmonic seventh is 31 cents out while 27-EDO's is 9. Nobody predicted this; AF1 only asked about individual intervals.
+  <br>*Evidence:* AF1, nine equal divisions swept against six just ratios
+  <br>*Asserted in:* `test/test-tuning.js`
 
 ---
 

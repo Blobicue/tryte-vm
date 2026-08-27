@@ -91,6 +91,15 @@ else this project has measured about them. The ordering clause held — the
 longest-running program is not the hungriest per step — so the finding survives at a
 narrower margin than the prediction claimed.
 
+**`AF4` — "the best consonance and the most divisors both land on a multiple of
+six."** The best equal division for consonance between 5 and 72 is **53**, which
+is **prime**; 31 is close behind and also prime. The divisor clause held at 60.
+So the tidy unifying story was wrong and the layers **decouple**: harmonic
+symmetry and rhythm want compositeness, consonance does not care about it at all.
+Predicting that three layers would agree was reaching for a single sentence where
+the measurement supports two — and the failure is what turned §7's withdrawal
+into an actual answer rather than a gap.
+
 **A claim this project made about itself, in prose.** `AE2` and `AE4` measured
 **one** musical affordance — how many chords can be transposed onto themselves — and
 the write-up headed the section *"and here ternary is genuinely worse"*, generalising
