@@ -47,7 +47,8 @@
     "audit:hailstone": "node tools/hailstone-audit.js",
     "audit:setclass": "node tools/setclass-audit.js",
     "audit:tuning": "node tools/tuning-audit.js",
-    "audit:workfactor": "node tools/workfactor-audit.js"
+    "audit:workfactor": "node tools/workfactor-audit.js",
+    "audit:margin": "node tools/margin-audit.js"
   },
   "license": "MIT",
   "private": true
