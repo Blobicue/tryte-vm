@@ -189,9 +189,26 @@ need many.
 
 ---
 
-### 7. And here ternary is genuinely worse
+### 7. And here a prime-power pitch space is poor — which is not the same claim
 
-This project has few results in that direction, so this one is worth stating plainly.
+**Narrowed after the fact, and the original wording is worth recording.** This
+section first read *"and here ternary is genuinely worse"*, which is the numbers
+right and the noun far too big: what follows measures **one** musical affordance —
+how many chords can be transposed onto themselves — and says nothing about
+consonance, rhythm, contour or timbre. `T-CLAIM-NARROWED-BY-A-DESIGN`, third bite,
+and the first one this project scored against its own prose rather than against a
+sweep.
+
+The claim that survives is narrow and still worth having:
+
+> **ℤ/27 as a pitch-class space is poor in transpositional symmetry, because 27 is
+> a prime power.**
+
+Note what it does *not* say. **It does not say binary does better** — nothing here
+has measured that, and it is an open question rather than an implication. And it does
+not reach the layer where ternary is used as an
+**addressing** scheme rather than a tuning, which is what a 3×3 pad grid is, and
+where the factorisation 9 = 3 × 3 is the whole point.
 
 **Twelve is highly composite for its size. 729 is a prime power.** Transposing by
 *k* cycles with period n/gcd(k,n), so the available periods are exactly the divisors

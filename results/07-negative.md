@@ -91,6 +91,17 @@ else this project has measured about them. The ordering clause held — the
 longest-running program is not the hungriest per step — so the finding survives at a
 narrower margin than the prediction claimed.
 
+**A claim this project made about itself, in prose.** `AE2` and `AE4` measured
+**one** musical affordance — how many chords can be transposed onto themselves — and
+the write-up headed the section *"and here ternary is genuinely worse"*, generalising
+from one affordance to an entire art form. Consonance, rhythm, contour and timbre
+were untouched, and so was the difference between ternary as a **tuning** and ternary
+as an **addressing** scheme, which is the layer a 3×3 pad grid actually uses.
+Narrowed to *"a prime-power pitch-class space is poor in transpositional symmetry"*,
+and recorded as `T-CLAIM-NARROWED-BY-A-DESIGN`'s third bite — the first scored
+against the prose rather than against a sweep. **The tell is the same every time: the
+sweep visited one thing and the sentence named a category.**
+
 **`AE4` — "above 2% of twelve-tone subsets have transpositional symmetry."** It is
 **1.81%**, optimistic by a fifth. Every other clause held — ℤ/27 at 0.00038%, and
 the gap at 3.7 orders of magnitude — so the direction and the magnitude both

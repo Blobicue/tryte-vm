@@ -2565,7 +2565,7 @@
             "Z729_orbit_lengths": 7,
             "Z729_lengths": "1 3 9 27 81 243 729"
           },
-          "note": "Exact on all four. The comparison that makes it vivid held too: 720 and 729 are ONE APART in size and have 30 divisors against 7. Every period in a Z/3^k space is a power of three, so consecutive available periods differ by a factor of exactly three and nothing sits between them. Z/27 offers periods 1, 3, 9, 27 and therefore has no analogue of the whole-tone scale, which lives at period 6, or the diminished seventh at period 4 -- not because nobody has looked, but because 6 and 4 do not divide 27. This is a place ternary is structurally WORSE, and the project has few of those recorded."
+          "note": "Exact on all four. The comparison that makes it vivid held too: 720 and 729 are ONE APART in size and have 30 divisors against 7. Every period in a Z/3^k space is a power of three, so consecutive available periods differ by a factor of exactly three and nothing sits between them. Z/27 offers periods 1, 3, 9, 27 and therefore has no analogue of the whole-tone scale, which lives at period 6, or the diminished seventh at period 4 -- not because nobody has looked, but because 6 and 4 do not divide 27. NARROWED AFTER THE FACT: this was first written up as \"a place ternary is structurally worse\", which is the numbers right and the noun far too big. What is measured is ONE musical affordance -- how many chords transpose onto themselves -- and it says nothing about consonance, rhythm, contour or timbre, nor about ternary used as an ADDRESSING scheme rather than a tuning. The surviving claim is that a PRIME-POWER pitch-class space is poor in transpositional symmetry. It does NOT say binary does better -- nothing measured here bears on that, and asserting it would have been the same error one layer down."
         },
         {
           "id": "AE3",
@@ -2849,8 +2849,8 @@
     },
     {
       "id": "T-CLAIM-NARROWED-BY-A-DESIGN",
-      "count": 2,
-      "description": "A measured result stated as a property of the SUBJECT when it was a property of the DESIGN measured. Z2 swept buffer placements in one family of trees and concluded a depth floor for ternary at any price; a different selector beat it. E4, and Y2 and Z5 before it, measured raw-select circuits and concluded settling time is never data-dependent; a decoded selector made it data-dependent. Both times the numbers were right and the noun was too big. Before writing ternary, or this model, ask whether the sweep visited more than one design."
+      "count": 3,
+      "description": "A measured result stated as a property of the SUBJECT when it was a property of the DESIGN measured. Z2 swept buffer placements in one family of trees and concluded a depth floor for ternary at any price; a different selector beat it. E4, and Y2 and Z5 before it, measured raw-select circuits and concluded settling time is never data-dependent; a decoded selector made it data-dependent. Both times the numbers were right and the noun was too big. Before writing ternary, or this model, ask whether the sweep visited more than one design. Third bite, and the first scored against this project's own prose rather than against a sweep. AE2 and AE4 measured exactly one musical affordance -- the availability of transpositionally symmetric chords -- and the write-up headed the section \"and here ternary is genuinely worse\", generalising from one affordance to an entire art form. Consonance, rhythm, contour and timbre were untouched, and so was the distinction between ternary as a TUNING and ternary as an ADDRESSING scheme, which is the layer a 3x3 pad grid actually uses. The tell is the same every time: the sweep visited one thing and the sentence named a category. Ask what the sweep did NOT visit before choosing the noun."
     },
     {
       "id": "T-CENSUS-COUNTS-ITSELF",
