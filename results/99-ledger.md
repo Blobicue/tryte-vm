@@ -1629,7 +1629,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/minimal-audit.js` |
 | asserted in | `test/test-minimal.js` |
 | registered | `fd62b63` |
-| results | `PENDING` |
+| results | `e02e32a` |
 
 ### `AK1` — HELD
 

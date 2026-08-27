@@ -3004,7 +3004,7 @@
       "subject": "The smallest reversible ternary language, and the trilemma it exposes",
       "tool": "tools/minimal-audit.js",
       "registered_at": "fd62b63",
-      "results_at": "PENDING",
+      "results_at": "e02e32a",
       "asserted_in": "test/test-minimal.js",
       "predictions": [
         {
