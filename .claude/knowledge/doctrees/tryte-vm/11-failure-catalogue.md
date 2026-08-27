@@ -1,6 +1,6 @@
 ---
 name: failure-catalogue
-description: Eighteen defect classes, forty-seven bites, each now a permanent check. Substrate - the classes are not about ternary.
+description: Eighteen defect classes, forty-eight bites, each now a permanent check. Substrate - the classes are not about ternary.
 type: reference
 last_updated: 2026-08-25
 ---
@@ -12,7 +12,7 @@ last_updated: 2026-08-25
 
 ## What is established
 
-Eighteen classes, forty-seven occurrences. The ones that recurred after being
+Eighteen classes, forty-eight occurrences. The ones that recurred after being
 named are the interesting ones, because naming a thing is supposed to prevent it:
 
 - **one point is not a function** - bit three times

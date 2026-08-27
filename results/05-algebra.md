@@ -1,7 +1,7 @@
 <!-- kind: results-topic -->
 # 05 — The algebra of a trit: what three states actually buy
 
-**Owned sets: `D`, `M`, `O`, `AE`, `AF`, `AI`.** Cross-references `P`–`V` (the reach ladder), `E`/`I`
+**Owned sets: `D`, `M`, `O`, `AE`, `AF`, `AI`, `AK`.** Cross-references `P`–`V` (the reach ladder), `E`/`I`
 (the decoded family), `B` (control versus data), `N` (the price).
 
 This is the file to read first. Everything else in this project could in principle
@@ -427,6 +427,90 @@ a weak receipt, it is a state space that mostly does not exist.**
 
 ---
 
+### 9. The smallest reversible language, and the trilemma it exposes
+
+If every primitive of a language is reversible, then every program written in it has
+in-degree one **by construction** — `AH2`'s fourth factor free for everything, with no
+per-program analysis. `AK` builds that language out of pieces already in the corpus
+and finds what it costs. `MEASURED`
+
+#### Three forms
+
+| | |
+|---|---|
+| `INC i` | trit *i* += 1 |
+| `CINC a b` | trit *b* += trit *a* — affine |
+| `C1INC a b` | trit *b* += 1 if trit *a* = 1 — **not** affine (`O`'s free nonlinearity) |
+
+Fifteen instances on a three-trit register. **Every one is a permutation, and every
+one has order exactly 3** (`AK1`) — so a gate's inverse is that gate applied twice,
+and **the language needs no inverse instruction set at all.**
+
+They generate **A₂₇ = 27!/2**, a 28-digit number, agreeing with `M`'s figure from a
+separately written implementation. Two independent codings landing on one number is
+what makes a re-implementation worth having.
+
+> **An erratum worth keeping.** The registration typed A₂₇ as a *25*-digit number —
+> three zeros dropped, a factor of a thousand. It cost nothing because the tool
+> **computes** 27!/2 rather than comparing against the typed digits. `AGENTS.md`
+> already says *derive constants, never hardcode them*; the rule was obeyed in the
+> code and broken in the sentence beside it.
+
+#### Factor four becomes a property of the alphabet
+
+Four hundred random programs of random length. **All 400 have in-degree exactly 1 at
+every state, zero unreachable** (`AK2`). A composition of bijections is a bijection,
+so there is nothing a programmer can write that breaks it.
+
+Compare where the same guarantee came from before:
+
+| bought by | cost to keep |
+|---|---|
+| `AI4` — searching 19,683 tables for the 216 that work | a property of a chosen table |
+| `AJ1` — building the map deliberately out of `ADD` | a property of a particular program |
+| `AK2` — **choosing a reversible alphabet** | **a property of the language** |
+
+Only the last one survives a programmer.
+
+#### And the cost stops varying
+
+Every one of fifty straight-line programs costs exactly its own length in gates, for
+all 27 starting states (`AK3`):
+
+| | spread |
+|---|---|
+| `AH1`'s three-word program — the bar | **513.8×** |
+| `countdown` | 25.38× |
+| `threeway` — `AG1` called this security theatre | 1.02× |
+| **this language** | **1.0000×** |
+
+Flatter than the theatre. Nothing here depends on the data, because branching on data
+means *testing* data, and a test that discards its answer is erasing.
+
+> **Going fully reversible buys factor four and loses factor three.**
+
+#### The trilemma
+
+| construction | in-degree 1 | cost varies | bounded state |
+|---|---|---|---|
+| this reversible language | **yes** | no | **yes** |
+| `hailstone`, three-word program | no | **yes** | **yes** |
+| reversible feedback (`AI4`), history operator (`AJ1`) | **yes** | no | **yes** |
+| reversible + data-dependent | **yes** | **yes** | **no** |
+
+Six constructions from this corpus and **none has all three** (`AK4`). Every *pair* is
+demonstrated; no triple is.
+
+The last row is Bennett's construction: a reversible machine **can** branch on data,
+but only by keeping the record of which way it went. The history then grows at least
+one trit per branch — **a thousand data-dependent steps costs 167 trytes that can
+never be discarded** — and `AJ4` already measured what happens when bounded memory
+meets a state that will not stop growing. It wraps at term fifteen.
+
+> **In-degree one, a cost that varies, bounded state. Pick two.**
+
+---
+
 ## How it was established
 
 | | |
@@ -475,5 +559,6 @@ order comparison could not tell `A₂₇` from a group one element smaller.
 | `AE` | the T/I group, and the harmonic vocabulary of a ternary space | 3 held, `AE4` failed |
 | `AF` | which musical layers favour which base | 3 held, `AF4` failed |
 | `AI` | the arity ladder, and the feedback that makes a trajectory graph tree-like | all four held |
+| `AK` | the smallest reversible ternary language, and the trilemma it exposes | all four held |
 
 Full text in [`99-ledger.md`](99-ledger.md).

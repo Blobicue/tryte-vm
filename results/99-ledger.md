@@ -7,9 +7,9 @@ Every registered prediction, in the order it was registered, rendered from
 [`FINDINGS.json`](../FINDINGS.json). **Nothing on this page is authored** — if a
 line here is wrong, the manifest is wrong.
 
-**36 sets · 153 predictions · 130 held · 23 failed**
-· 31 measured but never registered
-· 18 defect classes, 47 occurrences
+**37 sets · 157 predictions · 134 held · 23 failed**
+· 32 measured but never registered
+· 18 defect classes, 48 occurrences
 
 Each set names the commit that registered it and the commit that recorded its
 results. Those are checked to be genuinely ordered, and to be reachable from the
@@ -1621,6 +1621,50 @@ branch rather than merely present in a local object store.
 
 ---
 
+## Set `AK` — The smallest reversible ternary language, and the trilemma it exposes
+
+| | |
+|---|---|
+| outcome | 4 held, 0 failed |
+| tool | `tools/minimal-audit.js` |
+| asserted in | `test/test-minimal.js` |
+| registered | `fd62b63` |
+| results | `PENDING` |
+
+### `AK1` — HELD
+
+**Claim.** the three primitive forms are a universal reversible language: every instance a permutation of order 3, generating A_27
+
+**Measured.** gate_instances: 15; all_permutations: true; all_order_3: true; group_order: 5444434725209176080384000000; A27_computed: 5444434725209176080384000000; equal: true; digits: 28; registration_typed: 5444434725209176080384000 (25 digits)
+
+**Note.** All fifteen gate instances are permutations of the 27 states and every one has order exactly 3, so a program's inverse is that program with each gate applied twice more and THE LANGUAGE NEEDS NO INVERSE INSTRUCTION SET. The group they generate is A_27, agreeing with M's recorded figure from an implementation written separately -- two independent codings landing on one 28-digit number is what makes a re-implementation worth having. ERRATUM, AND THE REASON IT IS ONLY AN ERRATUM: the registration typed A_27 as a 25-digit number, dropping three zeros, so the decimal expansion in the prediction was wrong by a factor of a thousand. The tool COMPUTES 27!/2 rather than comparing against the typed digits, which is why a transcription slip in the registration is a footnote instead of a false verdict. AGENTS.md already says to derive constants and never hardcode them; the tool obeyed it and the prose did not.
+
+### `AK2` — HELD
+
+**Claim.** reversibility is inherited by composition, so every program has in-degree 1 with no analysis
+
+**Measured.** random_programs: 400; lengths: 1 to 12 gates; with_in_degree_1_everywhere: 400; percent: 100; worst_max_in_degree: 1; worst_unreachable: 0
+
+**Note.** Four hundred random programs of random length, and every one has in-degree exactly 1 at all 27 states with zero unreachable. A composition of bijections is a bijection, so THERE IS NOTHING A PROGRAMMER CAN WRITE IN THIS LANGUAGE THAT BREAKS IT. Compare what factor four cost everywhere else: AI4 had to search 19,683 tables to find the 216 that work, and AJ1 needed the map to be built out of addition on purpose. Here it costs no analysis, no search and no discipline -- it is a property of the alphabet rather than of the program.
+
+### `AK3` — HELD
+
+**Claim.** a straight-line reversible program costs its own length for every input, so the cost spread is exactly 1.00 and factor three is lost
+
+**Measured.** programs_measured: 50; largest_spread: 1; every_program_flat: true; AH1_three_word_spread: 513.8; countdown_spread: 25.38; threeway_spread: 1.02
+
+**Note.** Every one of fifty straight-line programs costs exactly its own length in gates, for all 27 starting states: a spread of 1.0000. That is FLATTER THAN THE 1.02x AG1 CALLED SECURITY THEATRE, and against the 513.8x AH1 needed. Nothing in the language depends on the data, because branching on data means testing data and a test that discards its answer is erasing. So going fully reversible BUYS FACTOR FOUR AND LOSES FACTOR THREE, and the alternative registered -- that some program would show a spread above 1.00 and the worry was unfounded -- did not occur on any of them.
+
+### `AK4` — HELD
+
+**Claim.** a trilemma: in-degree one, a cost that varies, and bounded state are available two at a time and never three
+
+**Measured.** constructions_tabulated: 6; with_all_three: 0; reversible_language: in-degree 1 + bounded state, cost flat; hailstone_and_three_word: cost varies + bounded state, in-degree above 1; reversible_plus_data_dependent: in-degree 1 + cost varies, state unbounded; history_growth: at least one trit per data-dependent step; thousand_steps_costs: 167 trytes of history
+
+**Note.** Six constructions from this corpus tabulated against the three properties, and NONE HAS ALL THREE. The reversible language has in-degree one and bounded state with a flat cost; hailstone and the three-word program have a varying cost and bounded state with trajectories that merge; and buying the first two together is Bennett's construction -- a reversible machine CAN branch on data, but only by keeping the record of which way it went, so the history grows at least one trit per branch. A thousand data-dependent steps costs 167 trytes that can never be discarded, and AJ4 already measured what happens when bounded memory meets a state that will not stop growing: it wraps at term fifteen. IN-DEGREE ONE, A COST THAT VARIES, BOUNDED STATE -- PICK TWO.
+
+---
+
 ## Measured but never registered
 
 Facts established in passing. Listed separately so the pre-registration record is
@@ -1711,6 +1755,9 @@ not inflated by things that were never at risk.
 - **`F-SELF-REFERENCE-IS-NOT-THE-PROPERTY`** — The history operator gives a tabulator-proof trajectory graph, and self-reference is not why. Its step map is injective because it is built entirely out of addition, which erases nothing -- so a forgetful two-word carry has the property as fully as an append-only history. Self-reference in the strong sense is separately unavailable by the Ladder's own Coda III, which proves no system closes over its own semantics and shows that two of the three verdicts of nf(t) are not in the term. What was being asked for is reversibility, and it is cheaper than what was being proposed.
   <br>*Evidence:* AJ1 exhaustive over 531,441 states, AB2's measurement of ADD at zero bits, and Coda III of the external Ladder artifact
   <br>*Asserted in:* `test/test-selfref.js`
+- **`F-REVERSIBILITY-IS-A-PROPERTY-OF-THE-ALPHABET`** — Where factor four is bought decides what it costs to keep. AI4 bought it by searching 19,683 tables for the 216 that work, and AJ1 by building a map deliberately out of addition -- both are properties of a particular program that a later edit could destroy. Choosing a reversible ALPHABET makes it a property of the language: 400 of 400 random programs have it, and no program can be written that does not. The same guarantee, at three different prices, and only the last one survives a programmer.
+  <br>*Evidence:* AK2 against AI4 and AJ1, all three measured on in-degree over their own state spaces
+  <br>*Asserted in:* `test/test-minimal.js`
 
 ---
 
@@ -1722,7 +1769,7 @@ recurred, which is itself a measure of how well naming a thing prevents it.
 | class | times | shape |
 |---|---|---|
 | `T-ONE-POINT` | 3 | Comparing two functions at a single input and concluding they are equal. Bit the mixed-TGATE test, the folded-vs-unfolded programs, and the TOP-vs-ADD comparison, where 81 of 19,683 tables matched at one pair. |
-| `T-STALE-CONSTANT` | 4 | A hardcoded count in a test or a document going stale when the thing it counted grew. The closure test kept passing against an opcode list the source no longer had; test-findings.js miscounted its own prediction sets; and the README stated both a check total and a prediction tally that had drifted. The first two were fixed by deriving them. The third could not be owned by any one suite, because it is the sum of all of them, so run-all.js sums the suites and test-findings.js recomputes the tally. Fifth bite: the decode audit hardcoded the direct-encodable width as 6 in its cost section, two lines below the search that had just measured it as 5 -- so it printed a saving the measurement immediately above it had already refuted. The cost section now reads the search result. A constant is not safe merely because the thing it duplicates is nearby. |
+| `T-STALE-CONSTANT` | 5 | A hardcoded count in a test or a document going stale when the thing it counted grew. The closure test kept passing against an opcode list the source no longer had; test-findings.js miscounted its own prediction sets; and the README stated both a check total and a prediction tally that had drifted. The first two were fixed by deriving them. The third could not be owned by any one suite, because it is the sum of all of them, so run-all.js sums the suites and test-findings.js recomputes the tally. Fifth bite: the decode audit hardcoded the direct-encodable width as 6 in its cost section, two lines below the search that had just measured it as 5 -- so it printed a saving the measurement immediately above it had already refuted. The cost section now reads the search result. A constant is not safe merely because the thing it duplicates is nearby. Fifth bite, in a REGISTRATION rather than in prose about a result. AK1 typed A_27 = 27!/2 as a 25-digit number when it is 28 -- three zeros dropped, a factor of a thousand -- inside the commit that registered the prediction, where it could not be corrected afterwards without breaking the protocol. It cost nothing only because the tool COMPUTES the factorial and compares against that, rather than against the digits in the docstring, so the run verified the claim and the typed number was never load-bearing. AGENTS.md already says to derive constants and never hardcode them. The rule was obeyed in the code and broken in the sentence next to it, which is where it is easiest to break and hardest to notice. |
 | `T-SILENT-NAN` | 1 | Writing through a missing label produced an undefined address, so the write silently did nothing. The core interpreter ran with no control register and no complaint. |
 | `T-ADJACENCY` | 1 | .fold reading nine cells from a table that was shorter, silently borrowing whatever followed it. |
 | `T-EXHAUSTED-NOT-CLOSED` | 3 | Confusing ran out of budget with finished. A search that exhausts its depth limit, one that hits its size cap, and one that genuinely closes are three different outcomes; conflating them produced a false negative verdict on V3. It recurred in the E sweep, where one counter held both settled-sooner-than-predicted and needed-longer-than-predicted, and the correctness check was skipped for the second bucket -- so an exhaustive claim was published while resting on an unmeasured decomposition. That time the numbers happened to be right: the second bucket was empty. Report the outcomes separately and check that they sum to the total. Third bite, this time in a CHECKER rather than an instrument: the staged solver was compared against solve() by crediting agreement only when both settled, so the cases where both agreed precisely that the network does NOT settle were counted as disagreements, and the tool declared its own results suspect. |
