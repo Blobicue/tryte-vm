@@ -97,9 +97,9 @@ anything.
 
 | | |
 |---|---|
-<!--g:results-table-->| prediction sets | 41 |
-| registered predictions | 173 — **144 held, 29 failed** |
-| measured but never registered | 37 |
+<!--g:results-table-->| prediction sets | 42 |
+| registered predictions | 177 — **148 held, 29 failed** |
+| measured but never registered | 38 |
 | defect classes | 18, recurring 50 times |<!--/g-->
 
 The suite's check count is deliberately **not** repeated here — it lives in

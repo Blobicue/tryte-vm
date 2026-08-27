@@ -7,8 +7,8 @@ Every registered prediction, in the order it was registered, rendered from
 [`FINDINGS.json`](../FINDINGS.json). **Nothing on this page is authored** — if a
 line here is wrong, the manifest is wrong.
 
-**41 sets · 173 predictions · 144 held · 29 failed**
-· 37 measured but never registered
+**42 sets · 177 predictions · 148 held · 29 failed**
+· 38 measured but never registered
 · 18 defect classes, 50 occurrences
 
 Each set names the commit that registered it and the commit that recorded its
@@ -1861,6 +1861,50 @@ branch rather than merely present in a local object store.
 
 ---
 
+## Set `AP` — Can a hash-only key layer give a minted coin an owner? Lamport one-time signatures at base two and base three, exhaustive over 729 messages
+
+| | |
+|---|---|
+| outcome | 4 held, 0 failed |
+| tool | `tools/keylayer-audit.js` |
+| asserted in | `test/test-keylayer.js` |
+| registered | `5689f7f` |
+| results | `PENDING` |
+
+### `AP1` — HELD
+
+**Claim.** an attacker holding one valid signature can forge exactly one message, the one already signed
+
+**Measured.** signed_messages_swept: 729; targets_per_message: 729; worst_case_forgeable: 1; messages_admitting_a_second: 0; control_no_signature: 0 of 729; control_all_signatures: 729 of 729
+
+**Note.** Held exhaustively. Every one of the 729 signed messages forges exactly itself and nothing else, so the scheme is not broken at first use -- which is the assumption everything else in the set rests on. The controls pin both ends of the meter: holding no signature forges nothing, holding all of them forges everything.
+
+### `AP2` — HELD
+
+**Claim.** two signatures under one key leak at the binomial rate, mean within 5% of 21.43, maximum 64 and minimum 1
+
+**Measured.** ordered_pairs: 531441; mean_forgeable: 21.433; null: 21.43; agreement: 0.01%; maximum: 64; maximum_is: 2^6, when the messages differ in all six positions; minimum: 1; minimum_is: signing the same message twice, which reveals nothing new; mean_share: 2.94%; worst_share: 8.78%
+
+**Note.** Held on all three clauses, and the mean agrees with the closed form to one part in ten thousand -- which is the real content, because it confirms the binomial model is the right description of what a reused key gives away rather than merely a plausible one. The one-time restriction is therefore not advisory: a second signature under the same key hands away 2.94% of the message space on average and 8.78% at worst, and there is no configuration in which it hands away nothing unless the same message is signed twice.
+
+### `AP3` — HELD
+
+**Claim.** ternary leaks less of its own space than binary on key reuse, 2.94% against 5.63%
+
+**Measured.** ternary: 2.94% of 729; binary: 5.63% of 1024; ratio: 1.92; registered_ratio: 1.91; mechanism: trits differ with p = 2/3 against bits at 1/2, so the per-position rate is HIGHER for ternary and the leak is still lower, because the position count falls faster; should_not_have_been_registered: true
+
+**Note.** Held, including the mechanism clause -- ternary digits collide more often and leak less anyway, because six positions against ten outweighs two thirds against one half. But it should not have been registered. Both sides are the closed form (1 + (b-1)/b)^pos and the registration itself computed both before the run, so nothing here was ever at risk. AGENTS.md names this failure directly: inflating the registered set with facts that were never at risk turns the discipline into decoration. Recorded as held and as a registration that should not have been made.
+
+### `AP4` — HELD
+
+**Claim.** ternary pays for that advantage in destruction: 12 of 18 preimages against 10 of 20, and strictly more erased bits
+
+**Measured.** ternary: 18 preimages, 6 revealed, 12 destroyed, 66.7%; binary: 20 preimages, 10 revealed, 10 destroyed, 50.0%; erasure_per_position: ternary 3.1699 bits, binary 1.5850; erasure_total: ternary 19.020 bits, binary 15.850; should_not_have_been_registered: true
+
+**Note.** Held. The wipe is a projection from a b-tuple of preimages onto the one revealed, and AB's own erasure measure agrees with the closed form log2(ALPHA^(b-1)) exactly, so the ternary key destroys 19.020 bits of material against binary's 15.850. AP3's leak advantage is bought with a larger wipe, and AO already priced what a wipe costs. Like AP3 this was arithmetic before it was measured: (b-1)/b and the projection erasure are both closed forms, and the only thing genuinely measured was that erasureOf agrees with them.
+
+---
+
 ## Measured but never registered
 
 Facts established in passing. Listed separately so the pre-registration record is
@@ -1970,6 +2014,10 @@ not inflated by things that were never at risk.
   <br>*Argument:* Corollary of AK2 and the definition of erasure. E = 0 for every program in a language all of whose primitives are bijections, and a secret is destroyed only when the final state is constant in it — which requires E > 0.
   <br>*Evidence:* AK2, and the erasure measure defined in AB; checked in test/test-minimal.js
   <br>*Asserted in:* `test/test-minimal.js`
+- **`F-LAMPORT-BASE-ADVANTAGE-IS-NOT-PER-SIZE`** · PROVEN — A Lamport key costs b preimages per position and log_b N positions, so b / ln b per value -- minimised at b = e, which puts three ahead of two by 5.4% asymptotically. That advantage does NOT hold at every width, because the position count is an integer: sweeping ten digest sizes, binary wins at 256 and 1024, the two tie at 64 and 4096, and ternary takes the other six. An asymptotic argument does not settle a particular width.
+  <br>*Argument:* Cost per value is b * log_b N / log N = b / ln b, whose derivative vanishes at b = e; 3/ln3 = 2.731 against 2/ln2 = 2.885. The per-size flip follows from ceil(log_b N) being a step function: at N = 2^k the binary position count is exact while the ternary one rounds up.
+  <br>*Evidence:* measured while choosing the arena for AP, which is exactly when a fact stops being a prediction
+  <br>*Asserted in:* `test/test-keylayer.js`
 
 ---
 

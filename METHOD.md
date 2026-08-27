@@ -13,8 +13,8 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-<!--g:method-tally-->Forty-one prediction sets, **173 registered predictions, 144 held, 29 failed.** Eighteen
-distinct failure classes, which bit **50 times** between them. Thirty-seven findings
+<!--g:method-tally-->Forty-two prediction sets, **177 registered predictions, 148 held, 29 failed.** Eighteen
+distinct failure classes, which bit **50 times** between them. Thirty-eight findings
 measured but never registered<!--/g-->, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
@@ -23,7 +23,7 @@ document drifts from the manifest, the suite fails.
 A prediction carries two independent labels, and running them together was costing
 something. `outcome` is the prediction against the run — held or failed. **`basis` is
 the scope of the claim**: swept at the width it was swept at, or argued at every width.
-<!--g:method-basis-->Ten of those 173 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
+<!--g:method-basis-->Ten of those 177 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
 each with its argument written out beside its measurement. The measurement is still
 required. A proof does not excuse running it — an argument is also a thing that can be
 wrong, and the run is what would say so.
@@ -172,7 +172,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-one sets<!--/g--> and they form very nearly
+fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-two sets<!--/g--> and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from

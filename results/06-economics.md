@@ -827,14 +827,88 @@ control and froze a 2.09-sigma one.
 `T-CRITERION-IN-THE-NOISE`, third bite — and the sibling clause survived the same
 unlucky draw only because it had been given a 10% band instead of a 5% one.
 
+### 15. Giving the coin an owner, with nothing but the hash
+
+`AN` found that mint-by-search is available where mint-by-receipt is not. `AO` priced
+destroying a secret. Both left the same hole: **a minted coin with no owner is not a**
+**coin**. `AP` asks whether ownership can be added without adding an assumption.
+
+It can, and the construction is the oldest one. A **Lamport one-time signature** needs
+only a hash — no curve, no pairing, no ceremony, nothing this project would have to
+import and could not check. Per digit position you publish `b` preimage hashes and
+reveal exactly one.
+
+> Its famous defect is that a key signs **once**. Here that is not a defect. One mint,
+> one key, one burn is the semantics the ledger wants, and the construction **enforces**
+> it rather than asking.
+
+#### What a reused key gives away
+
+| | |
+|---|---|
+| ordered pairs swept | **531,441** |
+| mean forgeable after two signatures | **21.433** against a null of 21.43 |
+| maximum | **64** = 2⁶, when the messages differ everywhere |
+| minimum | **1**, only by signing the same message twice |
+
+The mean agrees with the closed form to **one part in ten thousand**, which is the real
+content: it confirms the binomial model *describes* what a reused key leaks rather than
+merely bounding it. So the one-time rule is not advisory — a second signature hands over
+2.94% of the message space on average and **8.78% at worst**, and the only way to leak
+nothing is to sign the same message twice (`AP2`). `MEASURED`
+
+And one signature is exactly one message: over all 729 signed messages, the worst case
+forges **1**, and no signed message admits a second (`AP1`). `MEASURED`
+
+#### Ternary leaks less, and pays for it
+
+| | ternary | binary |
+|---|---|---|
+| preimages | 18 | 20 |
+| leak on reuse | **2.94%** | 5.63% |
+| destroyed per signature | **12 of 18 (⅔)** | 10 of 20 (½) |
+| key material erased | **19.020 bits** | 15.850 bits |
+
+Trits differ more often than bits — 2/3 against 1/2 — and leak **less anyway**, because
+six positions against ten outweighs the higher per-position rate. But the advantage is
+bought: two thirds of a ternary key must be destroyed against half a binary one, and
+`AB`'s erasure agrees the wipe is a projection, at 19.020 bits against 15.850. `AO`
+already priced what a wipe costs.
+
+#### All four held — and two should not have been registered
+
+This is the part worth keeping, and it is unflattering. `AP1` and `AP2` were genuine
+measurements against uncertain outcomes. **`AP3` and `AP4` were arithmetic the
+registration itself had already computed** — both sides of the leak comparison are the
+closed form `(1 + (b−1)/b)^pos`, and the destruction fractions are `(b−1)/b`. Nothing
+in either was ever at risk.
+
+> `AGENTS.md` names this failure directly: *inflating the registered set with facts that*
+> *were never at risk turns the discipline into decoration.*
+
+They are recorded as held **and** as registrations that should not have been made. A set
+that scores four from four in this corpus is a warning rather than a result — every
+finding here worth defending arrived by a prediction being wrong.
+
+#### And the one fact measured before it could be registered
+
+A Lamport key costs `b / ln b` per value, minimised at **b = e**, which puts three ahead
+of two by 5.4%. That is asymptotic, and it does **not** hold at every width, because the
+position count is an integer: across ten digest sizes, **binary wins at 256 and 1024**,
+the two tie at 64 and 4096, and ternary takes the other six
+(`F-LAMPORT-BASE-ADVANTAGE-IS-NOT-PER-SIZE`, `PROVEN`).
+
+It was measured while choosing the arena, which is exactly when a fact stops being a
+prediction — so it is recorded as unregistered rather than claimed as one.
+
 ---
 
 ## How it was established
 
 | | |
 |---|---|
-| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js), [`hailstone-audit.js`](../tools/hailstone-audit.js), [`workfactor-audit.js`](../tools/workfactor-audit.js), [`margin-audit.js`](../tools/margin-audit.js), [`selfref-audit.js`](../tools/selfref-audit.js), [`puzzle-audit.js`](../tools/puzzle-audit.js), [`wipe-audit.js`](../tools/wipe-audit.js) |
-| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js`, `test-hailstone.js`, `test-workfactor.js`, `test-margin.js`, `test-selfref.js`, `test-puzzle.js`, `test-wipe.js` |
+| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js), [`hailstone-audit.js`](../tools/hailstone-audit.js), [`workfactor-audit.js`](../tools/workfactor-audit.js), [`margin-audit.js`](../tools/margin-audit.js), [`selfref-audit.js`](../tools/selfref-audit.js), [`puzzle-audit.js`](../tools/puzzle-audit.js), [`wipe-audit.js`](../tools/wipe-audit.js), [`keylayer-audit.js`](../tools/keylayer-audit.js) |
+| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js`, `test-hailstone.js`, `test-workfactor.js`, `test-margin.js`, `test-selfref.js`, `test-puzzle.js`, `test-wipe.js`, `test-keylayer.js` |
 | method | tap counts read from built netlists; crossovers solved algebraically and confirmed at sampled prices; the detector variant swept exhaustively against both consumer patterns |
 
 The six cost currencies this project measures in — switches, mid-rail taps, pass
@@ -904,5 +978,6 @@ so much.
 | `AJ` | what self-reference buys, and what buys the property it is asked for | all four held |
 | `AN` | a purpose-built search puzzle, and whether it has the asymmetry | 3 held, `AN1` failed — and the failure found the shortcut |
 | `AO` | can an erasing machine certify a wipe, and is erasure the certificate | 3 held, `AO1` failed — on its own frozen control |
+| `AP` | a hash-only key layer, and what one-time ownership costs | all four held — and two should not have been registered |
 
 Full text in [`99-ledger.md`](99-ledger.md).
