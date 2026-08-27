@@ -13,8 +13,8 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-Thirty-three prediction sets, **141 registered predictions, 120 held, 21 failed.** Eighteen
-distinct failure classes, which bit **45 times** between them. Twenty-eight findings
+Thirty-four prediction sets, **145 registered predictions, 122 held, 23 failed.** Eighteen
+distinct failure classes, which bit **46 times** between them. Twenty-nine findings
 measured but never registered, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
@@ -32,6 +32,8 @@ still in the manifest, marked `FAILED`, with the result it led to:
 | **E5** | the new design would use less of the scarce rail | it uses **more**; the design that wins on area wins by spending elsewhere |
 | **J4** | a register read during a write sees the old value | it sees the **new** one — the write holds the feedback open, so the cell is a transparent latch. Master-slave is required and the register file doubles |
 | **T4** | the best set of control fields packable directly into the opcode's spare trits is six wide and separates every opcode | it is **five**, and separates nothing on its own. Six trits of spare capacity exist, but the fields are chunky and no combination summing to six distinguishes all 25 opcodes. Optimistic by exactly one trit |
+| **AH2** | widening the live state to three words collapses the memoisation a tabulator lives on, to under 1.5x reuse | it falls only to 3.20x from hailstone's 10.43x, on a control space 500,000x larger. A subtractive inner loop converges onto a shared suffix whenever two inputs agree on the subtrahend, so A TABULATOR EXPLOITS TRAJECTORY CONVERGENCE AND NOT A SMALL STATE SPACE — the receipt rests on four things, not three |
+| **AH4** | tabulating costs above 10^11 state-evaluations against under 300 honest steps, a margin above 10^8 | the control space is 729^3 = 387 million, not 10^11 — that figure was 729^4, counting a fourth word the program does not have. One honest run is 1,150 steps. The margin is 3.37 x 10^5, three orders short. The structural clause held: it is identical at either tick level, because a ratio cannot see a factor charged to both sides |
 | **AG1** | every program here has a live control-state width of at most two, so none is tier three | threeway measures FIVE — it classifies five values and each changes the path. But its cost spread is 1.02x, from 55 steps to 56, while countdown has width ONE and a spread of 25.38x. WIDTH AND COST VARIANCE ARE INDEPENDENT and neither is the security parameter alone: a tabulator facing 729^6 states to learn a number that is always 55 or 56 would guess instead |
 | **AG3** | one device solve costs more than 5,000 node-updates, at 13 passes | 5,400 for the decoded family and 4,368 for the tree one, at 10 passes not 13. Two errors about importing a constant across the conditions it was measured under: the registration cited E4 while the tool built the OTHER adder family, and 13 was E4 MAXIMUM over operand pairs rather than a typical value — quoting a result against its own headline, since E4 finding WAS the data-dependence |
 | **AF4** | the best consonance and the most divisors both land on a multiple of six, so music wants two and three at every layer | the best equal division for consonance between 5 and 72 is 53, which is PRIME, with 31 close behind and also prime. The divisor clause held at 60. The layers DECOUPLE: harmonic symmetry and rhythm want compositeness, consonance does not care about it at all |
@@ -156,7 +158,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace the thirty-three sets and they form very nearly
+fanned out; the *frontier did not*. Trace the thirty-four sets and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from

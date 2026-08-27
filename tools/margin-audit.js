@@ -134,11 +134,25 @@ function reuse(program, inputs, stateOf) {
   return { visits, distinct: seen.size, ratio: visits / Math.max(1, seen.size) };
 }
 
-/** hailstone's control state is the accumulator alone (AD4, measured). */
+/**
+ * hailstone's control state is the accumulator alone (AD4, measured).
+ *
+ * INSTRUMENT REPAIR, recorded rather than quietly fixed. The first version walked
+ * every input to a 3,000-step guard, including the 366 that never terminate -- and
+ * those cycle through a handful of states three thousand times each, so hailstone
+ * came out at 1,513x reuse against AD2's honest 5.2x. That is the SAME trap that
+ * broke AD2's first tabulator: a guard counted as work on trajectories that were
+ * never going to finish. Restricted to terminating trajectories, which is what a
+ * tabulator would actually be resolving.
+ */
 const hailStates = (src, [n]) => {
   const low = v => v - 3 * T.shiftRight(v, 1);
-  const out = []; let v = T.wrap(n), guard = 0;
-  while (v !== 1 && guard++ < 3000) { out.push(v); v = low(v) === 0 ? T.shiftRight(v, 1) : T.wrap(2 * v + low(v)); }
+  const step = v => (low(v) === 0 ? T.shiftRight(v, 1) : T.wrap(2 * v + low(v)));
+  const out = []; const seen = new Set(); let v = T.wrap(n);
+  while (v !== 1) {
+    if (seen.has(v)) return [];                 // diverges: a tabulator resolves it once, not 3,000 times
+    seen.add(v); out.push(v); v = step(v);
+  }
   return out;
 };
 /** the three-word program's control state is (w, b, c) -- the inner counter, the

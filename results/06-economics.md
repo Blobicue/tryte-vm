@@ -1,7 +1,7 @@
 <!-- kind: results-topic -->
 # 06 — The currencies: what the mid rail costs, and what erasure costs
 
-**Owned sets:** `N` `AB` `AC` `AD` `AG`
+**Owned sets:** `N` `AB` `AC` `AD` `AG` `AH`
 
 Cross-references `Z` (which first priced the two limits), `O` (whose whole margin
 turned out to be borrowed), `E`/`Y` (the adders it re-ranks), `C` (the memory it
@@ -449,12 +449,82 @@ answer and the other two stop mattering entirely.
 
 ---
 
+### 11. Building the spec, and finding two of its three items weaker than claimed
+
+`AG` left a spec: make the cost vary, widen the live state past three words, define
+the tick at the device level. `AH` built it and priced the attack. **Two of the four
+predictions failed, and both failures were corrections to `AG` itself.** `MEASURED`
+
+#### The variance bar is cleared decisively
+
+The three-word program spans **32 to 16,443 steps — a spread of 513.8×** across 120
+inputs, with 88 distinct costs (`AH1`). Against `threeway`'s 1.02× with *five* live
+words, this is the first workload here that satisfies the item of the spec that
+matters most. Width without variance is security theatre; this has both.
+
+#### But the work factor buys no asymmetry at all
+
+`AG4` called a device-level tick *"worth slightly more than one word of state."*
+That treats the two as one currency. They are not:
+
+| lever | attacker's bill | honest cost |
+|---|---|---|
+| baseline | 531,441 | 1,150 |
+| **+ one word of state** | **387,420,489** | **1,150** — untouched |
+| **+ device-level tick** | 2,869,781,400 | **6,210,000** |
+
+> **The ratio gains 729× from state and exactly 1× from the work factor.**
+
+It cancels, because it charges both sides the same (`AH3`). What a work factor buys
+is **absolute** infeasibility — turning a cheap attack into a slow one in wall-clock
+terms, which is exactly what a KDF is for and is a real thing. It is not asymmetry.
+`AG4` never measured the honest side, which is the only place the difference shows.
+
+#### And widening the state did not kill the sharing
+
+`AH2` predicted that memoisation — the whole reason a tabulator beat `hailstone` —
+would collapse once the state was three words wide. It does not:
+
+| | control space | visits | distinct | reuse |
+|---|---|---|---|---|
+| `hailstone` | 729 | 3,777 | 362 | **10.43×** |
+| three-word | 387,420,489 | 16,082 | 5,030 | **3.20×** |
+
+A state space **500,000× larger** and the tabulator still resolves each state 3.20
+times over. The reason is structural: a subtractive inner loop converges onto a
+shared suffix whenever two inputs agree on the subtrahend, whatever their starting
+values.
+
+> **A tabulator exploits trajectory convergence, not a small state space — and the
+> two come apart.**
+
+So the receipt rests on **four** things, not three: state count, cost per evaluation,
+cost variance, and **how tree-like the trajectory graph is**. Only the last two are
+about the map rather than its size.
+
+#### The margin, quoted the way it survives
+
+The reachable control space is (w, b, c) = 729³ = **387,420,489** — `AH4` predicted
+10¹¹, which was 729⁴, counting a fourth word this program does not have because its
+step counter never gates a branch. One honest run costs **1,150** steps, not the
+predicted under-300.
+
+So the margin is **3.37 × 10⁵** — real, and three orders short of the claim. And it
+is **identical under either definition of a tick**, because a ratio cannot see a
+factor charged to both sides.
+
+Quote the margin as a ratio and it is a statement about the state space alone. Quote
+it in seconds and the work factor is the whole story. Both are true, and they answer
+different questions.
+
+---
+
 ## How it was established
 
 | | |
 |---|---|
-| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js), [`hailstone-audit.js`](../tools/hailstone-audit.js), [`workfactor-audit.js`](../tools/workfactor-audit.js) |
-| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js`, `test-hailstone.js`, `test-workfactor.js` |
+| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js), [`hailstone-audit.js`](../tools/hailstone-audit.js), [`workfactor-audit.js`](../tools/workfactor-audit.js), [`margin-audit.js`](../tools/margin-audit.js) |
+| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js`, `test-hailstone.js`, `test-workfactor.js`, `test-margin.js` |
 | method | tap counts read from built netlists; crossovers solved algebraically and confirmed at sampled prices; the detector variant swept exhaustively against both consumer patterns |
 
 The six cost currencies this project measures in — switches, mid-rail taps, pass
@@ -520,5 +590,6 @@ so much.
 | `AC` | whether a program's cost can be learned without paying it | 1 held, `AC1`, `AC3` and `AC4` failed |
 | `AD` | a discovered loop bound, and whether that is enough for an implied receipt | all four held |
 | `AG` | state width, evaluation cost, and what a receipt actually rests on | 2 held, `AG1` and `AG3` failed |
+| `AH` | building the spec, and what the attack on it costs | 2 held, `AH2` and `AH4` failed |
 
 Full text in [`99-ledger.md`](99-ledger.md).

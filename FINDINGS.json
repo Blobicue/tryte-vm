@@ -2769,6 +2769,86 @@
           "note": "Held. log(5,400)/log(729) = 1.304, so redefining a tick from one VM instruction to one device-level solve buys slightly more than one word of state for free. WORTH HAVING AND NOT SUFFICIENT ALONE, which is the honest shape of the answer: the work factor imported from WaveSeeds is a real second knob, it is already built into the switch-level machine this project spent its life on, and it moves the tabulator's bill for a 729-state arena from 729 evaluations to 3,936,600 node-updates. The state still has to be widened."
         }
       ]
+    },
+    {
+      "id": "AH",
+      "subject": "Building the receipt spec, and what the attack on it actually costs",
+      "tool": "tools/margin-audit.js",
+      "registered_at": "04e8fb0",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-margin.js",
+      "predictions": [
+        {
+          "id": "AH1",
+          "claim": "the three-word program clears the variance bar threeway failed, with a spread above 50x",
+          "outcome": "HELD",
+          "measured": {
+            "inputs_swept": 120,
+            "terminating": 120,
+            "cost_low": 32,
+            "cost_high": 16443,
+            "spread": 513.8,
+            "predicted_over": 50,
+            "distinct_costs": 88,
+            "threeway_spread": 1.02,
+            "threeway_width": 5,
+            "countdown_spread": 25.38,
+            "countdown_width": 1
+          },
+          "note": "Held by an order of magnitude: 513.8x against a predicted 50x, and 88 distinct costs across 120 runs. So the three-word program satisfies the FIRST item of AG's spec, which is the one that matters most -- threeway had five live words and a spread of 1.02x, which is a wide state no tabulator would bother indexing. Width without variance is security theatre; this has both."
+        },
+        {
+          "id": "AH2",
+          "claim": "memoisation collapses: the three-word program reuses each distinct control state fewer than 1.5 times, against hailstone above 4",
+          "outcome": "FAILED",
+          "measured": {
+            "hailstone_visits": 3777,
+            "hailstone_distinct": 362,
+            "hailstone_reuse": 10.43,
+            "three_word_visits": 16082,
+            "three_word_distinct": 5030,
+            "three_word_reuse": 3.2,
+            "predicted_three_word_under": 1.5,
+            "predicted_hailstone_over": 4,
+            "reuse_drop": 3.3
+          },
+          "note": "FAILED on the number that mattered and produced a FOURTH factor. The hailstone clause held enormously at 10.43x -- and its 3,777 visits reproduce AD2's figure exactly, which is the cross-check that the two sets are measuring one thing. But the three-word program still reuses each state 3.20 times, not the predicted under-1.5. The reason is structural: an input sharing its subtrahend and outer count with another converges onto the same inner-loop suffix whatever its starting value, so a subtractive loop has heavy suffix convergence BY CONSTRUCTION. WIDENING THE STATE DOES NOT AUTOMATICALLY DESTROY SHARING. Convergence is a property of the map, not of the state count, and a tabulator exploits convergence rather than smallness. Reuse fell 3.3x, which is real, and nowhere near enough to call the sharing dead."
+        },
+        {
+          "id": "AH3",
+          "claim": "AG4 overstated: extra state multiplies only the attacker cost while a work factor multiplies both, so the ratio improves only with state",
+          "outcome": "HELD",
+          "measured": {
+            "honest_cost_baseline": 1150,
+            "honest_cost_after_one_more_word": 1150,
+            "honest_cost_under_device_tick": 6210000,
+            "attacker_bill_baseline": 531441,
+            "attacker_bill_one_more_word": 387420489,
+            "attacker_bill_device_tick": 2869781400,
+            "ratio_gain_from_state": 729,
+            "ratio_gain_from_work_factor": 1,
+            "AG4_claimed_worth": "1.304 words of state"
+          },
+          "note": "Held exactly, and it corrects AG4. Widening the state by one word multiplies the attacker's bill by 729 and leaves the honest cost at 1,150 steps, untouched. Moving to a device-level tick multiplies BOTH by 5,400 -- the honest party pays 6,210,000 node-updates for the same run. SO THE RATIO GAINS 729x FROM STATE AND EXACTLY 1x FROM THE WORK FACTOR. AG4 called the work factor \"worth slightly more than one word of state\", which treats the two as one currency; on the asymmetry it is worth nothing at all. What it buys is ABSOLUTE infeasibility -- turning a cheap attack into an expensive one in wall-clock terms -- which is real, is what a KDF is for, and is a different claim. AG4 never measured the honest side, which is the only place the difference shows."
+        },
+        {
+          "id": "AH4",
+          "claim": "tabulating costs more than 10^11 state-evaluations against fewer than 300 honest steps, a ratio above 10^8, identical at either tick level",
+          "outcome": "FAILED",
+          "measured": {
+            "control_space": 387420489,
+            "predicted_over": "10^11",
+            "honest_run_steps": 1150,
+            "predicted_under": 300,
+            "margin": 337000,
+            "predicted_margin_over": "10^8",
+            "margin_instruction_tick": 337000,
+            "margin_device_tick": 337000,
+            "identical": true
+          },
+          "note": "FAILED on both magnitudes and held on its structural point. The control space is (w, b, c) = 729^3 = 387,420,489, not the 10^11 predicted -- that figure was 729^4, which counts a fourth word this program does not have, since its step counter never gates a branch. And one honest run costs 1,150 steps rather than under 300, because the loop is genuinely long. The margin is therefore 3.37 x 10^5, not above 10^8: real, and three orders short of the claim. The clause that held is the one AH3 predicts: the margin is IDENTICAL under an instruction tick and a device tick, because the work factor cancels out of a ratio exactly. Quote the margin as a ratio and it is a statement about the state space alone; quote it in seconds and the work factor is the whole story. Both are true and they answer different questions."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -2964,6 +3044,13 @@
       "claim": "A program can have a wide live state and a nearly constant cost, or a narrow state and a wide cost range, and the two do not track each other. threeway has five live input words and a cost spread of 1.02x; countdown has one live word and a spread of 25.38x. So an implied receipt rests on THREE factors and not two: reachable state count, cost per evaluation, and the variance of the cost itself -- and if the third is near zero the other two do not matter, because a predictor guesses the commonest answer instead of tabulating.",
       "evidence": "AG1, nine programs swept over five values at each of eight input positions",
       "asserted_in": "test/test-workfactor.js"
+    },
+    {
+      "id": "F-CONVERGENCE-NOT-SIZE",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "claim": "A tabulator exploits TRAJECTORY CONVERGENCE, not a small state space, and the two come apart. The three-word program has a control space of 387 million against hailstone's 729 -- five hundred thousand times larger -- and still reuses each visited state 3.20 times against hailstone's 10.43. A subtractive inner loop converges onto shared suffixes whenever two inputs agree on the subtrahend, whatever their starting values. So an implied receipt rests on FOUR things and not three: state count, cost per evaluation, cost variance, and how tree-like the trajectory graph is.",
+      "evidence": "AH2, 120 inputs against hailstone's 729, both on one reuse instrument",
+      "asserted_in": "test/test-margin.js"
     }
   ],
   "traps_encountered": [
@@ -2999,8 +3086,8 @@
     },
     {
       "id": "T-INSTRUMENT-FALSE-VERDICT",
-      "count": 14,
-      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit. Sixth bite: the interconnect rig named its sources `src0_0`, `src1_0`, ... and SEEDED them, without building anything behind them. A seed is an initial value, not a driver -- T5 says reachability starts at rails and only at rails -- so every source resolved to Z on pass one and stayed there. Both topologies routed Z, which read as \"interconnect does not work at all\" rather than \"these are not sources\". The same fact this repository already records as \"an input gates but never sources\", arriving in a form nobody recognised. Seventh bite, and inverted: a TEST CASE accused a correct instrument. The Schreier-Sims verification paired a 3-cycle with a 25-cycle and called the pair \"A_27\"; between them they move 25 of 27 points, so the tool returned 25!/2 -- exactly right for what was actually built -- and was scored WRONG. When a verification case fails, the case is as suspect as the thing it checks. Eighth bite: the sequencer rig called tAdderCell without its TAG, which names every internal node of the cells two tables. All three cells received the tag `undefined`, so their internal trees shared node names and merged into one circuit -- the incrementer resolved to unknown and the sequencer appeared to visit two states instead of twenty-seven. An omitted parameter that looks optional silently welded three circuits together. Ninth bite, in the same phase and pointing the other way: the handshake section counted the two driving values that DISABLE the loop as \"settled cleanly\", which would have reported a self-timed handshake as working on the strength of two circuits in which no handshake occurs. A false positive and a false negative from one tool in one run. Two more, found by reconciling this list against results/07-negative.md, which had one occurrence the manifest never named and lacked two the manifest did: the detector truth table hand-copied from a comment and INVERTED, which produced 36 failures out of 54 -- every one where the middle word disagreed with the selected word and none where they agreed, the exact signature real contention would leave, reading as the publishable headline that the decoded selector cannot read storage. Two views of one list drifted apart in opposite directions, which is what a second copy of a record is for and against. Twelfth bite: AB2s first erasure census folded the operand INTO the state, which is a defensible boundary and not the one AB2 asked about, so MIN read as a single fixed 4.5033 bits when the registered prediction was about a range from 0 to 9.5098 -- a correct computation about a different question, which would have recorded a prediction as FAILED when it held in full. Thirteenth bite, and it produced the most interesting wrong headline yet. AC1 detected whether a program reads input with a regex anchored at the start of the line, which misses every LABELLED instruction -- threeway.tasm carries \"body:   IN\". So the audit reported a program that never reads input whose step count nonetheless varied with the input: a deterministic machine charging different amounts for data it never touches, which would have been the finding of the set. It was a broken parser standing next to an exported real one. Replaced with the assembler's own tokenizer, which moved the count of input-reading programs from five to eight and changed what AC1 was even about. Fourteenth bite, and it pointed the flattering way, which is the dangerous one. AD2's tabulator memoised only TERMINATING values, so each of the 366 divergent inputs walked its full three-thousand-step guard, learned nothing, and left the next divergent input to do it again: 1,098,362 evaluations to price 729 inputs. It reported a patient predictor as three hundred times WORSE than simply re-running, which is exactly the answer that would have made AD2 fail and the implied receipt look sound. Non-termination is an answer too, and a correct tabulator records it; walking until the path meets either a known value or itself resolves every state once and costs 728. An instrument that errs toward the hypothesis under test will not be caught by finding the result surprising, because it is not surprising."
+      "count": 15,
+      "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit. Sixth bite: the interconnect rig named its sources `src0_0`, `src1_0`, ... and SEEDED them, without building anything behind them. A seed is an initial value, not a driver -- T5 says reachability starts at rails and only at rails -- so every source resolved to Z on pass one and stayed there. Both topologies routed Z, which read as \"interconnect does not work at all\" rather than \"these are not sources\". The same fact this repository already records as \"an input gates but never sources\", arriving in a form nobody recognised. Seventh bite, and inverted: a TEST CASE accused a correct instrument. The Schreier-Sims verification paired a 3-cycle with a 25-cycle and called the pair \"A_27\"; between them they move 25 of 27 points, so the tool returned 25!/2 -- exactly right for what was actually built -- and was scored WRONG. When a verification case fails, the case is as suspect as the thing it checks. Eighth bite: the sequencer rig called tAdderCell without its TAG, which names every internal node of the cells two tables. All three cells received the tag `undefined`, so their internal trees shared node names and merged into one circuit -- the incrementer resolved to unknown and the sequencer appeared to visit two states instead of twenty-seven. An omitted parameter that looks optional silently welded three circuits together. Ninth bite, in the same phase and pointing the other way: the handshake section counted the two driving values that DISABLE the loop as \"settled cleanly\", which would have reported a self-timed handshake as working on the strength of two circuits in which no handshake occurs. A false positive and a false negative from one tool in one run. Two more, found by reconciling this list against results/07-negative.md, which had one occurrence the manifest never named and lacked two the manifest did: the detector truth table hand-copied from a comment and INVERTED, which produced 36 failures out of 54 -- every one where the middle word disagreed with the selected word and none where they agreed, the exact signature real contention would leave, reading as the publishable headline that the decoded selector cannot read storage. Two views of one list drifted apart in opposite directions, which is what a second copy of a record is for and against. Twelfth bite: AB2s first erasure census folded the operand INTO the state, which is a defensible boundary and not the one AB2 asked about, so MIN read as a single fixed 4.5033 bits when the registered prediction was about a range from 0 to 9.5098 -- a correct computation about a different question, which would have recorded a prediction as FAILED when it held in full. Thirteenth bite, and it produced the most interesting wrong headline yet. AC1 detected whether a program reads input with a regex anchored at the start of the line, which misses every LABELLED instruction -- threeway.tasm carries \"body:   IN\". So the audit reported a program that never reads input whose step count nonetheless varied with the input: a deterministic machine charging different amounts for data it never touches, which would have been the finding of the set. It was a broken parser standing next to an exported real one. Replaced with the assembler's own tokenizer, which moved the count of input-reading programs from five to eight and changed what AC1 was even about. Fourteenth bite, and it pointed the flattering way, which is the dangerous one. AD2's tabulator memoised only TERMINATING values, so each of the 366 divergent inputs walked its full three-thousand-step guard, learned nothing, and left the next divergent input to do it again: 1,098,362 evaluations to price 729 inputs. It reported a patient predictor as three hundred times WORSE than simply re-running, which is exactly the answer that would have made AD2 fail and the implied receipt look sound. Non-termination is an answer too, and a correct tabulator records it; walking until the path meets either a known value or itself resolves every state once and costs 728. An instrument that errs toward the hypothesis under test will not be caught by finding the result surprising, because it is not surprising. Fifteenth bite, and the SAME MECHANISM AS THE ELEVENTH in the same thread. AH2's reuse instrument walked every hailstone input to a 3,000-step guard, including the 366 that never terminate -- and those cycle through a handful of states three thousand times each, so hailstone measured 1,513x reuse against its true 10.43x. AD2's first tabulator failed for exactly this reason a few sets earlier and the repair was recorded there. A guard counted as work is apparently not a lesson that transfers by having been written down once; it has to be looked for. The repaired figure of 3,777 visits reproduces AD2's number exactly, which is the cross-check that says the two sets now measure one thing."
     },
     {
       "id": "T-PREMISE-NOT-ANSWER",
