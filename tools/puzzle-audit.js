@@ -334,6 +334,101 @@ function wideSweep(k) {
   return { k, stranded, meanFirst: mineable ? totalFirst / mineable : null, nonceSpace: N * N };
 }
 
+// ------------------------------------------- beyond the registration: the shortcut
+/**
+ * NOT REGISTERED. `AN1` predicted the feedforward candidate's hit-count variance
+ * would sit within 25% of binomial at every k. It came in LOW at k = 1 and k = 2 --
+ * more uniform than chance -- and a puzzle that is more uniform than chance is
+ * structured. This is what the deviation turned out to be.
+ *
+ * Substituting u = m + n into h(m,n) = P(m + n) - n gives
+ *
+ *      h(m,n) = P(u) - u + m  =  g(u) + m,   g(u) = P(u) - u
+ *
+ * so the MESSAGE enters through the same group operation as the nonce and commutes
+ * straight out. Every message is the same puzzle, shifted.
+ */
+const gShift = u => tsub(P(u), u);
+
+/** Does h(m,n) = g(m+n) + m hold on all 531,441 pairs? */
+function shiftIdentity() {
+  for (const m of VALS) for (const n of VALS) {
+    if (idx(tadd(gShift(tadd(m, n)), m)) !== CANDIDATES.feedforward(m, n)) return false;
+  }
+  return true;
+}
+
+/** The inverted index of g, built once. Its IMAGE is the whole story. */
+function gIndex() {
+  const map = new Map();
+  for (const u of VALS) {
+    const k = idx(gShift(u));
+    if (!map.has(k)) map.set(k, []);
+    map.get(k).push(u);
+  }
+  return map;
+}
+
+/**
+ * The third attack, which the registration did not anticipate: one 729-entry index
+ * of g, then read the nonce off. Charged honestly -- lookups are counted, and a
+ * message the index declares unmineable is counted as such rather than as a failure.
+ */
+function shiftAttack(k, index = gIndex()) {
+  const mask = targetMask(k);
+  const targets = [];
+  for (let d = 0; d < N; d++) if (mask[d]) targets.push(d);
+  let solved = 0, unmineable = 0, lookups = 0;
+  for (const m of VALS) {
+    let hit = false;
+    for (const d of targets) {
+      lookups++;
+      const want = idx(tsub(val(d), m));
+      if (index.has(want)) {
+        // gIndex stores u as a VALUE, not an index. Wrapping it in val() again
+        // shifted every nonce by TRYTE_MIN and the attack reported itself as
+        // solving nothing at k >= 5 -- while AN3's exhaustive sweep said 465 of
+        // those messages were mineable. T-INSTRUMENT-FALSE-VERDICT again, and
+        // caught by the CONTRADICTION between two measurements of one quantity
+        // rather than by the code reading wrong, which it did not.
+        const n = tsub(index.get(want)[0], m);
+        if (mask[CANDIDATES.feedforward(m, n)]) { solved++; hit = true; break; }
+      }
+    }
+    if (!hit) unmineable++;
+  }
+  return { solved, unmineable, lookupsPerMessage: lookups / N, precompute: N,
+    imageSize: index.size };
+}
+
+/**
+ * The antibody for the bug above. A fast attack and a slow exhaustive sweep must
+ * agree on WHICH messages are solvable, not merely produce plausible numbers. The
+ * first version of `shiftAttack` disagreed with `sweep` by 465 messages and looked
+ * fine in isolation; only the cross-check makes that impossible to miss.
+ */
+function attackAgreesWithSweep(k, tbl) {
+  const a = shiftAttack(k);
+  const s = sweep(tbl, k);
+  return { agrees: a.solved === N - s.stranded && a.unmineable === s.stranded,
+    attackSolved: a.solved, sweepMineable: N - s.stranded };
+}
+
+/**
+ * And the fix, which confirms the diagnosis by removing the symptom. True
+ * Davies-Meyer: the message KEYS the permutation instead of entering its data path,
+ * so there is no group operation for it to commute out of. h(m,n) = P_m(n) - n.
+ */
+function keyedDM(m, n) {
+  const kl = lo(m), kh = hi(m);
+  let s = n;
+  for (let i = 0; i < ROUNDS; i++) {
+    const K = (kl * (i + 1) + kh * (i * i + 1)) % 27;
+    s = pack(hi(s), (lo(s) + S27[(hi(s) + K) % 27]) % 27);
+  }
+  return idx(tsub(s, n));
+}
+
 // ---------------------------------------------------------------- null model
 /** Binomial(N, 3^-k) hits per message; E[first | w hits] = (N+1)/(w+1). */
 function nullModel(nonces, k) {
@@ -438,6 +533,50 @@ function report() {
       + '   null ' + nlW.meanFirst.toFixed(1));
     log('        3^k = ' + 3 ** W);
   }
+
+  log('\n--- beyond the registration: what the low variance at k = 1 and 2 WAS ---');
+  {
+    log('      h(m,n) = g(m + n) + m  with g(u) = P(u) - u,  on all ' + (N * N).toLocaleString()
+      + ' pairs: ' + shiftIdentity());
+    const index = gIndex();
+    log('      so the message commutes out. g has an image of ' + index.size + ' of ' + N
+      + ' digests,');
+    log('      leaving ' + (N - index.size) + ' unreachable — and AN3 counted '
+      + sweep(tables.feedforward, W).stranded + ' stranded messages at k = ' + W + '.');
+    log('');
+    log('      k   solved   declared unmineable   lookups/message   brute force   agrees');
+    for (let k = 1; k <= W; k++) {
+      const a = shiftAttack(k, index), nl = nullModel(N, k);
+      const ag = attackAgreesWithSweep(k, tables.feedforward);
+      log('      ' + k + '   ' + (a.solved + '/' + N).padStart(7) + '   '
+        + String(a.unmineable).padStart(19) + '   ' + a.lookupsPerMessage.toFixed(2).padStart(15)
+        + '   ' + nl.meanFirst.toFixed(1).padStart(11)
+        + '   ' + String(ag.agrees).padStart(6));
+    }
+    log('\n      THE FIX, which confirms the cause by removing the symptom: key the');
+    log('      permutation with the message instead of adding it to the data path.');
+    const kt = digestTable(keyedDM);
+    log('      k   sd(W)    null sd   ratio    firstHit    null   stranded   null');
+    for (let k = 1; k <= W; k++) {
+      const s = sweep(kt, k), nl = nullModel(N, k);
+      log('      ' + k + '   ' + s.sdW.toFixed(3).padStart(6) + '   ' + nl.sdW.toFixed(2).padStart(7)
+        + '   ' + (s.sdW / nl.sdW).toFixed(3).padStart(6)
+        + '   ' + (s.meanFirst === null ? 'n/a' : s.meanFirst.toFixed(1)).padStart(9)
+        + '   ' + nl.meanFirst.toFixed(1).padStart(6)
+        + '   ' + String(s.stranded).padStart(8) + '   ' + nl.stranded.toFixed(1).padStart(5));
+    }
+    let shiftable = false;
+    {
+      const seen = new Map();
+      outer: for (const m of VALS) for (const n of VALS) {
+        const u = idx(tadd(m, n)), d = idx(tsub(val(keyedDM(m, n)), m));
+        if (!seen.has(u)) seen.set(u, d);
+        else if (seen.get(u) !== d) { shiftable = false; break outer; }
+        shiftable = true;
+      }
+    }
+    log('      the message still commutes out as a shift: ' + shiftable);
+  }
   log('\n' + line);
 }
 
@@ -447,4 +586,5 @@ module.exports = {
   W, N, ROUNDS, VALS, idx, val, tadd, tsub, rotn, S27, splitRound, P, PT, PINV,
   A, KAPPA, AINV_MINUS_I, CANDIDATES, digestTable, targetMask, sweep,
   tabulatorAttack, affineAttack, wideSweep, nullModel, report,
+  gShift, shiftIdentity, gIndex, shiftAttack, attackAgreesWithSweep, keyedDM, lo, hi, pack,
 };

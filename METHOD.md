@@ -13,8 +13,8 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-Thirty-nine prediction sets, **165 registered predictions, 138 held, 27 failed.** Eighteen
-distinct failure classes, which bit **48 times** between them. Thirty-three findings
+Forty prediction sets, **169 registered predictions, 141 held, 28 failed.** Eighteen
+distinct failure classes, which bit **49 times** between them. Thirty-six findings
 measured but never registered, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
@@ -36,6 +36,7 @@ still in the manifest, marked `FAILED`, with the result it led to:
 | **AL4** | the three-trit arena is within an order of magnitude of mod-113 addition | 729 against 12,769 is 17.5x. The canonical setup sits BETWEEN the three-trit arena and the six-trit one rather than beside either, and the arithmetic was available before the sentence was written |
 | **AM2** | the affine task groks soonest, so the algebraic label predicts the outcome | it INVERTED. Ternary modular addition — what the grokking literature studies almost exclusively — is the SLOWER task on every paired seed, median 10,800 steps against 6,200, and on one seed it never generalised inside 40,000 steps while the non-affine task succeeded on all five. THE CANONICAL GROKKING TASK IS THE HARDER ONE |
 | **AM3** | erasing tasks have a majority-class baseline above 40% | it is 0.0457, identical to the reversible tasks, because f = b is a bijection in its second argument so its outputs are uniform. Conflating "erases in the leading argument" with "has a skewed output distribution" — different properties, and AL3 had the information on the record already |
+| **AN1** | the hit-count variance of a proof-of-work candidate sits within 25% of binomial at every difficulty | it came in at 0.729x and 0.674x at the two easiest, MORE uniform than chance. A puzzle more uniform than chance is structured, and chasing the deviation found the structure: the message commuted out of the feed-forward, so one 729-entry index solved every mineable message in 1.54 lookups. THE PREDICTION THAT FAILED IS THE ONE THAT DETECTED THE BREAK |
 | **AH2** | widening the live state to three words collapses the memoisation a tabulator lives on, to under 1.5x reuse | it falls only to 3.20x from hailstone's 10.43x, on a control space 500,000x larger. A subtractive inner loop converges onto a shared suffix whenever two inputs agree on the subtrahend, so A TABULATOR EXPLOITS TRAJECTORY CONVERGENCE AND NOT A SMALL STATE SPACE — the receipt rests on four things, not three |
 | **AH4** | tabulating costs above 10^11 state-evaluations against under 300 honest steps, a margin above 10^8 | the control space is 729^3 = 387 million, not 10^11 — that figure was 729^4, counting a fourth word the program does not have. One honest run is 1,150 steps. The margin is 3.37 x 10^5, three orders short. The structural clause held: it is identical at either tick level, because a ratio cannot see a factor charged to both sides |
 | **AG1** | every program here has a live control-state width of at most two, so none is tier three | threeway measures FIVE — it classifies five values and each changes the path. But its cost spread is 1.02x, from 55 steps to 56, while countdown has width ONE and a spread of 25.38x. WIDTH AND COST VARIANCE ARE INDEPENDENT and neither is the security parameter alone: a tabulator facing 729^6 states to learn a number that is always 55 or 56 would guess instead |
@@ -162,7 +163,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace the thirty-nine sets and they form very nearly
+fanned out; the *frontier did not*. Trace the forty sets and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from

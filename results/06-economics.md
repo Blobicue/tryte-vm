@@ -596,14 +596,152 @@ bounded memory can do.
 Which is why `AJ1` matters: **reversibility buys the non-convergence without the
 unbounded state.** It is the way out of the trade, not a way of paying it.
 
+### 13. The other question: not what it cost to run, but what was found
+
+Sections 8 to 12 all ask one question — **can the cost of running a program be an
+unforgeable receipt?** — and the answer is no, three separate ways, ending at
+`AK4`'s trilemma. `AN` asks the question Bitcoin actually answers, which is a
+different one.
+
+> A miner does not prove it ran a program. It proves it **found a rare witness**,
+> and the witness is cheap to check. The asymmetry is search-against-check, not
+> run-against-run.
+
+Nothing in `AD` through `AK` bounds that, because a search puzzle never claims a
+step count. In-degree, cost variance and bounded state are simply not its
+constraints. Its constraints are different, and `AN` measured them exhaustively over
+all 531,441 message-nonce pairs at six trits, with `D`'s split-round mixer as the
+permutation and four candidates sharing it.
+
+#### The variance of hit counts is the test `D4` could not supply
+
+`D4` failed because truncating **any** permutation gives perfectly uniform buckets,
+so a collision count cannot separate a hash from a relabelling. The number of nonces
+that hit the target **per message** can, and structurally rather than statistically:
+if `h` is a bijection in the nonce then every message has exactly `3^(6−k)` hits and
+the variance is **zero**, while a compressing `h` scatters them binomially.
+
+| candidate | sd of hits per message, k = 1 | against binomial 12.73 |
+|---|---|---|
+| feed-forward | 9.274 | 0.729× |
+| bijective | **0.000** | 0× |
+| affine | **0.000** | 0× |
+| pseudorandom control | 12.39 | 0.973× |
+
+So the discriminator works, and works absolutely: a bijective candidate is not
+*near* zero, it is zero. `MEASURED`
+
+#### `AN1` failed — and the failure is what detected the break
+
+The registration predicted the feed-forward candidate would sit within 25% of
+binomial at every difficulty. It came in at **0.729× and 0.674×** at `k = 1` and
+`k = 2` — *more uniform than chance*. A puzzle more uniform than chance is
+structured, and the structure was this:
+
+```
+h(m,n) = P(m + n) − n        substituting u = m + n
+       = P(u) − u + m
+       = g(u) + m            with g(u) = P(u) − u
+```
+
+Verified on all 531,441 pairs. **The message enters through the same group operation
+as the nonce, so it commutes straight out**, and every message is one puzzle,
+shifted. One 729-entry inverted index of `g` then solves every mineable message in
+**1.54 lookups** against a brute force of 3.0 to 305.2, and correctly declares the
+rest unmineable rather than failing on them.
+
+Keying the permutation with the message instead — true Davies–Meyer, the message
+never touching the data path — destroys the identity and returns the variance to
+within 3% of binomial at every difficulty. **A fix that removes the symptom is what
+confirms the cause** (`F-MESSAGE-COMMUTES-OUT-OF-A-GROUP-FEEDFORWARD`).
+
+The registration had said in advance that agreement would not be a certificate and
+that only disagreement could refute. The disagreement arrived and did exactly that.
+
+#### The tabulator returns, and the algebra is worse than the table
+
+`AD2` tabulated a program to price it and broke even at seventy queries. Against a
+puzzle the same attack is not an approximation — it is total (`AN2`).
+
+| candidate | attack | precomputation | per solve | solved |
+|---|---|---|---|---|
+| bijective | invert `P` | **729 entries** | 1 lookup | 729/729 at every k |
+| affine | solve `(A − I)n = d − A(m)` | **1 inversion** | 1 rotation | 729/729 at every k |
+
+Against a brute force of 205 attempts at `k = 5`, that is a **205× speedup**, and
+the affine case breaks even on **query one** rather than query seventy. So the two
+algebraic labels this project has carried since `AL` are, for a puzzle, both
+disqualifying — and in a strict order: **being affine is strictly worse than being
+merely reversible, and the gap between them is exactly the 729-entry table.**
+
+A detail no prediction covered: the affine candidate gives every message exactly the
+right *number* of solutions and puts them in the wrong *places*. At `k = 3` every
+message has exactly 27 valid nonces, as a bijection must, yet a sequential scan needs
+**248 attempts** to reach one where the null says 27
+(`F-AFFINE-HIDES-ITS-SOLUTIONS-FROM-A-SCAN`).
+
+#### Irreversibility is paid for in stranded messages
+
+A puzzle **needs** `h` to be non-invertible in the nonce, or the tabulator applies.
+But non-invertible means the image of `h(m, ·)` is smaller than the nonce space, so a
+message can miss the target set entirely and be **unmineable** — no nonce exists, and
+a miner holding it grinds forever (`AN3`).
+
+| k | feed-forward stranded | null | bijective | affine |
+|---|---|---|---|---|
+| 4 | 0 | 0.085 | 0 | 0 |
+| 5 | **33** | 36.071 | 0 | 0 |
+| 6 | **264** | 268.000 | 0 | 0 |
+
+**At maximum difficulty 36.2% of messages cannot be mined at all.** This is the exact
+twin of the receipt result: the receipt died needing in-degree one; the puzzle needs
+in-degree *above* one and pays in stranded work. And the property that guarantees
+every message is mineable is the same property `AN2` uses to skip the mining.
+
+The stranding and the shortcut turn out to be **one object, not two findings**.
+`g`'s image is 465 of 729 digests, and 729 − 465 = **264** is exactly the stranded
+count — because a message is mineable at the tightest target precisely when its
+shifted target lies in that image (`F-STRANDING-IS-AN-IMAGE-DEFICIT`). Nothing
+predicted the two numbers would be the same number.
+
+#### And the fix is more nonce, not a different function
+
+`AN4` widened the nonce to twelve trits, absorbed in two blocks through the same
+compression function, leaving message and digest at six.
+
+| nonce space | stranded at k = 6 | mean search |
+|---|---|---|
+| 729 | **264** | 311.2 |
+| 531,441 | **0** | **735.0** |
+
+Both symptoms moved together. The wide search lands within **0.8%** of `3⁶ = 729`,
+the figure a proper lottery owes — which a truncated nonce space understates by 58%.
+So `AN3` is not a fact about irreversibility as such but about a nonce space too
+small for the target, and the design rule is **measured rather than borrowed**:
+
+> **Nonce space must exceed target rarity by orders of magnitude.** That is what the
+> extraNonce field in Bitcoin is for.
+
+#### What this leaves standing
+
+The receipt is dead and the puzzle is not. A search puzzle escapes `AK4` entirely,
+because it never claims a step count — but it inverts every requirement that killed
+the receipt. The receipt wanted in-degree one; the puzzle needs in-degree above one.
+The 216 reversible tables that were `AI4`'s answer are here the **disqualifying**
+case. What is usable is the non-affine erasing quadrant `AL3` already counted —
+**19,458 of 19,683** — and what is still missing is what `D4` left missing: a way to
+certify a candidate rather than merely fail to break it. `AN1` supplies one
+refutation test. It is one, at 729 states, and a toy is not evidence against an
+adversary.
+
 ---
 
 ## How it was established
 
 | | |
 |---|---|
-| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js), [`hailstone-audit.js`](../tools/hailstone-audit.js), [`workfactor-audit.js`](../tools/workfactor-audit.js), [`margin-audit.js`](../tools/margin-audit.js), [`selfref-audit.js`](../tools/selfref-audit.js) |
-| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js`, `test-hailstone.js`, `test-workfactor.js`, `test-margin.js`, `test-selfref.js` |
+| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js), [`hailstone-audit.js`](../tools/hailstone-audit.js), [`workfactor-audit.js`](../tools/workfactor-audit.js), [`margin-audit.js`](../tools/margin-audit.js), [`selfref-audit.js`](../tools/selfref-audit.js), [`puzzle-audit.js`](../tools/puzzle-audit.js) |
+| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js`, `test-hailstone.js`, `test-workfactor.js`, `test-margin.js`, `test-selfref.js`, `test-puzzle.js` |
 | method | tap counts read from built netlists; crossovers solved algebraically and confirmed at sampled prices; the detector variant swept exhaustively against both consumer patterns |
 
 The six cost currencies this project measures in — switches, mid-rail taps, pass
@@ -671,5 +809,6 @@ so much.
 | `AG` | state width, evaluation cost, and what a receipt actually rests on | 2 held, `AG1` and `AG3` failed |
 | `AH` | building the spec, and what the attack on it costs | 2 held, `AH2` and `AH4` failed |
 | `AJ` | what self-reference buys, and what buys the property it is asked for | all four held |
+| `AN` | a purpose-built search puzzle, and whether it has the asymmetry | 3 held, `AN1` failed — and the failure found the shortcut |
 
 Full text in [`99-ledger.md`](99-ledger.md).
