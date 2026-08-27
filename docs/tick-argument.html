@@ -1,0 +1,2005 @@
+<title>The Tick Argument</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root{
+    color-scheme:light;
+    --ground:#E8EBED; --panel:#F4F6F7; --panel-2:#FBFCFC;
+    --ink:#10161C; --ink-soft:#4A5560; --ink-faint:#727E89;
+    --rule:#C7CFD5; --rule-soft:#DCE2E6;
+    --burn:#A03A28; --burn-bg:#F3E3DF;
+    --build:#1F6B5C; --build-bg:#DEEBE7;
+    --hold:#6B7A85;
+    --serif:"Newsreader",Georgia,"Times New Roman",serif;
+    --sans:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --ground:#0D1114; --panel:#141A1F; --panel-2:#101519;
+      --ink:#DEE5EA; --ink-soft:#8A97A2; --ink-faint:#6B7883;
+      --rule:#262F36; --rule-soft:#1C242A;
+      --burn:#D4715A; --burn-bg:#2A1A17;
+      --build:#4FB39C; --build-bg:#122522;
+      --hold:#7E8C97;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --ground:#0D1114; --panel:#141A1F; --panel-2:#101519;
+    --ink:#DEE5EA; --ink-soft:#8A97A2; --ink-faint:#6B7883;
+    --rule:#262F36; --rule-soft:#1C242A;
+    --burn:#D4715A; --burn-bg:#2A1A17;
+    --build:#4FB39C; --build-bg:#122522;
+    --hold:#7E8C97;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:var(--serif); font-size:18px; line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:0 26px 120px}
+  p{margin:0 0 1.05em; max-width:66ch}
+  strong{font-weight:600}
+  .mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+
+  /* ---- masthead ---- */
+  header{padding:72px 0 0}
+  .eyebrow{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-faint); margin:0 0 18px;
+  }
+  h1{
+    font-family:var(--serif); font-weight:400; font-size:clamp(40px,8vw,68px);
+    line-height:1.02; letter-spacing:-.022em; margin:0 0 .3em; text-wrap:balance;
+  }
+  .standfirst{
+    font-size:21px; line-height:1.5; color:var(--ink-soft); max-width:58ch;
+    margin:0 0 34px; font-weight:300;
+  }
+  .meta{
+    display:flex; flex-wrap:wrap; gap:8px 22px; padding:16px 0 0;
+    border-top:1px solid var(--rule); font-family:var(--sans); font-size:13px;
+    color:var(--ink-faint);
+  }
+  .meta b{font-weight:600; color:var(--ink-soft); font-variant-numeric:tabular-nums}
+
+  /* ---- sections ---- */
+  section{padding:56px 0 0}
+  h2{
+    font-family:var(--serif); font-weight:400; font-size:clamp(27px,4.6vw,36px);
+    line-height:1.14; letter-spacing:-.014em; margin:0 0 .55em; text-wrap:balance;
+  }
+  h3{
+    font-family:var(--sans); font-weight:600; font-size:15px; letter-spacing:.005em;
+    margin:2em 0 .6em; color:var(--ink);
+  }
+  .lede{font-size:19.5px; color:var(--ink-soft); font-weight:300; max-width:60ch}
+
+  hr{border:0; border-top:1px solid var(--rule-soft); margin:52px 0 0}
+
+  /* ---- verdict chips ---- */
+  .chip{
+    display:inline-block; font-family:var(--mono); font-size:10.5px;
+    letter-spacing:.1em; text-transform:uppercase; padding:2px 7px;
+    border-radius:2px; vertical-align:2px; font-weight:500; white-space:nowrap;
+  }
+  .chip.held{background:var(--build-bg); color:var(--build)}
+  .chip.failed{background:var(--burn-bg); color:var(--burn)}
+
+  /* ---- the finding block ---- */
+  .finding{
+    background:var(--panel); border:1px solid var(--rule-soft);
+    border-left:3px solid var(--rule); border-radius:3px;
+    padding:20px 22px; margin:26px 0;
+  }
+  .finding.kill{border-left-color:var(--burn)}
+  .finding.keep{border-left-color:var(--build)}
+  .finding .tag{
+    font-family:var(--mono); font-size:11px; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--ink-faint); margin:0 0 8px;
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  }
+  .finding p{margin:0; font-size:17px; max-width:none}
+  .finding p + p{margin-top:.7em}
+
+  /* ---- pull quote ---- */
+  .pull{
+    font-family:var(--serif); font-size:23px; line-height:1.35; font-weight:400;
+    color:var(--ink); border-left:2px solid var(--build);
+    padding:2px 0 2px 22px; margin:32px 0; max-width:52ch; letter-spacing:-.008em;
+  }
+  .pull.kill{border-left-color:var(--burn)}
+
+  /* ---- tables ---- */
+  .scroll{overflow-x:auto; margin:24px 0; -webkit-overflow-scrolling:touch}
+  table{border-collapse:collapse; width:100%; font-family:var(--sans); font-size:14.5px}
+  th,td{
+    text-align:left; padding:9px 14px 9px 0; border-bottom:1px solid var(--rule-soft);
+    vertical-align:top;
+  }
+  th{
+    font-weight:600; font-size:11.5px; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--ink-faint); border-bottom:1px solid var(--rule); white-space:nowrap;
+  }
+  td.num,th.num{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right; padding-right:18px}
+  td.big{font-family:var(--mono); font-size:15px; font-weight:500}
+  .up{color:var(--build); font-weight:600}
+  .down{color:var(--burn); font-weight:600}
+
+  /* ---- factor cards ---- */
+  .factors{display:grid; gap:12px; margin:28px 0}
+  .factor{
+    display:grid; grid-template-columns:34px 1fr; gap:16px; align-items:start;
+    background:var(--panel); border:1px solid var(--rule-soft); border-radius:3px;
+    padding:16px 18px;
+  }
+  .factor .n{
+    font-family:var(--mono); font-size:22px; line-height:1; color:var(--ink-faint);
+    font-weight:500; padding-top:2px;
+  }
+  .factor h4{
+    font-family:var(--sans); font-size:15.5px; font-weight:600; margin:0 0 4px;
+  }
+  .factor p{margin:0; font-size:15.5px; color:var(--ink-soft); max-width:none}
+  .factor.solved{border-left:3px solid var(--build)}
+  .factor.open{border-left:3px solid var(--burn)}
+
+  /* ---- status grid ---- */
+  .status{display:grid; gap:10px; margin:26px 0}
+  .row{
+    display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:baseline;
+    padding:13px 0; border-bottom:1px solid var(--rule-soft);
+  }
+  .row .name{font-family:var(--sans); font-weight:600; font-size:15px; white-space:nowrap}
+  .row .said{font-size:15.5px; color:var(--ink-soft)}
+
+  .foot{
+    margin-top:56px; padding-top:20px; border-top:1px solid var(--rule);
+    font-family:var(--sans); font-size:13.5px; color:var(--ink-faint); max-width:64ch;
+  }
+  .foot code{font-family:var(--mono); font-size:12.5px}
+
+  /* ---- the workbench: a surface you work ON, not a figure you look AT ---- */
+  .bench{
+    background:
+      repeating-linear-gradient(0deg, transparent 0 23px, var(--rule-soft) 23px 24px),
+      repeating-linear-gradient(90deg, transparent 0 23px, var(--rule-soft) 23px 24px),
+      var(--panel-2);
+    border:1px solid var(--rule); border-radius:3px; margin:30px 0; overflow:hidden;
+  }
+  .bench-head{
+    display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;
+    padding:14px 18px; border-bottom:1px solid var(--rule); background:var(--panel);
+  }
+  .bench-head .k{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--ink-faint);
+  }
+  .bench-head h4{font-family:var(--sans); font-size:15.5px; font-weight:600; margin:0}
+  .bench-body{padding:18px}
+  .bench-note{
+    font-family:var(--sans); font-size:13.5px; color:var(--ink-faint);
+    margin:14px 0 0; max-width:62ch; line-height:1.5;
+  }
+  .bench-note b{color:var(--ink-soft); font-weight:600}
+
+  .ctl{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0 0 16px}
+  .ctl label{
+    font-family:var(--mono); font-size:11px; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--ink-faint); margin-right:2px;
+  }
+  /* appearance:none because these are fully styled -- without it the UA paints the
+     control in the OS scheme and the background stops tracking the theme tokens,
+     which lands dark-on-dark text in light mode. */
+  button.key{
+    -webkit-appearance:none; appearance:none;
+    font-family:var(--mono); font-size:12.5px; font-weight:500;
+    background:var(--panel); color:var(--ink); border:1px solid var(--rule);
+    border-radius:3px; padding:6px 12px; cursor:pointer; line-height:1.2;
+    transition:background .12s, border-color .12s;
+  }
+  button.key:hover{background:var(--panel-2); border-color:var(--ink-faint)}
+  button.key[aria-pressed="true"]{background:var(--build-bg); border-color:var(--build); color:var(--build)}
+  button.key.warn[aria-pressed="true"]{background:var(--burn-bg); border-color:var(--burn); color:var(--burn)}
+  button.key:focus-visible{outline:2px solid var(--build); outline-offset:2px}
+  button.key:disabled{opacity:.45; cursor:default}
+  input[type=range]{accent-color:var(--build); vertical-align:middle; max-width:190px; flex:1 1 120px}
+  .val{font-family:var(--mono); font-size:13px; font-variant-numeric:tabular-nums; color:var(--ink); min-width:3.5em}
+
+  .paper{
+    font-family:var(--mono); font-size:13px; line-height:1.75; overflow-x:auto;
+    background:var(--panel); border:1px solid var(--rule-soft); border-radius:3px;
+    padding:14px 16px; margin:0 0 4px; white-space:pre; color:var(--ink-soft);
+  }
+  .paper .lbl{color:var(--ink-faint)}
+  .paper b{color:var(--ink); font-weight:500}
+  .paper .hit{color:var(--build); font-weight:600}
+  .paper .miss{color:var(--burn)}
+  .tp{color:var(--build)} .tm{color:var(--burn)} .tz{color:var(--ink-faint)}
+
+  table.work{border-collapse:collapse; font-family:var(--mono); font-size:12.5px; width:100%}
+  table.work th{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-faint); border-bottom:1px solid var(--rule); padding:6px 12px 6px 0; white-space:nowrap;
+  }
+  table.work td{padding:5px 12px 5px 0; border-bottom:1px solid var(--rule-soft); white-space:nowrap}
+  table.work td.same{color:var(--build); font-weight:600}
+  table.work td.diff{color:var(--burn); font-weight:600}
+
+  .cells{display:grid; grid-template-columns:repeat(27,1fr); gap:2px; max-width:430px; margin:0 0 4px}
+  .cells i{display:block; aspect-ratio:1; border-radius:1px; background:var(--rule-soft)}
+  .cells i.on{background:var(--build)}
+  .cells i.off{background:var(--burn); opacity:.75}
+  .cells i.cur{outline:2px solid var(--ink); outline-offset:1px}
+  .legend{
+    display:flex; gap:16px; flex-wrap:wrap; font-family:var(--sans); font-size:12.5px;
+    color:var(--ink-faint); margin:10px 0 0;
+  }
+  .legend span{display:flex; gap:6px; align-items:center}
+  .legend em{width:10px; height:10px; border-radius:1px; display:block; font-style:normal}
+
+  .race{display:grid; gap:10px; margin:0 0 6px}
+  .lane{display:grid; grid-template-columns:11em 1fr auto; gap:12px; align-items:center}
+  .lane .who{font-family:var(--sans); font-size:13.5px; font-weight:600}
+  .lane .bar{height:16px; background:var(--rule-soft); border-radius:2px; overflow:hidden}
+  .lane .bar span{display:block; height:100%; width:0; transition:width .18s ease-out}
+  .lane.tab .bar span{background:var(--burn)}
+  .lane.run .bar span{background:var(--hold)}
+  .lane .amt{font-family:var(--mono); font-size:13px; font-variant-numeric:tabular-nums; min-width:6.5em; text-align:right}
+
+  .merge{display:block; width:100%; max-width:330px; height:auto; margin:0 0 6px}
+  .merge text{font-family:var(--mono); font-size:10px; fill:var(--ink-faint)}
+  .merge line{stroke:var(--ink-faint); stroke-width:1.2}
+  .merge line.multi{stroke:var(--burn); stroke-width:1.9}
+  .merge circle{fill:var(--panel); stroke:var(--rule)}
+  .merge circle.dead{fill:var(--burn-bg); stroke:var(--burn)}
+
+  .hists{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin:0 0 6px}
+  .hist h5{font-family:var(--sans); font-size:12.5px; font-weight:600; margin:0 0 6px; color:var(--ink-soft)}
+  .hist .plot{display:flex; align-items:flex-end; gap:1px; height:64px; border-bottom:1px solid var(--rule)}
+  .hist .plot b{flex:1; background:var(--hold); display:block}
+  .hist.good .plot b{background:var(--build)}
+  .hist.bad .plot b{background:var(--burn)}
+  .hist p{font-family:var(--mono); font-size:11px; color:var(--ink-faint); margin:6px 0 0; max-width:none}
+
+  .pinrow{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:14px 0 0}
+  .pinrow .said{font-family:var(--sans); font-size:12.5px; color:var(--ink-faint)}
+  .notes-open{
+    position:fixed; right:18px; bottom:18px; z-index:40;
+    font-family:var(--mono); font-size:12.5px; font-weight:500;
+    background:var(--panel); color:var(--ink); border:1px solid var(--rule);
+    border-radius:3px; padding:9px 14px; cursor:pointer; box-shadow:0 2px 14px rgba(0,0,0,.14);
+  }
+  .notes-open:hover{border-color:var(--ink-faint)}
+  .notes-open b{color:var(--build); font-variant-numeric:tabular-nums}
+  .notes{
+    position:fixed; right:18px; bottom:66px; z-index:41; width:min(400px,calc(100vw - 36px));
+    max-height:min(60vh,520px); display:none; flex-direction:column;
+    background:var(--panel); border:1px solid var(--rule); border-radius:4px;
+    box-shadow:0 8px 34px rgba(0,0,0,.22);
+  }
+  .notes.open{display:flex}
+  .notes .nh{
+    padding:12px 14px; border-bottom:1px solid var(--rule);
+    display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+  }
+  .notes .nh b{font-family:var(--sans); font-size:13.5px; font-weight:600}
+  .notes .nh span{font-family:var(--sans); font-size:12px; color:var(--ink-faint)}
+  .notes ol{list-style:none; margin:0; padding:6px 0; overflow-y:auto; flex:1}
+  .notes li{
+    display:grid; grid-template-columns:1fr auto; gap:10px; align-items:start;
+    padding:9px 14px; border-bottom:1px solid var(--rule-soft);
+  }
+  .notes li:last-child{border-bottom:0}
+  .notes li .txt{font-family:var(--mono); font-size:12px; line-height:1.5; color:var(--ink-soft); word-break:break-word}
+  .notes li .txt em{display:block; font-style:normal; font-family:var(--sans); font-size:11px;
+    letter-spacing:.07em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:3px}
+  .notes li button{
+    font-family:var(--mono); font-size:13px; background:none; border:0; color:var(--ink-faint);
+    cursor:pointer; padding:0 2px; line-height:1;
+  }
+  .notes li button:hover{color:var(--burn)}
+  .notes .empty{padding:22px 14px; font-family:var(--sans); font-size:13px; color:var(--ink-faint); text-align:center}
+  .notes .nf{padding:10px 14px; border-top:1px solid var(--rule); display:flex; justify-content:space-between; gap:10px}
+
+  @media (max-width:560px){
+    body{font-size:17px}
+    .wrap{padding:0 18px 90px}
+    .factor{grid-template-columns:26px 1fr; gap:12px}
+    .row{grid-template-columns:1fr; gap:3px}
+    .cells{gap:1px}
+    .lane{grid-template-columns:1fr; gap:4px}
+    .lane .amt{text-align:left}
+    .bench-body{padding:14px}
+    .paper{font-size:11.5px}
+  }
+  @media (prefers-reduced-motion:reduce){ .lane .bar span{transition:none} }
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">tryte-vm · nine prediction sets · registered before measured</p>
+  <h1>The Tick Argument</h1>
+  <p class="standfirst">
+    Can a count of computation be money? Nine pre-registered experiments on a
+    ternary machine, the constraint they end at, and the one way around it.
+  </p>
+  <div class="meta">
+    <span><!--g:art-predictions--><b>169</b><!--/g--> predictions</span>
+    <span><!--g:art-held--><b>141</b><!--/g--> held</span>
+    <span><!--g:art-failed--><b>28</b><!--/g--> failed</span>
+    <span><b><!--g:checks-->1,411<!--/g--></b> checks passing</span>
+    <span><b><!--g:suites-->47<!--/g--></b> suites</span>
+  </div>
+</header>
+
+<section>
+  <h2>The claim, as posed</h2>
+  <p class="lede">
+    One tick is one unit of compute. Price a program by counting its ticks, and you
+    have a currency whose unit means the same thing on every machine that ever runs it.
+  </p>
+  <p>
+    The appeal is real and it is easy to underrate. Every cost system in production
+    prices work <em>extrinsically</em> — proof-of-work prices energy burnt, gas prices
+    instructions executed — so the cost is not recoverable from the artifact and has to
+    be attested by someone you trust. A tick is recoverable. Anyone holding the object
+    recomputes the price by hand. There is nothing to attest and no meter to corrupt.
+  </p>
+  <p>
+    The second claim was stronger: that a tick count could serve as an <strong>implied
+    receipt</strong>. If the only way to learn the number is to pay for it, then holding
+    the number <em>is</em> the proof of payment, and physics does the enforcing —
+    nobody can perform unbounded steps per second.
+  </p>
+  <p>
+    The first claim survived. The second was killed three separate times before it was
+    rebuilt into something narrower and true — and then a reframing showed that the wall
+    it ends at is a wall around receipts, not around minting.
+  </p>
+
+  <div class="finding keep">
+    <p class="tag"><span class="chip held">how to read this</span> the page does the arithmetic</p>
+    <p>
+      The figures below are not transcribed. Where you see a <strong>bench</strong>, the
+      page is running the same construction the repository measured — the same
+      permutation, the same 27-entry round table, the same seed — and computing the
+      number in front of you from inputs you choose.
+    </p>
+    <p>
+      Work an example, and <strong>pin it</strong>. Pinned notes collect in the margin,
+      stay on your device between visits, and erase individually. Nothing is sent
+      anywhere.
+    </p>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <h2>What died, and how</h2>
+  <p class="lede">
+    A cost anyone can compute without doing the work cannot prove the work was done.
+    That is nearly a tautology — and it took three measurements to discover that every
+    version of the tick we had fell to it.
+  </p>
+
+  <div class="finding kill">
+    <p class="tag"><span class="chip failed">AB4 failed</span> erasure is in the text</p>
+    <p>
+      Predicted the thermodynamic cost of a program would be unrecoverable from its
+      source. <strong>Six of eight programs charge exactly their text bound.</strong>
+      The largest gap is 1.21×. The operand-dependent instructions simply don't appear
+      in them, so the worst case <em>is</em> the actual case.
+    </p>
+  </div>
+
+  <div class="finding kill">
+    <p class="tag"><span class="chip failed">AC2 held — and that was worse</span> two runs price two hundred</p>
+    <p>
+      <code class="mono">countdown</code>'s step count is exactly <span class="mono">5N + 3</span>.
+      Fit that from two executions and it predicts <strong>200 of 200 inputs with zero
+      error</strong>. Two runs price two hundred, and the ratio only improves with the
+      sweep. Data-dependence alone establishes nothing.
+    </p>
+  </div>
+
+  <div class="finding kill">
+    <p class="tag"><span class="chip held">AD2 held</span> the patient predictor</p>
+    <p>
+      Even a loop bound the program has to <em>discover</em> isn't enough. A memoised
+      traversal resolves every one of 729 accumulator states in <strong>728
+      evaluations</strong>, against 3,777 to answer the same questions by re-running.
+      <strong>It breaks even at 70 queries</strong> and every answer after that is free.
+    </p>
+    <p>
+      A predictor is not obliged to be clever. It is allowed to be patient.
+    </p>
+  </div>
+
+  <div class="bench" id="b-race">
+    <div class="bench-head">
+      <span class="k">bench 01</span>
+      <h4>Build the attacker's table, one state at a time.</h4>
+    </div>
+    <div class="bench-body">
+      <div class="ctl">
+        <button class="key" data-ask="1">price one</button>
+        <button class="key" data-ask="25">price 25</button>
+        <button class="key" data-ask="729">price all</button>
+        <button class="key" data-reset>empty the table</button>
+        <span class="val" data-q>0 of 729 priced</span>
+      </div>
+      <p class="paper" data-trace></p>
+      <div class="race">
+        <div class="lane run">
+          <span class="who">Re-run each time</span>
+          <span class="bar"><span data-bar-run></span></span>
+          <span class="amt" data-amt-run>0</span>
+        </div>
+        <div class="lane tab">
+          <span class="who">Fill a table once</span>
+          <span class="bar"><span data-bar-tab></span></span>
+          <span class="amt" data-amt-tab>0</span>
+        </div>
+      </div>
+      <p class="paper" data-verdict></p>
+      <div class="pinrow">
+        <button class="key" data-pin>pin this to notes</button>
+        <span class="said">The real map: low trit zero divides by three, otherwise 2<i>v</i> + low trit.</span>
+      </div>
+      <p class="bench-note">
+        Watch the <b>new work</b> line. The first states walk their whole trajectory; later
+        ones take a step or two and fall into something already priced. Nothing about the
+        attacker is clever — <b>it is only patient</b>, and patience is enough. This is
+        `AD2`'s mechanism running here, not its published totals replayed.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    There was one result pulling the other way, and it matters. Two programs differing
+    in <strong>a single immediate operand</strong> — identical instruction count,
+    identical opcode histogram under both a naive reader and the assembler's own parser
+    — cost <strong>4 steps and 730</strong>.
+  </p>
+
+  <blockquote class="pull kill">
+    A price computed from a program's text cannot track what running it costs. Across
+    that pair the two quantities are not even correlated.
+  </blockquote>
+
+  <p>
+    So the cost is <em>not</em> in the shape, and is <em>still</em> cheap to obtain. You
+    have to look at the operand values — and once you're evaluating operands, you have
+    begun executing.
+  </p>
+</section>
+
+<hr>
+
+<section>
+  <h2>The four factors</h2>
+  <p class="lede">
+    Rebuilding the receipt took four attempts, and each one found a factor the last had
+    missed. Only the first is about the size of the state space. The other three are
+    about the shape of the map.
+  </p>
+
+  <div class="factors">
+    <div class="factor solved">
+      <div class="n">1</div>
+      <div>
+        <h4>Reachable state count</h4>
+        <p>
+          The tabulator must index every state. Each live word of state multiplies its
+          bill by <span class="mono">729</span> — 531,441 → 387 million → 282 billion.
+          Three words puts it out of reach. Cheap to buy: 28 instructions.
+        </p>
+      </div>
+    </div>
+    <div class="factor open">
+      <div class="n">2</div>
+      <div>
+        <h4>Cost per evaluation <span class="chip failed">overstated</span></h4>
+        <p>
+          A device-level solve costs <span class="mono">5,400</span> node-updates
+          against <span class="mono">1</span> for an instruction. But it charges
+          <em>both sides</em> — so the honest/attacker ratio gains
+          <strong>729× from state and exactly 1× from the work factor.</strong>
+          It buys absolute infeasibility, not asymmetry.
+        </p>
+      </div>
+    </div>
+    <div class="factor solved">
+      <div class="n">3</div>
+      <div>
+        <h4>Variance of the cost</h4>
+        <p>
+          A wide state whose cost never moves is security theatre.
+          <code class="mono">threeway</code> has <strong>five</strong> live words and a
+          spread of <strong>1.02×</strong>; a tabulator would guess 55 and be right.
+          <code class="mono">countdown</code> has <strong>one</strong> word and
+          <strong>25.38×</strong>. They are independent.
+        </p>
+      </div>
+    </div>
+    <div class="factor solved">
+      <div class="n">4</div>
+      <div>
+        <h4>Trajectory convergence</h4>
+        <p>
+          The binding constraint. A control space <strong>500,000× larger</strong> than
+          before still handed the tabulator <strong>3.20×</strong> reuse, because a
+          subtractive loop merges onto shared suffixes. A tabulator eats convergence,
+          not smallness.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <p>
+    A river system merges — many streams into one trunk, so a mapmaker surveys the trunk
+    once and gets every tributary free. That is what a tabulator does, and factor four
+    is what stops it.
+  </p>
+</section>
+
+<hr>
+
+<section>
+  <h2>The fourth factor, solved</h2>
+  <p class="lede">
+    And the answer had been sitting in the corpus for four sets, measured before anyone
+    knew what it was for.
+  </p>
+  <p>
+    Take an n-input function as shift-register feedback: state (x₁…xₙ), next
+    (x₂…xₙ, f(x₁…xₙ)). Over all 531,441 states of the two-input register:
+  </p>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr><th>Feedback function</th><th class="num">Max in-degree</th><th class="num">Unreachable</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Reversible</strong> — one of the 216</td>
+          <td class="num up">1</td>
+          <td class="num up">0</td>
+        </tr>
+        <tr>
+          <td>MIN — collapsing</td>
+          <td class="num down">729</td>
+          <td class="num down">484,785 &nbsp;<span style="color:var(--ink-faint);font-weight:400">91.22%</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    A reversible feedback makes the state map a <strong>bijection</strong> — separate
+    circular tracks, nothing ever joining anything. The tabulator's reuse is exactly
+    <span class="mono">1.00</span>. There is nothing to amortise.
+  </p>
+  <p>
+    A collapsing feedback is worse than a weak receipt. It leaves
+    <strong>91.22% of the state space with no predecessor at all</strong> — a space that
+    mostly does not exist.
+  </p>
+
+  <div class="bench" id="b-merge">
+    <div class="bench-head">
+      <span class="k">bench 02</span>
+      <h4>Draw the arrows. Count what lands where.</h4>
+    </div>
+    <div class="bench-body">
+      <div class="ctl">
+        <label>feedback</label>
+        <button class="key" data-fb="rev" aria-pressed="true">reversible</button>
+        <button class="key warn" data-fb="min" aria-pressed="false">MIN — collapsing</button>
+      </div>
+      <svg class="merge" viewBox="0 0 330 232" role="img" data-svg
+           aria-label="Every state on the left, where it goes on the right"></svg>
+      <p class="paper" data-verdict></p>
+      <div class="ctl" style="margin:16px 0 0">
+        <label>walk from</label>
+        <input type="range" min="0" max="8" value="0" data-a>
+        <label>and from</label>
+        <input type="range" min="0" max="8" value="5" data-b>
+      </div>
+      <p class="paper" data-trace></p>
+      <div class="pinrow">
+        <button class="key" data-pin>pin this to notes</button>
+        <span class="said">Nine states, so every arrow fits on the page.</span>
+      </div>
+      <p class="bench-note">
+        A river system merges — many streams into one trunk, so a mapmaker surveys the
+        trunk once and gets every tributary free. That is a tabulator. <b>Reversible
+        feedback is a system with no confluences at all:</b> exactly one arrow lands on
+        each state, so nothing is ever surveyed twice. Drawn here at nine states because
+        nine arrows are countable by eye; the <b class="mono">531,441</b> figures in the
+        table above are the same property counted at full width.
+      </p>
+    </div>
+  </div>
+
+  <div class="finding keep">
+    <p class="tag"><span class="chip held">AI3</span> one rung of a closed form</p>
+    <p>
+      An earlier set had swept all 19,683 two-input ternary tables one at a time and
+      found <strong>216</strong> that preserve information. That turns out to be
+      <span class="mono">6³</span>, one rung of
+      <span class="mono">(2/9)<sup>3ⁿ⁻¹</sup></span> — 22.22%, then 1.097%, then
+      0.000132%. The formula reproduces the sweep without sweeping.
+    </p>
+  </div>
+
+  <blockquote class="pull">
+    Those 216 tables are exactly the feedback functions that make the fourth factor come
+    out right — measured four sets before anyone knew what they were for.
+  </blockquote>
+</section>
+
+<hr>
+
+<section>
+  <h2>And it is cheaper than that</h2>
+  <p class="lede">
+    The last set asked whether <em>self-reference</em> is what buys layer-one security.
+    It isn't — and the property that does is free.
+  </p>
+  <p>
+    The strong version — a system closing over its own semantics — is provably
+    unavailable, and the Ladder's own Coda III establishes it three separate ways: two of
+    the three verdicts a normal-form function returns are <strong>not in the term</strong>.
+    A dictionary can define every word using only words it defines. What it cannot do is
+    tell you whether a definition bottoms out.
+  </p>
+  <p>
+    But carry the history operator in two words and the step is
+    <span class="mono">(sum, lag) → (sum + lag, sum + 1)</span>. Over all 531,441 states:
+    <strong>maximum in-degree 1, zero unreachable.</strong> The inverse is explicit —
+    <span class="mono">sum = second − 1</span>, <span class="mono">lag = first − sum</span>.
+  </p>
+
+  <blockquote class="pull">
+    Every component is <span class="mono">ADD</span>, which erases zero bits. A map built
+    of reversible parts is reversible. Not self-reference. Not even memory — a
+    <em>forgetful</em> two-word carry has the property just as fully.
+  </blockquote>
+
+  <p>
+    One set had to search 19,683 tables to find 216 that work. This needs nothing but
+    addition.
+  </p>
+
+  <h3>Two catches, both measured</h3>
+  <p>
+    <strong>The reversibility is in the state, not the output.</strong> The operator
+    collapses 81 histories onto 9 numbers, erasing 3.59 bits. The state map is a
+    bijection and the emitted value is a nine-to-one channel simultaneously — different
+    maps. Anyone reading only the number is reading an erasing channel.
+  </p>
+  <p>
+    <strong>And self-hosting does not inherit reversibility.</strong> The operator now
+    runs inside the machine, in 152 instructions — and erases
+    <strong>6.26 bits per instruction</strong>, because it calls <code class="mono">STORE</code>
+    every turn and <code class="mono">STORE</code> destroys 9.51 bits. A reversible
+    mathematics on an erasing machine still erases.
+  </p>
+
+  <blockquote class="pull kill">
+    The price of a trajectory graph that cannot converge is a state that cannot be
+    bounded. Every real machine erases for exactly that reason.
+  </blockquote>
+
+  <div class="bench" id="b-ladder">
+    <div class="bench-head">
+      <span class="k">bench 07</span>
+      <h4>Run it into the wall.</h4>
+    </div>
+    <div class="bench-body">
+      <div class="ctl">
+        <button class="key" data-more>next term</button>
+        <button class="key" data-more5>next five</button>
+        <button class="key" data-reset>back to the start</button>
+      </div>
+      <p class="paper" data-work></p>
+      <p class="paper" data-verdict></p>
+      <div class="pinrow">
+        <button class="key" data-pin>pin this to notes</button>
+        <span class="said">Each term is the sum of every earlier one, plus one.</span>
+      </div>
+      <p class="bench-note">
+        The rule never mentions the term before it, and yet Fibonacci comes out — which is
+        what makes the operator worth carrying in two words. Keep pressing.
+        <b>Nothing in the rule knows about 364</b>, so nothing warns you: the sum simply
+        stops fitting, and the machine reports a number smaller than the one before it.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    Which is why reversibility matters: it buys the non-convergence <em>without</em> the
+    unbounded state. It is the way out of the trade, not a way of paying it.
+  </p>
+</section>
+
+<hr>
+
+<section>
+  <h2>The language it wants, in three forms</h2>
+  <p class="lede">
+    Make every primitive reversible and factor four stops being something you engineer
+    per program. It becomes a property of the alphabet.
+  </p>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Form</th><th>Does</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td class="big">INC i</td><td>trit <em>i</em> += 1</td><td></td></tr>
+        <tr><td class="big">CINC a b</td><td>trit <em>b</em> += trit <em>a</em></td><td>affine</td></tr>
+        <tr><td class="big">C1INC a b</td><td>trit <em>b</em> += 1 if trit <em>a</em> = 1</td><td><strong>not</strong> affine — ternary's free nonlinearity</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Fifteen instances on a three-trit register. Every one is a permutation and
+    <strong>every one has order exactly 3</strong> — so a gate's inverse is that gate
+    applied twice, and <strong>the language needs no inverse instruction set at all.</strong>
+    Together they generate <span class="mono">A₂₇ = 27!/2</span>, matching a figure
+    recorded earlier from a separately written implementation.
+  </p>
+
+  <div class="bench" id="b-lang">
+    <div class="bench-head">
+      <span class="k">bench 06</span>
+      <h4>Write a program in it. Try to break the guarantee.</h4>
+    </div>
+    <div class="bench-body">
+      <div class="ctl" data-gates></div>
+      <div class="ctl">
+        <button class="key" data-undo>undo</button>
+        <button class="key" data-clear>clear</button>
+        <button class="key" data-rand>random program</button>
+      </div>
+      <p class="paper" data-prog></p>
+      <div class="ctl" style="margin:14px 0 10px">
+        <label>start state</label>
+        <input type="range" min="0" max="26" value="0" data-start>
+      </div>
+      <p class="paper" data-work></p>
+      <p class="paper" data-verdict></p>
+      <div class="pinrow">
+        <button class="key" data-pin>pin this to notes</button>
+        <span class="said">Fifteen gate instances on a three-trit register.</span>
+      </div>
+      <p class="bench-note">
+        Two things are worth trying to break. <b>The inverse is derived, not written:</b>
+        every gate has order three, so undoing a program is the same gates in reverse,
+        each done twice — the language has no inverse instruction and does not need one.
+        And <b>in-degree stays 1 whatever you write</b>, because a composition of
+        bijections is a bijection. There is no program that breaks it, which is exactly
+        why the guarantee belongs to the language rather than to a program.
+      </p>
+    </div>
+  </div>
+
+  <div class="finding keep">
+    <p class="tag"><span class="chip held">AK2</span> factor four, free for every program</p>
+    <p>
+      Four hundred random programs of random length. <strong>All 400 have in-degree
+      exactly 1 at every state.</strong> A composition of bijections is a bijection —
+      there is nothing a programmer can write that breaks it.
+    </p>
+  </div>
+
+  <p>
+    That matters because of <em>where</em> the guarantee lives. Earlier it was bought
+    by searching 19,683 tables for the 216 that work — a property of a chosen table.
+    Then by building a map deliberately out of <span class="mono">ADD</span> — a
+    property of a particular program. Choosing a reversible alphabet makes it a
+    property of the <em>language</em>, and only that version survives a programmer.
+  </p>
+
+  <h3>And here is the bill</h3>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Program</th><th class="num">Cost spread</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>the three-word program — the bar</td><td class="num up">513.8×</td><td></td></tr>
+        <tr><td><code class="mono">countdown</code></td><td class="num">25.38×</td><td></td></tr>
+        <tr><td><code class="mono">threeway</code></td><td class="num down">1.02×</td><td>called security theatre</td></tr>
+        <tr><td><strong>this language</strong></td><td class="num down">1.0000×</td><td>flatter than the theatre</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Every straight-line program costs exactly its own length in gates, for every input.
+    Nothing depends on the data — because branching on data means <em>testing</em> data,
+    and a test that discards its answer is erasing.
+  </p>
+
+  <blockquote class="pull kill">
+    Going fully reversible buys factor four and loses factor three.
+  </blockquote>
+
+  <h3>Which lands on a trilemma</h3>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr><th>Construction</th><th class="num">In-degree 1</th><th class="num">Cost varies</th><th class="num">Bounded state</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>this reversible language</td><td class="num up">yes</td><td class="num down">no</td><td class="num up">yes</td></tr>
+        <tr><td><code class="mono">hailstone</code>, three-word program</td><td class="num down">no</td><td class="num up">yes</td><td class="num up">yes</td></tr>
+        <tr><td>reversible feedback, history operator</td><td class="num up">yes</td><td class="num down">no</td><td class="num up">yes</td></tr>
+        <tr><td>reversible <em>and</em> data-dependent</td><td class="num up">yes</td><td class="num up">yes</td><td class="num down">no</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Six constructions across this corpus, <strong>none with all three.</strong> Every
+    pair is demonstrated; no triple is. That last row is Bennett's construction — a
+    reversible machine <em>can</em> branch on data, but only by keeping the record of
+    which way it went. The history then grows at least one trit per branch:
+    <strong>a thousand data-dependent steps costs 167 trytes that can never be
+    discarded.</strong>
+  </p>
+
+  <blockquote class="pull">
+    In-degree one, a cost that varies, bounded state. Pick two.
+  </blockquote>
+
+  <p>
+    This is a constraint, not a recipe — and that is the useful shape. A currency whose
+    unit is compute can have a tabulator-proof trajectory graph, or a cost worth
+    charging for, or a machine that fits in memory. <strong>Choosing which two is the
+    design decision, and it is now a measured one rather than a matter of taste.</strong>
+  </p>
+</section>
+
+<hr>
+
+<section>
+  <h2>The question that isn't the same question</h2>
+  <p class="lede">
+    Everything above asks whether the cost of <em>running</em> something can be a
+    receipt. A miner is not paid for running a program. It is paid for finding a rare
+    ticket — and checking a ticket takes one glance.
+  </p>
+
+  <blockquote class="pull">
+    The asymmetry is search against check, not run against run. A lottery ticket never
+    claims a step count, so the trilemma does not bind it.
+  </blockquote>
+
+  <p>
+    That is a genuine way past the wall rather than a way over it. In-degree, cost
+    variance and bounded state are the constraints on a receipt. A search puzzle has
+    different ones — and they run the other way.
+  </p>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Property</th><th>A receipt wants</th><th>A puzzle wants</th></tr></thead>
+      <tbody>
+        <tr><td>In-degree</td><td class="up">exactly 1 — nothing merges</td><td class="down">above 1 — it must compress</td></tr>
+        <tr><td>Invertibility</td><td class="up">reversible</td><td class="down">reversible is fatal</td></tr>
+        <tr><td>The 216 tables</td><td class="up">the answer</td><td class="down">the disqualifying case</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    So a candidate was built and measured exhaustively — all
+    <span class="mono">531,441</span> message-and-nonce pairs at six trits, against a
+    finite-population null model registered in advance, because over a bounded nonce
+    space the naive <span class="mono">3ᵏ</span> is simply wrong.
+  </p>
+
+  <div class="bench" id="b-digest">
+    <div class="bench-head">
+      <span class="k">bench 03</span>
+      <h4>Mine one block by hand.</h4>
+    </div>
+    <div class="bench-body">
+      <div class="ctl">
+        <label>message</label>
+        <input type="range" min="-364" max="364" value="-23" data-m>
+        <span class="val" data-mv></span>
+        <button class="key" data-roll>roll</button>
+      </div>
+      <div class="ctl">
+        <label>difficulty</label>
+        <input type="range" min="1" max="6" value="3" data-k>
+        <span class="val" data-kv></span>
+      </div>
+      <div class="ctl">
+        <button class="key" data-n="-1">− nonce</button>
+        <button class="key" data-n="1">+ nonce</button>
+        <button class="key" data-scan>scan to next hit</button>
+        <button class="key" data-nreset>nonce = 0</button>
+      </div>
+      <p class="paper" data-work></p>
+      <div class="pinrow">
+        <button class="key" data-pin>pin this to notes</button>
+        <span class="said">Every line is computed here, in your browser.</span>
+      </div>
+      <p class="bench-note">
+        Step the nonce until the top <b data-kn>three</b> trits of the digest come out
+        zero. That is the whole job a miner does. Verifying costs one pass down this
+        column; finding it costs however many passes the dice demand.
+      </p>
+    </div>
+  </div>
+
+  <h3>It broke three ways</h3>
+
+  <div class="finding kill">
+    <p class="tag"><span class="chip held">AN2 held</span> the tabulator, total this time</p>
+    <p>
+      Against a program, the memoising predictor broke even at 70 queries. Against a
+      puzzle it is not an approximation — a <strong>729-entry inverse table solves 729
+      of 729 messages at one lookup each</strong>, at every difficulty. A 205× speedup.
+    </p>
+    <p>
+      And the affine candidate needs <em>no table at all</em>: the nonce is a rotation
+      of a difference, so it is profitable on query one. <strong>Being affine is
+      strictly worse than being merely reversible, and the gap between them is exactly
+      the 729-entry table.</strong>
+    </p>
+  </div>
+
+  <div class="finding kill">
+    <p class="tag"><span class="chip held">AN3 held</span> irreversibility strands blocks</p>
+    <p>
+      The puzzle <em>needs</em> compression, or the table above wins. But compression
+      means some messages have no valid nonce anywhere — the target set sits outside the
+      function's image and a miner holding one grinds forever.
+    </p>
+    <p>
+      At maximum difficulty <strong>264 of 729 messages, 36.2%, cannot be mined at
+      all.</strong> Both reversible controls strand exactly zero — so the property that
+      guarantees every block is mineable is the same property that lets an attacker skip
+      the mining.
+    </p>
+  </div>
+
+  <div class="finding kill">
+    <p class="tag"><span class="chip failed">AN1 failed</span> and the failure caught the break</p>
+    <p>
+      The registered test was that difficulty should vary across messages the way a
+      lottery does. It came back <strong>too uniform</strong> — 0.729× and 0.674× where
+      chance says 1.0×. A lottery fairer than chance is not a lottery; it is a machine
+      with a lever.
+    </p>
+    <p>
+      The lever: the message entered through the same addition as the nonce, so it
+      <strong>cancelled out</strong>. Every message was one puzzle, shifted. One
+      729-entry index then solved every mineable message in <strong>1.54
+      lookups</strong> against a brute force of up to 305.
+    </p>
+  </div>
+
+  <div class="bench" id="b-column">
+    <div class="bench-head">
+      <span class="k">bench 04</span>
+      <h4>The column that has no business being constant.</h4>
+    </div>
+    <div class="bench-body">
+      <p class="bench-note" style="margin:0 0 14px">
+        Six <b>different</b> blocks, six <b>different</b> nonces, chosen only so that
+        message ⊕ nonce comes to the same value. Subtract the message back off each
+        digest and read the last column down.
+      </p>
+      <div class="ctl">
+        <label>message ⊕ nonce</label>
+        <input type="range" min="-364" max="364" value="-164" data-u>
+        <span class="val" data-uv></span>
+        <button class="key" data-roll>roll</button>
+      </div>
+      <div class="ctl">
+        <label>build</label>
+        <button class="key warn" data-b="ff" aria-pressed="true">message added to input</button>
+        <button class="key" data-b="dm" aria-pressed="false">message keys the mixer</button>
+      </div>
+      <div class="scroll">
+        <table class="work" data-tbl></table>
+      </div>
+      <p class="paper" data-verdict></p>
+      <div class="ctl" style="margin:14px 0 0">
+        <button class="key" data-all>check all 531,441 pairs</button>
+        <span class="val" data-allv></span>
+      </div>
+      <div class="pinrow">
+        <button class="key" data-pin>pin this to notes</button>
+        <span class="said">Three by hand, then the whole space at once.</span>
+      </div>
+      <p class="bench-note">
+        When the message is <b>added to the input</b>, it cancels: the digest is a
+        function of message ⊕ nonce alone, plus a shift. Every block is the same puzzle
+        wearing a different hat, and an index of 729 entries mines all of them. Switch to
+        <b>keying the mixer</b> and the column breaks up — which is the fix, and the
+        reason to believe the diagnosis.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    Then the confirmation, which is the part that makes it a finding rather than a
+    guess. Rebuild it so the message <em>steers</em> the mixer instead of being added to
+    its input, and the deviation vanishes — within 3% of chance at every difficulty, and
+    the cancellation is gone.
+  </p>
+
+  <blockquote class="pull">
+    A fix that removes the symptom is what confirms the cause. The prediction that
+    failed is the one that detected the break.
+  </blockquote>
+
+  <div class="bench" id="b-grid">
+    <div class="bench-head">
+      <span class="k">bench 05</span>
+      <h4>All 729 blocks at once — and the two views that decide it.</h4>
+    </div>
+    <div class="bench-body">
+      <div class="ctl">
+        <label>difficulty</label>
+        <input type="range" min="1" max="6" value="6" data-k>
+        <span class="val" data-kv></span>
+      </div>
+      <div class="ctl">
+        <label>view</label>
+        <button class="key" data-view="map" aria-pressed="true">which blocks can be mined</button>
+        <button class="key" data-view="hist" aria-pressed="false">how many nonces each has</button>
+      </div>
+      <div data-pane="map">
+        <div class="ctl">
+          <label>nonce room</label>
+          <button class="key warn" data-w="narrow" aria-pressed="true">729</button>
+          <button class="key" data-w="wide" aria-pressed="false">531,441</button>
+          <span class="val" data-wbusy></span>
+        </div>
+        <div class="cells" data-cells></div>
+        <div class="legend">
+          <span><em style="background:var(--build)"></em> mineable</span>
+          <span><em style="background:var(--burn);opacity:.75"></em> no nonce exists — grind forever</span>
+        </div>
+        <p class="paper" data-verdict></p>
+      </div>
+      <div data-pane="hist" hidden>
+        <div class="hists" data-hists></div>
+        <p class="paper" data-hverdict></p>
+      </div>
+      <div class="pinrow">
+        <button class="key" data-pin>pin this to notes</button>
+        <span class="said">729 cells, one per block, recomputed on every change.</span>
+      </div>
+      <p class="bench-note">
+        The second view is the test <b>`D4` could not supply.</b> A collision count cannot
+        tell a hash from a relabelling, because truncating any permutation is perfectly
+        uniform. But count the winning nonces <b>per block</b> and a relabelling gives
+        itself away absolutely: every block gets the identical number, so the spread is a
+        single spike at zero width. A real puzzle scatters.
+      </p>
+    </div>
+  </div>
+
+  <h3>Three design rules, measured rather than borrowed</h3>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Rule</th><th>What was measured</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>The message must steer the machinery, not be added to the input</strong></td>
+          <td>Otherwise it commutes out and every block is one puzzle. Verified on all 531,441 pairs.</td>
+        </tr>
+        <tr>
+          <td><strong>Irreversibility is paid for in stranded blocks</strong></td>
+          <td>36.2% unmineable at maximum difficulty — and the number survives a full rebuild, so it is about compression, not this construction.</td>
+        </tr>
+        <tr>
+          <td><strong>The cure is more nonce room, not a better function</strong></td>
+          <td>A wider nonce drove stranding to <span class="mono">0</span> <em>and</em> corrected the search cost from 311.2 to 735.0 — within 0.8% of the 729 a proper lottery owes.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    That last rule is what Bitcoin's extraNonce field is for. Here it arrives as a
+    measurement rather than a citation — and the stranding and the shortcut turned out
+    to be <em>one object</em>: the mixer's image is 465 of 729 digests, and
+    729 − 465 = <strong>264</strong> is exactly the stranded count. Nothing predicted
+    the two numbers would be the same number.
+  </p>
+
+  <blockquote class="pull">
+    Mint-by-search is live where mint-by-receipt is dead. What is still missing is a way
+    to <em>certify</em> a mixer rather than merely fail to break it.
+  </blockquote>
+
+  <p>
+    The usable candidate set was already counted, from the other direction, before
+    anyone asked: <strong>19,458 of 19,683</strong> two-input ternary operations — every
+    one that is neither affine nor reversible. One refutation test now exists and it
+    works. It is one test at 729 states, and a toy is not evidence against an adversary.
+  </p>
+</section>
+
+<hr>
+
+<section>
+  <h2>Where it actually stands</h2>
+  <p class="lede">
+    Four primitives make a layer one. One is nearly built, one is genuinely novel, and
+    two are not close.
+  </p>
+
+  <div class="status">
+    <div class="row">
+      <span class="name">🗺️ Distributed ledger</span>
+      <span class="said">
+        Closest. Content-addressed, append-only, tamper-evident — and a live reorg was
+        handled correctly mid-session. <strong>But the machine has no clock</strong>: every
+        state the solver returns is a fixed point, so ordering must be imported from
+        outside.
+      </span>
+    </div>
+    <div class="row">
+      <span class="name">🤝 Consensus</span>
+      <span class="said">
+        The novel part. <strong>Eleven opcodes erase nothing</strong> and belong to a
+        cache anyone can recompute; nine destroy something and need agreement. The
+        consensus surface shrinks to the erasures, measured per instruction.
+        <strong>Sybil resistance is still absent</strong>, and no cost function provides it.
+      </span>
+    </div>
+    <div class="row">
+      <span class="name">⛓️ Hashing</span>
+      <span class="said">
+        Raw material yes — ternary hands you nonlinearity for free where binary has none.
+        Collision resistance no. The obvious test was <em>disqualified</em>: truncating
+        any permutation is uniform, so a map proven to repeat every six calls scored 0.96×
+        ideal. <strong>A refutation test now exists</strong> — hit-count variance, which
+        reads exactly zero for a relabelling and caught a real break — but it refutes
+        rather than certifies, and that gap is still open.
+      </span>
+    </div>
+    <div class="row">
+      <span class="name">🗝️ Keys</span>
+      <span class="said">
+        Nothing — and the tempting construction is ruled out by our own tooling. Group
+        membership is solved efficiently by the same stabiliser chain that made these
+        results measurable. <strong>We built the attacker before the puzzle.</strong>
+      </span>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <h2>The spec, corrected</h2>
+  <p class="lede">
+    In priority order, with two items demoted from where they started.
+  </p>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr><th class="num">#</th><th>Do this</th><th>Because</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="num">1</td>
+          <td class="big">Make the cost vary</td>
+          <td>Non-negotiable and first. Everything else is worthless without it — 513.8× achieved, against 1.02× for a five-word program.</td>
+        </tr>
+        <tr>
+          <td class="num">2</td>
+          <td class="big">Reversible feedback</td>
+          <td>In-degree 1 everywhere, so nothing merges. Free — it only has to be built out of addition.</td>
+        </tr>
+        <tr>
+          <td class="num">3</td>
+          <td class="big">Widen the live state</td>
+          <td>×729 per word, and it costs the honest party nothing. Three words in 28 instructions.</td>
+        </tr>
+        <tr>
+          <td class="num">4</td>
+          <td class="big">Device-level tick</td>
+          <td>Demoted. Buys absolute cost, <strong>not</strong> asymmetry — it charges both sides equally and cancels from the ratio.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    And the honest framing of what a tick is: <strong>a very good unit of account and a
+    very good gas metric.</strong> Deterministic, recomputable, identical on every
+    machine. It is not, and cannot be made into, a proof that anyone paid — unless the
+    four factors above are all satisfied at once, which is a thing you engineer rather
+    than a thing you hope for.
+  </p>
+  <p>
+    That is the spec for <em>pricing</em>. <strong>Issuance is a separate problem with a
+    separate answer</strong>, and the four factors are not its constraints: a puzzle is
+    scored on whether a shortcut exists, not on whether a step count is recoverable.
+    Which is why the reframing above is not a refinement of this list. It replaces it.
+  </p>
+</section>
+
+<hr>
+
+<section>
+  <h2>What the failures did</h2>
+  <p>
+    <!--g:art-failed-tally-->Twenty-eight of 169 predictions failed<!--/g-->, and they did most of the work. The
+    conclusions that matter are, without exception, the ones that arrived by a
+    prediction being wrong.
+  </p>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr><th>Prediction</th><th>What it produced instead</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="chip failed">AB5</span> reversibility buys universality</td><td>It doesn't — and the orders land on a closed form nobody predicted.</td></tr>
+        <tr><td><span class="chip failed">AC1</span> most programs vary with input</td><td>Five of eight cost a <em>constant</em>. Cost-invariance is the norm.</td></tr>
+        <tr><td><span class="chip failed">AG1</span> no program is wide enough</td><td>One is — and it exposed factor three, cost variance.</td></tr>
+        <tr><td><span class="chip failed">AH2</span> width kills convergence</td><td>It doesn't — and that named factor four, which turned out to be the binding one.</td></tr>
+        <tr><td><span class="chip failed">AH4</span> the margin exceeds 10⁸</td><td>3.37 × 10⁵. Real, and three orders short of the claim.</td></tr>
+        <tr><td><span class="chip failed">AN1</span> the puzzle's difficulty varies like a lottery</td><td>It was <em>too uniform</em> — and chasing that found the shortcut nobody had predicted.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    <!--g:art-instrument-bites-->Seventeen instrument failures<!--/g--> were caught along the way, and one transcription slip landed inside a registration where it could not be corrected — a 28-digit number typed with three zeros missing. It cost nothing only because the tool computes the factorial rather than trusting the digits beside it. The most instructive pointed
+    <em>toward</em> the hypothesis: a tabulator reported as 300× worse than brute force,
+    which would have made the receipt look sound. It was a guard counted as work —
+    the same mechanism that had already bitten once, in the same thread, after being
+    written down.
+  </p>
+
+  <blockquote class="pull kill">
+    An instrument erring in the direction you are hoping for will never be caught by
+    finding the answer surprising, because it is not surprising.
+  </blockquote>
+
+  <p>
+    The seventeenth is the mirror image, and it says what the remedy has to be. An
+    attack tool shifted every nonce it produced by a constant and reported solving
+    <strong>0 of 729</strong> — which reads perfectly well on its own, since a
+    structured puzzle resisting a structural attack is a sensible-sounding result.
+    Nothing about it looked wrong. What caught it was that a <em>different</em>
+    measurement had already counted 465 of those same messages as solvable.
+  </p>
+
+  <blockquote class="pull kill">
+    Neither a plausible number nor a careful reading would have found it. Two
+    measurements of one quantity, forced to agree, did.
+  </blockquote>
+</section>
+
+<p class="foot">
+  Every figure here is recomputed by a test in <code>tryte-vm</code>. Predictions were
+  registered in their own commit before any measurement, results in a second commit,
+  and both hashes are pinned in the manifest and checked to be reachable from the
+  branch. Failed predictions are kept, with a test asserting they still fail.
+</p>
+<p class="foot">
+  The benches run a second implementation of that same construction, written for the
+  browser and checked against the audit over all <code>531,441</code> message-and-nonce
+  pairs before it was embedded — because a page that computes its own numbers wrongly is
+  worse than one that quotes right ones. Pinned notes live in this browser only.
+</p>
+
+<button class="notes-open" data-notes-open hidden>notes <b data-notes-count>0</b></button>
+<aside class="notes" data-notes hidden aria-label="Pinned notes">
+  <div class="nh">
+    <b>Your margin</b>
+    <span>kept on this device</span>
+  </div>
+  <ol data-notes-list></ol>
+  <div class="nf">
+    <button class="key" data-notes-clear>erase all</button>
+    <button class="key" data-notes-close>close</button>
+  </div>
+</aside>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================================
+     The construction, as the repository built it. This is a second implementation
+     of tools/puzzle-audit.js, checked against it over all 531,441 message-and-nonce
+     pairs before it was embedded -- same permutation, same 27-entry round table,
+     same LCG seed. Nothing here is transcribed from the audit's output.
+
+     Everything is in INDEX space, 0..728. index = value + 364, and because
+     3^0 + ... + 3^5 = 364, an index's base-3 digits are exactly (balanced trit + 1).
+     So a digit rotation IS a trit rotation and no conversion is ever needed.
+     ============================================================================ */
+
+  var N = 729, W = 6;
+
+  function trits(i) { var t = new Array(W), k;
+    for (k = 0; k < W; k++) t[k] = (Math.floor(i / Math.pow(3, k)) % 3) - 1; return t; }
+
+  var ADD27 = new Int16Array(729), SUB27 = new Int16Array(729);
+  (function () {
+    for (var a = 0; a < 27; a++) for (var b = 0; b < 27; b++) {
+      var s = 0, d = 0;
+      for (var k = 0; k < 3; k++) {
+        var p = Math.pow(3, k);
+        var x = (Math.floor(a / p) % 3) - 1, y = (Math.floor(b / p) % 3) - 1;
+        s += ((x + y + 4) % 3) * p;
+        d += ((x - y + 4) % 3) * p;
+      }
+      ADD27[a * 27 + b] = s; SUB27[a * 27 + b] = d;
+    }
+  })();
+  function tadd(a, b) { return ADD27[(a % 27) * 27 + (b % 27)] + 27 * ADD27[((a / 27) | 0) * 27 + ((b / 27) | 0)]; }
+  function tsub(a, b) { return SUB27[(a % 27) * 27 + (b % 27)] + 27 * SUB27[((a / 27) | 0) * 27 + ((b / 27) | 0)]; }
+  function rot(k, i) { var t = trits(i), r = 0, j;
+    for (j = 0; j < W; j++) r += (t[(j + k) % W] + 1) * Math.pow(3, j); return r; }
+
+  var S27 = (function (seed) {
+    var s = seed, A = [], i, j, t;
+    function rnd() { s = (Math.imul(s, 1103515245) + 12345) & 0x7fffffff; return s / 0x7fffffff; }
+    for (i = 0; i < 27; i++) A.push(i);
+    for (i = 26; i > 0; i--) { j = Math.floor(rnd() * (i + 1)); t = A[i]; A[i] = A[j]; A[j] = t; }
+    return A;
+  })(98765);
+
+  var ROUNDS = 8;
+  function lo(i) { return i % 27; }
+  function hi(i) { return (i / 27) | 0; }
+  function splitRound(i) { return hi(i) + 27 * ((lo(i) + S27[hi(i)]) % 27); }
+
+  var PT = new Int16Array(N), PINV = new Int16Array(N);
+  (function () { for (var i = 0; i < N; i++) { var s = i, r;
+    for (r = 0; r < ROUNDS; r++) s = splitRound(s); PT[i] = s; }
+    for (i = 0; i < N; i++) PINV[PT[i]] = i; })();
+
+  var KAPPA = 91;
+  function Amap(i) { return tadd(rot(2, i), i); }
+
+  var CAND = {
+    feedforward: function (m, n) { return tsub(PT[tadd(m, n)], n); },
+    bijective: function (m, n) { return PT[tadd(m, n)]; },
+    affine: function (m, n) { return tadd(tsub(Amap(tadd(m, n)), n), KAPPA); },
+    keyed: function (m, n) {
+      var kl = lo(m), kh = hi(m), s = n, r, K;
+      for (r = 0; r < ROUNDS; r++) {
+        K = (kl * (r + 1) + kh * (r * r + 1)) % 27;
+        s = hi(s) + 27 * ((lo(s) + S27[(hi(s) + K) % 27]) % 27);
+      }
+      return tsub(s, n);
+    }
+  };
+  function gShift(u) { return tsub(PT[u], u); }
+
+  var MASK = {};
+  function targetMask(k) {
+    if (MASK[k]) return MASK[k];
+    var mask = new Uint8Array(N), d, t, i, ok;
+    for (d = 0; d < N; d++) { t = trits(d); ok = 1;
+      for (i = W - k; i < W; i++) if (t[i] !== 0) ok = 0; mask[d] = ok; }
+    MASK[k] = mask; return mask;
+  }
+
+  var TABLES = {};
+  function digestTable(name) {
+    if (TABLES[name]) return TABLES[name];
+    var h = CAND[name], t = new Int16Array(N * N), m, n;
+    for (m = 0; m < N; m++) for (n = 0; n < N; n++) t[m * N + n] = h(m, n);
+    TABLES[name] = t; return t;
+  }
+  function hitsOf(name, k) {
+    var tbl = digestTable(name), mask = targetMask(k), out = new Int32Array(N), m, n, c, base;
+    for (m = 0; m < N; m++) { base = m * N; c = 0;
+      for (n = 0; n < N; n++) if (mask[tbl[base + n]]) c++; out[m] = c; }
+    return out;
+  }
+
+  /* ---- rendering helpers ---------------------------------------------------- */
+  var SYM = ['-', '0', '+'], CLS = ['tm', 'tz', 'tp'];
+  function tstr(i) {
+    var t = trits(i), out = '', k;
+    for (k = W - 1; k >= 0; k--) out += '<span class="' + CLS[t[k] + 1] + '">' + SYM[t[k] + 1] + '</span>' + (k ? ' ' : '');
+    return out;
+  }
+  // A tryte in this project is -364..+364; an index is 0..728. Display the VALUE, so
+  // that zero reads as six zero trits rather than six minus signs.
+  function V(i) { return i - 364; }
+  function pad(s, n) { s = String(s); while (s.length < n) s = ' ' + s; return s; }
+  function rpad(s, n) { s = String(s); while (s.length < n) s += ' '; return s; }
+  var WORDS = ['', 'one', 'two', 'three', 'four', 'five', 'six'];
+  function fmt(x, d) { return x.toFixed(d === undefined ? 1 : d); }
+  function comma(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  /* ---- notes ---------------------------------------------------------------- */
+  var KEY = 'tick-argument-notes-v1';
+  function readNotes() {
+    try { var v = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(v) ? v : []; }
+    catch (e) { return []; }
+  }
+  function writeNotes(a) { try { localStorage.setItem(KEY, JSON.stringify(a.slice(-60))); } catch (e) { } }
+  var notes = readNotes(), seq = 0;
+
+  var elOpen = document.querySelector('[data-notes-open]'),
+    elPanel = document.querySelector('[data-notes]'),
+    elList = document.querySelector('[data-notes-list]'),
+    elCount = document.querySelector('[data-notes-count]');
+
+  function renderNotes() {
+    if (!elList) return;
+    elCount.textContent = notes.length;
+    if (elOpen) elOpen.hidden = false;
+    if (!notes.length) { elList.innerHTML = '<li class="empty">Nothing pinned yet. Work a bench, then press <b>pin this to notes</b>.</li>'; return; }
+    var html = '', i;
+    for (i = notes.length - 1; i >= 0; i--) {
+      html += '<li><span class="txt"><em>' + notes[i].b + '</em>' + notes[i].t +
+        '</span><button data-erase="' + notes[i].id + '" title="erase" aria-label="Erase this note">&#10005;</button></li>';
+    }
+    elList.innerHTML = html;
+  }
+  function pin(bench, text) {
+    notes.push({ id: 'n' + (Date.now() % 100000) + '-' + (seq++), b: bench, t: text });
+    writeNotes(notes); renderNotes();
+    if (elPanel) { elPanel.hidden = false; elPanel.classList.add('open'); }
+  }
+  if (elOpen) {
+    elOpen.addEventListener('click', function () {
+      elPanel.hidden = false;
+      elPanel.classList.toggle('open');
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-erase]');
+    if (b) { notes = notes.filter(function (n) { return n.id !== b.getAttribute('data-erase'); }); writeNotes(notes); renderNotes(); }
+    if (e.target.closest && e.target.closest('[data-notes-clear]')) { notes = []; writeNotes(notes); renderNotes(); }
+    if (e.target.closest && e.target.closest('[data-notes-close]')) { elPanel.classList.remove('open'); }
+  });
+  renderNotes();
+
+  function wire(root, sel, ev, fn) {
+    var els = root.querySelectorAll(sel), i;
+    for (i = 0; i < els.length; i++) els[i].addEventListener(ev, fn);
+  }
+  function press(root, sel, active) {
+    var els = root.querySelectorAll(sel), i;
+    for (i = 0; i < els.length; i++) els[i].setAttribute('aria-pressed', String(els[i] === active));
+  }
+
+  /* ==================== bench 01 — build the tabulator itself ================
+     The attacker's table, filled one state at a time on the real map: low trit
+     zero divides by three, otherwise 2v + low trit, stopping at 1. Checked
+     against tools/hailstone-audit.js over all 729 values.
+     ========================================================================== */
+  function bt(i) { var t = new Array(6), k; for (k = 0; k < 6; k++) t[k] = (Math.floor(i / Math.pow(3, k)) % 3) - 1; return t; }
+  function bi(t) { var i = 0, k; for (k = 0; k < 6; k++) i += (t[k] + 1) * Math.pow(3, k); return i; }
+  function wrapI(i) { return ((i % N) + N) % N; }
+  function shr1(i) { return bi(bt(i).slice(1).concat([0])); }
+  function stepI(i) { var lt = bt(i)[0]; return lt === 0 ? shr1(i) : wrapI(2 * V(i) + lt + 364); }
+
+  (function () {
+    var root = document.getElementById('b-race'); if (!root) return;
+    var UNRES = -1, CYCLE = -2, TERMINAL = 364 + 1;   // value 1
+    var memo, done, spentMemo, spentNaive, cursor, last;
+    var bRun = root.querySelector('[data-bar-run]'), bTab = root.querySelector('[data-bar-tab]'),
+      aRun = root.querySelector('[data-amt-run]'), aTab = root.querySelector('[data-amt-tab]'),
+      vQ = root.querySelector('[data-q]'), vV = root.querySelector('[data-verdict]'),
+      vT = root.querySelector('[data-trace]');
+
+    function reset() {
+      memo = new Int32Array(N); for (var i = 0; i < N; i++) memo[i] = UNRES;
+      done = 0; spentMemo = 0; spentNaive = 0; cursor = 0; last = null; draw();
+    }
+    function resolve(start) {
+      var path = [], seen = {}, s = start, base = 0, kind = 'terminated', reused = 0;
+      while (true) {
+        if (memo[s] !== UNRES) { base = memo[s] === CYCLE ? CYCLE : memo[s]; kind = 'reused'; reused = memo[s] === CYCLE ? 0 : memo[s]; break; }
+        if (seen[s] !== undefined) { kind = 'cycle'; break; }
+        seen[s] = path.length; path.push(s);
+        if (s === TERMINAL) { base = 0; break; }
+        s = stepI(s);
+      }
+      // Walk back from the tail, assigning each state its distance to a known
+      // answer. The tail is either the terminal (distance 0) or the first state
+      // already in the table (distance base + 1 for the step that reached it).
+      var i, d;
+      if (kind === 'cycle' || base === CYCLE) {
+        for (i = 0; i < path.length; i++) memo[path[i]] = CYCLE;
+      } else {
+        d = (path[path.length - 1] === TERMINAL) ? 0 : base + 1;
+        for (i = path.length - 1; i >= 0; i--) { memo[path[i]] = d; d++; }
+      }
+      spentMemo += path.length;
+      spentNaive += (memo[start] === CYCLE ? path.length + reused : memo[start]);
+      done = 0; for (i = 0; i < N; i++) if (memo[i] !== UNRES) done++;
+      last = { start: start, path: path, kind: kind, reused: reused, total: memo[start] };
+    }
+    function nextUnresolved() { var g = 0; while (g < N && memo[cursor] !== UNRES) { cursor = (cursor + 1) % N; g++; } return g < N ? cursor : -1; }
+    function run(k) { var i, s; for (i = 0; i < k; i++) { s = nextUnresolved(); if (s < 0) break; resolve(s); } draw(); }
+    function draw() {
+      var max = Math.max(spentNaive, spentMemo, 1);
+      bRun.style.width = (100 * spentNaive / max) + '%';
+      bTab.style.width = (100 * spentMemo / max) + '%';
+      aRun.textContent = comma(spentNaive); aTab.textContent = comma(spentMemo);
+      vQ.textContent = comma(done) + ' of 729 priced';
+      if (!last) { vT.innerHTML = '<span class="lbl">Press <b>price one</b>. Each state is walked to its answer; anything already in the table is read, not walked.</span>'; }
+      else {
+        var chain = '', i, cap = Math.min(last.path.length, 9);
+        for (i = 0; i < cap; i++) chain += V(last.path[i]) + (i < cap - 1 ? ' → ' : '');
+        if (last.path.length > cap) chain += ' → …';
+        vT.innerHTML = '<span class="lbl">' + rpad('priced', 10) + '</span><b>' + V(last.start) + '</b>\n' +
+          '<span class="lbl">' + rpad('walked', 10) + '</span>' + chain + '\n' +
+          '<span class="lbl">' + rpad('new work', 10) + '</span>' + last.path.length + ' step' + (last.path.length === 1 ? '' : 's') +
+          (last.kind === 'reused'
+            ? (last.reused > 0
+                ? '<span class="hit">   then fell into the table — ' + last.reused + ' more steps read, not walked</span>'
+                : '<span class="miss">   then joined a path already known never to finish</span>')
+            : (last.kind === 'cycle' ? '<span class="miss">   never terminates</span>' : '<span class="lbl">   reached the answer</span>'));
+      }
+      if (spentMemo === 0) vV.innerHTML = '<span class="lbl">Nothing spent yet.</span>';
+      else if (spentNaive <= spentMemo) vV.innerHTML = '<span class="lbl">still level — the table has not begun to pay yet</span>';
+      else vV.innerHTML = '<span class="lbl">the table has answered </span><b>' + comma(done) + '</b><span class="lbl"> states for </span><b>' + comma(spentMemo) +
+        '</b><span class="lbl"> evaluations. Re-running each from scratch would have cost </span><span class="miss">' + comma(spentNaive) +
+        '</span><span class="lbl"> — a factor of </span><span class="hit">' + fmt(spentNaive / spentMemo, 2) + '×</span><span class="lbl">, and it grows every time you press. ' +
+        'Scope: every state in the space, the ones that never finish included, which is a wider net than AD2 cast and a smaller ratio than it reports.</span>';
+    }
+    wire(root, '[data-ask]', 'click', function (e) { run(parseInt(e.currentTarget.getAttribute('data-ask'), 10)); });
+    wire(root, '[data-reset]', 'click', reset);
+    wire(root, '[data-pin]', 'click', function () {
+      pin('bench 01 · building the tabulator', done + ' of 729 states priced for ' + comma(spentMemo) +
+        ' evaluations; re-running would have cost ' + comma(spentNaive) +
+        (spentMemo ? ' (' + fmt(spentNaive / spentMemo, 2) + '× )' : ''));
+    });
+    reset();
+  })();
+
+  /* ========================= bench 02 — what merges ========================== */
+  (function () {
+    var root = document.getElementById('b-merge'); if (!root) return;
+    var svg = root.querySelector('[data-svg]'), vV = root.querySelector('[data-verdict]'), mode = 'rev';
+    function f(x1, x2) { return mode === 'rev' ? ((x1 + x2 + 4) % 3) - 1 : Math.min(x1, x2); }
+    function next(s) { var x1 = (s % 3) - 1, x2 = ((s / 3) | 0) - 1; return (x2 + 1) + 3 * (f(x1, x2) + 1); }
+    function lab(s) { var x1 = (s % 3) - 1, x2 = ((s / 3) | 0) - 1; return SYM[x1 + 1] + SYM[x2 + 1]; }
+    function draw() {
+      var deg = [0, 0, 0, 0, 0, 0, 0, 0, 0], s, h = '', y1, y2, tgt;
+      for (s = 0; s < 9; s++) deg[next(s)]++;
+      for (s = 0; s < 9; s++) {
+        tgt = next(s); y1 = 20 + s * 24; y2 = 20 + tgt * 24;
+        h += '<line class="' + (deg[tgt] > 1 ? 'multi' : '') + '" x1="52" y1="' + y1 + '" x2="238" y2="' + y2 + '"/>';
+      }
+      for (s = 0; s < 9; s++) {
+        y1 = 20 + s * 24;
+        h += '<text x="10" y="' + (y1 + 4) + '">' + lab(s) + '</text>';
+        h += '<circle cx="46" cy="' + y1 + '" r="5"/>';
+        h += '<circle class="' + (deg[s] === 0 ? 'dead' : '') + '" cx="244" cy="' + y1 + '" r="5"/>';
+        h += '<text x="258" y="' + (y1 + 4) + '">' + lab(s) + (deg[s] === 1 ? '' : '  ×' + deg[s]) + '</text>';
+      }
+      svg.innerHTML = h;
+      var max = Math.max.apply(null, deg), dead = deg.filter(function (d) { return d === 0; }).length;
+      vV.innerHTML = mode === 'rev'
+        ? '<span class="lbl">max in-degree </span><span class="hit">' + max + '</span><span class="lbl">   unreachable </span><span class="hit">' + dead + ' of 9</span><span class="lbl">   — one arrow into every state, so nothing is ever surveyed twice</span>'
+        : '<span class="lbl">max in-degree </span><span class="miss">' + max + '</span><span class="lbl">   unreachable </span><span class="miss">' + dead + ' of 9</span><span class="lbl">   — survey the confluence once and you have priced every stream feeding it</span>';
+    }
+    // Two walkers, so the merging is something you follow rather than infer.
+    var A0 = 0, B0 = 5;
+    var eA = root.querySelector('[data-a]'), eB = root.querySelector('[data-b]'),
+      vTrace = root.querySelector('[data-trace]');
+    function walk(s0, n) { var out = [s0], s = s0, i; for (i = 0; i < n; i++) { s = next(s); out.push(s); } return out; }
+    function drawTrace() {
+      if (!vTrace) return;
+      var a = walk(A0, 7), b = walk(B0, 7), i, meetAt = -1;
+      for (i = 0; i < a.length; i++) if (a[i] === b[i]) { meetAt = i; break; }
+      function chain(arr, other) {
+        var s = '', i2;
+        for (i2 = 0; i2 < arr.length; i2++) {
+          var joined = meetAt >= 0 && i2 >= meetAt;
+          s += '<span class="' + (joined ? 'miss' : '') + '">' + lab(arr[i2]) + '</span>' + (i2 < arr.length - 1 ? ' → ' : '');
+        }
+        return s;
+      }
+      vTrace.innerHTML =
+        '<span class="lbl">' + rpad('from ' + lab(A0), 11) + '</span>' + chain(a) + '\n' +
+        '<span class="lbl">' + rpad('from ' + lab(B0), 11) + '</span>' + chain(b) + '\n\n' +
+        (A0 === B0 ? '<span class="lbl">pick two different starts</span>'
+          : meetAt >= 0
+            ? '<span class="miss">the two paths join after ' + meetAt + ' step' + (meetAt === 1 ? '' : 's') +
+              '.</span><span class="lbl"> From there they are one path — survey it once and both starts are priced.</span>'
+            : '<span class="hit">these two never meet.</span><span class="lbl"> Every state has exactly one arrow in, so no walk can ever join another. There is nothing to survey twice.</span>');
+    }
+    var _draw = draw;
+    draw = function () { _draw(); drawTrace(); };
+    if (eA) eA.addEventListener('input', function () { A0 = +eA.value; draw(); });
+    if (eB) eB.addEventListener('input', function () { B0 = +eB.value; draw(); });
+    wire(root, '[data-fb]', 'click', function (e) {
+      mode = e.currentTarget.getAttribute('data-fb'); press(root, '[data-fb]', e.currentTarget); draw();
+    });
+    wire(root, '[data-pin]', 'click', function () {
+      var deg = [0, 0, 0, 0, 0, 0, 0, 0, 0], s, a = walk(A0, 7), b = walk(B0, 7), i, meetAt = -1;
+      for (s = 0; s < 9; s++) deg[next(s)]++;
+      for (i = 0; i < a.length; i++) if (a[i] === b[i]) { meetAt = i; break; }
+      pin('bench 02 · what merges', (mode === 'rev' ? 'reversible' : 'MIN') + ' feedback: max in-degree ' +
+        Math.max.apply(null, deg) + ', ' + deg.filter(function (d) { return d === 0; }).length +
+        ' of 9 unreachable; ' + lab(A0) + ' and ' + lab(B0) +
+        (meetAt >= 0 ? ' join after ' + meetAt + ' steps' : ' never join'));
+    });
+    draw();
+  })();
+
+  /* ======================== bench 03 — mine one block ======================== */
+  (function () {
+    var root = document.getElementById('b-digest'); if (!root) return;
+    var m = 341, n = 364, k = 3, tries = 1;      // nonce starts at value 0
+    var eM = root.querySelector('[data-m]'), eK = root.querySelector('[data-k]'),
+      vM = root.querySelector('[data-mv]'), vK = root.querySelector('[data-kv]'),
+      out = root.querySelector('[data-work]'), kn = root.querySelector('[data-kn]');
+    function line(label, i, tail) {
+      return '<span class="lbl">' + rpad(label, 16) + '</span>' + tstr(i) +
+        '<span class="lbl">   ' + pad(V(i), 4) + (tail || '') + '</span>\n';
+    }
+    function draw() {
+      var mask = targetMask(k), u = tadd(m, n), p = PT[u], d = tsub(p, n), hit = !!mask[d];
+      var t = trits(d), top = '', i;
+      for (i = W - 1; i >= W - k; i--) top += SYM[t[i] + 1] + (i > W - k ? ' ' : '');
+      vM.textContent = V(m); vK.textContent = k + (k === 1 ? ' trit' : ' trits');
+      if (kn) kn.textContent = WORDS[k];
+      out.innerHTML =
+        line('block   m', m) +
+        line('nonce   n', n) +
+        line('m (+) n', u) +
+        line('P(m (+) n)', p, '   8 rounds') +
+        '<span class="lbl">' + rpad('   (-) n', 16) + '</span>' + tstr(n) + '\n' +
+        '<span class="lbl">' + rpad('= digest', 16) + '</span><b>' + tstr(d) + '</b><span class="lbl">   ' + pad(V(d), 4) + '</span>\n' +
+        '\n<span class="lbl">' + rpad('top ' + k + ' trits', 16) + '</span>' + top + '   ' +
+        (hit ? '<span class="hit">ALL ZERO — this nonce wins</span>' : '<span class="miss">not all zero — try another</span>') +
+        '\n<span class="lbl">' + rpad('nonces tried', 16) + '</span>' + tries +
+        '<span class="lbl">   a fair lottery needs about ' + Math.pow(3, k) + '</span>';
+    }
+    function step(dn) { n = (n + dn + N) % N; tries++; draw(); }
+    wire(root, '[data-n]', 'click', function (e) { step(parseInt(e.currentTarget.getAttribute('data-n'), 10)); });
+    wire(root, '[data-nreset]', 'click', function () { n = 364; tries = 1; draw(); });
+    wire(root, '[data-scan]', 'click', function () {
+      var mask = targetMask(k), i;
+      for (i = 1; i <= N; i++) {
+        n = (n + 1) % N; tries++;
+        if (mask[tsub(PT[tadd(m, n)], n)]) break;
+      }
+      draw();
+    });
+    eM.addEventListener('input', function () { m = +eM.value + 364; n = 364; tries = 1; draw(); });
+    eK.addEventListener('input', function () { k = +eK.value; n = 364; tries = 1; draw(); });
+    wire(root, '[data-roll]', 'click', function () {
+      m = Math.floor(Math.random() * N); eM.value = V(m); n = 364; tries = 1; draw(); });
+    wire(root, '[data-pin]', 'click', function () {
+      var d = tsub(PT[tadd(m, n)], n);
+      pin('bench 03 · mine one block', 'block ' + V(m) + ', nonce ' + V(n) + ', k=' + k + ' → digest ' + V(d) +
+        (targetMask(k)[d] ? ' — WINS' : ' — no') + ' (' + tries + ' tried)');
+    });
+    draw();
+  })();
+
+  /* ===================== bench 04 — the constant column ====================== */
+  (function () {
+    var root = document.getElementById('b-column'); if (!root) return;
+    var u = 200, build = 'ff';
+    var eU = root.querySelector('[data-u]'), vU = root.querySelector('[data-uv]'),
+      tbl = root.querySelector('[data-tbl]'), vV = root.querySelector('[data-verdict]'),
+      vAll = root.querySelector('[data-allv]');
+    function rows() {
+      var out = [], i, m, n, d, h = build === 'ff' ? CAND.feedforward : CAND.keyed;
+      for (i = 0; i < 6; i++) {
+        m = (i * 121 + 37) % N; n = tsub(u, m); d = h(m, n);
+        out.push({ m: m, n: n, d: d, r: tsub(d, m) });
+      }
+      return out;
+    }
+    function draw() {
+      var rs = rows(), same = rs.every(function (r) { return r.r === rs[0].r; }), html, i;
+      vU.textContent = V(u);
+      html = '<thead><tr><th>block m</th><th>nonce n</th><th>m &#8853; n</th><th>digest</th><th>digest &#8854; m</th></tr></thead><tbody>';
+      for (i = 0; i < rs.length; i++) {
+        html += '<tr><td>' + pad(V(rs[i].m), 4) + '</td><td>' + pad(V(rs[i].n), 4) + '</td><td>' + pad(V(u), 4) +
+          '</td><td>' + pad(V(rs[i].d), 4) + '</td><td class="' + (same ? 'same' : 'diff') + '">' + pad(V(rs[i].r), 4) + '</td></tr>';
+      }
+      tbl.innerHTML = html + '</tbody>';
+      vV.innerHTML = same
+        ? '<span class="hit">Every row the same: ' + V(rs[0].r) + '.</span><span class="lbl"> Six unrelated blocks, and the digest minus the block is one number — a function of m ⊕ n alone. The block cancelled. It is not part of the puzzle at all.</span>'
+        : '<span class="lbl">Six different values. The block does not cancel: it is inside the mixer, so each one is a genuinely different puzzle.</span>';
+    }
+    wire(root, '[data-b]', 'click', function (e) {
+      build = e.currentTarget.getAttribute('data-b'); press(root, '[data-b]', e.currentTarget);
+      if (vAll) vAll.textContent = ''; draw();
+    });
+    eU.addEventListener('input', function () { u = +eU.value + 364; if (vAll) vAll.textContent = ''; draw(); });
+    wire(root, '[data-roll]', 'click', function () { u = Math.floor(Math.random() * N); eU.value = V(u); if (vAll) vAll.textContent = ''; draw(); });
+    wire(root, '[data-all]', 'click', function (e) {
+      var btn = e.currentTarget;
+      btn.disabled = true; vAll.textContent = 'checking…';
+      setTimeout(function () {
+        var h = build === 'ff' ? CAND.feedforward : CAND.keyed, ok = true, m, n, bad = 0;
+        for (m = 0; m < N && bad < 1; m++) for (n = 0; n < N; n++) {
+          if (tadd(gShift(tadd(m, n)), m) !== h(m, n)) { ok = false; bad = 1; break; }
+        }
+        vAll.innerHTML = ok
+          ? '<span class="tp">holds on all 531,441</span>'
+          : '<span class="tm">fails — no shift explains it</span>';
+        btn.disabled = false;
+      }, 20);
+    });
+    wire(root, '[data-pin]', 'click', function () {
+      var rs = rows(), same = rs.every(function (r) { return r.r === rs[0].r; });
+      pin('bench 04 · the constant column', (build === 'ff' ? 'message added to input' : 'message keys the mixer') +
+        ', m ⊕ n = ' + V(u) + ': digest ⊖ m is ' + (same ? 'CONSTANT at ' + V(rs[0].r) + ' across all six rows' : 'six different values'));
+    });
+    draw();
+  })();
+
+  /* ==================== bench 05 — all 729 blocks at once ==================== */
+  (function () {
+    var root = document.getElementById('b-grid'); if (!root) return;
+    var k = 6, view = 'map', room = 'narrow', wideCache = {};
+    var eK = root.querySelector('[data-k]'), vK = root.querySelector('[data-kv]'),
+      cells = root.querySelector('[data-cells]'), vV = root.querySelector('[data-verdict]'),
+      vBusy = root.querySelector('[data-wbusy]'), hists = root.querySelector('[data-hists]'),
+      vH = root.querySelector('[data-hverdict]'),
+      paneMap = root.querySelector('[data-pane="map"]'), paneHist = root.querySelector('[data-pane="hist"]');
+
+    (function () { var h = '', i; for (i = 0; i < N; i++) h += '<i></i>'; cells.innerHTML = h; })();
+    var cellEls = cells.querySelectorAll('i');
+
+    function wideMineable(kk) {
+      if (wideCache[kk]) return wideCache[kk];
+      var mask = targetMask(kk), out = new Uint8Array(N), m, a, b, s, found;
+      for (m = 0; m < N; m++) {
+        found = 0;
+        for (a = 0; a < N && !found; a++) {
+          s = tsub(PT[tadd(m, a)], a);
+          for (b = 0; b < N; b++) if (mask[tsub(PT[tadd(s, b)], b)]) { found = 1; break; }
+        }
+        out[m] = found;
+      }
+      wideCache[kk] = out; return out;
+    }
+    function drawMap() {
+      var mine, i, on = 0;
+      if (room === 'narrow') { var h = hitsOf('feedforward', k); mine = new Uint8Array(N);
+        for (i = 0; i < N; i++) mine[i] = h[i] > 0 ? 1 : 0; }
+      else mine = wideMineable(k);
+      for (i = 0; i < N; i++) { cellEls[i].className = mine[i] ? 'on' : 'off'; if (mine[i]) on++; }
+      var dead = N - on;
+      vV.innerHTML = dead === 0
+        ? '<span class="hit">every block mineable.</span><span class="lbl"> Nonce room ' + (room === 'narrow' ? '729' : '531,441') + ', difficulty ' + k + '.</span>'
+        : '<span class="miss">' + dead + ' of 729 blocks have no winning nonce anywhere</span><span class="lbl"> — ' +
+          fmt(100 * dead / N) + '% of miners holding one would grind forever. Nonce room ' + (room === 'narrow' ? '729' : '531,441') + '.</span>';
+    }
+    function drawHist() {
+      var names = ['feedforward', 'keyed', 'bijective', 'affine'];
+      var labels = { feedforward: 'message added in', keyed: 'message keys mixer', bijective: 'reversible', affine: 'affine' };
+      var all = {}, lo9 = Infinity, hi9 = -Infinity, i, j, name;
+      for (i = 0; i < names.length; i++) {
+        all[names[i]] = hitsOf(names[i], k);
+        for (j = 0; j < N; j++) { if (all[names[i]][j] < lo9) lo9 = all[names[i]][j]; if (all[names[i]][j] > hi9) hi9 = all[names[i]][j]; }
+      }
+      var BINS = 26, span = Math.max(1, hi9 - lo9), html = '';
+      for (i = 0; i < names.length; i++) {
+        name = names[i];
+        var bins = new Array(BINS), b, mx = 0, arr = all[name], mean = 0, sd = 0;
+        for (b = 0; b < BINS; b++) bins[b] = 0;
+        for (j = 0; j < N; j++) { b = Math.min(BINS - 1, Math.floor((arr[j] - lo9) / span * BINS)); bins[b]++; mean += arr[j]; }
+        mean /= N;
+        for (j = 0; j < N; j++) sd += (arr[j] - mean) * (arr[j] - mean);
+        sd = Math.sqrt(sd / N);
+        for (b = 0; b < BINS; b++) if (bins[b] > mx) mx = bins[b];
+        var cls = sd === 0 ? 'hist bad' : (name === 'feedforward' || name === 'keyed' ? 'hist good' : 'hist');
+        html += '<div class="' + cls + '"><h5>' + labels[name] + '</h5><div class="plot">';
+        for (b = 0; b < BINS; b++) html += '<b style="height:' + (mx ? Math.max(1, 100 * bins[b] / mx) : 0) + '%"></b>';
+        html += '</div><p>spread ' + (sd === 0 ? '0 — every block identical' : fmt(sd, 2)) + '</p></div>';
+      }
+      hists.innerHTML = html;
+      vH.innerHTML = '<span class="lbl">Same difficulty, same axis. The two reversible builds have a spread of exactly </span><span class="miss">zero</span><span class="lbl"> — every one of the 729 blocks gets the identical number of winning nonces, which no real lottery does. That is a relabelling giving itself away, and a collision count cannot see it.</span>';
+    }
+    function draw() {
+      vK.textContent = k + (k === 1 ? ' trit' : ' trits');
+      paneMap.hidden = view !== 'map'; paneHist.hidden = view !== 'hist';
+      if (view === 'map') drawMap(); else drawHist();
+    }
+    eK.addEventListener('input', function () { k = +eK.value; draw(); });
+    wire(root, '[data-view]', 'click', function (e) {
+      view = e.currentTarget.getAttribute('data-view'); press(root, '[data-view]', e.currentTarget); draw();
+    });
+    wire(root, '[data-w]', 'click', function (e) {
+      var el = e.currentTarget, want = el.getAttribute('data-w');
+      if (want === 'wide' && !wideCache[k]) {
+        vBusy.textContent = 'scanning 531,441 nonces…';
+        setTimeout(function () { room = want; press(root, '[data-w]', el); vBusy.textContent = ''; draw(); }, 20);
+      } else { room = want; press(root, '[data-w]', el); draw(); }
+    });
+    wire(root, '[data-pin]', 'click', function () {
+      if (view === 'map') {
+        var mine = room === 'narrow' ? hitsOf('feedforward', k) : wideMineable(k), i, on = 0;
+        for (i = 0; i < N; i++) if (mine[i] > 0) on++;
+        pin('bench 05 · all 729 blocks', 'k=' + k + ', nonce room ' + (room === 'narrow' ? '729' : '531,441') +
+          ': ' + (N - on) + ' of 729 blocks unmineable (' + fmt(100 * (N - on) / N) + '%)');
+      } else {
+        var f = hitsOf('feedforward', k), bj = hitsOf('bijective', k), mean = 0, sd = 0, j;
+        for (j = 0; j < N; j++) mean += f[j]; mean /= N;
+        for (j = 0; j < N; j++) sd += (f[j] - mean) * (f[j] - mean); sd = Math.sqrt(sd / N);
+        pin('bench 05 · spread of winning nonces', 'k=' + k + ': puzzle spread ' + fmt(sd, 2) +
+          ', reversible spread 0 (every block gets exactly ' + bj[0] + ')');
+      }
+    });
+    draw();
+  })();
+
+  /* ================= bench 06 — write in the reversible language =============
+     Three forms on a three-trit register, 27 states. Checked against
+     tools/minimal-audit.js: 15 gate instances, every one a permutation, every
+     one of order exactly 3 -- so a gate's inverse is that gate applied twice and
+     the language needs no inverse instruction at all.
+     ========================================================================== */
+  (function () {
+    var root = document.getElementById('b-lang'); if (!root) return;
+    var N27 = 27, prog = [], start = 0;
+    function tr3(s) { return [s % 3, Math.floor(s / 3) % 3, Math.floor(s / 9) % 3]; }
+    function st3(t) { return t[0] + 3 * t[1] + 9 * t[2]; }
+    function idp() { var a = [], i; for (i = 0; i < N27; i++) a.push(i); return a; }
+    function gINC(i) { return idp().map(function (s) { var t = tr3(s); t[i] = (t[i] + 1) % 3; return st3(t); }); }
+    function gCINC(a, b) { return idp().map(function (s) { var t = tr3(s); t[b] = (t[b] + t[a]) % 3; return st3(t); }); }
+    function gC1INC(a, b) { return idp().map(function (s) { var t = tr3(s); if (t[a] === 1) t[b] = (t[b] + 1) % 3; return st3(t); }); }
+    var GATES = (function () {
+      var g = [], i, a, b;
+      for (i = 0; i < 3; i++) g.push({ n: 'INC ' + i, g: gINC(i) });
+      for (a = 0; a < 3; a++) for (b = 0; b < 3; b++) if (a !== b) {
+        g.push({ n: 'CINC ' + a + ' ' + b, g: gCINC(a, b) });
+        g.push({ n: 'C1INC ' + a + ' ' + b, g: gC1INC(a, b) });
+      }
+      return g;
+    })();
+    function comp(g, h) { return h.map(function (x) { return g[x]; }); }
+    function progPerm(list) { var p = idp(), i; for (i = 0; i < list.length; i++) p = comp(GATES[list[i]].g, p); return p; }
+    function t3str(s) { var t = tr3(s); return t[2] + ' ' + t[1] + ' ' + t[0]; }
+
+    var pal = root.querySelector('[data-gates]'), vP = root.querySelector('[data-prog]'),
+      vW = root.querySelector('[data-work]'), eS = root.querySelector('[data-start]'),
+      vV = root.querySelector('[data-verdict]');
+    (function () {
+      var h = '', i;
+      for (i = 0; i < GATES.length; i++) h += '<button class="key" data-g="' + i + '">' + GATES[i].n + '</button>';
+      pal.innerHTML = h;
+    })();
+
+    function draw() {
+      var p = progPerm(prog), i, deg = new Array(N27), moved = 0;
+      for (i = 0; i < N27; i++) deg[i] = 0;
+      for (i = 0; i < N27; i++) { deg[p[i]]++; if (p[i] !== i) moved++; }
+      var maxDeg = Math.max.apply(null, deg), unreach = deg.filter(function (d) { return d === 0; }).length;
+      // the inverse: reverse the order, and take each gate twice, since g^3 = id
+      var inv = [], j;
+      for (i = prog.length - 1; i >= 0; i--) { inv.push(prog[i]); inv.push(prog[i]); }
+      var pi = progPerm(inv), roundTrip = true;
+      for (i = 0; i < N27; i++) if (pi[p[i]] !== i) roundTrip = false;
+
+      vP.innerHTML = prog.length
+        ? prog.map(function (g) { return GATES[g].n; }).join('  ·  ')
+        : '<span class="lbl">empty — every state stays where it is</span>';
+      var end = p[start];
+      vW.innerHTML =
+        '<span class="lbl">' + rpad('start', 14) + '</span><b>' + t3str(start) + '</b><span class="lbl">   state ' + start + '</span>\n' +
+        '<span class="lbl">' + rpad('after program', 14) + '</span><b>' + t3str(end) + '</b><span class="lbl">   state ' + end + '</span>\n' +
+        '<span class="lbl">' + rpad('inverse', 14) + '</span>' + (prog.length ? inv.map(function (g) { return GATES[g].n; }).join(' · ') : '—') + '\n' +
+        '<span class="lbl">' + rpad('back to', 14) + '</span><b>' + t3str(pi[end]) + '</b>   ' +
+        (roundTrip ? '<span class="hit">every state returns</span>' : '<span class="miss">does not return</span>') + '\n\n' +
+        '<span class="lbl">' + rpad('gates run', 14) + '</span>' + prog.length +
+        '<span class="lbl">   the same for all 27 inputs — nothing here depends on the data</span>';
+      vV.innerHTML = '<span class="lbl">max in-degree </span><span class="hit">' + maxDeg +
+        '</span><span class="lbl">   unreachable </span><span class="hit">' + unreach + ' of 27</span>' +
+        '<span class="lbl">   states moved </span>' + moved +
+        '<span class="lbl">   — a composition of bijections is a bijection, so there is nothing you can write that breaks it.</span>';
+    }
+    wire(root, '[data-g]', 'click', function (e) { prog.push(+e.currentTarget.getAttribute('data-g')); draw(); });
+    wire(root, '[data-undo]', 'click', function () { prog.pop(); draw(); });
+    wire(root, '[data-clear]', 'click', function () { prog = []; draw(); });
+    wire(root, '[data-rand]', 'click', function () {
+      prog = []; var n = 3 + Math.floor(Math.random() * 5), i;
+      for (i = 0; i < n; i++) prog.push(Math.floor(Math.random() * GATES.length)); draw();
+    });
+    if (eS) eS.addEventListener('input', function () { start = +eS.value; draw(); });
+    wire(root, '[data-pin]', 'click', function () {
+      var p = progPerm(prog);
+      pin('bench 06 · the reversible language', (prog.length ? prog.map(function (g) { return GATES[g].n; }).join(' · ') : 'empty program') +
+        ' — ' + prog.length + ' gates, state ' + start + ' → ' + p[start] + ', in-degree 1 everywhere');
+    });
+    draw();
+  })();
+
+  /* ================== bench 07 — the ladder hits the ceiling ================
+     H(prev) = sum of every earlier term, plus one if there were any. Checked
+     against tools/arity-audit.js for twenty terms.
+     ========================================================================== */
+  (function () {
+    var root = document.getElementById('b-ladder'); if (!root) return;
+    var MAXV = 364, seq = [0], shown = 1;
+    var vW = root.querySelector('[data-work]'), vV = root.querySelector('[data-verdict]');
+    function grow() {
+      var n = seq.length, prev = seq.slice(0, n - 1), i, s = 0;
+      for (i = 0; i < prev.length; i++) s += prev[i];
+      seq.push(s + (prev.length > 0 ? 1 : 0));
+    }
+    function wrapV(v) { return ((v + MAXV) % 729 + 729) % 729 - MAXV; }
+    function draw() {
+      while (seq.length < shown + 1) grow();
+      var i, out = '', over = -1;
+      for (i = 0; i < shown; i++) {
+        // L(0) is given. L(i) for i >= 1 sums L(0..i-2) -- every term BEFORE the one
+        // just written, not including it. Reading that slice as seq.slice(0, i)
+        // gives powers of two, which agrees with Fibonacci at exactly one term;
+        // the repository has the same misreading on record already.
+        var prev = i === 0 ? null : seq.slice(0, i - 1), s = 0, j;
+        if (prev) for (j = 0; j < prev.length; j++) s += prev[j];
+        var term = seq[i], fits = Math.abs(term) <= MAXV;
+        if (!fits && over < 0) over = i;
+        out += '<span class="lbl">' + rpad('L(' + i + ')', 7) + '</span>' +
+          rpad(prev === null ? 'given' : (prev.length ? prev.join(' + ') + '  + 1' : 'nothing yet, so no + 1'), 40) + ' = ' +
+          (fits ? '<b>' + pad(term, 4) + '</b>'
+                : '<span class="miss">' + pad(term, 4) + '</span><span class="lbl">  over 364 — the machine emits </span><span class="miss">' + wrapV(term) + '</span>') + '\n';
+      }
+      vW.innerHTML = out;
+      vV.innerHTML = over < 0
+        ? '<span class="lbl">' + shown + ' terms, all inside a tryte. Keep going.</span>'
+        : '<span class="miss">L(' + over + ') = ' + seq[over] + ' does not fit.</span><span class="lbl"> A tryte stops at ±364, so the machine emits ' +
+          seq[over - 1] + ', then ' + wrapV(seq[over]) + '. It wraps, because wrapping is the only thing bounded memory can do — and that is the price of a trajectory graph that never converges.</span>';
+    }
+    wire(root, '[data-more]', 'click', function () { shown = Math.min(shown + 1, 20); draw(); });
+    wire(root, '[data-more5]', 'click', function () { shown = Math.min(shown + 5, 20); draw(); });
+    wire(root, '[data-reset]', 'click', function () { shown = 1; draw(); });
+    wire(root, '[data-pin]', 'click', function () {
+      pin('bench 07 · the ladder hits the ceiling', shown + ' terms: ' + seq.slice(0, shown).join(' ') +
+        (seq.slice(0, shown).some(function (v) { return Math.abs(v) > MAXV; }) ? ' — overflowed' : ' — still inside a tryte'));
+    });
+    shown = 9; draw();
+  })();
+
+  /* The anti-divergence gate, the same one build-artifact.js uses on the emulator:
+     this page carries a SECOND implementation of the audit math, and a second
+     implementation that is never compared is just an unchecked claim. Inert in a
+     browser -- the global does not exist -- and in test/test-puzzle.js it hands the
+     suite the page own functions to check against tools/puzzle-audit.js. */
+  if (typeof globalThis.__TICK_EXPORT__ === "function") {
+    globalThis.__TICK_EXPORT__({
+      N: N, tadd: tadd, tsub: tsub, PT: PT, PINV: PINV, S27: S27, Amap: Amap,
+      CAND: CAND, targetMask: targetMask, digestTable: digestTable, hitsOf: hitsOf,
+      gShift: gShift, stepI: stepI, trits: trits, V: V
+    });
+  }
+})();
+</script>
+

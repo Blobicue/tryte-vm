@@ -85,6 +85,10 @@ function facts() {
     trapClasses: M.traps_encountered.length,
     bites: M.traps_encountered.reduce((a, t) => a + t.count, 0),
     audits: inTools.length + elsewhere.length,
+    // The published page counts this one class specifically, because its argument
+    // rests on it: the instrument, not the subject, producing the verdict.
+    instrumentBites: (M.traps_encountered
+      .find(t => t.id === 'T-INSTRUMENT-FALSE-VERDICT') || { count: 0 }).count,
   };
 }
 
@@ -115,6 +119,17 @@ const TEMPLATES = {
 
   'doctree-desc': f => `${Word(f.trapClasses)} defect classes, ${word(f.bites)} bites`,
   'doctree-lede': f => `${Word(f.trapClasses)} classes, ${word(f.bites)} occurrences`,
+
+  // The published page. Its masthead was the last surface here where a manifest
+  // number was typed by hand and nothing checked it -- it had already drifted three
+  // checks behind by the time it moved into the repository.
+  // These carry their own markup, because the region wraps the whole rendered
+  // element: a template returning a bare number would silently strip the <b>.
+  'art-predictions': f => `<b>${f.predictions}</b>`,
+  'art-held': f => `<b>${f.held}</b>`,
+  'art-failed': f => `<b>${f.failed}</b>`,
+  'art-failed-tally': f => `${Word(f.failed)} of ${f.predictions} predictions failed`,
+  'art-instrument-bites': f => `${Word(f.instrumentBites)} instrument failures`,
 };
 
 const TARGETS = [
@@ -122,15 +137,24 @@ const TARGETS = [
   'METHOD.md',
   'results/README.md',
   path.join('.claude', 'knowledge', 'doctrees', 'tryte-vm', '11-failure-catalogue.md'),
+  path.join('docs', 'tick-argument.html'),
 ];
 
 const RE = /<!--g:([a-z0-9-]+)-->([\s\S]*?)<!--\/g-->/g;
+
+/**
+ * Keys owned by the OTHER writer. The suite's check count and suite count exist only
+ * once every suite has run, so `test/run-all.js --write` stamps them and this tool
+ * steps over them rather than failing on a region it is not responsible for.
+ */
+const RUN_KEYS = new Set(['checks', 'suites']);
 
 /** Render one file's regions. Returns {text, seen, changed}. */
 function renderText(src, f) {
   const seen = [];
   let changed = 0;
   const out = src.replace(RE, (whole, key, body) => {
+    if (RUN_KEYS.has(key)) return whole;              // not ours; leave it alone
     seen.push(key);
     const t = TEMPLATES[key];
     if (!t) throw new Error(`render-docs: no template for region "${key}"`);

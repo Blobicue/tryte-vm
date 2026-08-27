@@ -167,8 +167,13 @@ console.log('\n=== 5. THE LEDGER IS GENERATED, NOT AUTHORED ===');
   check('every generated region in the prose is already current',
     pending.length === 0,
     pending.map(r => `${r.file}: ${r.changed} stale region(s) — run npm run docs`).join('; '));
-  check('   and the generator reaches all four documents that restate a count',
-    docs.run(false).report.length === 4 && docs.TARGETS.length === 4);
+  // Derived, not typed. The first version of this line said "all four documents" and
+  // went stale the moment a fifth was added -- T-STALE-CONSTANT, inside the check
+  // written to abolish stale constants. The number of targets is not the claim; that
+  // every declared target is actually visited is.
+  check(`   and the generator visits every one of its ${docs.TARGETS.length} declared documents`,
+    docs.run(false).report.length === docs.TARGETS.length && docs.TARGETS.length > 0,
+    `${docs.run(false).report.length} visited vs ${docs.TARGETS.length} declared`);
   check('   and it refuses to spell a number it has no word for, rather than '
     + 'writing undefined into the README',
     (() => { try { docs.word(docs.WORDS.length); return false; } catch (e) { return true; } })());

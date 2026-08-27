@@ -325,6 +325,26 @@ To add a generated phrase: wrap it in a marker, add a template under the same ke
 never used, and refuses to spell a number it has no word for rather than writing
 `undefined` into the README.
 
+### The published page is one of the targets
+
+`docs/tick-argument.html` is the essay page, source and output in one file — authored
+by hand, with its masthead numbers generated like any other. It arrived here from a
+temporary directory already three checks out of date, which is why it moved: a
+generated target needs a durable home.
+
+**It also carries a second implementation of the audit math**, written for the browser.
+`test/test-puzzle.js` runs the shipped script in a `vm` sandbox with no DOM — every
+bench finds no root element and declines — and compares its permutation, round table,
+arithmetic and all four candidates against `tools/puzzle-audit.js` across every one of
+the 531,441 pairs. That is the same anti-divergence gate `build/build-artifact.js`
+applies to the emulator, and for the same reason: **a second implementation that is
+never compared is just an unchecked claim.** Changing the page's seed by one character
+turns five checks red.
+
+The page exports its internals through `globalThis.__TICK_EXPORT__`, which is inert in
+a browser. Publish from `docs/tick-argument.html`, passing the existing artifact URL so
+it updates in place rather than forking a second copy.
+
 ---
 
 ## Before you commit

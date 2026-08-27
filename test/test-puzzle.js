@@ -227,6 +227,73 @@ console.log('\n=== 5. BEYOND THE REGISTRATION — WHAT THE LOW VARIANCE WAS ==='
     ks[4].stranded === 35 && ks[5].stranded === 283);
 }
 
+console.log('\n=== 6. THE PUBLISHED PAGE RUNS THE SAME CONSTRUCTION ===');
+{
+  // docs/tick-argument.html carries a SECOND implementation of this math, written for
+  // the browser: no Node, no require, lookup tables instead of array allocation. A
+  // second implementation that is never compared is just an unchecked claim, so this
+  // is the anti-divergence gate build-artifact.js already applies to the emulator —
+  // run the shipped code and make it answer to the module code.
+  const fs = require('fs');
+  const vm = require('vm');
+  const page = fs.readFileSync(path.join(__dirname, '..', 'docs', 'tick-argument.html'), 'utf8');
+  const script = /<script>([\s\S]*?)<\/script>/.exec(page);
+  check('the page ships exactly one script block, and it can be found', script !== null);
+
+  let P = null;
+  const stub = {
+    getElementById: () => null, querySelector: () => null,
+    querySelectorAll: () => [], addEventListener: () => {},
+  };
+  const sandbox = {
+    document: stub, window: {}, console,
+    localStorage: { getItem: () => null, setItem: () => {} },
+    performance: { now: () => 0 },
+    __TICK_EXPORT__: (api) => { P = api; },
+  };
+  sandbox.globalThis = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(script[1], sandbox, { timeout: 60000 });
+  check('   and it runs with no DOM at all — every bench declines rather than throwing',
+    P !== null && typeof P.CAND === 'object');
+
+  if (P) {
+    const V = A.val;
+    check('the page permutation is identical to the audit, all 729 entries',
+      [...Array(729).keys()].every(i => P.PT[i] === A.PT[i]));
+    check('   and its 27-entry round table is the one set D measured',
+      P.S27.join() === A.S27.join());
+    check('   and its tritwise add and subtract agree on 14,580 pairs',
+      [...Array(729).keys()].every(i => [...Array(20).keys()].every(j => {
+        const b = (i * 37 + j) % 729;
+        return P.tadd(i, b) === A.idx(A.tadd(V(i), V(b)))
+          && P.tsub(i, b) === A.idx(A.tsub(V(i), V(b)));
+      })));
+    for (const name of ['feedforward', 'bijective', 'affine']) {
+      let same = true;
+      for (let m = 0; m < 729 && same; m++) for (let n = 0; n < 729; n++) {
+        if (P.CAND[name](m, n) !== A.CANDIDATES[name](V(m), V(n))) { same = false; break; }
+      }
+      check(`   and candidate "${name}" agrees on all 531,441 pairs`, same);
+    }
+    // keyedDM already returns an INDEX, where the three CANDIDATES entries return
+    // values — so this one takes no idx() and the others do. Wrapping it anyway
+    // shifted every digest by TRYTE_MIN and the gate reported the page as divergent
+    // when the page was fine. T-INSTRUMENT-FALSE-VERDICT, caught by the gate itself.
+    let keyed = true;
+    for (let m = 0; m < 729 && keyed; m++) for (let n = 0; n < 729; n++) {
+      if (P.CAND.keyed(m, n) !== A.keyedDM(V(m), V(n))) { keyed = false; break; }
+    }
+    check('   and so does the keyed rebuild that removed the shortcut', keyed);
+    check('   and the shift function g, so the page derives 465 the same way',
+      new Set([...Array(729).keys()].map(u => P.gShift(u))).size === A.gIndex().size);
+    // The page's bench 01 walks the hailstone map; the repo owns that map too.
+    const H = require('../tools/hailstone-audit.js');
+    check('   and the hailstone step it walks agrees on all 729 values',
+      [...Array(729).keys()].every(i => V(P.stepI(i)) === H.step(V(i))));
+  }
+}
+
 console.log(`\n${'='.repeat(64)}`);
 console.log(fails.length ? `${fails.length} CHECK(S) FAILED:\n  ${fails.join('\n  ')}` : `ALL ${pass} CHECKS PASSED`);
 console.log('='.repeat(64));
