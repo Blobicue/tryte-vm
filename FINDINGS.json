@@ -2775,7 +2775,7 @@
       "subject": "Building the receipt spec, and what the attack on it actually costs",
       "tool": "tools/margin-audit.js",
       "registered_at": "04e8fb0",
-      "results_at": "PENDING",
+      "results_at": "5dd5de2",
       "asserted_in": "test/test-margin.js",
       "predictions": [
         {

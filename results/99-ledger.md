@@ -1497,7 +1497,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/margin-audit.js` |
 | asserted in | `test/test-margin.js` |
 | registered | `04e8fb0` |
-| results | `PENDING` |
+| results | `5dd5de2` |
 
 ### `AH1` — HELD
 
