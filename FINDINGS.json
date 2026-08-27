@@ -2698,7 +2698,7 @@
       "subject": "The second knob: state width, evaluation cost, and what an implied receipt actually rests on",
       "tool": "tools/workfactor-audit.js",
       "registered_at": "d2a90c5",
-      "results_at": "PENDING",
+      "results_at": "41cca61",
       "asserted_in": "test/test-workfactor.js",
       "predictions": [
         {

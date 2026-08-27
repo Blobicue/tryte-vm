@@ -13,7 +13,7 @@ One hundred and forty-one predictions, one hundred and twenty held, twenty-one f
 and the twelve produced more than the hundred and four. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**1,191 checks**, all passing. Every number below is recomputed by one of them,
+**1,192 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash

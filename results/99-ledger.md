@@ -1453,7 +1453,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/workfactor-audit.js` |
 | asserted in | `test/test-workfactor.js` |
 | registered | `d2a90c5` |
-| results | `PENDING` |
+| results | `41cca61` |
 
 ### `AG1` — FAILED
 
