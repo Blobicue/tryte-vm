@@ -1761,7 +1761,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/puzzle-audit.js` |
 | asserted in | `test/test-puzzle.js` |
 | registered | `a05b48e` |
-| results | `PENDING` |
+| results | `32dfca9` |
 
 ### `AN1` — FAILED
 

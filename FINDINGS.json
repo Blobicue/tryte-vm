@@ -3217,7 +3217,7 @@
       "subject": "Does a purpose-built search puzzle have the find-against-verify asymmetry? A ternary proof-of-work candidate, exhaustive over all 531,441 message-nonce pairs",
       "tool": "tools/puzzle-audit.js",
       "registered_at": "a05b48e",
-      "results_at": "PENDING",
+      "results_at": "32dfca9",
       "asserted_in": "test/test-puzzle.js",
       "predictions": [
         {
