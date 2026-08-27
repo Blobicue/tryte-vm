@@ -51,7 +51,8 @@
     "audit:margin": "node tools/margin-audit.js",
     "audit:arity": "node tools/arity-audit.js",
     "audit:selfref": "node tools/selfref-audit.js",
-    "audit:minimal": "node tools/minimal-audit.js"
+    "audit:minimal": "node tools/minimal-audit.js",
+    "audit:tasks": "node tools/tasks-audit.js"
   },
   "license": "MIT",
   "private": true
