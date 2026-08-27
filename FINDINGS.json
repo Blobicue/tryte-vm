@@ -3475,7 +3475,7 @@
       "subject": "Can an erasing machine certify that a secret was wiped? Ceremony maps over 729 secrets, and whether the erasure measure is the right certificate",
       "tool": "tools/wipe-audit.js",
       "registered_at": "068a161",
-      "results_at": "PENDING",
+      "results_at": "fdef33a",
       "asserted_in": "test/test-wipe.js",
       "predictions": [
         {

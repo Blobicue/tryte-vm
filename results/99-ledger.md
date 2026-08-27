@@ -1823,7 +1823,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/wipe-audit.js` |
 | asserted in | `test/test-wipe.js` |
 | registered | `068a161` |
-| results | `PENDING` |
+| results | `fdef33a` |
 
 ### `AO1` — FAILED
 
