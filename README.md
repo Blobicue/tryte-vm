@@ -13,7 +13,7 @@ One hundred and sixty-five predictions, one hundred and thirty-eight held, twent
 and the twelve produced more than the hundred and four. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**1,430 checks**, all passing. Every number below is recomputed by one of them,
+**1,462 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -64,7 +64,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-<!--g:readme-tally-->Forty prediction sets, registered before their runs. **141 held, 28 failed**<!--/g--> — the
+<!--g:readme-tally-->Forty-one prediction sets, registered before their runs. **144 held, 29 failed**<!--/g--> — the
 failures are kept, and four of them produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
@@ -112,6 +112,7 @@ with registering commits and the tests that assert each one, in
 | **AL1–AL4** | the ternary operations as a labelled task ladder | 2 held, **AL3 and AL4 failed** |
 | **AM1–AM4** | does a task's algebra predict when a network generalises? | 2 held, **AM2 and AM3 failed** |
 | **AN1–AN4** | a purpose-built search puzzle: does it have the asymmetry? | 3 held, **AN1 failed — and the failure found the shortcut** |
+| **AO1–AO4** | can an erasing machine certify that a secret was wiped? | 3 held, **AO1 failed — on its own frozen control** |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:

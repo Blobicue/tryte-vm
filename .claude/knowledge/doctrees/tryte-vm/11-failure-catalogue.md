@@ -1,6 +1,6 @@
 ---
 name: failure-catalogue
-description: <!--g:doctree-desc-->Eighteen defect classes, forty-nine bites<!--/g-->, each now a permanent check. Substrate - the classes are not about ternary.
+description: <!--g:doctree-desc-->Eighteen defect classes, fifty bites<!--/g-->, each now a permanent check. Substrate - the classes are not about ternary.
 type: reference
 last_updated: 2026-08-25
 ---
@@ -12,7 +12,7 @@ last_updated: 2026-08-25
 
 ## What is established
 
-<!--g:doctree-lede-->Eighteen classes, forty-nine occurrences<!--/g-->. The ones that recurred after being
+<!--g:doctree-lede-->Eighteen classes, fifty occurrences<!--/g-->. The ones that recurred after being
 named are the interesting ones, because naming a thing is supposed to prevent it:
 
 - **one point is not a function** - bit three times

@@ -97,10 +97,10 @@ anything.
 
 | | |
 |---|---|
-<!--g:results-table-->| prediction sets | 40 |
-| registered predictions | 169 — **141 held, 28 failed** |
+<!--g:results-table-->| prediction sets | 41 |
+| registered predictions | 173 — **144 held, 29 failed** |
 | measured but never registered | 37 |
-| defect classes | 18, recurring 49 times |<!--/g-->
+| defect classes | 18, recurring 50 times |<!--/g-->
 
 The suite's check count is deliberately **not** repeated here — it lives in
 [`../README.md`](../README.md), where `run-all.js` verifies it, and a second copy

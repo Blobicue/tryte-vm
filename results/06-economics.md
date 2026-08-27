@@ -734,14 +734,107 @@ certify a candidate rather than merely fail to break it. `AN1` supplies one
 refutation test. It is one, at 729 states, and a toy is not evidence against an
 adversary.
 
+### 14. And what a wipe would cost
+
+A trusted-setup ceremony ends by destroying a secret. `F-REVERSIBLE-CANNOT-DESTROY`
+settles the reversible case by argument — a language of bijections cannot express
+deletion, so the ceremony is not merely unperformed there but **inexpressible**. `AO`
+asks what that corollary was standing in front of: an *erasing* machine can collapse
+states, but does collapsing certify anything?
+
+#### The measure was already here, under another name
+
+Model a ceremony as a map from secret to public output. Afterwards the world holds
+`P(s)`, and what protects the secret is the number of secrets consistent with that
+output — the **preimage size**. Which is exactly what `AB`'s erasure is built from:
+
+> `E = (1/|S|) Σ n_y log₂ n_y`
+
+So erasure and information-theoretic hiding are one quantity wearing two names. The
+question was never whether the measure applies. It is whether its **summary** is the
+right one — and `E` is a mean where security is not.
+
+| pseudorandom ceremony map | |
+|---|---|
+| `E` | 0.8894 bits — reads healthy |
+| `2^E`, the average hiding | 1.85 secrets |
+| smallest preimage | **1** |
+| secrets recovered **exactly** | **252 of 729 — 34.6%** |
+
+**`E` cannot certify a wipe.** That is the third time in this corpus a summary
+statistic has hidden the failure it was asked about: `D4`'s collision count could not
+tell a hash from a relabelling, `AN1`'s mean could not tell a puzzle from a shift, and
+now a healthy average erasure sits on top of a third of the space being fully exposed.
+`MEASURED`
+
+#### What certifies it is the construction `D4` disqualified
+
+`D4` failed because truncating **any** permutation gives perfectly uniform buckets, so
+uniformity is worthless as evidence of mixing. That same forced uniformity is exactly
+what a wipe needs (`AO2`, `PROVEN`):
+
+| m trits kept | image | min preimage | max | flat |
+|---|---|---|---|---|
+| 1 | 3 | 243 | 243 | **yes** |
+| 3 | 27 | 27 | 27 | **yes** |
+| 5 | 243 | 3 | 3 | **yes** |
+| *random* | 446 | *1* | *6* | *no* |
+
+The mixer is a bijection, so grouping its 729 distinct outputs by their low `m` trits
+partitions them into `3^m` classes of exactly `3^(6−m)`. Flatness is **forced**, not
+observed. A construction disqualified for one job is the right answer to another, and
+the disqualifying property is the qualifying one.
+
+#### The exchange rate, which is the number that matters
+
+By pigeonhole, hiding every secret among at least `h` others forces the image below
+`⌊729/h⌋` — so the public output can carry only so many bits (`AO3`):
+
+| hide among | output may carry |
+|---|---|
+| 3 | 7.925 of 9.510 bits |
+| 9 | 6.340 |
+| 27 | **4.755 — half** |
+
+Truncation attains that bound at every power of three; the pseudorandom map attains it
+nowhere, and **not one of 400 random draws is even flat**. A balanced wipe never
+happens by accident.
+
+> **Hiding is bought with output bits at a fixed price.** A ceremony whose parameters
+> must be large enough to be useful cannot buy much of it — which is why real
+> ceremonies take their security from computational hardness and not from erasure at
+> all.
+
+#### Two results, four sets apart, are one number
+
+`AN3` measured **264** blocks with no winning nonce. `AO` measures **252** secrets with
+a unique preimage. The shared null is **268** — and they are equal by construction,
+because a block with no nonce and a secret with one preimage are the `k = 0` and
+`k = 1` tails of the same Poisson(1), which puts identical mass on both (`AO4`).
+Neither set knew it.
+
+#### `AO1` failed on its own control
+
+The registration put a 5% band around the erasure null. It came in 7.6% out — so
+`AO1` failed. Sweeping 400 pseudorandom maps then showed the null was **exactly**
+right (mean 0.8269 against a predicted 0.8265) and that **336 of 400 draws would have
+passed**. The band was reasonable; the draw was not. This set froze one seed as its
+control and froze a 2.09-sigma one.
+
+> **A single fixed pseudorandom object is one sample; a null model is a distribution.**
+> Scoring one against the other scores the seed rather than the claim.
+
+`T-CRITERION-IN-THE-NOISE`, third bite — and the sibling clause survived the same
+unlucky draw only because it had been given a 10% band instead of a 5% one.
+
 ---
 
 ## How it was established
 
 | | |
 |---|---|
-| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js), [`hailstone-audit.js`](../tools/hailstone-audit.js), [`workfactor-audit.js`](../tools/workfactor-audit.js), [`margin-audit.js`](../tools/margin-audit.js), [`selfref-audit.js`](../tools/selfref-audit.js), [`puzzle-audit.js`](../tools/puzzle-audit.js) |
-| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js`, `test-hailstone.js`, `test-workfactor.js`, `test-margin.js`, `test-selfref.js`, `test-puzzle.js` |
+| tools | [`midrail-price-audit.js`](../tools/midrail-price-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`budget.js`](../tools/budget.js), [`erasure-audit.js`](../tools/erasure-audit.js), [`predict-audit.js`](../tools/predict-audit.js), [`hailstone-audit.js`](../tools/hailstone-audit.js), [`workfactor-audit.js`](../tools/workfactor-audit.js), [`margin-audit.js`](../tools/margin-audit.js), [`selfref-audit.js`](../tools/selfref-audit.js), [`puzzle-audit.js`](../tools/puzzle-audit.js), [`wipe-audit.js`](../tools/wipe-audit.js) |
+| tests | `test-midprice.js`, `test-midrail.js`, `test-budget.js`, `test-erasure.js`, `test-predict.js`, `test-hailstone.js`, `test-workfactor.js`, `test-margin.js`, `test-selfref.js`, `test-puzzle.js`, `test-wipe.js` |
 | method | tap counts read from built netlists; crossovers solved algebraically and confirmed at sampled prices; the detector variant swept exhaustively against both consumer patterns |
 
 The six cost currencies this project measures in — switches, mid-rail taps, pass
@@ -810,5 +903,6 @@ so much.
 | `AH` | building the spec, and what the attack on it costs | 2 held, `AH2` and `AH4` failed |
 | `AJ` | what self-reference buys, and what buys the property it is asked for | all four held |
 | `AN` | a purpose-built search puzzle, and whether it has the asymmetry | 3 held, `AN1` failed — and the failure found the shortcut |
+| `AO` | can an erasing machine certify a wipe, and is erasure the certificate | 3 held, `AO1` failed — on its own frozen control |
 
 Full text in [`99-ledger.md`](99-ledger.md).

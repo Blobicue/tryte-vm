@@ -3469,6 +3469,104 @@
           "basis": "measured"
         }
       ]
+    },
+    {
+      "id": "AO",
+      "subject": "Can an erasing machine certify that a secret was wiped? Ceremony maps over 729 secrets, and whether the erasure measure is the right certificate",
+      "tool": "tools/wipe-audit.js",
+      "registered_at": "068a161",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-wipe.js",
+      "predictions": [
+        {
+          "id": "AO1",
+          "claim": "the pseudorandom ceremony map measures E within 5% of the 0.8265 null while exposing, within 10% of 268, secrets whose preimage is a single point",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "measured": {
+            "E": 0.8894,
+            "E_null": 0.8265,
+            "E_deviation": "7.6%, against a registered 5%",
+            "secrets_fully_exposed": 252,
+            "exposed_null": 268.4,
+            "exposed_deviation": "6.1%, inside the registered 10%",
+            "fraction_exposed": "34.6%",
+            "smallest_preimage": 1,
+            "image": 446,
+            "outputs_never_produced": 283,
+            "control_draw_position": "2.09 sd from the mean of 400 draws",
+            "draws_that_would_pass_the_5pc_band": "336 of 400"
+          },
+          "note": "FAILED on the erasure clause and held on the one that carried the argument, and the post-mortem is worth more than either. E came in at 0.8894 against a null of 0.8265 -- 7.6% out where 5% was registered. Sweeping 400 pseudorandom maps then showed the null was exactly right (mean 0.8269, sd 0.0299) and that 336 of 400 draws WOULD have passed the 5% band. The band was reasonable; the draw was not. This set fixed one seed as its control and happened to fix a 2.09-sigma one, so the failure is about the sample and not about the criterion or the claim. A SINGLE FIXED PSEUDORANDOM MAP CANNOT BE SCORED AGAINST A DISTRIBUTIONAL NULL: it is one sample and the null is a spread. The exposed clause survived on the same unlucky draw only because it was given a 10% band rather than a 5% one. And the substance held completely: 252 of 729 secrets, 34.6%, are recovered EXACTLY from the public output while the average erasure reads healthy at 0.89 bits. E is a mean and hiding is a minimum."
+        },
+        {
+          "id": "AO2",
+          "claim": "truncating the mixer to m trits gives every output exactly 3^(6-m) preimages, minimum equal to maximum, while the pseudorandom map has a minimum of 1",
+          "outcome": "HELD",
+          "basis": "proven",
+          "argument": "The mixer is a bijection, so the 729 secrets land on 729 distinct values; grouping those by their low m trits partitions them into 3^m classes of exactly 3^(6-m). Flatness is forced by the pigeonhole equality, not observed -- and it holds at every width where the truncation divides the space.",
+          "measured": {
+            "m1": {
+              "image": 3,
+              "min": 243,
+              "max": 243,
+              "E": 7.9248
+            },
+            "m3": {
+              "image": 27,
+              "min": 27,
+              "max": 27,
+              "E": 4.7549
+            },
+            "m5": {
+              "image": 243,
+              "min": 3,
+              "max": 3,
+              "E": 1.585
+            },
+            "flat_at_every_m": true,
+            "random_min": 1,
+            "random_max": 6,
+            "random_flat": false
+          },
+          "note": "Held exactly at every m from 1 to 5. The point is the reuse: D4 FAILED because truncating any permutation gives perfectly uniform buckets, which made a collision count useless as evidence of mixing. That same forced uniformity is precisely what a wipe wants -- every secret hidden among exactly as many others as every other secret, with no output easier to invert than another. A construction disqualified as a hash test is the right answer to a different question, and the disqualifying property IS the qualifying one."
+        },
+        {
+          "id": "AO3",
+          "claim": "truncation attains the pigeonhole hiding bound at every power of three and the pseudorandom map attains it nowhere",
+          "outcome": "HELD",
+          "basis": "measured",
+          "measured": {
+            "bound": "image <= floor(729/h)",
+            "bits_at_h_1_3_9_27": [
+              9.5098,
+              7.9248,
+              6.3399,
+              4.7549
+            ],
+            "truncation_attains": "h = 1, 3, 9, 27 — all four",
+            "random_attains": "none",
+            "flat_maps_among_400_random_draws": 0
+          },
+          "note": "Held on both clauses. The bound itself is arithmetic -- every preimage of at least h forces an image of at most floor(729/h) -- so what was at risk was attainment, and the split is total: truncation attains it at all four, the pseudorandom map at none, and not one of 400 random draws is even flat. A balanced wipe does not happen by accident. The exchange rate is the useful number: to hide every secret among 27 others the public output may carry 4.755 of its 9.510 bits, so HIDING IS BOUGHT WITH OUTPUT BITS at a fixed price, and a ceremony whose parameters must be large enough to be useful cannot buy much of it."
+        },
+        {
+          "id": "AO4",
+          "claim": "the count of fully-exposed secrets lands within 10% of both the 268 null and AN3's measured 264 stranded blocks, because both are tails of the same Poisson(1)",
+          "outcome": "HELD",
+          "basis": "measured",
+          "measured": {
+            "exposed": 252,
+            "null": 268.4,
+            "AN3_stranded": 264,
+            "deviation_from_null": "6.1%",
+            "deviation_from_AN3": "4.5%",
+            "reason": "P(Poisson(1)=0) = P(Poisson(1)=1) = 1/e, so the two tails are equal by construction",
+            "this_map_unused_outputs": 283
+          },
+          "note": "Held on both comparisons. A block with no winning nonce and a secret with a unique preimage are the k=0 and k=1 tails of the same Poisson(1), and Poisson(1) puts identical mass on those two, so the counts are equal by construction rather than by coincidence. AN3 measured 264 unmineable blocks; AO measures 252 unhidden secrets; the shared null is 268. Two results this project reached by different routes, four sets apart, are the same number, and neither set knew it."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -3799,8 +3897,8 @@
     },
     {
       "id": "T-CRITERION-IN-THE-NOISE",
-      "count": 2,
-      "description": "A registered criterion whose verdict depends on run-to-run variation. H1 predicted a spread under 3x and measured 3.72 on one run and 2.89 on the next, either side of its own line, so the same world produced both a pass and a fail. The attempt to salvage a more robust shape from it flipped too. A threshold placed near the noise floor is a defect in the prediction rather than a fact about the subject; either widen it until it cannot flip, or measure the quantity and report it without asserting a bound. Second bite, and it was sitting inside the suite that records the first. test-headroom section 5 checked \"the six-trit adder is sweepable inside an hour\" against a LIVE timing. It passed on an idle machine and failed at 1.84 h inside a full suite run on a loaded one -- the same world returning both verdicts. Section 4 of the same file already refuses to assert durations and enforces that refusal by grepping itself; section 5 was quietly doing what section 4 forbids, four sections below the comment explaining why not to. The repair is the one the class prescribes: assert the RATIO, which survives any host -- a 50,000-device sweep costs about 80x a 624-device one -- and report the hour figures without checking them. On the loaded host the measured sweep budget is 335 devices against H2 recorded 4,806, so the figure was never a constant of nature and is now labelled as a measurement taken on a stated machine."
+      "count": 3,
+      "description": "A registered criterion whose verdict depends on run-to-run variation. H1 predicted a spread under 3x and measured 3.72 on one run and 2.89 on the next, either side of its own line, so the same world produced both a pass and a fail. The attempt to salvage a more robust shape from it flipped too. A threshold placed near the noise floor is a defect in the prediction rather than a fact about the subject; either widen it until it cannot flip, or measure the quantity and report it without asserting a bound. Second bite, and it was sitting inside the suite that records the first. test-headroom section 5 checked \"the six-trit adder is sweepable inside an hour\" against a LIVE timing. It passed on an idle machine and failed at 1.84 h inside a full suite run on a loaded one -- the same world returning both verdicts. Section 4 of the same file already refuses to assert durations and enforces that refusal by grepping itself; section 5 was quietly doing what section 4 forbids, four sections below the comment explaining why not to. The repair is the one the class prescribes: assert the RATIO, which survives any host -- a 50,000-device sweep costs about 80x a 624-device one -- and report the hour figures without checking them. On the loaded host the measured sweep budget is 335 devices against H2 recorded 4,806, so the figure was never a constant of nature and is now labelled as a measurement taken on a stated machine. Third bite, in AO1: a 5% band was registered around a null that 400 draws confirm exactly, but scored against ONE fixed pseudorandom map -- which turned out to sit 2.09 sigma out, while 336 of 400 draws would have passed. The criterion did not depend on run-to-run variation this time; it depended on WHICH SAMPLE WAS FROZEN AS THE CONTROL, which is the same defect seen from the other side. A single fixed pseudorandom object is one draw and a null model is a distribution; comparing them directly scores the seed rather than the claim. The remedy is to register the band against the control own empirical spread, or to sweep."
     },
     {
       "id": "T-TRANSCRIBED-TABLE",

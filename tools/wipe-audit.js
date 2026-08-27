@@ -226,6 +226,63 @@ function report() {
       log(`      ${name.padEnd(12)} E ${h.E.toFixed(4)}   image ${String(h.image).padStart(3)}`
         + `   min ${String(h.minPre).padStart(3)}   exposed ${String(h.exposed).padStart(3)}`);
     }
+    log('\n      A permutation exposes ALL 729 secrets. F-REVERSIBLE-CANNOT-DESTROY,');
+    log('      arrived at from the hiding side rather than the erasure side.');
+
+    // AO1 failed on its E clause: 0.8894 against a null of 0.8265, 7.6% high where 5%
+    // was registered. One pseudorandom map is ONE DRAW, and the registration never
+    // checked what a draw is worth. So: draw many and find out.
+    log('\n      WAS THAT FAILURE A RESULT, OR A BAND SET TOO TIGHT FOR ONE DRAW?');
+    const draws = [];
+    let flat = 0;
+    for (let d = 0; d < 400; d++) {
+      let s = 7000 + d * 9176;
+      const m = new Int16Array(N);
+      for (let i = 0; i < N; i++) { s = (Math.imul(s, 1103515245) + 12345) & 0x7fffffff; m[i] = s % N; }
+      const h = hiding(m);
+      draws.push(h);
+      if (h.flat) flat++;
+    }
+    const Es = draws.map(d => d.E);
+    const mean = Es.reduce((a, b) => a + b, 0) / Es.length;
+    const sd = Math.sqrt(Es.reduce((a, b) => a + (b - mean) ** 2, 0) / Es.length);
+    const measured = hiding(RAND).E;
+    log(`      400 pseudorandom maps:  E mean ${mean.toFixed(4)}   sd ${sd.toFixed(4)}`
+      + `   null 0.8265`);
+    log(`      the registered map at ${measured.toFixed(4)} sits `
+      + `${((measured - mean) / sd).toFixed(2)} sd from that mean —`);
+    log(`      ${Math.abs(measured - mean) < 2 * sd
+      ? 'ORDINARY. The 5% band was inside the noise, not outside the result.'
+      : 'genuinely unusual, so the failure was about the map and not the band.'}`);
+    const within5 = Es.filter(e => Math.abs(e - 0.8265) <= 0.05 * 0.8265).length;
+    log(`      ${within5} of 400 draws WOULD have passed the 5% band (${(100 * within5 / 400).toFixed(0)}%), so the`);
+    log(`      band was reasonable and the draw was not: this set fixed one seed as its`);
+    log(`      control and happened to fix an atypical one. A single fixed pseudorandom`);
+    log(`      map cannot be scored against a DISTRIBUTIONAL null -- it is one sample,`);
+    log(`      and the null is a spread. T-CRITERION-IN-THE-NOISE, third bite.`);
+
+    const exp = draws.map(d => d.exposed);
+    const em = exp.reduce((a, b) => a + b, 0) / exp.length;
+    const esd = Math.sqrt(exp.reduce((a, b) => a + (b - em) ** 2, 0) / exp.length);
+    log(`\n      exposed count over 400 draws: mean ${em.toFixed(1)}   sd ${esd.toFixed(1)}   null 268.4`);
+    log(`      the registered map at ${hiding(RAND).exposed} sits `
+      + `${((hiding(RAND).exposed - em) / esd).toFixed(2)} sd out — the SAME map, scored`);
+    log(`      against a 10% band instead of a 5% one, and that is the only reason AO4`);
+    log(`      held where AO1 failed. Both clauses measured one unlucky draw.`);
+    log(`      flat maps among 400 draws: ${flat} — a balanced wipe does not happen by`);
+    log(`      accident, which is why AO3's bound is attained only on purpose.`);
+
+    // What a certifier would actually check.
+    log('\n      SO WHAT CERTIFIES A WIPE? Not E. For a FLAT map 2^E equals the worst');
+    log('      case exactly; for anything else 2^E is an average an attacker never');
+    log('      faces. The check is one pass and it is a MINIMUM, not a mean:');
+    for (const [name, map] of [['truncated m=3', truncated(3)], ['random', RAND],
+      ['permutation', CEREMONIES.permutation]]) {
+      const h = hiding(map);
+      log(`        ${name.padEnd(14)} 2^E ${h.avgHiding.toFixed(2).padStart(7)}`
+        + `   worst case ${String(h.minPre).padStart(3)}`
+        + `   overstates by ${(h.avgHiding / h.minPre).toFixed(2)}x`);
+    }
   }
   log('\n' + line);
 }
