@@ -3984,7 +3984,7 @@
       "subject": "Does the mixer's residual algebra help a ledger forger? Four designed attacks on D's split-round chain as a ledger head -- a cross-ledger census of the compensating family over 2,000 drawn ledgers, the differential table of g = P - I, a delta ordering built from it, and a meet-in-the-middle join over four modified entries -- each priced in a cost model stated before the run",
       "tool": "tools/forge-audit.js",
       "registered_at": "6af5b32",
-      "results_at": "PENDING",
+      "results_at": "e1300f4",
       "asserted_in": "test/test-forge.js",
       "predictions": [
         {

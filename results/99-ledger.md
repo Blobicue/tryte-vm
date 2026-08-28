@@ -2087,7 +2087,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/forge-audit.js` |
 | asserted in | `test/test-forge.js` |
 | registered | `6af5b32` |
-| results | `PENDING` |
+| results | `e1300f4` |
 
 ### `AS1` — HELD
 
