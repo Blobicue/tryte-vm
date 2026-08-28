@@ -13,17 +13,17 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-<!--g:method-tally-->Forty-four prediction sets, **185 registered predictions, 152 held, 33 failed.** Nineteen
-distinct failure classes, which bit **58 times** between them. Forty-seven findings
+<!--g:method-tally-->Forty-five prediction sets, **189 registered predictions, 156 held, 33 failed.** Nineteen
+distinct failure classes, which bit **58 times** between them. Fifty-two findings
 measured but never registered<!--/g-->, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
 document drifts from the manifest, the suite fails.
 
 **That last clause was not true of the registered set itself, and a read-only audit
-found it out.** <!--g:method-at-risk-->Twenty-five of those 185 were never at risk at all, and seven cannot be called either way. Corrected to what a run could
-actually have refuted, the record is **153 at risk, 120 held, 33 failed — a 21.6%
-failure rate** against 17.8% over everything registered<!--/g-->. The raw counts above are
+found it out.** <!--g:method-at-risk-->Twenty-five of those 189 were never at risk at all, and seven cannot be called either way. Corrected to what a run could
+actually have refuted, the record is **157 at risk, 124 held, 33 failed — a 21%
+failure rate** against 17.5% over everything registered<!--/g-->. The raw counts above are
 not lowered: 185 predictions were registered and that is a fact about what happened.
 The failures were never the problem — every one of them is real, and not one is among
 the decorative, which is the rule validating itself, because a fact that was never at
@@ -33,12 +33,12 @@ compulsory per-prediction field and the audit is `F-REGISTRATION-IS-NOT-RISK`.
 A prediction carries two independent labels, and running them together was costing
 something. `outcome` is the prediction against the run — held or failed. **`basis` is
 the scope of the claim**: swept at the width it was swept at, or argued at every width.
-<!--g:method-basis-->Ten of those 185 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
+<!--g:method-basis-->Ten of those 189 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
 each with its argument written out beside its measurement. The measurement is still
 required. A proof does not excuse running it — an argument is also a thing that can be
 wrong, and the run is what would say so.
 
-**<!--g:method-failures-lede-->The 33 failures produced more than the 120 successes that were genuinely at risk<!--/g-->.** Each one is
+**<!--g:method-failures-lede-->The 33 failures produced more than the 124 successes that were genuinely at risk<!--/g-->.** Each one is
 still in the manifest, marked `FAILED`, with the result it led to:
 
 | failed | what it claimed | what it produced |
@@ -186,7 +186,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-four sets<!--/g--> and they form very nearly
+fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-five sets<!--/g--> and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from

@@ -97,12 +97,12 @@ anything.
 
 | | |
 |---|---|
-<!--g:results-table-->| prediction sets | 44 |
-| registered predictions | 185 — **152 held, 33 failed** |
-| of those, genuinely at risk | 153 — 120 held, 33 failed |
+<!--g:results-table-->| prediction sets | 45 |
+| registered predictions | 189 — **156 held, 33 failed** |
+| of those, genuinely at risk | 157 — 124 held, 33 failed |
 | never at risk | 25 decorative, 7 uncalled |
-| failure rate | **21.6%** of what was at risk; 17.8% of all registered |
-| measured but never registered | 47 |
+| failure rate | **21%** of what was at risk; 17.5% of all registered |
+| measured but never registered | 52 |
 | defect classes | 19, recurring 58 times |<!--/g-->
 
 The suite's check count is deliberately **not** repeated here — it lives in

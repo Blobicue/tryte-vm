@@ -2,12 +2,12 @@
  "schema": "tryte-vm/slate@1",
  "purpose": "A retrieval-shaped projection of FINDINGS.json plus authored marginalia. Flat, addressable entries with stable ids, topic routes and validated cross-links. The manifest remains the authority; this is a view of it and never a second copy of the truth.",
  "counts": {
-  "entries": 264,
-  "predictions": 185,
-  "findings": 47,
+  "entries": 273,
+  "predictions": 189,
+  "findings": 52,
   "traps": 19,
   "notes": 13,
-  "proven": 15,
+  "proven": 17,
   "failed": 33
  },
  "routes": {
@@ -29,6 +29,8 @@
    "AL3",
    "AL4",
    "AN2",
+   "AS1",
+   "AS2",
    "F-ORTHOMORPHISM-GATE",
    "F-BORN-NONLINEAR",
    "F-REVERSIBLE-FRAGMENT-CLOSED-FORM",
@@ -69,6 +71,7 @@
    "AR1",
    "AR2",
    "AR4",
+   "AS3",
    "F-FOLD-BUYS-DEPTH",
    "F-RADIX-ECONOMY",
    "F-GATES-FROM-SWITCHES",
@@ -167,6 +170,7 @@
    "AO3",
    "AO4",
    "AP4",
+   "AS1",
    "F-STATE-BOUNDARY-DECIDES-THE-READING",
    "F-SELF-REFERENCE-IS-NOT-THE-PROPERTY",
    "F-REVERSIBILITY-IS-A-PROPERTY-OF-THE-ALPHABET",
@@ -182,15 +186,22 @@
    "D3",
    "D4",
    "AO2",
+   "AS1",
+   "AS3",
+   "AS4",
    "F-SPLIT-ROUND-MIXES",
    "F-UNIFORMITY-IS-NOT-MIXING",
    "F-TIMES-THREE-CANNOT-MIX",
    "F-FINDABILITY-NOT-COUNT",
-   "F-MIXER-HEAD-IS-NOT-FLAT"
+   "F-MIXER-HEAD-IS-NOT-FLAT",
+   "F-LEDGER-CHAIN-IS-A-SUM-IN-U",
+   "F-MITM-PRICES-THE-MIXER-AT-SEVEN-OPS",
+   "F-EVERY-ACCUMULATOR-HAS-A-NO-OP-ENTRY"
   ],
   "instrument": [
    "AN1",
    "AO1",
+   "AS3",
    "F-CONTROL-CANNOT-DISCRIMINATE",
    "T-ONE-POINT",
    "T-STALE-CONSTANT",
@@ -263,6 +274,7 @@
    "AR2",
    "AR3",
    "AR4",
+   "AS4",
    "F-COST-INVARIANCE-IS-THE-NORM",
    "F-TERNARY-RICHER-IN-VARIETY-POORER-IN-STRUCTURE",
    "F-27-EDO-BEATS-12-EDO-ON-CONSONANCE",
@@ -374,6 +386,7 @@
    "F-MESSAGE-COMMUTES-OUT-OF-A-GROUP-FEEDFORWARD",
    "F-AFFINE-HIDES-ITS-SOLUTIONS-FROM-A-SCAN",
    "F-REVERSIBLE-CANNOT-DESTROY",
+   "F-LEDGER-CHAIN-IS-A-SUM-IN-U",
    "N-reversibility-inverts",
    "N-detection-not-inversion"
   ],
@@ -404,6 +417,7 @@
    "AQ2",
    "AQ3",
    "AQ4",
+   "AS2",
    "F-BRANCH-BENEFIT",
    "F-531441-COINCIDENCE",
    "F-GATES-FROM-SWITCHES",
@@ -439,7 +453,9 @@
    "F-INPUTS-DO-NOT-SOURCE",
    "F-251505-AGAIN",
    "F-ALWAYS-ONE-FIXED-POINT",
-   "F-VARYING-HELPS-IFF-THE-OPTIMUM-IS-NOT-CONSTANT"
+   "F-VARYING-HELPS-IFF-THE-OPTIMUM-IS-NOT-CONSTANT",
+   "F-COMPENSATING-SWEEP-DOUBLE-COUNTS",
+   "F-EMPTY-DIFFERENTIAL-CELLS-CANNOT-ACCEPT"
   ]
  },
  "entries": [
@@ -6254,6 +6270,198 @@
    "links": []
   },
   {
+   "id": "AS1",
+   "kind": "prediction",
+   "set": "AS",
+   "subject": "Does the mixer's residual algebra help a ledger forger? Four designed attacks on D's split-round chain as a ledger head -- a cross-ledger census of the compensating family over 2,000 drawn ledgers, the differential table of g = P - I, a delta ordering built from it, and a meet-in-the-middle join over four modified entries -- each priced in a cost model stated before the run",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "erasure",
+    "algebra",
+    "hashing"
+   ],
+   "routes_derived": true,
+   "claim": "the 26 is a fact about the mixer and not about one ledger, and there is no weak ledger class: over 2,000 independently drawn six-entry ledgers swept over all 10,920 distinct compensating forgeries each, the mean accept count lands within 0.6 of the chance value 14.979, the variance-to-mean ratio lands in [0.80, 1.25], and no single ledger accepts more than 40",
+   "argument": null,
+   "note": "Held on all three legs. The mean is 1.5 standard errors above chance, the dispersion is Poisson to within 2%, and the worst of 2,000 ledgers accepts 30 against a line at 40. The 17% preimage spread F-MIXER-HEAD-IS-NOT-FLAT measured at length two does NOT reach the six-entry forgery neighbourhood: had it, the registered arithmetic put the ratio at 1.43 and the line at 1.25 would have fired. Two further structural cuts were looked at and neither is a lever -- no merge distance and no carry pattern accepts above 1.05x chance, so the arithmetic-versus-tritwise group mismatch that a forger might have exploited buys nothing at this width. What this does NOT say is that the 26 was a good number to publish: the published sweep counts every forgery twice, so 26 of 21,840 is 13 of 10,920 (F-COMPENSATING-SWEEP-DOUBLE-COUNTS), and 13 against 14.979 is 0.5 sd low rather than the 13% deficit the ordered pair suggests.",
+   "measured": {
+    "ledgers": 2000,
+    "family_per_ledger": 10920,
+    "chance": 14.9794,
+    "mean": 15.1115,
+    "variance": 15.3908,
+    "variance_over_mean": 1.018,
+    "min_over_ledgers": 3,
+    "max_over_ledgers": 30,
+    "total_accepts": 30223,
+    "canonical_ledger_distinct_accepts": 13,
+    "rate_by_merge_distance_x_chance": [
+     0.991,
+     1.021,
+     1.022,
+     1.003,
+     1.022
+    ],
+    "rate_by_carry_pattern_x_chance": [
+     1.005,
+     0.989,
+     1.021,
+     1.042
+    ],
+    "seed_replicate_means": [
+     14.816,
+     15.195
+    ],
+    "seed_replicate_variance_over_mean": [
+     0.981,
+     1.022
+    ]
+   },
+   "tool": "tools/forge-audit.js",
+   "asserted_in": "test/test-forge.js",
+   "registered_at": "6af5b32",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AS2",
+   "kind": "prediction",
+   "set": "AS",
+   "subject": "Does the mixer's residual algebra help a ledger forger? Four designed attacks on D's split-round chain as a ledger head -- a cross-ledger census of the compensating family over 2,000 drawn ledgers, the differential table of g = P - I, a delta ordering built from it, and a meet-in-the-middle join over four modified entries -- each priced in a cost model stated before the run",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "algebra",
+    "ternary-vs-binary"
+   ],
+   "routes_derived": true,
+   "claim": "there is no strong differential in the residual algebra: the differential table of g over GF(3)^6, over all 728 non-zero input differences and all 729 output differences, has a maximum cell of at most 27, so no input-to-output difference through g holds with probability better than 1/27",
+   "argument": null,
+   "note": "Held, and by a wider margin than the registration expected: the maximum is 8, not merely under 27. The Feistel's free two-round characteristic -- probability one in the mod-27 group, four windows in eight rounds -- does not survive into the tritwise metric at all, which is the mechanism the registration named as the way this could fail by an order of magnitude. The number that makes the verdict readable is the control: over twelve random permutations the same statistic runs 7 to 9 and the empty-cell fraction 36.81% against g's 36.74%, so g's differential behaviour is not distinguishable from a random permutation's residual. ONE DISCLOSURE. The registration's own null arithmetic put a random function's maximum at 9 to 11; the measured controls say 7 to 9. The null was slightly wrong, it was arithmetic rather than measurement, and it decided nothing, because the line was at 27 and the answer was 8. The affine control returning exactly 729 is what says the statistic could have reached the hundreds.",
+   "measured": {
+    "cells": 530712,
+    "max_cell": 8,
+    "max_probability": 0.01097,
+    "empty_cells": 194962,
+    "empty_fraction": 0.36736,
+    "tail_cell_share_at_three_or_more": 0.08013,
+    "tail_mass_share_at_three_or_more": 0.26362,
+    "random_permutation_max": 8,
+    "random_permutation_empty_fraction": 0.36811,
+    "random_permutation_max_over_twelve_draws": [
+     8,
+     7,
+     8,
+     9,
+     9,
+     8,
+     9,
+     8,
+     8,
+     8,
+     8,
+     8
+    ],
+    "affine_max": 729,
+    "affine_empty_fraction": 0.99863
+   },
+   "tool": "tools/forge-audit.js",
+   "asserted_in": "test/test-forge.js",
+   "registered_at": "6af5b32",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AS3",
+   "kind": "prediction",
+   "set": "AS",
+   "subject": "Does the mixer's residual algebra help a ledger forger? Four designed attacks on D's split-round chain as a ledger head -- a cross-ledger census of the compensating family over 2,000 drawn ledgers, the differential table of g = P - I, a delta ordering built from it, and a meet-in-the-middle join over four modified entries -- each priced in a cost model stated before the run",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "hashing",
+    "cost-model",
+    "instrument"
+   ],
+   "routes_derived": true,
+   "claim": "the meet-in-the-middle join does not beat its own ideal yield: the four-position join returns between 0.97 and 1.10 times the ideal 531,441 forgeries, on the canonical ledger and on every one of eight independently drawn ones",
+   "argument": null,
+   "note": "Held, and it was the one the registration said could not be called. The two half-tables are genuinely sparse -- 335,881 and 335,763 of 531,441 keys occupied, meeting on 212,371 -- so the failure mode was live: had their reachable key sets coincided the join would have returned the sum of squared counts, which the tool measures at 2.0003 for this very table. It returns 1.0020 instead. The non-flatness F-MIXER-HEAD-IS-NOT-FLAT found is real and is NOT cashable here, and a chain built on a random permutation gives 1.0000, so the mixer's structure buys the forger nothing in yield. The value of the result is what it licenses: the join is a complete enumeration of the four-position family at 6.99 ops per forgery, and that is the cost figure the ledger question actually turns on.",
+   "measured": {
+    "matches": 532485,
+    "ideal": 531441,
+    "ratio": 1.002,
+    "keys_occupied_left": 335881,
+    "keys_occupied_right": 335763,
+    "keys_meeting": 212371,
+    "eight_further_ledgers_min": 0.99856,
+    "eight_further_ledgers_mean": 0.99959,
+    "eight_further_ledgers_max": 1.0015,
+    "random_permutation_chain_ratio": 0.99989,
+    "degenerate_identical_halves_ratio": 2.0003,
+    "ops": 3720087,
+    "memory_slots": 2125764
+   },
+   "tool": "tools/forge-audit.js",
+   "asserted_in": "test/test-forge.js",
+   "registered_at": "6af5b32",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AS4",
+   "kind": "prediction",
+   "set": "AS",
+   "subject": "Does the mixer's residual algebra help a ledger forger? Four designed attacks on D's split-round chain as a ledger head -- a cross-ledger census of the compensating family over 2,000 drawn ledgers, the differential table of g = P - I, a delta ordering built from it, and a meet-in-the-middle join over four modified entries -- each priced in a cost model stated before the run",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "hashing",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "ordering deltas by the differential table more than halves the forger's trials: over the same 2,000 ledgers, restricted to the five adjacent position pairs and to cases where at least one of the 728 deltas is accepted, the mean rank of the first accepted delta under a differential-table-descending order with ties broken uniformly is less than 0.5 times the mean rank under a uniformly random order",
+   "argument": null,
+   "note": "Held at 0.4506 against a line at 0.5, and the margin needed a spread beside it rather than a point: the bootstrap 95% interval is [0.4425, 0.4589] and two further seeds give 0.4495 and 0.4566, none of them reaching the line. AN1's finding -- that this mixer's hit variance came in LOW, more uniform than chance -- was the registered route to failure and it did not transfer: g's differential table is as heavy-tailed as a random function's, with 8.01% of cells holding three or more and those cells carrying 26.4% of the mass, against the 26.4% the Poisson null predicts. THE MECHANISM IS EXACT AND IS THE MOST USEFUL THING IN THE SET. An accepted forgery at an adjacent pair IS the realisation of a two-round differential, so a delta whose cell is empty cannot be accepted -- 0 accepts in 2,669,929 tries -- and the accept rate rises linearly with the cell, 0.98x chance at cell one to 6.65x at cell seven. A forger with the 531,441-entry table discards 36.67% of the family with certainty and finds the top 8.04% carrying 26.86% of the accepts.",
+   "measured": {
+    "cases": 10000,
+    "cases_with_an_accept": 6265,
+    "mean_rank_differential_order": 137.49,
+    "mean_rank_uniform_order": 305.16,
+    "ratio": 0.4506,
+    "bootstrap_95_low": 0.4425,
+    "bootstrap_95_high": 0.4589,
+    "oracle_rank": 1,
+    "anti_oracle_rank": 727.42,
+    "empty_cell_tries": 2669929,
+    "empty_cell_accepts": 0,
+    "rate_by_cell_x_chance": [
+     0,
+     0.983,
+     1.967,
+     3.066,
+     3.74,
+     5.654,
+     5.397,
+     6.651,
+     0
+    ],
+    "free_exclusion_fraction": 0.36675,
+    "top_cell_delta_share": 0.0804,
+    "top_cell_accept_share": 0.26862,
+    "seed_replicate_ratios": [
+     0.44949,
+     0.4566
+    ]
+   },
+   "tool": "tools/forge-audit.js",
+   "asserted_in": "test/test-forge.js",
+   "registered_at": "6af5b32",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
    "id": "F-ADD-IS-A-TABLE",
    "kind": "finding",
    "set": null,
@@ -7277,6 +7485,112 @@
    "measured": null,
    "tool": null,
    "asserted_in": "test/test-findings.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-LEDGER-CHAIN-IS-A-SUM-IN-U",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "proven",
+   "routes": [
+    "reversibility",
+    "hashing"
+   ],
+   "routes_derived": true,
+   "claim": "The mixer's ledger head is a commutative sum in disguise. With g(u) = P(u) - u the step a' = P(a + e) - e is a + g(a + e), and substituting u_k = a_{k-1} + e_k -- a triangular and therefore invertible change of variable -- gives head = g(u_1) + ... + g(u_L). And because P is a permutation, every step is a bijection in the accumulator, so a forgery touching positions i and j has head' = head EXACTLY when the accumulator after max(i, j) is restored: 218,400 of 218,400 agreements over twenty drawn ledgers' full compensating families, with 274 accepts among them so the agreement is not vacuous.",
+   "argument": "Both are algebra, not measurement, which is why they are here rather than among the predictions -- and both are checked exhaustively anyway, because T-TRANSCRIBED-TABLE was a comment that was right and a transcription that was not. The consequences are what matter. The chain linearises into a sum over a reparametrisation of the entries, which is the ledger-direction residual of AN2's collapse: the entry does not commute out the way the message did, but the head is still additive in u. And the merge-point equivalence means a forger never evaluates the tail and can walk the chain BACKWARDS from a target head, which is the whole basis of the meet-in-the-middle attack that prices the mixer at 6.99 ops per forgery.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-forge.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-COMPENSATING-SWEEP-DOUBLE-COUNTS",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "proven",
+   "routes": [
+    "unrouted"
+   ],
+   "routes_derived": true,
+   "claim": "The published compensating sweep enumerates every forgery twice. forge(E, i, j, d) and forge(E, j, i, -d) are the same forged ledger, so ledger-audit's 21,840 ordered tries are 10,920 DISTINCT forgeries and its 26 accepts are 13. Ratios are unaffected, because the chance rate of 29.96 is double-counted the same way; F-FINDABILITY-NOT-COUNT is correct as stated.",
+   "argument": "It matters for one thing and matters a lot for it: DISPERSION. A Poisson process scored over a doubled count shows a variance-to-mean ratio of 2, so any claim about how the accept count varies across ledgers is off by a factor of two unless it is written over distinct forgeries. AS1 is written that way. It also changes how the headline reads -- 13 against a chance of 14.979 is half a standard deviation low, where 26 against 29.96 invites the reading that the mixer is doing something. It is not.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-forge.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-EMPTY-DIFFERENTIAL-CELLS-CANNOT-ACCEPT",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "unrouted"
+   ],
+   "routes_derived": true,
+   "claim": "For an adjacent position pair, an accepted compensating forgery IS the realisation of a two-round differential of g, and a delta whose differential cell is empty cannot be accepted at all: 0 accepts in 2,669,929 tries, which is 36.67% of the family. The accept rate then rises linearly with the cell -- 0.98, 1.97, 3.07, 3.74, 5.65, 5.40 and 6.65 times chance at cells one through seven.",
+   "argument": "Write A for the change the first edited entry makes to the accumulator and t for the tritwise input difference it induces at the second; the merge-point equivalence says the forgery is accepted exactly when g realises t -> -A at that ledger's own u. So the number of u realising it -- the differential cell -- is the accept probability times 729, and an empty cell is a certainty rather than a small probability. This is the only place in set AS where the residual algebra gives a forger something with certainty, and it is what AS4's halving is made of.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-forge.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-MITM-PRICES-THE-MIXER-AT-SEVEN-OPS",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "hashing"
+   ],
+   "routes_derived": true,
+   "claim": "Priced rather than counted, the mixer's advantage over the summed head is about a factor of seven, not the factor of 840 a per-try collision rate suggests. A meet-in-the-middle join over four modified entries enumerates 532,485 forgeries of one ledger -- same arithmetic total, same mixer head -- at 6.99 ops per forgery and 2,125,764 table slots, against a measured brute-force baseline of 4,414 ops per accepted forgery over the same family: a 632x cut. The summed head needs no search at all, about one op.",
+   "argument": "The 840 comes from a family with ONE free parameter, where a single constraint costs a single tryte of search whatever the accumulator is. Give the forger four entries and the constraints are two -- the arithmetic total and the head -- against four unknowns, and the chain's one-tryte state lets both halves be tabulated and joined. The enabling property is not the mixer's algebra but its width: nine and a half bits of accumulator, so the state space squared fits in two million slots. THE ATTACK IS GENERIC AND THAT IS THE POINT. Nothing in it uses the split round; it would work against any iterated head of this width, which is why the ledger question is a width question rather than a mixing question.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-forge.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-EVERY-ACCUMULATOR-HAS-A-NO-OP-ENTRY",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "hashing"
+   ],
+   "routes_derived": true,
+   "claim": "D's split-round permutation has exactly ONE fixed point, so there is exactly one u with g(u) = 0, and therefore -- from every one of the 729 accumulators -- exactly one entry value that leaves the mixer head unchanged. Verified at all 729. The same object read the other way: g's image is 465 of 729, so 264 accumulator increments are unreachable in a single step.",
+   "argument": "By D1 the step from accumulator a with entry e is a + g(a + e), so the entry e = u - a with g(u) = 0 does nothing at all. THIS IS THE ATTACK SURFACE SET AS DID NOT TOUCH. Every forgery in the set keeps the ledger at six entries, so none of them can use a free move that only an INSERTION makes available. A forger who may lengthen the ledger gets a mixer no-op at every position of every ledger; the entry's VALUE is forced, so the arithmetic total moves and the insertion has to be paid for elsewhere, but that is a cost rather than an obstacle and nothing here measures it. Recorded because an unexamined attack surface reported as silence is exactly how 26 against 29.96 stood unexamined since the ledger was built.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-forge.js",
    "registered_at": null,
    "results_at": null,
    "links": []

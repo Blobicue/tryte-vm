@@ -1142,6 +1142,123 @@ under-determined by this model to four decimal places at the leaf counts where `
 seemed to have an answer, and should be decided on grounds this cost model does not
 contain.
 
+### `AS` — the ledger head attacked instead of counted, and the 840 turns out to be a 7
+
+`ledger-audit.js` published two numbers and left a hole between them. The summed head
+accepts **all 21,840** compensating forgeries of one six-entry ledger; the split-round
+mixer accepts **26**, against a chance rate of 29.96 (`F-FINDABILITY-NOT-COUNT`). That
+file says in its own header what it does not measure: `AN2` showed the mixer's
+feed-forward collapses, and in the ledger direction the step is `g(a + e) + a` with the
+accumulator fed forward rather than the entry. Whether that residual gives a forger
+anything was left open, and 26 against 30 is an unexamined number a design was resting
+on. Set `AS` designs four attacks, prices them, and asks.
+
+**First, two things the algebra settles before any measurement, both checked
+exhaustively anyway.** With `g(u) = P(u) − u`, the step is `a + g(a + e)`, and
+substituting `u_k = a_{k−1} + e_k` — triangular, therefore invertible — gives
+`head = g(u_1) + … + g(u_L)`. **The mixer's head is a commutative sum in disguise**, over
+a reparametrisation of the entries (`F-LEDGER-CHAIN-IS-A-SUM-IN-U`). And because `P` is a
+permutation, every step is a bijection *in the accumulator*, so a forgery touching
+positions `i` and `j` preserves the head exactly when the accumulator after `max(i, j)` is
+restored — 218,400 of 218,400 agreements, with 274 accepts among them so the agreement is
+not vacuous. A forger never evaluates the tail, and can walk the chain **backwards** from
+a target head. That is what makes the fourth attack possible at all.
+
+**And one correction to the published sweep.** `forge(E, i, j, d)` and
+`forge(E, j, i, −d)` are the same forged ledger, so the 21,840 ordered tries are **10,920
+distinct forgeries and the 26 accepts are 13** (`F-COMPENSATING-SWEEP-DOUBLE-COUNTS`).
+Ratios are unaffected — 29.96 is double-counted the same way — but dispersion is not: a
+perfectly Poisson process scored over a doubled count shows a variance-to-mean ratio of 2.
+Every count in `AS` is over distinct forgeries.
+
+**`AS1` HELD. The 26 is the mixer, not the ledger.** Over 2,000 drawn ledgers and
+21,840,000 distinct forgeries the mean is **15.111** against a chance of 14.979, the
+variance-to-mean ratio **1.018**, and the worst ledger of the 2,000 accepts **30** against
+a registered line of 40. There is no weak-ledger class. The 17% preimage spread
+`F-MIXER-HEAD-IS-NOT-FLAT` measured at length two does **not** reach the six-entry
+forgery neighbourhood — had it, the registered arithmetic put the ratio at 1.43 and the
+line at 1.25 would have fired. Two further structural cuts were looked at and neither is a
+lever: no merge distance and no carry pattern accepts above 1.05× chance, so the
+arithmetic-versus-tritwise group mismatch a forger might have exploited buys nothing.
+
+**`AS2` HELD, and wider than expected. There is no differential to exploit.** The
+differential table of `g` over all 530,712 non-zero-input cells has a **maximum of 8**,
+against a registered line of 27. The Feistel's free two-round characteristic — probability
+one in the mod-27 group, four windows in eight rounds — does not survive into the tritwise
+metric at all. What makes the verdict readable is the control: over twelve random
+permutations the same statistic runs **7 to 9**, and the empty-cell fraction is 36.81%
+against `g`'s 36.74%. **`g` is not distinguishable from a random permutation's residual
+here.** The affine map of set `AN` returns 729 on the same statistic, which is what says
+it could have reached the hundreds.
+
+**`AS3` HELD, and it was the one the registration said it could not call.** A
+meet-in-the-middle join modifies entries 1, 2, 5 and 6, pushes the left half forward to
+the accumulator after entry 4 and pulls the right half **backwards** from the head, then
+joins on (accumulator, arithmetic partial sum). Ideal yield 531,441; measured **532,485**,
+a ratio of **1.0020**, and every one of eight further ledgers inside [0.9986, 1.0015]. The
+failure mode was live rather than hypothetical: the halves really are sparse — 335,881 and
+335,763 of 531,441 keys occupied — so had their reachable sets coincided the join would
+have returned the sum of squared counts, which the tool measures at **2.0003** for this
+very table. It does not. The non-flatness is real and is not cashable.
+
+**`AS4` HELD at 0.4506 against a line at 0.5, and it carries the mechanism.** For an
+adjacent position pair, an accepted forgery **is** the realisation of a two-round
+differential of `g`: with `A` the change the first edit makes to the accumulator and `t`
+the input difference it induces at the second, acceptance is exactly `g` realising
+`t → −A` at that ledger's own `u`. So a forger can rank deltas by the table before
+spending anything on the chain, and ranking that way finds the first accepted delta at
+mean rank **137.49** against a uniform order's **305.16** — bootstrap 95% [0.4425, 0.4589],
+and two further seeds at 0.4495 and 0.4566, none of them reaching the line. `AN1`'s
+finding that this mixer came in *more uniform than chance* was the registered route to
+failure and it did not transfer.
+
+**The one thing in this set that is a certainty rather than an average.** A delta whose
+differential cell is empty **cannot** be accepted: **0 accepts in 2,669,929 tries**, which
+is 36.67% of the family discarded for free. The accept rate then rises linearly with the
+cell — 0.98, 1.97, 3.07, 3.74, 5.65, 5.40 and 6.65 times chance at cells one through
+seven — and the top 8.04% of deltas carry 26.86% of the accepts
+(`F-EMPTY-DIFFERENTIAL-CELLS-CANNOT-ACCEPT`). **That is a forger beating chance: not on
+the family average, which is exactly chance, but on a band the table names in advance.**
+
+**And the answer the ledger question actually turns on, which no prediction claimed
+because it follows from `AS3` and the cost model.** Brute force over the same
+four-position family accepts at chance and costs **4,414 ops per accepted forgery**. The
+join enumerates the whole family at **6.99 ops per forgery** for 2,125,764 table slots — a
+**632× cut**. The summed head needs no search at all, about one op. So, priced rather
+than counted, **the mixer's advantage over the sum is a factor of about seven, not the
+840 a per-try collision rate suggests** (`F-MITM-PRICES-THE-MIXER-AT-SEVEN-OPS`). The 840
+is a fact about a family with one free parameter, where a single constraint costs a single
+tryte of search whatever the accumulator is. Give the forger four entries and the enabling
+property is not the mixer's algebra but **its width**: nine and a half bits of
+accumulator, so the state space squared fits in two million slots. The attack uses nothing
+about the split round and would work against any iterated head this narrow.
+
+**What this does not show.** One ledger length, one join split, adjacent pairs only for
+the differential work, and a brute-force baseline that is sampled at 3,000,000 of
+387,420,489 candidates rather than exhaustive. `AS2` bounds one table's maximum cell and
+says nothing about a multi-round characteristic; nothing here searches for one. And no
+attack in this set touches the ledger's *length* — every forgery keeps six entries, so
+insertion and deletion are unexamined.
+
+**And the unexamined surface is measured rather than left as silence, because silence
+is how the 26 got here.** `P` has exactly **one fixed point**, so exactly one `u` has
+`g(u) = 0`, so from **every one of the 729 accumulators there is exactly one entry value
+that leaves the mixer head unchanged** — verified at all 729 rather than argued from the
+fixed-point count (`F-EVERY-ACCUMULATOR-HAS-A-NO-OP-ENTRY`). A forger who may *insert*
+an entry has that free move at every position of every ledger. The value is forced, so
+the arithmetic total moves and the insertion has to be paid for elsewhere; that is a cost
+rather than an obstacle, and nothing here measures it. The same object read the other way
+is `g`'s image: 465 of 729, so 264 accumulator increments are unreachable in a single
+step.
+
+**For a design downstream, the reading is a width statement rather than a mixing
+statement.** A one-tryte head is not a ledger head against an adversary who can hold two
+million table slots, and no amount of mixing repairs that, because the attack that breaks
+it never looks inside the mixer. `AS1` through `AS4` say the split round is doing
+everything a 9.5-bit permutation-based head can do — it is indistinguishable from a random
+permutation on every statistic tried — and `F-MITM-PRICES-THE-MIXER-AT-SEVEN-OPS` says
+that is worth a factor of seven over adding the entries up.
+
 ## Owned sets
 
 | set | subject | outcome |
@@ -1158,5 +1275,6 @@ contain.
 | `AP` | a hash-only key layer, and what one-time ownership costs | all four held — and two should not have been registered |
 | `AQ` | how wide an authenticated tree should be, and whether three ever wins | 1 held, `AQ1`, `AQ2` and `AQ4` failed — and `AQ1`'s failure found the answer |
 | `AR` | does a tree want the same arity at every depth, and what does varying buy | 3 held, `AR4` failed — inverted, and the inversion overturned `AQ`'s headline |
+| `AS` | does the mixer's residual algebra help a ledger forger, and what does one cost | all four held — and the attack that prices the head at 7 ops uses nothing about the mixer |
 
 Full text in [`99-ledger.md`](99-ledger.md).

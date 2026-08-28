@@ -308,15 +308,18 @@ console.log('\n=== 5. REFERENCES ===');
     // Anchored on those two phrasings rather than on any mention of the word,
     // because the README also says the ceiling ladder took six audits, which is
     // a different and still-true number.
-    const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
-      'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
-      'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one',
-      'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five', 'twenty-six',
-      'twenty-seven', 'twenty-eight', 'twenty-nine', 'thirty', 'thirty-one',
-      'thirty-two', 'thirty-three', 'thirty-four', 'thirty-five', 'thirty-six',
-      'thirty-seven', 'thirty-eight', 'thirty-nine', 'forty', 'forty-one',
-      'forty-two', 'forty-three', 'forty-four', 'forty-five', 'forty-six',
-      'forty-seven', 'forty-eight', 'forty-nine', 'fifty'];
+    // ONE spelling table, imported rather than copied. This file kept its own and it
+    // stopped at fifty; the manifest reached fifty-one unregistered findings and the
+    // check began asserting that METHOD.md says "undefined findings". T-STALE-CONSTANT,
+    // inside the suite that exists to catch it, for the second time -- and a second copy
+    // of a fact is a second thing to disagree, which is why render-docs owns it.
+    // Note the SHAPE of the failure: the check did not go quiet, it started demanding a
+    // sentence nothing could ever write. A guard that fails CLOSED is the survivable
+    // version of this defect and it is why the drift was visible at all.
+    // MUTATION-TESTED after the change, because a check just edited is a check nobody
+    // has seen fail: replacing METHOD.md's 'Fifty-one findings' with 'Fifty' turns this
+    // red with the expected string quoted, and restoring it turns it green.
+    const { WORDS } = require('../tools/render-docs.js');
     // An audit is a tool a set names, wherever it lives. This globbed tools/*-audit.js
     // until a set's tool had to live beside the GPU it runs on -- bench/grok.py --
     // at which point the count read one short and the check reported the corpus as

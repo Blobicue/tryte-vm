@@ -547,6 +547,7 @@ function census(ledgers = LEDGERS, seed = SEED, ddt = null) {
   const hitByCarry = new Int32Array(4), triedByCarry = new Int32Array(4);
   const hitByCell = new Int32Array(maxCell + 2), triedByCell = new Int32Array(maxCell + 2);
   let sumDDT = 0, sumUniform = 0, sumOracle = 0, sumAnti = 0, cases = 0, casesWithHit = 0;
+  const rankD = [], rankU = [];
   for (let n = 0; n < ledgers; n++) {
     const e = drawLedger(r);
     for (const x of e) seenEntry[x] = 1;
@@ -566,8 +567,10 @@ function census(ledgers = LEDGERS, seed = SEED, ddt = null) {
       }
       if (row.hits === 0) continue;
       casesWithHit++;
-      sumDDT += rankOfFirstHit(row, maxCell);
-      sumUniform += rankUniform(row.hits);
+      const rd = rankOfFirstHit(row, maxCell), ru = rankUniform(row.hits);
+      rankD.push(rd); rankU.push(ru);
+      sumDDT += rd;
+      sumUniform += ru;
       sumOracle += rankOracle();
       sumAnti += rankAntiOracle(row.hits);
     }
@@ -589,7 +592,65 @@ function census(ledgers = LEDGERS, seed = SEED, ddt = null) {
       ddt: sumDDT / casesWithHit, uniform: sumUniform / casesWithHit,
       oracle: sumOracle / casesWithHit, anti: sumAnti / casesWithHit,
       ratio: (sumDDT / casesWithHit) / (sumUniform / casesWithHit),
+      // A RATIO OF TWO MEANS HAS NO CLOSED-FORM STANDARD ERROR HERE, because the two
+      // are correlated through the same accept count. Bootstrapped over the cases
+      // instead. AS4's line sits at 0.5 and the measured value is not far from it, so
+      // a number without a spread beside it would be exactly the defect
+      // T-CRITERION-IN-THE-NOISE names.
+      se: bootstrapRatioSE(rankD, rankU, 400, seed ^ 0x9e3779b9),
     },
+  };
+}
+
+/** Percentile bootstrap of the mean-rank ratio over cases. */
+function bootstrapRatioSE(a, b, B = 400, seed = 1) {
+  if (!a.length) return null;
+  const r = rng(seed), n = a.length, out = new Float64Array(B);
+  for (let t = 0; t < B; t++) {
+    let sa = 0, sb = 0;
+    for (let i = 0; i < n; i++) { const k = randInt(r, n); sa += a[k]; sb += b[k]; }
+    out[t] = sa / sb;
+  }
+  let m = 0; for (const v of out) m += v; m /= B;
+  let ss = 0; for (const v of out) ss += (v - m) ** 2;
+  const sorted = Array.from(out).sort((x, y) => x - y);
+  return { sd: Math.sqrt(ss / (B - 1)), lo: sorted[Math.floor(0.025 * B)],
+    hi: sorted[Math.floor(0.975 * B)], resamples: B };
+}
+
+/**
+ * POST HOC, DECLARED, AND SCORING NOTHING. `AR`'s control was one frozen object where
+ * the claim needed a distribution, and the lesson was that a single draw is one sample.
+ * The census is therefore rerun at further seeds so a reader can see whether either
+ * registered line sits inside the seed-to-seed spread.
+ */
+function robustness(seeds, ddt, ledgers = LEDGERS) {
+  return seeds.map(s => {
+    const c = census(ledgers, s, ddt);
+    return { seed: s, mean: c.mean, varOverMean: c.varOverMean, min: c.min, max: c.max,
+      as4: c.ranks.ratio };
+  });
+}
+
+/**
+ * What the differential table is worth to a forger who USES it, rather than to one who
+ * ranks with it. Derived from the census's own cell tallies: the share of deltas whose
+ * cell is empty (excluded with certainty, not merely with high probability), and the
+ * share of accepts sitting in the heavy cells.
+ */
+function targeted(c, floor = 3) {
+  let triedAll = 0, hitAll = 0, triedTop = 0, hitTop = 0;
+  const empty = { tried: c.triedByCell[0], hit: c.hitByCell[0] };
+  for (let k = 0; k < c.triedByCell.length; k++) {
+    triedAll += c.triedByCell[k]; hitAll += c.hitByCell[k];
+    if (k >= floor) { triedTop += c.triedByCell[k]; hitTop += c.hitByCell[k]; }
+  }
+  return {
+    floor, triedAll, hitAll, triedTop, hitTop, empty,
+    deltaShare: triedTop / triedAll, acceptShare: hitTop / hitAll,
+    concentration: (hitTop / hitAll) / (triedTop / triedAll),
+    topRateXChance: (hitTop / triedTop) * N,
+    freeExclusion: empty.tried / triedAll,
   };
 }
 
@@ -685,6 +746,40 @@ function stepTableFor(perm) {
   return { step: s, back: b };
 }
 
+// ------------------------------------------------- WHAT WAS NOT ATTACKED, MEASURED
+/**
+ * An unexamined attack surface reported as silence is how the 26 got here, so the one
+ * this set leaves open is measured rather than merely named.
+ *
+ * A fixed point of `P` is a `u` with `g(u) = 0`, and by D1 the step from accumulator
+ * `a` with entry `e = u - a` then leaves `a` unchanged. So for each fixed point there
+ * is, FROM EVERY ACCUMULATOR, exactly one entry value that is a mixer no-op: a forger
+ * who may INSERT an entry rather than edit one has a free move at every position of
+ * every ledger. Every forgery in set `AS` keeps the ledger's length, so none of them
+ * uses it.
+ *
+ * The other half of the same object is `g`'s image, which is what makes the chain's
+ * increments a proper subset of the group.
+ */
+function noOpEntries() {
+  let fixedPoints = 0;
+  const image = new Set();
+  const witnesses = [];
+  for (let u = 0; u < N; u++) {
+    image.add(G[u]);
+    if (G[u] === ZERO) { fixedPoints++; witnesses.push(u); }
+  }
+  // Checked at every accumulator rather than argued: the entry is forced, and the claim
+  // is that it does nothing, which is exactly the kind of thing a transcription gets
+  // backwards.
+  let verified = true;
+  for (const u of witnesses) {
+    for (let a = 0; a < N; a++) if (STEP[a * N + TSUB[u * N + a]] !== a) { verified = false; break; }
+  }
+  return { fixedPoints, witnesses, verified,
+    imageOfG: image.size, unreachableIncrements: N - image.size };
+}
+
 // ----------------------------------------------------- the brute-force baseline, measured
 /**
  * What a forger pays WITHOUT the join: draw four-position modifications that keep the
@@ -746,7 +841,12 @@ function measure() {
     mitmControl: mitm(ledgerIx, ctrl.step, ctrl.back),
     mitmSweep: mitmSweep(8),
     brute: bruteBaseline(ledgerIx, LEDGERS >= 500 ? 3000000 : 200000),
+    noOp: noOpEntries(),
+    controlMaxima: Array.from({ length: 12 }, () =>
+      ddtStats(ddtOf(gFromPermutation(randomPermutation(r)))).max),
   };
+  CACHE.robustness = robustness([1, 424242], ddt, LEDGERS);
+  CACHE.targeted = targeted(CACHE.census, 3);
   return CACHE;
 }
 
@@ -799,6 +899,7 @@ function report() {
   log(`      empty cells             ${(100 * D.stats.emptyFraction).toFixed(2)}%   a random function gives 36.79%`);
   log(`      cells holding 3 or more ${(100 * D.stats.tailCellShare).toFixed(2)}% of cells, ${(100 * D.stats.tailShare).toFixed(2)}% of the mass`);
   log(`      control, a random permutation's g   max ${D.random.max}   empty ${(100 * D.random.emptyFraction).toFixed(2)}%`);
+  log(`      and over 12 random permutations the maximum runs ${M.controlMaxima.join(' ')}`);
   log(`      control, AN's LINEAR affine g       max ${D.affine.max}   empty ${(100 * D.affine.emptyFraction).toFixed(2)}%   (the statistic can reach 729)`);
 
   log('\n--- AS3  meet in the middle ---');
@@ -818,7 +919,8 @@ function report() {
   log(`      ${R.cases.toLocaleString('en-US')} adjacent-pair cases, ${R.casesWithHit.toLocaleString('en-US')} of them with at least one accept`);
   log(`      mean rank of first accept, differential order   ${R.ddt.toFixed(2)}`);
   log(`      mean rank of first accept, uniform order        ${R.uniform.toFixed(2)}`);
-  log(`      ratio                                          ${R.ratio.toFixed(4)}`);
+  log(`      ratio                                          ${R.ratio.toFixed(4)}`
+    + `   bootstrap 95% [${R.se.lo.toFixed(4)}, ${R.se.hi.toFixed(4)}], sd ${R.se.sd.toFixed(4)}`);
   log(`      span: a perfect oracle gives ${R.oracle.toFixed(2)}, an anti-oracle ${R.anti.toFixed(2)}`);
   log('\n      accept rate by the differential cell the delta lands in');
   log('      cell     tried      accepts   rate x chance');
@@ -828,6 +930,32 @@ function report() {
     log(`      ${String(c).padStart(3)}  ${String(t).padStart(10)}  ${String(h).padStart(9)}   ${(h / t * N).toFixed(3)}`);
   }
 
+  log('\n--- POST HOC, DECLARED, SCORING NOTHING: the same statistics at other seeds ---');
+  log('      seed          mean   var/mean   min   max   AS4 ratio');
+  for (const row of [{ seed: SEED, mean: C.mean, varOverMean: C.varOverMean, min: C.min,
+    max: C.max, as4: C.ranks.ratio }, ...M.robustness]) {
+    log(`      ${String(row.seed).padStart(9)}  ${row.mean.toFixed(3).padStart(7)}`
+      + `   ${row.varOverMean.toFixed(3).padStart(8)}   ${String(row.min).padStart(3)}`
+      + `   ${String(row.max).padStart(3)}   ${row.as4.toFixed(4).padStart(9)}`);
+  }
+
+  log('\n--- NOT REGISTERED: the differential table as a FILTER, which is what a forger buys ---');
+  const G4 = M.targeted;
+  log(`      cells that are empty exclude ${(100 * G4.freeExclusion).toFixed(2)}% of deltas WITH CERTAINTY:`
+    + ` ${G4.empty.hit} accepts in ${G4.empty.tried.toLocaleString('en-US')} tries`);
+  log(`      deltas whose cell holds ${G4.floor} or more are ${(100 * G4.deltaShare).toFixed(2)}% of the family`
+    + ` and carry ${(100 * G4.acceptShare).toFixed(2)}% of the accepts`);
+  log(`      concentration ${G4.concentration.toFixed(2)}x, and inside that band the accept rate is`
+    + ` ${G4.topRateXChance.toFixed(2)}x chance`);
+
+  log('\n--- WHAT THIS SET DID NOT ATTACK, measured rather than left as silence ---');
+  const NO = M.noOp;
+  log(`      P has ${NO.fixedPoints} fixed point(s), so from EVERY accumulator exactly ${NO.fixedPoints}`);
+  log('      entry value is a mixer no-op — verified at all 729 accumulators: ' + NO.verified);
+  log(`      and g's image is ${NO.imageOfG} of ${N}, so ${NO.unreachableIncrements} increments are unreachable in one step`);
+  log('      Every forgery here keeps the ledger at six entries. A forger who may INSERT');
+  log('      has that free move at every position and this set never uses it.');
+
   log('\n--- NOT REGISTERED: what a forger actually pays ---');
   const B = M.brute;
   log(`      brute force over four-position sum-preserving forgeries, ${B.samples.toLocaleString('en-US')} sampled`);
@@ -836,6 +964,11 @@ function report() {
   log(`        accepted ${J.matches.toLocaleString('en-US')}   ops ${J.ops.toLocaleString('en-US')}   ops per accepted forgery ${(J.ops / J.matches).toFixed(2)}`);
   log(`        memory ${J.memory.toLocaleString('en-US')} slots`);
   log(`      speed-up ${(B.opsPerAccept / (J.ops / J.matches)).toFixed(0)}x`);
+  log(`      the SUMMED head needs no search at all — a compensating pair is a forgery by`);
+  log(`      construction, about 1 op. So the mixer's advantage over the sum is`
+    + ` ${(J.ops / J.matches).toFixed(1)} ops per`);
+  log(`      forgery, not the 840x per-try findability gap ledger-audit measured on a`);
+  log('      family with one free parameter.');
   log('\n' + line);
   return M;
 }
@@ -848,6 +981,8 @@ module.exports = {
   rng, randInt, drawLedger, accums, headIx, totalIx,
   checkStepIsGShift, checkStepBijective, checkHeadIsGSum, checkMergePointEquivalence,
   checkDoubleCount, ddtOf, ddtStats, gFromPermutation, randomPermutation, stepTableFor,
-  sweepLedger, summedControl, rankOfFirstHit, rankUniform, census,
-  mitm, mitmSweep, mitmForgery, degenerateJoinRatio, bruteBaseline, measure, report,
+  sweepLedger, summedControl, rankOfFirstHit, rankUniform, rankAntiOracle, census,
+  bootstrapRatioSE, robustness, targeted,
+  mitm, mitmSweep, mitmForgery, degenerateJoinRatio, bruteBaseline, noOpEntries,
+  measure, report,
 };
