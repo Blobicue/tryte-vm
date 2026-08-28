@@ -1957,7 +1957,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/radix-audit.js` |
 | asserted in | `test/test-radix.js` |
 | registered | `2b6ca3a` |
-| results | `PENDING` |
+| results | `12b5570` |
 
 ### `AR1` — HELD
 

@@ -3715,7 +3715,7 @@
       "subject": "What happens when a tree's arity is allowed to VARY by depth? AQ's cost model extended from radices to radix sequences, over AQ's 45 leaf counts at all 64 exchange rates and over EVERY integer leaf count from 2 to 8,192 at the eight decade rates",
       "tool": "tools/radix-audit.js",
       "registered_at": "2b6ca3a",
-      "results_at": "PENDING",
+      "results_at": "12b5570",
       "asserted_in": "test/test-radix.js",
       "predictions": [
         {
