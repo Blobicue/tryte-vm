@@ -61,7 +61,8 @@
     "audit:tasks": "node tools/tasks-audit.js",
     "audit:wipe": "node tools/wipe-audit.js",
     "audit:keylayer": "node tools/keylayer-audit.js",
-    "audit:radix": "node tools/radix-audit.js"
+    "audit:radix": "node tools/radix-audit.js",
+    "audit:forge": "node tools/forge-audit.js"
   },
   "license": "MIT",
   "private": true
