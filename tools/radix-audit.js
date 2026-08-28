@@ -259,6 +259,36 @@
  *        depth of trees that are near-optimal but not optimal.
  *
  * ------------------------------------------------------------------------------
+ * ADDED AFTER REGISTRATION, and therefore not part of it. Everything above this line
+ * is as committed at `2b6ca3a`; three slips in it are left verbatim because the
+ * registered words are the record, and are disclosed here instead.
+ *
+ *   THE ROBUSTNESS WINDOWS. The block above names them as [128, 1024] and
+ *   [8192, 65536]; the registered CODE ran [8192, 16384], narrowed for cost before the
+ *   commit without the prose following. The code is what ran.
+ *
+ *   AR2's PAIR COUNT. Its `AT RISK` line says 7,167 consecutive pairs. The window holds
+ *   7,169 leaf counts and therefore 7,168 pairs. The manifest's measured block carries
+ *   the right figure; the registered wording carries the wrong one.
+ *
+ *   "THE VERIFY-DOMINATED RATE" is not a decade boundary. `AR2`, `AR3` and `AR4` name
+ *   it in prose while the contiguous sweep is described at eight decade boundaries;
+ *   the registered code pins the three of them to GMAX = 10^3.875. The code decides
+ *   the scope -- `T-SCOPE-DECIDES-THE-VERDICT` is the class a reader should reach for
+ *   -- and it carries no verdict either way, which is measured rather than asserted:
+ *   rerunning the three windows at gamma = 1000 gives the same 85.7% helped, the same
+ *   2,176 deeper against 3,580 shallower, and a jump ratio of 0.337 against 0.334.
+ *   A check pins that, so the ambiguity cannot start mattering later.
+ *
+ * AND ONE INSTRUMENT FIX. The control's dynamic program capped each level's arity at
+ * the residual leaf count. That is sound when the weight rises with arity and wrong
+ * when it does not, and it returned a sequence fifty times dearer than the best
+ * CONSTANT tree -- an answer whose SIGN is impossible, since a constant tree is a
+ * sequence. The capped version is kept below as `controlBestCapped` and pinned by a
+ * test, so the fix cannot regress. Two further instrument defects were caught BEFORE
+ * registration and are recorded in that commit's message.
+ *
+ * ------------------------------------------------------------------------------
  *     npm run audit:radix
  */
 
@@ -607,11 +637,42 @@ function controlBest(N, gamma, memo = new Map()) {
   if (N <= 1) return { cost: 0, seq: [] };
   if (memo.has(N)) return memo.get(N);
   let best = Infinity, bestB = 0, bestRest = null;
-  const top = Math.min(BMAX, N);
+  // EVERY arity, not just those up to the residual leaf count. `minsumDP` may stop at
+  // N because its weight IS b and a level wider than the residual costs more for
+  // nothing; the control's weight is a pseudorandom draw with no such monotonicity, so
+  // the same shortcut deletes the cheap wide levels from its search. It did: at
+  // N = 729 the capped version returned a sequence costing fifty times the best
+  // CONSTANT tree, which is impossible, because a constant tree is a sequence. Caught
+  // because the control's gain from varying came out NEGATIVE -- a number whose sign
+  // is forbidden by the containment of the two search spaces.
+  //   T-SCOPE-DECIDES-THE-VERDICT, and the instrument audited by its own arithmetic
+  //   rather than by re-reading it.
   // No cycle guard is needed and none is used: every arity is at least two, so
   // ceil(N / b) < N for every N >= 2, and the recursion strictly descends.
-  for (let b = 2; b <= top; b++) {
+  for (let b = 2; b <= BMAX; b++) {
     const rest = controlBest(Math.ceil(N / b), gamma, memo);
+    const t = controlWeight(b, gamma) + rest.cost;
+    if (t < best) { best = t; bestB = b; bestRest = rest.seq; }
+  }
+  const out = { cost: best, seq: [bestB, ...bestRest] };
+  memo.set(N, out);
+  return out;
+}
+
+/**
+ * The CAPPED version, kept so the fix above cannot quietly regress. It stops each
+ * level's arity at the residual leaf count, which is sound when the weight rises with
+ * arity and wrong when it does not. A test pins a cell where it returns a sequence
+ * dearer than the best CONSTANT tree -- an impossible answer, since a constant tree is
+ * a sequence, and the sign of that impossibility is what exposed it.
+ */
+function controlBestCapped(N, gamma, memo = new Map()) {
+  if (N <= 1) return { cost: 0, seq: [] };
+  if (memo.has(N)) return memo.get(N);
+  let best = Infinity, bestB = 0, bestRest = null;
+  const top = Math.min(BMAX, N);
+  for (let b = 2; b <= top; b++) {
+    const rest = controlBestCapped(Math.ceil(N / b), gamma, memo);
     const t = controlWeight(b, gamma) + rest.cost;
     if (t < best) { best = t; bestB = b; bestRest = rest.seq; }
   }
@@ -634,6 +695,63 @@ function controlBestConstant(N, gamma) {
  * that cannot move in the dimension being swept is not evidence -- it is a constant
  * wearing the costume of one.
  */
+/**
+ * THE NULL, AS A DISTRIBUTION RATHER THAN A DRAW — added AFTER the run, scoring no
+ * registered prediction, and declared post-hoc rather than quietly swapped in.
+ *
+ * The registered control is ONE frozen pseudorandom object, and `AO1` already paid for
+ * that mistake: a single fixed draw is one sample where the claim needs a distribution,
+ * and 336 of 400 redraws would have passed a band the frozen one missed. Here the
+ * frozen draw turned out degenerate in a way that is visible only against redraws --
+ * its minimum-weight arity happened to land at 604, 310 and 383 at the three rates,
+ * all of them wide enough to cover any leaf count in two levels, so repeating that one
+ * arity is optimal everywhere and variation cannot help it BY CONSTRUCTION. That is a
+ * fact about one seed, not about structureless costs.
+ *
+ * This redraws the pair of weight tables `trials` times and reports the gain-from-
+ * varying each draw yields, so the subject's gain has a null to sit against instead of
+ * a single number. Sampled, not exhaustive: six leaf counts at the verify-dominated
+ * rate, stated here because a sampled null that reads as an exhaustive one is worse
+ * than no null.
+ */
+function controlNull(trials = 100, leaves = [32, 100, 243, 729, 1024, 2048], gamma = GMAX) {
+  const per = [];
+  for (let t = 0; t < trials; t++) {
+    let s = 1000003 + t * 7919;
+    const rnd = () => { s = (Math.imul(s, 1103515245) + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+    const wb = new Int32Array(BMAX + 1), wv = new Int32Array(BMAX + 1);
+    for (let b = 2; b <= BMAX; b++) { wb[b] = 1 + Math.floor(rnd() * 1024); wv[b] = 1 + Math.floor(rnd() * 1024); }
+    const w = b => wb[b] + gamma * wv[b];
+    const memo = new Map();                       // shared across leaf counts, one draw
+    const best = N => {
+      if (N <= 1) return 0;
+      if (memo.has(N)) return memo.get(N);
+      let v = Infinity;
+      for (let b = 2; b <= BMAX; b++) { const c = w(b) + best(Math.ceil(N / b)); if (c < v) v = c; }
+      memo.set(N, v);
+      return v;
+    };
+    let worst = 0, helped = 0;
+    for (const n of leaves) {
+      let con = Infinity;
+      for (let b = 2; b <= BMAX; b++) { const c = depth(n, b) * w(b); if (c < con) con = c; }
+      const g = (con - best(n)) / con;
+      if (g > 1e-12) helped++;
+      if (g > worst) worst = g;
+    }
+    per.push({ worst, helped, leaves: leaves.length });
+  }
+  const worsts = per.map(p => p.worst).sort((a, b) => a - b);
+  return {
+    trials, leaves: leaves.length, gamma,
+    drawsWithAnyGain: per.filter(p => p.helped > 0).length,
+    maxGain: worsts[worsts.length - 1],
+    medianGain: worsts[trials >> 1],
+    p95Gain: worsts[Math.floor(0.95 * trials)],
+    helpedFraction: per.reduce((a, p) => a + p.helped, 0) / (trials * leaves.length),
+  };
+}
+
 function controlResponse() {
   const lo = DECADES[0], hi = GMAX;
   let moved = 0, notNearEqual = 0, gains = [];
@@ -654,6 +772,56 @@ function controlResponse() {
   };
 }
 
+// ------------------------------------------------- what the optimal trees look like
+
+/**
+ * `AQ` found that a tree wants the branching factor its leaf count is written in --
+ * 3^k takes three, 2^k takes four. This asks the same question of sequences: at the
+ * verify-dominated end, is the optimal varying tree for a 3^k leaf count still all
+ * threes? Measured, not registered.
+ */
+function limitShapes(gamma = GMAX) {
+  return LEAVES.map(n => {
+    const s = bestSequence('vector', n, gamma);
+    const con = bestConstant('vector', n, gamma);
+    const distinct = [...new Set(s.seq)].sort((a, b) => a - b);
+    return {
+      n,
+      shape: AQ.isPow3(n) ? '3^k' : AQ.isPow2(n) ? '2^k' : 'other',
+      seq: s.seq, distinct, constant: distinct.length === 1,
+      conArity: con.arity, conDepth: con.depth, seqDepth: s.depth,
+      matchesAQ: distinct.length === 1 && distinct[0] === con.arity,
+    };
+  });
+}
+
+/** Every level of every optimal tree in a window, counted by arity. */
+function arityCensus(lo = DEEP_LO, hi = DEEP_HI, gamma = GMAX) {
+  const tally = new Map();
+  let levels = 0, constantTrees = 0, trees = 0;
+  for (let n = lo; n <= hi; n++) {
+    const s = bestSequence('vector', n, gamma);
+    trees++;
+    if (new Set(s.seq).size === 1) constantTrees++;
+    for (const b of s.seq) { tally.set(b, (tally.get(b) || 0) + 1); levels++; }
+  }
+  const rows = [...tally.entries()].sort((a, b) => b[1] - a[1]);
+  return { lo, hi, trees, constantTrees, levels, rows };
+}
+
+/** The gain distribution over a window, because a maximum is one point. */
+function gainProfile(lo = DEEP_LO, hi = DEEP_HI, gamma = GMAX) {
+  const gains = [];
+  for (let n = lo; n <= hi; n++) gains.push(contCell('vector', n, gamma).gain);
+  gains.sort((a, b) => a - b);
+  const at = q => gains[Math.min(gains.length - 1, Math.floor(q * gains.length))];
+  return {
+    n: gains.length, min: gains[0], median: at(0.5), p90: at(0.9), p99: at(0.99),
+    max: gains[gains.length - 1],
+    mean: gains.reduce((a, b) => a + b, 0) / gains.length,
+  };
+}
+
 // ------------------------------------------------------------------------ the report
 
 function report() {
@@ -669,10 +837,17 @@ function report() {
   log(`  MINSUM closed form === brute force       ${bruteOK}`);
   log(`  depth bound is proved, not exhausted     ${depthBoundIsProved('vector', 1025, GMAX)}`);
   const r = controlResponse();
-  log(`  CONTROL responds: ${r.movedWithGamma}/${r.leaves} sequences move with gamma, `
-    + `${r.notNearEqual}/${r.leaves} are not near-equal`);
-  log(`  CONTROL gain from varying: max ${(100 * r.maxGain).toFixed(1)}%, `
-    + `median ${(100 * r.medianGain).toFixed(1)}%`);
+  log(`  CONTROL responds to the rate: ${r.movedWithGamma}/${r.leaves} sequences move`);
+  log(`  CONTROL, frozen draw: gain from varying max ${(100 * r.maxGain).toFixed(1)}%, `
+    + `${r.notNearEqual}/${r.leaves} sequences not near-equal`);
+  log('     -- that draw is DEGENERATE: its cheapest arity is wide, so repeating it is');
+  log('        optimal everywhere and variation cannot help it by construction.');
+  const nul = controlNull();
+  log(`  CONTROL as a null over ${nul.trials} redraws (post-hoc, scores nothing):`);
+  log(`     ${nul.drawsWithAnyGain}/${nul.trials} draws gain at all; `
+    + `median ${(100 * nul.medianGain).toFixed(1)}%, p95 ${(100 * nul.p95Gain).toFixed(1)}%, `
+    + `max ${(100 * nul.maxGain).toFixed(1)}%`);
+  log(`     leaf counts helped: ${(100 * nul.helpedFraction).toFixed(2)}% of draw-by-leaf pairs`);
 
   log('\n--- AR1 — how much is the flexibility worth? ---');
   const grid = gridSweep('vector');
@@ -695,6 +870,33 @@ function report() {
       + `ratio ${w.jumpRatio.toFixed(3)}`);
   }
 
+  const gp = gainProfile();
+  log(`  gain over the registered window: median ${(100 * gp.median).toFixed(2)}%, `
+    + `mean ${(100 * gp.mean).toFixed(2)}%, p90 ${(100 * gp.p90).toFixed(2)}%, `
+    + `p99 ${(100 * gp.p99).toFixed(2)}%, max ${(100 * gp.max).toFixed(2)}%`);
+
+  log('\n--- what the optimal trees are made of (measured, not registered) ---');
+  const cen = arityCensus();
+  log(`  ${cen.trees} trees over [${cen.lo}, ${cen.hi}], ${cen.levels} levels; `
+    + `${cen.constantTrees} of the optima are a CONSTANT arity after all`);
+  log('  arity   levels');
+  for (const [b, k] of cen.rows.slice(0, 8)) {
+    log(`    ${String(b).padStart(4)}   ${String(k).padStart(6)}  `
+      + `${(100 * k / cen.levels).toFixed(1)}%`);
+  }
+
+  log('\n--- does AQ\'s "a tree branches in its own base" survive? ---');
+  const sh = limitShapes();
+  for (const shape of ['3^k', '2^k', 'other']) {
+    const rows = sh.filter(r => r.shape === shape);
+    const kept = rows.filter(r => r.matchesAQ).length;
+    log(`  ${shape.padEnd(6)} ${rows.length} leaf counts, `
+      + `${kept} still take AQ's constant arity, ${rows.length - kept} do not`);
+  }
+  const t729 = sh.find(r => r.n === 729);
+  if (t729) log(`  N = 729 (3^6): AQ says branch by ${t729.conArity}; the optimal `
+    + `sequence is [${t729.seq.join(',')}]`);
+
   log('\n--- the merkle regime, where the answer is proved rather than swept ---');
   const merkleVaries = LEAVES.some(n => GAMMAS.some(g =>
     bestSequence('merkle', n, g).cost < bestConstant('merkle', n, g).cost));
@@ -710,8 +912,10 @@ module.exports = {
   maxprodAtLeast, maxprodOverflow, nearEqual, minsum, minsumDP, minsumBrute,
   maxUsefulDepth, depthBoundIsProved, bestSequence, bestConstant,
   gridSweep, depthRow, minsumRow, cellFromRows, contCell, contSweep,
+  limitShapes, arityCensus, gainProfile,
   windowStats, contWorstGain,
-  controlWeight, controlBest, controlBestConstant, controlResponse,
+  controlWeight, controlBest, controlBestCapped, controlBestConstant,
+  controlResponse, controlNull,
   report,
 };
 

@@ -13,7 +13,7 @@ One hundred and sixty-five predictions, one hundred and thirty-eight held, twent
 and the twelve produced more than the hundred and four. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**1,755 checks**, all passing. Every number below is recomputed by one of them,
+**1,814 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -64,7 +64,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-<!--g:readme-tally-->Forty-three prediction sets, registered before their runs. **149 held, 32 failed**<!--/g--> — the
+<!--g:readme-tally-->Forty-four prediction sets, registered before their runs. **152 held, 33 failed**<!--/g--> — the
 failures are kept, and four of them produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
@@ -115,6 +115,7 @@ with registering commits and the tests that assert each one, in
 | **AO1–AO4** | can an erasing machine certify that a secret was wiped? | 3 held, **AO1 failed — on its own frozen control** |
 | **AP1–AP4** | can a hash-only key layer give a minted coin an owner? | all four held — **and two should not have been registered** |
 | **AQ1–AQ4** | how wide should an authenticated tree be, and does three ever win? | 1 held, **AQ1, AQ2 and AQ4 failed — and AQ1's failure found the answer** |
+| **AR1–AR4** | does a tree want the same arity at every depth? | 3 held, **AR4 failed — inverted, and the inversion overturned AQ's headline** |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:

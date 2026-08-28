@@ -13,8 +13,8 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-<!--g:method-tally-->Forty-three prediction sets, **181 registered predictions, 149 held, 32 failed.** Nineteen
-distinct failure classes, which bit **53 times** between them. Forty-two findings
+<!--g:method-tally-->Forty-four prediction sets, **185 registered predictions, 152 held, 33 failed.** Nineteen
+distinct failure classes, which bit **58 times** between them. Forty-six findings
 measured but never registered<!--/g-->, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
@@ -23,7 +23,7 @@ document drifts from the manifest, the suite fails.
 A prediction carries two independent labels, and running them together was costing
 something. `outcome` is the prediction against the run — held or failed. **`basis` is
 the scope of the claim**: swept at the width it was swept at, or argued at every width.
-<!--g:method-basis-->Ten of those 181 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
+<!--g:method-basis-->Ten of those 185 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
 each with its argument written out beside its measurement. The measurement is still
 required. A proof does not excuse running it — an argument is also a thing that can be
 wrong, and the run is what would say so.
@@ -49,6 +49,7 @@ still in the manifest, marked `FAILED`, with the result it led to:
 | **AQ1** | binary is never optimal for a vector commitment, the optimum never descends past three, and three is the large-gamma optimum more often than four | the first three clauses held across all 2,880 cells — 0 with binary, none below three, none widening as verifying got dearer — and the last one TIED, 21 leaf counts each. Chasing the tie found the better answer: a leaf count of 3^k wants branching factor three in 15 of 18 cases and 2^k wants four in 13 of 19. A TREE BRANCHES IN THE BASE ITS ADDRESS SPACE IS COUNTED IN, and the tie measured how many of each shape I put in the sweep |
 | **AQ2** | a power of three is the cost-minimising branching factor in more cells than a power of two | two takes 1,044 cells to three's 821, so the ten-to-six handicap held. But per arity in range the ordering reverses — 137 cells for each power of three against 104 for each power of two — which the registered wording could not express. The claim counted how many of each I had swept as much as it counted trees |
 | **AQ4** | branching factors 64 and 256 differ by no more than 15% wherever either is near optimal | 571 of 909 near-optimal cells exceed the band, worst case 149%. But 426 of those 571 are cells where the two sit at DIFFERENT DEPTHS: when 256 saves a whole level it wins by that level, and when it does not it pays four times the verify for nothing. THE QUESTION HAS NO ANSWER THAT DOES NOT NAME THE LEAF COUNT |
+| **AR4** | letting a tree's arity vary by depth makes the optimal tree deeper more often than shallower | it INVERTED, 3,580 shallower against 2,176 deeper. The registered reasoning had the mechanism backwards: a sequence does not spend its slack on an extra level, it buys the SAME verify budget in FEWER levels -- the charged quantity is never larger than the constant tree's and is identical at 2,861 of 7,169 leaf counts. That mechanism overturned AQ's own headline. Admit sequences and 25 of AQ's 45 leaf counts change shape, 11 of the 18 powers of three among them, and 729 wants [4,4,4,4,3] rather than six threes -- for 0.0178% of the cost. A TREE BRANCHES IN ITS OWN BASE WAS A PROPERTY OF CONSTANT TREES |
 | **AH2** | widening the live state to three words collapses the memoisation a tabulator lives on, to under 1.5x reuse | it falls only to 3.20x from hailstone's 10.43x, on a control space 500,000x larger. A subtractive inner loop converges onto a shared suffix whenever two inputs agree on the subtrahend, so A TABULATOR EXPLOITS TRAJECTORY CONVERGENCE AND NOT A SMALL STATE SPACE — the receipt rests on four things, not three |
 | **AH4** | tabulating costs above 10^11 state-evaluations against under 300 honest steps, a margin above 10^8 | the control space is 729^3 = 387 million, not 10^11 — that figure was 729^4, counting a fourth word the program does not have. One honest run is 1,150 steps. The margin is 3.37 x 10^5, three orders short. The structural clause held: it is identical at either tick level, because a ratio cannot see a factor charged to both sides |
 | **AG1** | every program here has a live control-state width of at most two, so none is tier three | threeway measures FIVE — it classifies five values and each changes the path. But its cost spread is 1.02x, from 55 steps to 56, while countdown has width ONE and a spread of 25.38x. WIDTH AND COST VARIANCE ARE INDEPENDENT and neither is the security parameter alone: a tabulator facing 729^6 states to learn a number that is always 55 or 56 would guess instead |
@@ -175,7 +176,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-three sets<!--/g--> and they form very nearly
+fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-four sets<!--/g--> and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from

@@ -2,13 +2,13 @@
  "schema": "tryte-vm/slate@1",
  "purpose": "A retrieval-shaped projection of FINDINGS.json plus authored marginalia. Flat, addressable entries with stable ids, topic routes and validated cross-links. The manifest remains the authority; this is a view of it and never a second copy of the truth.",
  "counts": {
-  "entries": 255,
-  "predictions": 181,
-  "findings": 42,
+  "entries": 263,
+  "predictions": 185,
+  "findings": 46,
   "traps": 19,
   "notes": 13,
-  "proven": 13,
-  "failed": 32
+  "proven": 15,
+  "failed": 33
  },
  "routes": {
   "algebra": [
@@ -66,6 +66,9 @@
    "AQ2",
    "AQ3",
    "AQ4",
+   "AR1",
+   "AR2",
+   "AR4",
    "F-FOLD-BUYS-DEPTH",
    "F-RADIX-ECONOMY",
    "F-GATES-FROM-SWITCHES",
@@ -79,6 +82,8 @@
    "F-CONVERGENCE-NOT-SIZE",
    "F-REVERSIBILITY-IS-A-PROPERTY-OF-THE-ALPHABET",
    "F-AFFINE-HIDES-ITS-SOLUTIONS-FROM-A-SCAN",
+   "F-RADIX-ORDER-IS-FREE",
+   "F-THE-ARITY-OPTIMUM-IS-FLAT",
    "N-program-relative",
    "N-depth-is-blind-to-algebra"
   ],
@@ -254,6 +259,10 @@
   "method": [
    "AP3",
    "AP4",
+   "AR1",
+   "AR2",
+   "AR3",
+   "AR4",
    "F-COST-INVARIANCE-IS-THE-NORM",
    "F-TERNARY-RICHER-IN-VARIETY-POORER-IN-STRUCTURE",
    "F-27-EDO-BEATS-12-EDO-ON-CONSONANCE",
@@ -350,6 +359,7 @@
    "AK3",
    "AK4",
    "AN2",
+   "AR4",
    "F-GATES-FROM-SWITCHES",
    "F-FOUR-SWITCH-NEG-NOT-UNIQUE",
    "F-ORTHOMORPHISM-GATE",
@@ -410,6 +420,7 @@
    "F-CANONICAL-GROKKING-TASK-IS-THE-HARD-ONE",
    "F-LAMPORT-BASE-ADVANTAGE-IS-NOT-PER-SIZE",
    "F-TREE-BRANCHES-IN-ITS-OWN-BASE",
+   "F-MERKLE-WANTS-BINARY-AT-EVERY-LEVEL",
    "N-asymptotic-does-not-settle-a-width"
   ],
   "tree": [
@@ -426,7 +437,8 @@
    "F-KLEENE",
    "F-INPUTS-DO-NOT-SOURCE",
    "F-251505-AGAIN",
-   "F-ALWAYS-ONE-FIXED-POINT"
+   "F-ALWAYS-ONE-FIXED-POINT",
+   "F-VARYING-HELPS-IFF-THE-OPTIMUM-IS-NOT-CONSTANT"
   ]
  },
  "entries": [
@@ -6118,6 +6130,129 @@
    "links": []
   },
   {
+   "id": "AR1",
+   "kind": "prediction",
+   "set": "AR",
+   "subject": "What happens when a tree's arity is allowed to VARY by depth? AQ's cost model extended from radices to radix sequences, over AQ's 45 leaf counts at all 64 exchange rates and over EVERY integer leaf count from 2 to 8,192 at the eight decade rates",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "letting the arity vary is worth less than a sixth: at every cell of both vector-regime sweeps the best radix sequence costs at least 85% of the best constant arity's cost",
+   "argument": null,
+   "note": "Held, and the bound is worth less than it looks. The worst cell in 68,408 is 12.30% at N = 257 and the worst on AQ's own grid is 9.99% at N = 128, both inside the registered 15%. But the post-hoc null over 100 redraws has a TAIL reaching 23.7%, above the subject's worst cell, so a structureless per-level cost can produce a larger maximum than the real regime does and magnitude discriminates nothing here. What discriminates is frequency, which is AR3. The line's placement decided this verdict: a 10% line would have FAILED at 12.30%, and the reason for widening it to 15% -- a hand case at 9.99% that would have made 10% a coin toss -- was on the record before the run. T-CRITERION-IN-THE-NOISE applied before the fact rather than after it.",
+   "measured": {
+    "grid_cells": 2880,
+    "contiguous_cells": 65528,
+    "worst_gain_grid_percent": 9.99,
+    "worst_gain_grid_at_leaf_count": 128,
+    "worst_gain_contiguous_percent": 12.3,
+    "worst_gain_contiguous_at_leaf_count": 257,
+    "median_gain_deep_window_percent": 3.15,
+    "mean_gain_deep_window_percent": 2.87,
+    "null_max_gain_percent": 23.7
+   },
+   "tool": "tools/radix-audit.js",
+   "asserted_in": "test/test-radix.js",
+   "registered_at": "2b6ca3a",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AR2",
+   "kind": "prediction",
+   "set": "AR",
+   "subject": "What happens when a tree's arity is allowed to VARY by depth? AQ's cost model extended from radices to radix sequences, over AQ's 45 leaf counts at all 64 exchange rates and over EVERY integer leaf count from 2 to 8,192 at the eight decade rates",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "the staircase flattens by more than half: over the deep contiguous window at the verify-dominated rate, the largest single-leaf relative cost jump is less than half as large when arity may vary as when it may not",
+   "argument": null,
+   "note": "Held. The largest single-leaf jump falls from 11.97% to 4.00%, a ratio of 0.334 against a predicted 0.5. Both maxima land at N = 1024, which the registration did not require and could not assume -- had they sat at different leaf counts the ratio would have compared two unrelated extremes. The unregistered robustness windows show the statistic is not universal: over [8192, 16384] the CONSTANT cost is perfectly flat, because 4^7 = 16384 covers the whole octave, so the constant tree pays a fixed premium for a full-size tree while the varying tree tracks the leaf count and is therefore both cheaper and raggeder. Tightness against the ceiling is bought with raggedness.",
+   "measured": {
+    "window_low": 1024,
+    "window_high": 8192,
+    "leaf_counts": 7169,
+    "max_jump_constant_percent": 11.97,
+    "max_jump_varying_percent": 4,
+    "ratio": 0.334,
+    "both_maxima_at_leaf_count": 1024
+   },
+   "tool": "tools/radix-audit.js",
+   "asserted_in": "test/test-radix.js",
+   "registered_at": "2b6ca3a",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AR3",
+   "kind": "prediction",
+   "set": "AR",
+   "subject": "What happens when a tree's arity is allowed to VARY by depth? AQ's cost model extended from radices to radix sequences, over AQ's 45 leaf counts at all 64 exchange rates and over EVERY integer leaf count from 2 to 8,192 at the eight decade rates",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "variation helps most leaf counts, not a few: over the deep contiguous window at the verify-dominated rate, more than half of the leaf counts have a strictly cheaper varying optimum",
+   "argument": null,
+   "note": "Held, and it is the one the registration said could not be called. 6,144 of 7,169 leaf counts -- 85.7% -- have a strictly cheaper varying optimum, against a null of 0.83% of draw-by-leaf pairs: a hundredfold separation, and the statistic that actually shows the effect is structure rather than arithmetic. I registered the reasoning against my own hand sample and the reasoning was right; the sample was drawn at powers, which is where a constant tree is at its best. The unhelped 1,025 are EXACTLY the leaf counts whose optimal tree is a constant arity, with no exceptions in 7,169 -- and those are powers of FOUR rather than powers in general, since four is the arity the optimum wants. 2187 = 3^7 is helped.",
+   "measured": {
+    "leaf_counts": 7169,
+    "helped": 6144,
+    "helped_percent": 85.7,
+    "unhelped": 1025,
+    "optima_that_are_a_constant_arity": 1025,
+    "null_helped_percent": 0.83
+   },
+   "tool": "tools/radix-audit.js",
+   "asserted_in": "test/test-radix.js",
+   "registered_at": "2b6ca3a",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AR4",
+   "kind": "prediction",
+   "set": "AR",
+   "subject": "What happens when a tree's arity is allowed to VARY by depth? AQ's cost model extended from radices to radix sequences, over AQ's 45 leaf counts at all 64 exchange rates and over EVERY integer leaf count from 2 to 8,192 at the eight decade rates",
+   "outcome": "FAILED",
+   "basis": "measured",
+   "routes": [
+    "reversibility",
+    "cost-model",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "the optimal tree gets deeper more often than shallower: over the deep contiguous window at the verify-dominated rate, leaf counts whose varying optimum is strictly deeper than their constant optimum outnumber those whose varying optimum is strictly shallower",
+   "argument": null,
+   "note": "FAILED, and inverted rather than narrowly missed: 3,580 shallower against 2,176 deeper, 1.6 to 1. The registered reasoning had the mechanism backwards. It argued that more levels means more per-level slack to exploit, so the tree should grow. What a sequence actually buys is the SAME verify budget in FEWER levels: the quantity gamma is charged on is never larger than the constant tree's, it is identical at 2,861 of 7,169 leaf counts, and 1,836 of the 3,580 shallower cells are of exactly that kind. THE SLACK REMOVES A LEVEL RATHER THAN ADDING ONE, and the saving there is level overhead rather than work. That mechanism is what overturns AQ's headline: 25 of AQ's 45 leaf counts change shape, 11 of the 18 powers of three among them, and N = 729 wants [4,4,4,4,3] rather than six threes -- for 0.0178% of the total cost.",
+   "measured": {
+    "leaf_counts": 7169,
+    "deeper": 2176,
+    "shallower": 3580,
+    "same_depth": 1413,
+    "ratio_shallower_to_deeper": 1.65,
+    "verify_budget_identical": 2861,
+    "verify_budget_smaller": 4308,
+    "verify_budget_larger": 0,
+    "shallower_at_identical_verify_budget": 1836
+   },
+   "tool": "tools/radix-audit.js",
+   "asserted_in": "test/test-radix.js",
+   "registered_at": "2b6ca3a",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
    "id": "F-ADD-IS-A-TABLE",
    "kind": "finding",
    "set": null,
@@ -7041,6 +7176,90 @@
    "links": []
   },
   {
+   "id": "F-RADIX-ORDER-IS-FREE",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "proven",
+   "routes": [
+    "cost-model"
+   ],
+   "routes_derived": true,
+   "claim": "In this cost model a radix sequence's total depends on it only through its MULTISET of arities -- indeed only through the depth d and the sum of the arities. A tree that is three at the top and nine below costs exactly what nine at the top and three below costs. There is no schedule to choose, only a multiset.",
+   "argument": "Every regime charges a per-level weight and the weights add, so the total is sum over levels of w(b_i), which is symmetric in the levels. For the merkle and vector regimes w is affine in b, so the sum collapses further to a function of d and sum(b_i) alone. This is what makes the whole search reduce to MINSUM(d, N) and it is immediate from the construction rather than discovered.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-radix.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-MERKLE-WANTS-BINARY-AT-EVERY-LEVEL",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "proven",
+   "routes": [
+    "ternary-vs-binary"
+   ],
+   "routes_derived": true,
+   "claim": "In the merkle regime, letting the arity vary buys exactly nothing at any leaf count and any exchange rate. The all-twos tree is optimal, and it is optimal by proof rather than by sweep.",
+   "argument": "Merkle cost is (H + gamma) * sum(b_i - 1). For every integer b >= 2, b - 1 >= log2(b) with equality only at b = 2, so sum(b_i - 1) >= log2(prod b_i) >= log2(N). The cost is an integer multiple of (H + gamma), and the all-twos tree attains ceil(log2 N), which is the least integer above that floor. No sequence can do better and only all-twos attains it.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-radix.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-THE-ARITY-OPTIMUM-IS-FLAT",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "cost-model"
+   ],
+   "routes_derived": true,
+   "claim": "The cost surface over arity choices is nearly flat where AQ read a preference off it. Admitting radix sequences changes the SHAPE of the optimal tree at 25 of AQ's 45 leaf counts -- including 11 of the 18 powers of three, AQ's own headline case, where N = 729 wants [4,4,4,4,3] rather than six threes -- while changing the COST by 0.0133% to 0.0251% at the median, and 13 of the 25 shape changes are worth under 0.5%.",
+   "argument": "At those leaf counts the sequence achieves the SAME gamma-charged quantity d + sum(b_i) as AQ's constant tree and simply spends fewer levels reaching it, so the entire saving is per-level byte overhead. At N = 3^12 both cost 48 units of verify and the sequence uses ten levels where the constant tree uses twelve.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-radix.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-VARYING-HELPS-IFF-THE-OPTIMUM-IS-NOT-CONSTANT",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "unrouted"
+   ],
+   "routes_derived": true,
+   "claim": "A leaf count is helped by letting the arity vary EXACTLY when its own optimal tree is not a constant one. Over the 7,169 leaf counts of the deep window there are no exceptions: 1,025 are unhelped and the same 1,025 have a constant optimum. The unhelped counts are the powers of FOUR rather than powers in general, because four is the arity the optimum wants; 2187 = 3^7 is helped.",
+   "argument": "One direction is immediate -- if the optimal sequence is constant it is available to the constant optimiser, so nothing is gained. The other direction is not forced by anything in the construction and is what the measurement adds: no leaf count has a strictly non-constant optimum that merely ties the best constant tree.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-radix.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
    "id": "T-ONE-POINT",
    "kind": "trap",
    "set": null,
@@ -7200,7 +7419,7 @@
    "argument": null,
    "note": null,
    "measured": {
-    "bites": 18
+    "bites": 21
    },
    "tool": null,
    "asserted_in": null,
@@ -7320,7 +7539,7 @@
    "argument": null,
    "note": null,
    "measured": {
-    "bites": 4
+    "bites": 5
    },
    "tool": null,
    "asserted_in": null,
@@ -7488,7 +7707,7 @@
    "argument": null,
    "note": null,
    "measured": {
-    "bites": 1
+    "bites": 2
    },
    "tool": null,
    "asserted_in": null,

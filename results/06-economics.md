@@ -1035,6 +1035,105 @@ scheme, arity, curve, proof sizes and setup assumptions, and says plainly that o
 measurements are research *inputs*. This is such an input: the arity line of that
 descriptor now has a sweep behind it instead of an inherited constant.
 
+### `AR` — and then the arity was allowed to vary, and the headline dissolved
+
+`AQ` costed trees that had **one width**. Every leaf count in it was matched against a
+single branching factor repeated all the way down, and its answer — a tree branches in
+the base its address space is counted in — is a statement about that family. Real
+address spaces are not clean powers of anything, so the question `AQ` could not reach
+from inside itself is whether a tree that is one width at the top and another below sits
+against the ceiling more tightly than any constant can.
+
+It does, and the first thing to say is what it costs to say so. **Order is free.** In
+this model a sequence's total depends on it only through the multiset of its arities —
+in fact only through the depth and the sum — because the levels' weights add. "Three at
+the top and nine below" costs exactly what "nine at the top and three below" costs. There
+is no schedule to choose, only a multiset, and the whole search collapses onto one
+quantity: the least sum of `d` factors whose product covers `N`. That is
+`F-RADIX-ORDER-IS-FREE`, and it is proved rather than swept, which also fixes the scope:
+a cost that is order-*sensitive* — a verifier caching the top levels, an update path
+priced differently from a read — is a different model and nothing here bounds it.
+
+**Three of the four predictions held and the fourth inverted.** The flexibility is worth
+less than a sixth at every one of 68,408 cells — worst 12.30% at `N` = 257 — and worth
+3.15% at the median (`AR1`). The staircase flattens: the largest single-leaf cost jump
+falls from 11.97% to 4.00% (`AR2`). And it helps **85.7%** of leaf counts, not a handful
+(`AR3`) — the prediction the registration said it could not call, registered against a
+hand sample of six of which four pointed the other way. The sample was drawn at powers,
+which is exactly where a constant tree needs no help.
+
+**`AR4` failed, and it failed inverted.** It predicted the optimal tree would get deeper
+more often than shallower, reasoning that per-level slack is what a sequence exploits and
+there is more of it where there are more levels. The measurement is 3,580 shallower
+against 2,176 deeper. The mechanism was backwards:
+
+> A varying tree buys the **same verify budget in fewer levels**. The quantity the
+> exchange rate is charged on is never larger than the constant tree's, it is *identical*
+> at 2,861 of 7,169 leaf counts, and 1,836 of the 3,580 shallower cells are of exactly
+> that kind. **The slack removes a level rather than adding one.**
+
+That mechanism is what overturns `AQ`. If a sequence can reach the same verify budget in
+fewer levels, then the constant tree's arity was never a preference — it was the only way
+to reach that budget while every level had to agree. Admit sequences and **25 of `AQ`'s
+45 leaf counts change shape**, including **11 of the 18 powers of three**, which is
+`AQ`'s own headline case. `N` = 729 wants `[4,4,4,4,3]`, not six threes.
+
+**And the change costs 0.0178%.** That is the finding a descriptor author actually needs.
+Where `AQ` read a preference, the surface is flat to four decimal places: the median
+shape change is worth 0.0251%, and 13 of the 25 are worth under half a percent
+(`F-THE-ARITY-OPTIMUM-IS-FLAT`). "A tree branches in the base its address space is
+counted in" is true of *constant* trees and is not a property of trees.
+`T-CLAIM-NARROWED-BY-A-DESIGN`, fifth bite, and the second time this one class has taken
+a bite out of the same sentence.
+
+The structure underneath is simple enough to state in a line. Across 42,700 levels of
+7,169 optimal trees exactly **three arities ever appear** — four takes 69.0% of levels,
+five 22.1%, three 8.9% — and a leaf count is helped by variation **exactly when its own
+optimal tree is not constant**, with no exceptions in 7,169
+(`F-VARYING-HELPS-IFF-THE-OPTIMUM-IS-NOT-CONSTANT`). In the merkle regime variation buys
+nothing at all, and that one is proved: `b - 1 >= log2(b)` for every integer arity with
+equality only at two, so the all-twos tree attains the floor
+(`F-MERKLE-WANTS-BINARY-AT-EVERY-LEVEL`).
+
+**The control is where this set spent most of its honesty.** `AQ`'s could not
+discriminate because its two cost terms shared a draw; this one drew them independently
+and still failed two of its three registered responsiveness assertions — its frozen seed
+happened to put its cheapest arity at 604, wide enough to cover any swept leaf count in
+two levels, so repeating that one arity is optimal everywhere and variation cannot help
+it *by construction*. `T-CONTROL-CANNOT-DISCRIMINATE` a second time, from degeneracy
+rather than algebra. The remedy, post-hoc and scoring nothing, is `AO1`'s lesson applied:
+a **null over 100 redraws** rather than one frozen object. Only 4 of 100 draws gain at
+all; median and 95th percentile are exactly zero; structureless costs help 0.83% of
+draw-by-leaf pairs against the vector regime's 85.7%.
+
+That null also disarms `AR1`. **Its tail reaches 23.7% — above the subject's worst cell.**
+So noise can produce a bigger *maximum* than structure does, and `AR1`'s bound
+discriminates nothing on its own. The hundredfold gap in *frequency* is what shows the
+effect is real. A magnitude registered without a null beside it would have read as
+evidence and been none.
+
+One more thing the record should carry, because it decided a verdict. `AR1`'s line was
+registered at 15% rather than 10%, with the reason written down before the run: a hand
+case at `N` = 11 came in at 9.99%, and a criterion decided by the third decimal of a case
+already in hand teaches nothing. The run measured 12.30%. **A 10% line would have
+failed** — so the discipline of refusing a threshold near a known value is not
+housekeeping, it changed the answer.
+
+One scope note, because the registration left it ambiguous and the ambiguity is the
+kind that decides verdicts. `AR2`, `AR3` and `AR4` say "the verify-dominated rate" in
+prose while the sweep is described at eight decade boundaries; the registered code pins
+them to 10^3.875, which is not one. The code decides the scope, and whether that mattered
+is measured rather than argued: rerun at the nearest decade and the three verdicts are
+identical — 85.7% helped, 2,176 deeper against 3,580 shallower, and a jump ratio of 0.337
+against 0.334. A check pins that, so it cannot start mattering later.
+
+For `bitblock`'s descriptor the reading is narrower than `AQ`'s was and more useful.
+Freezing a single arity costs about 3% against the best per-level schedule and never more
+than a sixth, so the one-arity line is defensible; but *which* arity it names is
+under-determined by this model to four decimal places at the leaf counts where `AQ`
+seemed to have an answer, and should be decided on grounds this cost model does not
+contain.
+
 ## Owned sets
 
 | set | subject | outcome |
@@ -1050,5 +1149,6 @@ descriptor now has a sweep behind it instead of an inherited constant.
 | `AO` | can an erasing machine certify a wipe, and is erasure the certificate | 3 held, `AO1` failed — on its own frozen control |
 | `AP` | a hash-only key layer, and what one-time ownership costs | all four held — and two should not have been registered |
 | `AQ` | how wide an authenticated tree should be, and whether three ever wins | 1 held, `AQ1`, `AQ2` and `AQ4` failed — and `AQ1`'s failure found the answer |
+| `AR` | does a tree want the same arity at every depth, and what does varying buy | 3 held, `AR4` failed — inverted, and the inversion overturned `AQ`'s headline |
 
 Full text in [`99-ledger.md`](99-ledger.md).

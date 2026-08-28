@@ -215,6 +215,21 @@ Check a control's RESPONSIVENESS before reading its verdict -- assert that it mo
 the thing it is controlling for moves -- and if it cannot, say so on the record rather
 than letting it stand as evidence.
 
+The second bite came from DEGENERACY rather than algebra, which is the harder form to
+see. Set `AR`'s control drew its two terms independently, so nothing cancelled and its
+optimum moved with the exchange rate at every leaf count -- and it still could not
+discriminate, because its frozen seed happened to put its cheapest arity at 604, wide
+enough to cover any swept leaf count in two levels. Repeating that one arity was
+therefore optimal everywhere, and the property under test -- whether letting the arity
+vary helps -- was unreachable BY CONSTRUCTION. **Independence is not enough, and a
+single frozen pseudorandom object is one sample where the claim needs a distribution.**
+`AO1` had already established exactly that and the lesson did not transfer until it bit
+a second time. Redraw the control and report the null as a distribution. `AR`'s null
+over 100 redraws then showed something a single draw could never have: its own TAIL
+reached 23.7%, ABOVE the subject's worst cell, so the magnitude of the effect was
+indistinguishable from noise while its frequency was a hundredfold apart. **A registered
+magnitude with no null beside it reads as evidence and is none.**
+
 `T-TOOL-CHECKED-ONLY-BY-IMPORT` **A tool exercised only through require(), so the
 path it takes when actually run is never covered.** Making an audit silent on import
 by mechanically renaming every `console.log` call to `log` also rewrote the body of

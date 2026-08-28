@@ -3709,6 +3709,87 @@
           "note": "Failed and not narrowly -- 571 of 909, worst case 149%. But 426 of those 571 are cells where 64 and 256 sit at DIFFERENT DEPTHS, and when 256 saves a whole level it wins by that level while when it does not it pays four times the verify for nothing. So the two are close to interchangeable at a fixed depth and completely different across a depth step, which makes the answer a fact about the leaf count rather than about either arity. The question as asked -- is 64 as good as 256 -- has no answer that does not name N."
         }
       ]
+    },
+    {
+      "id": "AR",
+      "subject": "What happens when a tree's arity is allowed to VARY by depth? AQ's cost model extended from radices to radix sequences, over AQ's 45 leaf counts at all 64 exchange rates and over EVERY integer leaf count from 2 to 8,192 at the eight decade rates",
+      "tool": "tools/radix-audit.js",
+      "registered_at": "2b6ca3a",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-radix.js",
+      "predictions": [
+        {
+          "id": "AR1",
+          "claim": "letting the arity vary is worth less than a sixth: at every cell of both vector-regime sweeps the best radix sequence costs at least 85% of the best constant arity's cost",
+          "outcome": "HELD",
+          "basis": "measured",
+          "at_risk": "It comes out the other way if ONE leaf count anywhere in [2, 8192] leaves the constant optimiser worse stranded than N = 11 did. Five leaf counts worked on paper give 1.5%, 4.0%, 4.2%, 7.1% and 9.99%, the last found by deliberately hunting a bad case; five of 8,236 is not a sample to extrapolate from, and a single cell past the line refutes it.",
+          "measured": {
+            "grid_cells": 2880,
+            "contiguous_cells": 65528,
+            "worst_gain_grid_percent": 9.99,
+            "worst_gain_grid_at_leaf_count": 128,
+            "worst_gain_contiguous_percent": 12.3,
+            "worst_gain_contiguous_at_leaf_count": 257,
+            "median_gain_deep_window_percent": 3.15,
+            "mean_gain_deep_window_percent": 2.87,
+            "null_max_gain_percent": 23.7
+          },
+          "note": "Held, and the bound is worth less than it looks. The worst cell in 68,408 is 12.30% at N = 257 and the worst on AQ's own grid is 9.99% at N = 128, both inside the registered 15%. But the post-hoc null over 100 redraws has a TAIL reaching 23.7%, above the subject's worst cell, so a structureless per-level cost can produce a larger maximum than the real regime does and magnitude discriminates nothing here. What discriminates is frequency, which is AR3. The line's placement decided this verdict: a 10% line would have FAILED at 12.30%, and the reason for widening it to 15% -- a hand case at 9.99% that would have made 10% a coin toss -- was on the record before the run. T-CRITERION-IN-THE-NOISE applied before the fact rather than after it."
+        },
+        {
+          "id": "AR2",
+          "claim": "the staircase flattens by more than half: over the deep contiguous window at the verify-dominated rate, the largest single-leaf relative cost jump is less than half as large when arity may vary as when it may not",
+          "outcome": "HELD",
+          "basis": "measured",
+          "at_risk": "It comes out the other way if the varying tree has a single bad step anywhere the constant tree happens to be smooth, because both sides are maxima over 7,167 consecutive pairs and need not occur at the same leaf count. Only one pair was worked on paper.",
+          "measured": {
+            "window_low": 1024,
+            "window_high": 8192,
+            "leaf_counts": 7169,
+            "max_jump_constant_percent": 11.97,
+            "max_jump_varying_percent": 4,
+            "ratio": 0.334,
+            "both_maxima_at_leaf_count": 1024
+          },
+          "note": "Held. The largest single-leaf jump falls from 11.97% to 4.00%, a ratio of 0.334 against a predicted 0.5. Both maxima land at N = 1024, which the registration did not require and could not assume -- had they sat at different leaf counts the ratio would have compared two unrelated extremes. The unregistered robustness windows show the statistic is not universal: over [8192, 16384] the CONSTANT cost is perfectly flat, because 4^7 = 16384 covers the whole octave, so the constant tree pays a fixed premium for a full-size tree while the varying tree tracks the leaf count and is therefore both cheaper and raggeder. Tightness against the ceiling is bought with raggedness."
+        },
+        {
+          "id": "AR3",
+          "claim": "variation helps most leaf counts, not a few: over the deep contiguous window at the verify-dominated rate, more than half of the leaf counts have a strictly cheaper varying optimum",
+          "outcome": "HELD",
+          "basis": "measured",
+          "at_risk": "It comes out the other way if the constant optimiser's freedom to pick its own depth is worth as much as the sequence's freedom to pick its own widths, which cannot be settled short of running it. The evidence against was my own: four of the six leaf counts I worked by hand were NOT helped.",
+          "measured": {
+            "leaf_counts": 7169,
+            "helped": 6144,
+            "helped_percent": 85.7,
+            "unhelped": 1025,
+            "optima_that_are_a_constant_arity": 1025,
+            "null_helped_percent": 0.83
+          },
+          "note": "Held, and it is the one the registration said could not be called. 6,144 of 7,169 leaf counts -- 85.7% -- have a strictly cheaper varying optimum, against a null of 0.83% of draw-by-leaf pairs: a hundredfold separation, and the statistic that actually shows the effect is structure rather than arithmetic. I registered the reasoning against my own hand sample and the reasoning was right; the sample was drawn at powers, which is where a constant tree is at its best. The unhelped 1,025 are EXACTLY the leaf counts whose optimal tree is a constant arity, with no exceptions in 7,169 -- and those are powers of FOUR rather than powers in general, since four is the arity the optimum wants. 2187 = 3^7 is helped."
+        },
+        {
+          "id": "AR4",
+          "claim": "the optimal tree gets deeper more often than shallower: over the deep contiguous window at the verify-dominated rate, leaf counts whose varying optimum is strictly deeper than their constant optimum outnumber those whose varying optimum is strictly shallower",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "at_risk": "It comes out the other way if the per-level bytes charge outweighs the per-level rounding slack, and a worked case already said it does -- at N = 10^8 the hand arithmetic puts the varying optimum three levels SHALLOWER. Both declared tie-breaks also push against it.",
+          "measured": {
+            "leaf_counts": 7169,
+            "deeper": 2176,
+            "shallower": 3580,
+            "same_depth": 1413,
+            "ratio_shallower_to_deeper": 1.65,
+            "verify_budget_identical": 2861,
+            "verify_budget_smaller": 4308,
+            "verify_budget_larger": 0,
+            "shallower_at_identical_verify_budget": 1836
+          },
+          "note": "FAILED, and inverted rather than narrowly missed: 3,580 shallower against 2,176 deeper, 1.6 to 1. The registered reasoning had the mechanism backwards. It argued that more levels means more per-level slack to exploit, so the tree should grow. What a sequence actually buys is the SAME verify budget in FEWER levels: the quantity gamma is charged on is never larger than the constant tree's, it is identical at 2,861 of 7,169 leaf counts, and 1,836 of the 3,580 shallower cells are of exactly that kind. THE SLACK REMOVES A LEVEL RATHER THAN ADDING ONE, and the saving there is level overhead rather than work. That mechanism is what overturns AQ's headline: 25 of AQ's 45 leaf counts change shape, 11 of the 18 powers of three among them, and N = 729 wants [4,4,4,4,3] rather than six threes -- for 0.0178% of the total cost."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -4014,6 +4095,44 @@
       "argument": "A control exists to show that the instrument does not manufacture the effect. If the swept parameter cancels out of the control algebraically, the control is constant in exactly the dimension the claim is about, and it can only ever agree.",
       "evidence": "tools/branching-audit.js argminControl2() and control2Profile(); the invariance is checked exhaustively rather than argued",
       "asserted_in": "test/test-branching.js"
+    },
+    {
+      "id": "F-RADIX-ORDER-IS-FREE",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "proven",
+      "claim": "In this cost model a radix sequence's total depends on it only through its MULTISET of arities -- indeed only through the depth d and the sum of the arities. A tree that is three at the top and nine below costs exactly what nine at the top and three below costs. There is no schedule to choose, only a multiset.",
+      "argument": "Every regime charges a per-level weight and the weights add, so the total is sum over levels of w(b_i), which is symmetric in the levels. For the merkle and vector regimes w is affine in b, so the sum collapses further to a function of d and sum(b_i) alone. This is what makes the whole search reduce to MINSUM(d, N) and it is immediate from the construction rather than discovered.",
+      "evidence": "tools/radix-audit.js costOfSequence(); [3,9,27] and [27,9,3] are asserted equal in both regimes at three exchange rates",
+      "asserted_in": "test/test-radix.js",
+      "scope": "An order-SENSITIVE cost -- a verifier caching the top levels, an update path charged differently from a read -- is a different model, and nothing in set AR bounds it."
+    },
+    {
+      "id": "F-MERKLE-WANTS-BINARY-AT-EVERY-LEVEL",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "proven",
+      "claim": "In the merkle regime, letting the arity vary buys exactly nothing at any leaf count and any exchange rate. The all-twos tree is optimal, and it is optimal by proof rather than by sweep.",
+      "argument": "Merkle cost is (H + gamma) * sum(b_i - 1). For every integer b >= 2, b - 1 >= log2(b) with equality only at b = 2, so sum(b_i - 1) >= log2(prod b_i) >= log2(N). The cost is an integer multiple of (H + gamma), and the all-twos tree attains ceil(log2 N), which is the least integer above that floor. No sequence can do better and only all-twos attains it.",
+      "evidence": "tools/radix-audit.js bestSequence vs bestConstant in the merkle regime over all 2,880 grid cells, plus the inequality checked at every arity from 2 to 1024",
+      "asserted_in": "test/test-radix.js"
+    },
+    {
+      "id": "F-THE-ARITY-OPTIMUM-IS-FLAT",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "The cost surface over arity choices is nearly flat where AQ read a preference off it. Admitting radix sequences changes the SHAPE of the optimal tree at 25 of AQ's 45 leaf counts -- including 11 of the 18 powers of three, AQ's own headline case, where N = 729 wants [4,4,4,4,3] rather than six threes -- while changing the COST by 0.0133% to 0.0251% at the median, and 13 of the 25 shape changes are worth under 0.5%.",
+      "argument": "At those leaf counts the sequence achieves the SAME gamma-charged quantity d + sum(b_i) as AQ's constant tree and simply spends fewer levels reaching it, so the entire saving is per-level byte overhead. At N = 3^12 both cost 48 units of verify and the sequence uses ten levels where the constant tree uses twelve.",
+      "evidence": "tools/radix-audit.js limitShapes() over AQ's 45 leaf counts at the verify-dominated rate",
+      "asserted_in": "test/test-radix.js",
+      "scope": "This says the arity line of a descriptor is under-determined BY THIS COST MODEL. A model with an order-sensitive or implementation-sensitive term could easily separate the candidates this one cannot."
+    },
+    {
+      "id": "F-VARYING-HELPS-IFF-THE-OPTIMUM-IS-NOT-CONSTANT",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "A leaf count is helped by letting the arity vary EXACTLY when its own optimal tree is not a constant one. Over the 7,169 leaf counts of the deep window there are no exceptions: 1,025 are unhelped and the same 1,025 have a constant optimum. The unhelped counts are the powers of FOUR rather than powers in general, because four is the arity the optimum wants; 2187 = 3^7 is helped.",
+      "argument": "One direction is immediate -- if the optimal sequence is constant it is available to the constant optimiser, so nothing is gained. The other direction is not forced by anything in the construction and is what the measurement adds: no leaf count has a strictly non-constant optimum that merely ties the best constant tree.",
+      "evidence": "tools/radix-audit.js bestSequence and bestConstant over every integer leaf count in [1024, 8192] at the verify-dominated rate",
+      "asserted_in": "test/test-radix.js"
     }
   ],
   "traps_encountered": [
@@ -4049,7 +4168,7 @@
     },
     {
       "id": "T-INSTRUMENT-FALSE-VERDICT",
-      "count": 18,
+      "count": 21,
       "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit. Sixth bite: the interconnect rig named its sources `src0_0`, `src1_0`, ... and SEEDED them, without building anything behind them. A seed is an initial value, not a driver -- T5 says reachability starts at rails and only at rails -- so every source resolved to Z on pass one and stayed there. Both topologies routed Z, which read as \"interconnect does not work at all\" rather than \"these are not sources\". The same fact this repository already records as \"an input gates but never sources\", arriving in a form nobody recognised. Seventh bite, and inverted: a TEST CASE accused a correct instrument. The Schreier-Sims verification paired a 3-cycle with a 25-cycle and called the pair \"A_27\"; between them they move 25 of 27 points, so the tool returned 25!/2 -- exactly right for what was actually built -- and was scored WRONG. When a verification case fails, the case is as suspect as the thing it checks. Eighth bite: the sequencer rig called tAdderCell without its TAG, which names every internal node of the cells two tables. All three cells received the tag `undefined`, so their internal trees shared node names and merged into one circuit -- the incrementer resolved to unknown and the sequencer appeared to visit two states instead of twenty-seven. An omitted parameter that looks optional silently welded three circuits together. Ninth bite, in the same phase and pointing the other way: the handshake section counted the two driving values that DISABLE the loop as \"settled cleanly\", which would have reported a self-timed handshake as working on the strength of two circuits in which no handshake occurs. A false positive and a false negative from one tool in one run. Two more, found by reconciling this list against results/07-negative.md, which had one occurrence the manifest never named and lacked two the manifest did: the detector truth table hand-copied from a comment and INVERTED, which produced 36 failures out of 54 -- every one where the middle word disagreed with the selected word and none where they agreed, the exact signature real contention would leave, reading as the publishable headline that the decoded selector cannot read storage. Two views of one list drifted apart in opposite directions, which is what a second copy of a record is for and against. Twelfth bite: AB2s first erasure census folded the operand INTO the state, which is a defensible boundary and not the one AB2 asked about, so MIN read as a single fixed 4.5033 bits when the registered prediction was about a range from 0 to 9.5098 -- a correct computation about a different question, which would have recorded a prediction as FAILED when it held in full. Thirteenth bite, and it produced the most interesting wrong headline yet. AC1 detected whether a program reads input with a regex anchored at the start of the line, which misses every LABELLED instruction -- threeway.tasm carries \"body:   IN\". So the audit reported a program that never reads input whose step count nonetheless varied with the input: a deterministic machine charging different amounts for data it never touches, which would have been the finding of the set. It was a broken parser standing next to an exported real one. Replaced with the assembler's own tokenizer, which moved the count of input-reading programs from five to eight and changed what AC1 was even about. Fourteenth bite, and it pointed the flattering way, which is the dangerous one. AD2's tabulator memoised only TERMINATING values, so each of the 366 divergent inputs walked its full three-thousand-step guard, learned nothing, and left the next divergent input to do it again: 1,098,362 evaluations to price 729 inputs. It reported a patient predictor as three hundred times WORSE than simply re-running, which is exactly the answer that would have made AD2 fail and the implied receipt look sound. Non-termination is an answer too, and a correct tabulator records it; walking until the path meets either a known value or itself resolves every state once and costs 728. An instrument that errs toward the hypothesis under test will not be caught by finding the result surprising, because it is not surprising. Fifteenth bite, and the SAME MECHANISM AS THE ELEVENTH in the same thread. AH2's reuse instrument walked every hailstone input to a 3,000-step guard, including the 366 that never terminate -- and those cycle through a handful of states three thousand times each, so hailstone measured 1,513x reuse against its true 10.43x. AD2's first tabulator failed for exactly this reason a few sets earlier and the repair was recorded there. A guard counted as work is apparently not a lesson that transfers by having been written down once; it has to be looked for. The repaired figure of 3,777 visits reproduces AD2's number exactly, which is the cross-check that says the two sets now measure one thing. Sixteenth bite, and a new flavour: MISREADING SOMEONE ELSE'S SPEC. AI1 implemented the Ladder's history operator with \"SUM prev\" read as the sum of everything so far INCLUDING the most recent term. That generates 0, 1, 2, 4, 8, 16 -- the powers of two -- and agrees with Fibonacci at exactly one of forty terms, so the audit reported that an external artifact's central operator does not do what it says. The Ladder's own derivation line states the indexing unambiguously, L(n+1) = 1 + SUM L(0..n-1), so prev EXCLUDES the last term. One term short and the sequence changes species. Every earlier bite in this list was a wrong instrument pointed at this project's own subject; this one was a wrong instrument pointed at somebody else's finished work, where the failure mode is publishing a refutation of a thing you misread. Seventeenth bite, in AN: the shift attack wrapped a value that was already a value in val() a second time, shifting every nonce it produced by TRYTE_MIN. It reported solving 0 of 729 messages at the two hardest difficulties and looked entirely plausible on its own -- a structured puzzle that resists a structural attack is a perfectly sensible-sounding result. What caught it was the CONTRADICTION with AN3, which had measured 465 of those same messages as mineable by exhaustive search. The antibody is not a code review but a cross-check: the fast attack and the slow sweep must agree on WHICH messages are solvable, not merely produce numbers of a believable size."
     },
     {
@@ -4074,7 +4193,7 @@
     },
     {
       "id": "T-CLAIM-NARROWED-BY-A-DESIGN",
-      "count": 4,
+      "count": 5,
       "description": "A measured result stated as a property of the SUBJECT when it was a property of the DESIGN measured. Z2 swept buffer placements in one family of trees and concluded a depth floor for ternary at any price; a different selector beat it. E4, and Y2 and Z5 before it, measured raw-select circuits and concluded settling time is never data-dependent; a decoded selector made it data-dependent. Both times the numbers were right and the noun was too big. Before writing ternary, or this model, ask whether the sweep visited more than one design. Third bite, and the first scored against this project's own prose rather than against a sweep. AE2 and AE4 measured exactly one musical affordance -- the availability of transpositionally symmetric chords -- and the write-up headed the section \"and here ternary is genuinely worse\", generalising from one affordance to an entire art form. Consonance, rhythm, contour and timbre were untouched, and so was the distinction between ternary as a TUNING and ternary as an ADDRESSING scheme, which is the layer a 3x3 pad grid actually uses. The tell is the same every time: the sweep visited one thing and the sentence named a category. Ask what the sweep did NOT visit before choosing the noun."
     },
     {
@@ -4109,7 +4228,7 @@
     },
     {
       "id": "T-CONTROL-CANNOT-DISCRIMINATE",
-      "count": 1,
+      "count": 2,
       "description": "A control that cannot fail, because the parameter the claim is about cancels out of it. Set AQ's control gave its two cost terms the same pseudorandom draw, so the exchange rate factored out and its optimum was constant in exactly the dimension the sweep was measuring -- it could only ever agree, whatever the trees did. The antibody is to check the control's RESPONSIVENESS before reading its verdict: the suite now asserts that the registered control is invariant in gamma at all 45 leaf counts, so the defect is recorded as a fact rather than left looking like evidence, and a second control with independent draws carries the discriminating work."
     }
   ]
