@@ -144,6 +144,14 @@ for (const [k, tag] of [['data-bits', 'input'], ['data-t', 'input'], ['data-bits
 }
 lIn['data-bits'].value = '512'; lIn['data-t'].value = '300';
 
+const navStrip = node(null, 'nav', {}, body);
+navStrip.className = 'jump';
+const navLinks = {};
+for (const id of ['b-forge', 'b-landauer', 'slate']) {
+  navLinks[id] = node(null, 'a', { href: '#' + id }, navStrip);
+}
+navLinks['x-dead'] = node(null, 'a', { href: '#no-such-section' }, navStrip);
+
 const slate = node('slate', 'div');
 const rowRoute = node(null, 'div', { 'data-group': 'route' }, slate);
 const rowKind = node(null, 'div', { 'data-group': 'kind' }, slate);
@@ -335,6 +343,22 @@ const wrong = labelled.filter(m => !new RegExp(`href="#${m[1]}">${m[2]} `).test(
 check(`   and all ${labelled.length} bench numbers on it match the benches they name`,
   labelled.length === benchIds.length && wrong.length === 0,
   wrong.map(m => m[1] + '/' + m[2]).join(' '));
+
+// The strip resolves its own targets rather than trusting fragment navigation, so
+// what is checked is that it really does the resolving.
+let scrolled = null, prevented = 0;
+for (const el of Object.values(navLinks)) el.scrollIntoView = () => { scrolled = el; };
+for (const id of ['b-forge', 'b-landauer', 'slate']) {
+  byId[id].scrollIntoView = () => { scrolled = id; };
+}
+const linkEvent = (a) => ({ target: a, currentTarget: navStrip, preventDefault() { prevented++; } });
+navStrip.listeners.click.forEach(fn => fn(linkEvent(navLinks['slate'])));
+check('the strip resolves its own target instead of trusting fragment navigation',
+  scrolled === 'slate' && prevented === 1, `${scrolled} ${prevented}`);
+scrolled = null;
+navStrip.listeners.click.forEach(fn => fn(linkEvent(navLinks['x-dead'])));
+check('   and a link to nothing is left alone rather than silently swallowed',
+  scrolled === null && prevented === 1, `${scrolled} ${prevented}`);
 
 console.log(`\n${'='.repeat(64)}`);
 console.log(fails.length ? `${fails.length} CHECK(S) FAILED:\n  ${fails.join('\n  ')}` : `ALL ${pass} CHECKS PASSED`);

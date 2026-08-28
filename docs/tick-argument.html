@@ -366,8 +366,6 @@
   .jump a:hover{border-color:var(--build); color:var(--build)}
   .jump a.jump-slate{border-color:var(--ink-faint); color:var(--ink)}
   .bench:target, .slate:target{outline:2px solid var(--build); outline-offset:4px}
-  html{scroll-behavior:smooth}
-  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 
   @media (max-width:560px){
     body{font-size:17px}
@@ -396,7 +394,7 @@
     <span><!--g:art-predictions--><b>177</b><!--/g--> predictions</span>
     <span><!--g:art-held--><b>148</b><!--/g--> held</span>
     <span><!--g:art-failed--><b>29</b><!--/g--> failed</span>
-    <span><b><!--g:checks-->1,584<!--/g--></b> checks passing</span>
+    <span><b><!--g:checks-->1,586<!--/g--></b> checks passing</span>
     <span><b><!--g:suites-->51<!--/g--></b> suites</span>
   </div>
 </header>
@@ -2431,6 +2429,25 @@
     qEl.addEventListener('input', function () { sel.q = qEl.value.trim().toLowerCase(); shown = PAGE; render(); });
     wire(root, '[data-slate-clear]', 'click', function () { clearAll(); render(); });
     render();
+  })();
+
+  /* ================= the jump strip ========================================
+     An <a href="#id"> relies on the frame being allowed to navigate itself, and a
+     sandboxed viewer may not allow it. So the strip resolves its own targets: the
+     href is still there for a middle-click and for JS-off, and this takes over when
+     it can. Instant, not smooth -- animating a scroll across a document this tall is
+     what the viewer choked on.
+     ========================================================================== */
+  (function () {
+    var nav = document.querySelector('nav.jump'); if (!nav) return;
+    nav.addEventListener('click', function (ev) {
+      var a = ev.target.closest && ev.target.closest('a[href^="#"]');
+      if (!a) return;
+      var el = document.getElementById(a.getAttribute('href').slice(1));
+      if (!el) return;                      // a dead link stays a dead link, visibly
+      ev.preventDefault();
+      el.scrollIntoView({ block: 'start' });
+    });
   })();
 
   /* The anti-divergence gate, the same one build-artifact.js uses on the emulator:
