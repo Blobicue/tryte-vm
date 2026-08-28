@@ -8,8 +8,14 @@ Every registered prediction, in the order it was registered, rendered from
 line here is wrong, the manifest is wrong.
 
 **44 sets · 185 predictions · 152 held · 33 failed**
-· 46 measured but never registered
+· 47 measured but never registered
 · 19 defect classes, 58 occurrences
+
+Of those 185 predictions, **153 were genuinely at risk**;
+25 were not, and 7 could not be called. The failure rate is
+therefore **21.6% of what was at risk** and 17.8% of everything
+registered. Both are true and they answer different questions —
+see `F-REGISTRATION-IS-NOT-RISK`.
 
 Each set names the commit that registered it and the commit that recorded its
 results. Those are checked to be genuinely ordered, and to be reachable from the
@@ -85,9 +91,11 @@ branch rather than merely present in a local object store.
 
 **Note.** 19,683 tables collapse to 27 maps: one column is in play, so every position gets the same map.
 
-### `Q2` — HELD
+### `Q2` — HELD · AT-RISK VERDICT UNCALLED
 
 **Claim.** pinned TOP reaches fewer elements than TGATE for width >= 2
+
+**At-risk verdict uncalled.** A corollary of Q1 plus P's recorded reaches, so it adds no independent question -- but Q1 was itself unmeasured at registration, so the answer was not settled either.
 
 **Measured.** top_w2: 27; tgate_w2: 47; top_w3: 27; tgate_w3: 307
 
@@ -99,15 +107,19 @@ branch rather than merely present in a local object store.
 
 **Note.** And it explains why P3 failed: TOP can express the IDENTITY as a column, so positions idle while others advance, dissolving the equal-word-length constraint. TGATE has no identity mode.
 
-### `Q4` — HELD
+### `Q4` — HELD · NOT AT RISK
 
 **Claim.** 27^w is the ceiling for any positionwise vocabulary
 
+**Not at risk.** The registration carries the complete definitional proof of the 27^w ceiling -- a positionwise operation induces at most the 27 unary maps per position, and positions compose independently. CONTESTABLE: the audit flagged this one as among the six of its 25 it would concede; see `reaudits` for how a verdict is moved.
+
 **Measured.** lower_bound_meets_upper_bound_at_widths: [1,2,3]
 
-### `Q5` — HELD
+### `Q5` — HELD · NOT AT RISK
 
 **Claim.** the width-6 ceiling 27^6 exceeds 531441
+
+**Not at risk.** 27^6 = 387,420,489 = 3^18, and the comparison against 531,441, are both performed inside the registration.
 
 **Measured.** ceiling: 387420489; understatement_factor: 729
 
@@ -123,15 +135,19 @@ branch rather than merely present in a local object store.
 | registered | `a2c320d` |
 | results | `7d5de05` |
 
-### `R1` — HELD
+### `R1` — HELD · AT-RISK VERDICT UNCALLED
 
 **Claim.** the positionwise vocabulary saturates at exactly 27^w
 
+**At-risk verdict uncalled.** A declared re-measurement control of a fact already on the record at Q3. Legitimate as a control; whether its vocabulary is identical to Q3's cannot be told from the registration.
+
 **Measured.** reach_w2: 729
 
-### `R2` — HELD
+### `R2` — HELD · AT-RISK VERDICT UNCALLED
 
 **Claim.** 27 more positionwise generators reach the same number
+
+**At-risk verdict uncalled.** A control. Forced by Q4's ceiling once R1 holds, but the registration does not state that forcing, so the in-the-text rule cannot score it decorative.
 
 **Measured.** reach_w2: 729; elements_bought: 0
 
@@ -147,9 +163,11 @@ branch rather than merely present in a local object store.
 
 **Measured.** reach_w2: 801; elements_bought: 72
 
-### `R5` — HELD
+### `R5` — HELD · NOT AT RISK
 
 **Claim.** the escape is cross-trit coupling, not generator count
+
+**Not at risk.** Opens "Therefore": the conclusion of R1 to R4 plus Q4's already-recorded ceiling, not an independent question. CONTESTABLE: the audit flagged this one as among the six of its 25 it would concede; see `reaudits` for how a verdict is moved.
 
 **Measured.** positionwise_gain: 0; carry_gain: 250776
 
@@ -181,9 +199,11 @@ branch rather than merely present in a local object store.
 
 **Measured.** multiplier_per_level: 27
 
-### `S3` — HELD
+### `S3` — HELD · NOT AT RISK
 
 **Claim.** hash-consing pays exactly 9 cells per duplicate table
+
+**Not at risk.** A TOP table is nine cells by definition, so "stores 9 cells rather than 9k" restates that definition.
 
 **Measured.** cells_per_duplicate: 9
 
@@ -237,9 +257,11 @@ branch rather than merely present in a local object store.
 | registered | `317d152` |
 | results | `513f988` |
 
-### `V1` — HELD
+### `V1` — HELD · AT-RISK VERDICT UNCALLED
 
 **Claim.** at width 1 the carry is inert; TOPC reaches 27 like TOP
+
+**At-risk verdict uncalled.** Forced if TOPC's carry really is inert at width 1 -- but that inertness is a semantics claim about the artifact rather than a stipulation.
 
 **Measured.** reach_w1: 27
 
@@ -257,9 +279,11 @@ branch rather than merely present in a local object store.
 
 **Note.** The first run reported this as FAILED. It had not failed: at depth 16 the sampled vocabulary was still growing while the ADD one had closed, so a smaller number was read as a smaller reach. The auditor now distinguishes closed, capped and depth-exhausted, and a test asserts all three stay distinguishable.
 
-### `V4` — HELD
+### `V4` — HELD · NOT AT RISK
 
 **Claim.** the sample is a lower bound and no upper bound is claimed
+
+**Not at risk.** "The sample is a LOWER bound" is true of any sample. The claim is about the method rather than about the artifact, and no run could have contradicted it.
 
 **Measured.** sample_converged_at: [40,80]
 
@@ -407,9 +431,11 @@ branch rather than merely present in a local object store.
 | registered | `441a96a` |
 | results | `0c3fd03` |
 
-### `Z1` — HELD
+### `Z1` — HELD · NOT AT RISK
 
 **Claim.** the free mid rail is load-bearing for exactly one published result, and it is the one that favoured ternary
+
+**Not at risk.** "parity is at 48 + G = 60, so G = 12", the 13 beside it, and the impossibility for 624 against 280 are all arithmetic on W's already-measured figures, done inside the registration.
 
 **Measured.** w3_ternary_switches: 48; w3_binary_switches: 60; w3_ratio: 0.8; w3_mid_taps: 6; generator_switches_for_parity: 12; per_tap: 2; generator_switches_for_reversal: 13; adder_ternary_switches: 624; adder_binary_switches: 280; adder_parity_at: 0; adder_reversible: false
 
@@ -525,9 +551,11 @@ branch rather than merely present in a local object store.
 
 **Note.** Early settling needs the arm conducting on the raw select and the arm still waiting on the MID detector to lead to the same rail. For the carry tree that is carry(s+c) == carry(s), true for 12 of 18, because the carry function is flat over stretches. For the sum tree it is lowTrit(s+c) == lowTrit(s), true for none of them, because adding one always moves a low trit. So only the carry tree is ever early; the top position SUM is always the last node to move; and a saving at the top position is therefore invisible. That is exactly why the earlier naive count over-predicted by one, always in the same direction.
 
-### `F3` — HELD
+### `F3` — HELD · NOT AT RISK
 
 **Claim.** the walk over the carry state gives 251,505 exactly
+
+**Not at risk.** The matrix walk v0 to v4 and "9 x 27945 = 251,505" are written out in full and labelled "Predicted to the digit". The at-risk form of this question is F1 and F4, registered separately.
 
 **Measured.** matrix_from_low: [2,1,0]; matrix_from_middle: [1,7,1]; matrix_from_high: [0,1,2]; vectors: [[1,7,1],[9,51,9],[69,375,69],[513,2763,513],[3789,20367,3789]]; final_sum: 27945; times_nine: 251505; early: 279936; fraction: 128/243
 
@@ -553,9 +581,11 @@ branch rather than merely present in a local object store.
 | registered | `43c29b8` |
 | results | `cd581ef` |
 
-### `G1` — HELD
+### `G1` — HELD · NOT AT RISK
 
 **Claim.** the correspondence dies at the first other parameter, and not narrowly
+
+**Not at risk.** "its entire universe is 3^3 = 27 functions", plus the observation that a translation cannot add to a set that is already everything; 729 and 621 were already on the record. CONTESTABLE: the audit flagged this one as among the six of its 25 it would concede; see `reaudits` for how a verdict is moved.
 
 **Measured.** pairing: monoid width w against an adder of 3w trits; width_1_monoid_universe: 27; width_1_reach_any_carry: 27; width_1_reach_one_translation: 27; adder_3_trit_pairs: 729; adder_3_trit_late: 621; width_2_all_four: [531441,251505,531441,251505]
 
@@ -569,9 +599,11 @@ branch rather than merely present in a local object store.
 
 **Note.** The recurrence was derived by hand from the transfer matrix characteristic polynomial before the run and reproduces every count to width 12. Its dominant root is irrational, so the adder family multiplies by about 7.37 per step; the monoid multiplies by about 9,315 across the only span where both are computable. Across eleven adder counts and every monoid reach in the manifest, exactly one value coincides -- the one already known.
 
-### `G3` — HELD
+### `G3` — HELD · NOT AT RISK
 
 **Claim.** the collision is where two exponent sequences cross, once, not a pattern
+
+**Not at risk.** "Predicted exactly that -- 27 against 729, then 531,441 against 531,441": all four numbers were already recorded and the rest is exponent arithmetic.
 
 **Measured.** monoid_ceiling_width_1: 27; monoid_ceiling_width_2: 531441; adder_pairs_3_trits: 729; adder_pairs_6_trits: 531441; as_powers_of_three: {"monoid":["3^3","3^12"],"adder":["3^6","3^12"]}
 
@@ -665,9 +697,11 @@ branch rather than merely present in a local object store.
 
 **Note.** So the choice between an n-type and a p-type middle arm is free, and the selector cannot be improved by switching polarity.
 
-### `I4` — HELD
+### `I4` — HELD · NOT AT RISK
 
 **Claim.** so the decoded adder stands at 540
+
+**Not at risk.** A conditional on its own siblings I1 and I3, and the alternative arithmetic -- 540 to 522, 1.929 to 1.864 -- is pre-computed in the registration too.
 
 **Measured.** switches_saved: 0; adder_before: 540; adder_after: 540; ratio_before: 1.929; ratio_after: 1.929; detectors_in_adder: 18
 
@@ -779,9 +813,11 @@ branch rather than merely present in a local object store.
 
 **Note.** The sum being right is the lesser half. The register is read by the adder while the adder is computing the register next value, and on none of the 6,561 steps did it stop reading the OLD accumulator. That is K1 property under load, and the whole reason the J4 failure mattered.
 
-### `L2` — HELD
+### `L2` — HELD · AT-RISK VERDICT UNCALLED
 
 **Claim.** and costs 672 switches
+
+**At-risk verdict uncalled.** 540 + 132 = 672 on two already-recorded figures, but the "no input buffer between them" premise is a live design claim that the build tests.
 
 **Measured.** total: 672; adder: 540; register: 132; buffer_between_them: 0; mid_rail_taps: 210
 
@@ -943,9 +979,11 @@ branch rather than merely present in a local object store.
 
 **Note.** Produced rather than asserted. And the two-enable result carries something nobody predicted: the bus goes X only on the trits where the two sources DISAGREE. 5 and -5 are trit-wise negatives, so they differ on three positions and agree (at zero) on the other three -- and the bus is X on exactly those three. A double-enable fault is therefore INVISIBLE whenever the contending sources happen to hold the same value. N4 does not say "contention is detected"; it says contention is X, and X only appears where there was something to disagree about. One correction to this audit's own first phrasing: it said "I0 has no shared node to contend for", which is false -- a tmux output IS shared between its legs. The difference is not whether a node is shared but how exclusion is guaranteed: I0 gates every leg on one select trit, so exclusion is structural; I2 needs S separate enables to be one-hot, which is an invariant something has to maintain. The comfortable phrasing was the wrong one.
 
-### `A4` — HELD
+### `A4` — HELD · NOT AT RISK
 
 **Claim.** and the decision does not belong to this phase
+
+**Not at risk.** Not a falsifiable claim about the circuit but a commitment about the phase's own paperwork: that the pick stays PROPOSED pending sequencing. The registration says as much itself.
 
 **Measured.** ledger: {"I0":{"precondition":"none - selects are inputs","failure_modes":"none","cost":"D x S"},"I2":{"precondition":"a second control cone, solved and seeded every step","failure_modes":"X on double-enable, Z on no-enable","cost":"S"}}; pick: PROPOSED, pending sequencing
 
@@ -971,9 +1009,11 @@ branch rather than merely present in a local object store.
 
 **Note.** Exact. So the structural rule holds and is now measured rather than asserted: an iterated hash of this shape must use a PERMUTATION, and its compression must come from TRUNCATION at the end. A non-bijective f throws away a third of the space on the first call.
 
-### `D2` — HELD · PROVEN
+### `D2` — HELD · PROVEN · NOT AT RISK
 
 **Claim.** any positionwise f has period at most 6, at every width
+
+**Not at risk.** "the order of f is the lcm of orders drawn from {1,2,3} -- at most 6" is a complete proof, stated in the registration.
 
 **Argument.** A trit permutation has order 1, 2 or 3. Applying one per position, f^m is the identity exactly when every position's is, so the order is an lcm drawn from {1,2,3} and is at most 6 — at ANY width, not just the one swept.
 
@@ -1017,9 +1057,11 @@ branch rather than merely present in a local object store.
 
 **Note.** Four of five on the first run, and the fifth was the TEST CASE rather than the tool: it paired a 3-cycle with a 25-CYCLE, which between them move only 25 of the 27 points, and the tool correctly returned 25!/2 -- the right answer to the question actually asked. Scored WRONG against an expectation of 27!/2. A test case that does not generate what its name says is an instrument-false-verdict aimed at the instrument instead of at itself. Both cases are now kept, the 27-point one and the 25-point one, with their correct expectations.
 
-### `M1` — HELD · PROVEN
+### `M1` — HELD · PROVEN · NOT AT RISK
 
 **Claim.** binary has no non-affine two-bit reversible gate and ternary has 362,448
+
+**Not at risk.** "4! = 24", "|AGL(2,2)| = 24", "9! = 362,880 and |AGL(2,3)| = 48 x 9 = 432", and affine-composes-to-affine: every numeral and both arguments stand in the registration before the run.
 
 **Argument.** The reversible 2-bit gates number 4! = 24 and |AGL(2,2)| = 24, so every one of them is affine. Affine composes to affine, so no 2-bit set reaches the symmetric group at any width. Counting, not sampling.
 
@@ -1037,9 +1079,11 @@ branch rather than merely present in a local object store.
 
 **Note.** Predicted from parity rather than left to chance: INC is nine disjoint 3-cycles and each C1INC is three, a 3-cycle is even, so the group lies inside the alternating group and S_27 was forbidden before the run. It came out exactly A_27. C1INC is non-affine because the indicator of t == 1 is quadratic over GF(3). The family half was registered separately so one gate would not be read as the family, and 20 of 20 cleared the bar.
 
-### `M3` — HELD
+### `M3` — HELD · NOT AT RISK
 
 **Claim.** the same wiring with an affine gate stays inside AGL(3,3)
+
+**Not at risk.** Forced by the closure theorem M1 states -- an all-affine generating set lies in AGL -- so both the 303,264 order bound and the membership result follow from the registration.
 
 **Measured.** order: 151632; agl_3_3: 303264; index_in_agl: 2; fraction_of_symmetric_group: 1.39e-23; elements_enumerated: 151632; elements_failing_membership: 0
 
@@ -1081,9 +1125,11 @@ branch rather than merely present in a local object store.
 
 **Note.** Both derived numbers hit exactly, and both gates verified correct exhaustively. Built in the SAME pass-network idiom with T5 obeyed on both sides -- every source rail-driven, buffers counted, no trick used on one side and withheld from the other. An earlier estimate put the binary side at ~22 by building it from NAND gates while giving the ternary side pass-transistor tricks; that strawman is recorded rather than quietly dropped. Two operands instead of three buys 1.2x, not 3x.
 
-### `O4` — HELD
+### `O4` — HELD · NOT AT RISK
 
 **Claim.** and what margin remains is borrowed entirely from the free mid rail
+
+**Not at risk.** "price a mid tap at the cost of one switch and the two gates TIE at 12": 10 + 2 = 12 against 12, on O3's own derived numbers.
 
 **Measured.** at_price_0: {"ternary":10,"binary":12,"winner":"ternary"}; at_price_1: {"ternary":12,"binary":12,"winner":"tie"}; at_price_2: {"ternary":14,"binary":12,"winner":"binary"}; at_price_4: {"ternary":18,"binary":12,"winner":"binary"}
 
@@ -1345,9 +1391,11 @@ branch rather than merely present in a local object store.
 
 **Note.** Every one of the 729 accumulator values is resolved exactly once -- 728 evaluations, one short of the state count because the terminating value is seeded. Answering the same questions by independent re-running costs 3,777. So a predictor expecting more than SEVENTY queries should tabulate, and from the seventy-first onward every answer is free. Being genuinely discovered is therefore NOT SUFFICIENT for an implied receipt. The predictor does not have to be clever; it is allowed to be patient.
 
-### `AD3` — HELD
+### `AD3` — HELD · AT-RISK VERDICT UNCALLED
 
 **Claim.** no single-accumulator trajectory can exceed the state space, for this map or any other, and the observed maximum sits far below the ceiling
+
+**At-risk verdict uncalled.** The first clause is explicit pigeonhole and the registration says so; the second, "far below that ceiling", is unquantified, so neither bucket fits cleanly.
 
 **Measured.** longest_trajectory: 19; state_space: 729; headroom_used_percent: 2.61; terminating_trajectories_revisiting_a_value: 0
 
@@ -1373,17 +1421,21 @@ branch rather than merely present in a local object store.
 | registered | `92504fb` |
 | results | `19d2a46` |
 
-### `AE1` — HELD
+### `AE1` — HELD · AT-RISK VERDICT UNCALLED
 
 **Claim.** the group AB5 measured is the T/I group of musical set theory, and the same code returns 2n at every n
+
+**At-risk verdict uncalled.** Dihedral order 2n is textbook and the 1,458 was already recorded, but it doubles as an instrument replication of the stabiliser chain on a new input.
 
 **Measured.** order_at_12: 24; order_at_27: 54; order_at_729: 1458; two_n_at_12: 24; two_n_at_27: 54; two_n_at_729: 1458; generators: translation-by-1 and negation, unchanged between cases
 
 **Note.** AB5 measured 1,458 for the zero-erasure ALU fragment on 729 accumulator states and called it "the translations extended by negation". Run the identical construction through the identical stabiliser chain on TWELVE points and it returns 24 -- the dihedral group musical set theory has called T/I since the 1960s. So this project independently rebuilt a group that has been studied for sixty years, and AB5's conclusion is the one music theory reached from the other side: transposition and inversion preserve interval content and can never carry one set class into another. AB5 phrased the same fact as "without an eraser the named set is inert". The tryte width is not special; 1,458 is 2 x 729.
 
-### `AE2` — HELD
+### `AE2` — HELD · NOT AT RISK
 
 **Claim.** the number of distinct translation orbit-lengths equals the divisor count exactly, and a prime power is divisor-poor
+
+**Not at risk.** Orbit-length count equals divisor count, with d(12) = 6, d(27) = 4, d(729) = 7 and d(720) = 30 all stated in the registration. CONTESTABLE: the audit flagged this one as among the six of its 25 it would concede; see `reaudits` for how a verdict is moved.
 
 **Measured.** Z12_divisors: 6; Z12_orbit_lengths: 6; Z12_lengths: 1 2 3 4 6 12; Z27_divisors: 4; Z27_orbit_lengths: 4; Z27_lengths: 1 3 9 27; Z720_divisors: 30; Z720_orbit_lengths: 30; Z729_divisors: 7; Z729_orbit_lengths: 7; Z729_lengths: 1 3 9 27 81 243 729
 
@@ -1557,17 +1609,21 @@ branch rather than merely present in a local object store.
 
 **Note.** H(prev) = SUM prev + [prev != empty] reproduces Fibonacci with two zeros at the front for all 40 terms checked, against the 9 the Ladder itself verified, and there is no special case at the genesis -- which is the operator's whole claim to being more fundamental than the two-term recurrence. Three of the four competing rules fail exactly where the Ladder says: cur+last first at step 1, sum(prev) wrong at 8 of 9, sum(prev)+1 first at step 0. The fourth disagrees -- my reconstruction of "cur + len(prev)" first fails at step 2 where the Ladder records 6 -- and that is a fact about reading a four-word label, not about its result. The definitions were left as read rather than tuned until they agreed, which would be fitting the instrument to the answer.
 
-### `AI2` — HELD
+### `AI2` — HELD · NOT AT RISK
 
 **Claim.** the arity ladder cubes at every rung, and passes the width ladder at n = 3
+
+**Not at risk.** "each rung is exactly the CUBE of the last, since 3^(3^(n+1)) = (3^(3^n))^3", with 27, 19,683 and 7,625,597,484,987 all given.
 
 **Measured.** n1: 27; n2: 19683; n3: 7625597484987; n4_digits: 39; each_rung_is_cube_of_last: true; width_ladder_3_words: 282429536481; width_ladder_4_words: 205891132094649; arity_passes_width_at_n3: true; n4_vs_width_5_words: 39 digits against 15
 
 **Note.** Exact at every rung: 27, 19,683, 7,625,597,484,987, then a 39-digit number, each the cube of the last because 3^(3^(n+1)) = (3^(3^n))^3. This is a different growth law from the one this project has been using. AD4's width ladder MULTIPLIES by 729 per live word; the arity ladder CUBES. Arity passes width at n = 3 and by n = 4 they are not in the same range -- 39 digits against 15. Adding an input is not a bigger version of adding a word, it is a different operation.
 
-### `AI3` — HELD · PROVEN
+### `AI3` — HELD · PROVEN · NOT AT RISK
 
 **Claim.** the reversible fraction is (2/9)^(3^(n-1)), and it reproduces AB1's swept 1.097% from a formula
+
+**Not at risk.** The closed form 6^(3^(n-1)) and the fraction (2/9)^(3^(n-1)) are stated and evaluated at 22.22%, 1.097% and 0.000132% -- and the 1.097% was already AB1's measurement.
 
 **Argument.** A function is reversible in its leading argument exactly when each of its 3^(n-1) columns is a bijection of three values. So the count is 6^(3^(n-1)) and the fraction (2/9)^(3^(n-1)), for every n — a closed form, not a fit.
 
@@ -1623,9 +1679,11 @@ branch rather than merely present in a local object store.
 
 **Note.** programs/ladder.tasm reproduces the ladder exactly against an independent implementation, so the operator is now self-hosting in the weak sense -- expressible in the language its own ladder produces. It costs 152 instructions for nine terms and erases 6.2564 bits per instruction, which is the second-highest figure in the corpus after fold. SELF-HOSTING DOES NOT INHERIT THE REVERSIBILITY OF THE THING HOSTED: the map is a bijection and the program calls STORE on every turn of the loop, and AB2 measured STORE at the full 9.5098 bits. A reversible mathematics implemented on an erasing machine still erases, which is the gap between having a property and running it.
 
-### `AJ4` — HELD
+### `AJ4` — HELD · NOT AT RISK
 
 **Claim.** the ladder exceeds a tryte at term 15, so never forgetting is unaffordable in bounded memory
+
+**Not at risk.** "exceeds a tryte at term 15, where 377 > 364": the comparison is performed in the registration. CONTESTABLE: the audit flagged this one as among the six of its 25 it would concede; see `reaudits` for how a verdict is moved.
 
 **Measured.** tryte_range: -364 to 364; first_term_over: 15; its_value: 377; terms_that_fit: 14; machine_at_term_15: -352; machine_wraps: true
 
@@ -1653,9 +1711,11 @@ branch rather than merely present in a local object store.
 
 **Note.** All fifteen gate instances are permutations of the 27 states and every one has order exactly 3, so a program's inverse is that program with each gate applied twice more and THE LANGUAGE NEEDS NO INVERSE INSTRUCTION SET. The group they generate is A_27, agreeing with M's recorded figure from an implementation written separately -- two independent codings landing on one 28-digit number is what makes a re-implementation worth having. ERRATUM, AND THE REASON IT IS ONLY AN ERRATUM: the registration typed A_27 as a 25-digit number, dropping three zeros, so the decimal expansion in the prediction was wrong by a factor of a thousand. The tool COMPUTES 27!/2 rather than comparing against the typed digits, which is why a transcription slip in the registration is a footnote instead of a false verdict. AGENTS.md already says to derive constants and never hardcode them; the tool obeyed it and the prose did not.
 
-### `AK2` — HELD · PROVEN
+### `AK2` — HELD · PROVEN · NOT AT RISK
 
 **Claim.** reversibility is inherited by composition, so every program has in-degree 1 with no analysis
+
+**Not at risk.** A composition of bijections is a bijection, and the registration says so. The manifest's own argument field concedes it: "the 400 sampled were a check on the implementation, never the grounds for the claim".
 
 **Argument.** A composition of bijections is a bijection. Every primitive is a bijection, so in-degree 1 holds for every program that can be written — the 400 sampled were a check on the implementation, never the grounds for the claim.
 
@@ -1663,9 +1723,11 @@ branch rather than merely present in a local object store.
 
 **Note.** Four hundred random programs of random length, and every one has in-degree exactly 1 at all 27 states with zero unreachable. A composition of bijections is a bijection, so THERE IS NOTHING A PROGRAMMER CAN WRITE IN THIS LANGUAGE THAT BREAKS IT. Compare what factor four cost everywhere else: AI4 had to search 19,683 tables to find the 216 that work, and AJ1 needed the map to be built out of addition on purpose. Here it costs no analysis, no search and no discipline -- it is a property of the alphabet rather than of the program.
 
-### `AK3` — HELD
+### `AK3` — HELD · NOT AT RISK
 
 **Claim.** a straight-line reversible program costs its own length for every input, so the cost spread is exactly 1.00 and factor three is lost
+
+**Not at risk.** Cost is defined as gate count and the language has no branching, so a straight-line program's spread of exactly 1.00 restates the cost model.
 
 **Measured.** programs_measured: 50; largest_spread: 1; every_program_flat: true; AH1_three_word_spread: 513.8; countdown_spread: 25.38; threeway_spread: 1.02
 
@@ -1691,9 +1753,11 @@ branch rather than merely present in a local object store.
 | registered | `3568301` |
 | results | `03565cb` |
 
-### `AL1` — HELD · PROVEN
+### `AL1` — HELD · PROVEN · NOT AT RISK
 
 **Claim.** exactly 27 of the 19,683 two-input ternary operations are affine over GF(3), and 18 of the 216 reversible ones are
+
+**Not at risk.** 27 = 3^3 affine tables by parameter counting, and the 18 affine-and-reversible was already AB1's measured number. The manifest's own argument field concedes it: "Parameter counting, exhaustive by construction."
 
 **Argument.** 27 = 3^3, one affine table per (alpha, beta, gamma). The 18 affine-and-reversible is 2 x 3 x 3 because alpha must be nonzero for every column to be a bijection. Parameter counting, exhaustive by construction.
 
@@ -1701,9 +1765,11 @@ branch rather than merely present in a local object store.
 
 **Note.** Exact. 27 = 3^3, one per (alpha, beta, gamma). The reversible count of 216 reproduces AB1 from a criterion written independently, and the 18 affine-reversible is 2 x 3 x 3 because alpha must be nonzero for every column to be a bijection -- AB1 measured that same 18 by checking affineness of tables it had already found reversible, so the two routes cross-check rather than restate. THE POINT IS THE FRACTION: the grokking literature studies a task drawn from 0.137% of this space and holds the algebraic variable fixed while sweeping everything else.
 
-### `AL2` — HELD
+### `AL2` — HELD · NOT AT RISK
 
 **Claim.** affine is exactly the set a linear map can fit, and nothing else reaches a perfect fit
+
+**Not at risk.** A perfect linear fit over every row IS the definition of affine, so "fails on all 19,656 others" restates the definition. CONTESTABLE: the audit flagged this one as among the six of its 25 it would concede; see `reaudits` for how a verdict is moved.
 
 **Measured.** perfect_fits: 27; equals_affine_count: true; best_non_affine: 8; of_rows: 9; histogram: 4 rows:162, 5:3240, 6:11880, 7:3888, 8:486, 9:27
 
@@ -1887,17 +1953,21 @@ branch rather than merely present in a local object store.
 
 **Note.** Held on all three clauses, and the mean agrees with the closed form to one part in ten thousand -- which is the real content, because it confirms the binomial model is the right description of what a reused key gives away rather than merely a plausible one. The one-time restriction is therefore not advisory: a second signature under the same key hands away 2.94% of the message space on average and 8.78% at worst, and there is no configuration in which it hands away nothing unless the same message is signed twice.
 
-### `AP3` — HELD
+### `AP3` — HELD · NOT AT RISK
 
 **Claim.** ternary leaks less of its own space than binary on key reuse, 2.94% against 5.63%
+
+**Not at risk.** The project's own verdict at the time, already recorded in the note and in should_not_have_been_registered: both sides are the closed form (1 + (b-1)/b)^pos and the registration computed both before the run.
 
 **Measured.** ternary: 2.94% of 729; binary: 5.63% of 1024; ratio: 1.92; registered_ratio: 1.91; mechanism: trits differ with p = 2/3 against bits at 1/2, so the per-position rate is HIGHER for ternary and the leak is still lower, because the position count falls faster; should_not_have_been_registered: true
 
 **Note.** Held, including the mechanism clause -- ternary digits collide more often and leak less anyway, because six positions against ten outweighs two thirds against one half. But it should not have been registered. Both sides are the closed form (1 + (b-1)/b)^pos and the registration itself computed both before the run, so nothing here was ever at risk. AGENTS.md names this failure directly: inflating the registered set with facts that were never at risk turns the discipline into decoration. Recorded as held and as a registration that should not have been made.
 
-### `AP4` — HELD
+### `AP4` — HELD · NOT AT RISK
 
 **Claim.** ternary pays for that advantage in destruction: 12 of 18 preimages against 10 of 20, and strictly more erased bits
+
+**Not at risk.** The project's own verdict at the time, already recorded in the note and in should_not_have_been_registered: (b-1)/b and the projection erasure are closed forms over a scheme whose base and position count the registration stipulated.
 
 **Measured.** ternary: 18 preimages, 6 revealed, 12 destroyed, 66.7%; binary: 20 preimages, 10 revealed, 10 destroyed, 50.0%; erasure_per_position: ternary 3.1699 bits, binary 1.5850; erasure_total: ternary 19.020 bits, binary 15.850; should_not_have_been_registered: true
 
@@ -1921,7 +1991,7 @@ branch rather than merely present in a local object store.
 
 **Measured.** cells: 2880; cells_with_argmin_two: 0; narrowest_optimum: 3; widest_optimum: 1024; distinct_optima: 61; cells_where_optimum_widens_as_verify_dearer: 0; leaf_counts_preferring_three_at_the_limit: 21; leaf_counts_preferring_four_at_the_limit: 21
 
-**Note.** Failed on its last clause, and that clause was the whole point. The first three parts held exactly: no cell in 2,880 has argmin 2, the optimum never goes below 3, and it never widens as verifying gets dearer. But three does not beat four at the verify-dominated limit -- it TIES, 21 leaf counts each. Chasing the tie produced F-TREE-BRANCHES-IN-ITS-OWN-BASE, which is a better answer than the one predicted: 3^k leaf counts want three and 2^k leaf counts want four, so the tie was a property of how many of each shape this sweep contains rather than of trees. T-CLAIM-NARROWED-BY-A-DESIGN, fourth bite.
+**Note.** Failed on its last clause, and that clause was the whole point. The first three parts held exactly: no cell in 2,880 has argmin 2, the optimum never goes below 3, and it never widens as verifying gets dearer. But three does not beat four at the verify-dominated limit -- it TIES, 21 leaf counts each. Chasing the tie produced F-TREE-BRANCHES-IN-ITS-OWN-BASE, which is a better answer than the one predicted: 3^k leaf counts want three and 2^k leaf counts want four, so the tie was a property of how many of each shape this sweep contains rather than of trees. T-CLAIM-NARROWED-BY-A-DESIGN, fourth bite. NARROWED AFTERWARDS, AND STATED HERE SO A READER OF AQ ALONE IS NOT MISLED: AR4 lifted the constant-arity constraint every tree in this sweep was built under, and F-TREE-BRANCHES-IN-ITS-OWN-BASE turned out to be a property of CONSTANT trees rather than of trees. 25 of these 45 leaf counts change shape once radix sequences are admitted, 11 of the 18 powers of three among them, and N = 729 wants [4,4,4,4,3] rather than six threes -- for 0.0178% of the total cost, a surface flat to four decimal places. AR's evidence for that is FREQUENCY and not magnitude: its null over 100 redraws has a tail reaching 23.7%, ABOVE the subject's own worst cell, so a structureless per-level cost can produce a larger maximum than the real regime does, while the frequency of improvement separates a hundredfold. T-CLAIM-NARROWED-BY-A-DESIGN, fifth bite, and the second time the class has bitten this same sentence.
 
 ### `AQ2` — FAILED
 
@@ -1963,6 +2033,8 @@ branch rather than merely present in a local object store.
 
 **Claim.** letting the arity vary is worth less than a sixth: at every cell of both vector-regime sweeps the best radix sequence costs at least 85% of the best constant arity's cost
 
+**At risk.** It comes out the other way if ONE leaf count anywhere in [2, 8192] leaves the constant optimiser worse stranded than N = 11 did. Five leaf counts worked on paper give 1.5%, 4.0%, 4.2%, 7.1% and 9.99%, the last found by deliberately hunting a bad case; five of 8,236 is not a sample to extrapolate from, and a single cell past the line refutes it.
+
 **Measured.** grid_cells: 2880; contiguous_cells: 65528; worst_gain_grid_percent: 9.99; worst_gain_grid_at_leaf_count: 128; worst_gain_contiguous_percent: 12.3; worst_gain_contiguous_at_leaf_count: 257; median_gain_deep_window_percent: 3.15; mean_gain_deep_window_percent: 2.87; null_max_gain_percent: 23.7
 
 **Note.** Held, and the bound is worth less than it looks. The worst cell in 68,408 is 12.30% at N = 257 and the worst on AQ's own grid is 9.99% at N = 128, both inside the registered 15%. But the post-hoc null over 100 redraws has a TAIL reaching 23.7%, above the subject's worst cell, so a structureless per-level cost can produce a larger maximum than the real regime does and magnitude discriminates nothing here. What discriminates is frequency, which is AR3. The line's placement decided this verdict: a 10% line would have FAILED at 12.30%, and the reason for widening it to 15% -- a hand case at 9.99% that would have made 10% a coin toss -- was on the record before the run. T-CRITERION-IN-THE-NOISE applied before the fact rather than after it.
@@ -1970,6 +2042,8 @@ branch rather than merely present in a local object store.
 ### `AR2` — HELD
 
 **Claim.** the staircase flattens by more than half: over the deep contiguous window at the verify-dominated rate, the largest single-leaf relative cost jump is less than half as large when arity may vary as when it may not
+
+**At risk.** It comes out the other way if the varying tree has a single bad step anywhere the constant tree happens to be smooth, because both sides are maxima over 7,167 consecutive pairs and need not occur at the same leaf count. Only one pair was worked on paper.
 
 **Measured.** window_low: 1024; window_high: 8192; leaf_counts: 7169; max_jump_constant_percent: 11.97; max_jump_varying_percent: 4; ratio: 0.334; both_maxima_at_leaf_count: 1024
 
@@ -1979,6 +2053,8 @@ branch rather than merely present in a local object store.
 
 **Claim.** variation helps most leaf counts, not a few: over the deep contiguous window at the verify-dominated rate, more than half of the leaf counts have a strictly cheaper varying optimum
 
+**At risk.** It comes out the other way if the constant optimiser's freedom to pick its own depth is worth as much as the sequence's freedom to pick its own widths, which cannot be settled short of running it. The evidence against was my own: four of the six leaf counts I worked by hand were NOT helped.
+
 **Measured.** leaf_counts: 7169; helped: 6144; helped_percent: 85.7; unhelped: 1025; optima_that_are_a_constant_arity: 1025; null_helped_percent: 0.83
 
 **Note.** Held, and it is the one the registration said could not be called. 6,144 of 7,169 leaf counts -- 85.7% -- have a strictly cheaper varying optimum, against a null of 0.83% of draw-by-leaf pairs: a hundredfold separation, and the statistic that actually shows the effect is structure rather than arithmetic. I registered the reasoning against my own hand sample and the reasoning was right; the sample was drawn at powers, which is where a constant tree is at its best. The unhelped 1,025 are EXACTLY the leaf counts whose optimal tree is a constant arity, with no exceptions in 7,169 -- and those are powers of FOUR rather than powers in general, since four is the arity the optimum wants. 2187 = 3^7 is helped.
@@ -1986,6 +2062,8 @@ branch rather than merely present in a local object store.
 ### `AR4` — FAILED
 
 **Claim.** the optimal tree gets deeper more often than shallower: over the deep contiguous window at the verify-dominated rate, leaf counts whose varying optimum is strictly deeper than their constant optimum outnumber those whose varying optimum is strictly shallower
+
+**At risk.** It comes out the other way if the per-level bytes charge outweighs the per-level rounding slack, and a worked case already said it does -- at N = 10^8 the hand arithmetic puts the varying optimum three levels SHALLOWER. Both declared tie-breaks also push against it.
 
 **Measured.** leaf_counts: 7169; deeper: 2176; shallower: 3580; same_depth: 1413; ratio_shallower_to_deeper: 1.65; verify_budget_identical: 2861; verify_budget_smaller: 4308; verify_budget_larger: 0; shallower_at_identical_verify_budget: 1836
 
@@ -2114,8 +2192,9 @@ not inflated by things that were never at risk.
   <br>*Argument:* The summed head is flat because addition is a bijection in the last entry, which fixes the preimage count at N^(L-1) by construction. The chain step P(a + e) - e is NOT a bijection in e -- that non-invertibility is exactly what AN registered it for -- so its preimage counts are free to vary, and they do.
   <br>*Evidence:* tools/ledger-audit.js preimageProfile(2), a full enumeration rather than a sample
   <br>*Asserted in:* `test/test-ledger.js`
-- **`F-TREE-BRANCHES-IN-ITS-OWN-BASE`** — Once verifying dominates bandwidth, an authenticated tree wants the branching factor its leaf count is written in. Of 18 leaf counts of the form 3^k, 15 take branching factor three; of 19 of the form 2^k, 13 take four. The two shapes are almost equally represented in the sweep, which is the entire reason AQ1 saw a 21-21 tie rather than a result.
+- **`F-TREE-BRANCHES-IN-ITS-OWN-BASE`** — Once verifying dominates bandwidth, an authenticated tree wants the branching factor its leaf count is written in. Of 18 leaf counts of the form 3^k, 15 take branching factor three; of 19 of the form 2^k, 13 take four. The two shapes are almost equally represented in the sweep, which is the entire reason AQ1 saw a 21-21 tie rather than a result. NARROWED BY SET AR, AND THE ORIGINAL WORDING IS KEPT ABOVE BECAUSE IT IS WHAT WAS FOUND: this holds only under the constraint that every level of the tree uses the SAME arity, which is the one constraint every tree in AQ's sweep was built under. Lift it and 25 of these 45 leaf counts change shape, 11 of the 18 powers of three among them -- N = 729 prefers the radix sequence [4,4,4,4,3] to six threes. It prefers it by 0.0178% of the total cost, so the surface this preference was read off is flat to four decimal places. A TREE BRANCHES IN ITS OWN BASE IS A PROPERTY OF CONSTANT TREES.
   <br>*Argument:* At large gamma the cost is dominated by depth times arity, and depth is ceil(log_b N). When N is an exact power of b the ceiling is tight and no level is wasted; when it is not, the top level is partly empty and paid for in full. A leaf count of 3^k therefore pays nothing for branching by three and rounds up for branching by four, and the reverse holds for 2^k.
+  <br>*Scope:* The narrowing is AR4 and F-THE-ARITY-OPTIMUM-IS-FLAT, at 12b5570. What survives is the constant-arity statement, which is still true and still explains AQ1's 21-21 tie. What does not survive is the noun: the sweep visited one design -- trees of a single width -- and the sentence named trees. T-CLAIM-NARROWED-BY-A-DESIGN, fifth bite, already counted at AR's results commit rather than here.
   <br>*Evidence:* tools/branching-audit.js limitPreference(), over the 45 leaf counts of set AQ
   <br>*Asserted in:* `test/test-branching.js`
 - **`F-CONTROL-CANNOT-DISCRIMINATE`** · PROVEN — Set AQ's registered control could not have detected the failure it was written to detect. Its two cost terms are the same pseudorandom draw, so its total is d*NOISE[b]*(1+gamma) and gamma factors out entirely: its optimum is invariant in the exchange rate at every one of the 45 leaf counts. A post-hoc control drawing the two terms independently gives 7 distinct optima with 131 backward steps and a narrowest optimum of 207, against the vector regime's 61 optima, 0 backward steps and narrowest optimum of 3 -- which is what actually establishes that the vector regime is structure rather than the shape of the arithmetic.
@@ -2124,6 +2203,7 @@ not inflated by things that were never at risk.
   <br>*Asserted in:* `test/test-branching.js`
 - **`F-RADIX-ORDER-IS-FREE`** · PROVEN — In this cost model a radix sequence's total depends on it only through its MULTISET of arities -- indeed only through the depth d and the sum of the arities. A tree that is three at the top and nine below costs exactly what nine at the top and three below costs. There is no schedule to choose, only a multiset.
   <br>*Argument:* Every regime charges a per-level weight and the weights add, so the total is sum over levels of w(b_i), which is symmetric in the levels. For the merkle and vector regimes w is affine in b, so the sum collapses further to a function of d and sum(b_i) alone. This is what makes the whole search reduce to MINSUM(d, N) and it is immediate from the construction rather than discovered.
+  <br>*Scope:* An order-SENSITIVE cost -- a verifier caching the top levels, an update path charged differently from a read -- is a different model, and nothing in set AR bounds it.
   <br>*Evidence:* tools/radix-audit.js costOfSequence(); [3,9,27] and [27,9,3] are asserted equal in both regimes at three exchange rates
   <br>*Asserted in:* `test/test-radix.js`
 - **`F-MERKLE-WANTS-BINARY-AT-EVERY-LEVEL`** · PROVEN — In the merkle regime, letting the arity vary buys exactly nothing at any leaf count and any exchange rate. The all-twos tree is optimal, and it is optimal by proof rather than by sweep.
@@ -2132,12 +2212,17 @@ not inflated by things that were never at risk.
   <br>*Asserted in:* `test/test-radix.js`
 - **`F-THE-ARITY-OPTIMUM-IS-FLAT`** — The cost surface over arity choices is nearly flat where AQ read a preference off it. Admitting radix sequences changes the SHAPE of the optimal tree at 25 of AQ's 45 leaf counts -- including 11 of the 18 powers of three, AQ's own headline case, where N = 729 wants [4,4,4,4,3] rather than six threes -- while changing the COST by 0.0133% to 0.0251% at the median, and 13 of the 25 shape changes are worth under 0.5%.
   <br>*Argument:* At those leaf counts the sequence achieves the SAME gamma-charged quantity d + sum(b_i) as AQ's constant tree and simply spends fewer levels reaching it, so the entire saving is per-level byte overhead. At N = 3^12 both cost 48 units of verify and the sequence uses ten levels where the constant tree uses twelve.
+  <br>*Scope:* This says the arity line of a descriptor is under-determined BY THIS COST MODEL. A model with an order-sensitive or implementation-sensitive term could easily separate the candidates this one cannot.
   <br>*Evidence:* tools/radix-audit.js limitShapes() over AQ's 45 leaf counts at the verify-dominated rate
   <br>*Asserted in:* `test/test-radix.js`
 - **`F-VARYING-HELPS-IFF-THE-OPTIMUM-IS-NOT-CONSTANT`** — A leaf count is helped by letting the arity vary EXACTLY when its own optimal tree is not a constant one. Over the 7,169 leaf counts of the deep window there are no exceptions: 1,025 are unhelped and the same 1,025 have a constant optimum. The unhelped counts are the powers of FOUR rather than powers in general, because four is the arity the optimum wants; 2187 = 3^7 is helped.
   <br>*Argument:* One direction is immediate -- if the optimal sequence is constant it is available to the constant optimiser, so nothing is gained. The other direction is not forced by anything in the construction and is what the measurement adds: no leaf count has a strictly non-constant optimum that merely ties the best constant tree.
   <br>*Evidence:* tools/radix-audit.js bestSequence and bestConstant over every integer leaf count in [1024, 8192] at the verify-dominated rate
   <br>*Asserted in:* `test/test-radix.js`
+- **`F-REGISTRATION-IS-NOT-RISK`** — Registering a prediction does not make it a prediction. A read-only audit of all 181 predictions registered as of 1acfeee scored 25 of them DECORATIVE -- the answer and its derivation both standing in the registration's own text, over quantities the registrant stipulated -- and 7 it could not call. PUBLISHED: 181 registered, 149 held, 32 failed, a 17.7% failure rate. CORRECTED to what was genuinely at risk: 149 registered, 117 held, 32 failed, 21.5%. Both numbers are true and they answer different questions, so both are kept and neither replaces the other; 181 predictions were registered and that is a fact about what happened. The failures were never the problem -- all 32 are real, and not one of them is among the 25, which is the rule validating itself, since a fact that was never at risk cannot fail. What is not evidence is 25 of the 149 successes.
+  <br>*Argument:* The rule scored only what the registration itself wrote down, and it read that text with `git show <registered_at>:<tool>` rather than from the working tree, so no later editing of a docstring can move a verdict. Four routes to decorative: arithmetic performed inside the block; forcing by a theorem the block states; restatement of a definition or of a sibling's conclusion; and a commitment about the phase's own paperwork rather than about the machine. The 25 are spread across 18 of the 43 sets and the rate does not fall over time, so this is a habit rather than an early-project artefact. IT IS NOT THE SAME AXIS AS `basis`, which looks as though it should have caught it: only 5 of the 10 `proven` predictions are decorative, and 20 of the 25 decorative ones are marked `measured`. A derivation can be genuinely at risk because the derivation may be WRONG -- AK1's registration typed a group order at 25 digits where the true value has 28, and held only because the claim named the group rather than the numeral. AQ was the only one of the 43 sets audited that wrote `AT RISK` lines into its registration and the only one that scored zero decorative; AR, the 44th, was registered the same way. That is a sample of two, and two agents happening to have been told about it is not an antibody, which is why the annotation is now compulsory rather than advisory. Finally the count is a FLOOR: the rule cannot see arithmetic a registrant did silently, and six of the 25 -- Q4, R5, G1, AJ4, AE2, AL2 -- are contestable. Conceding all six leaves 19 and does not change the verdict.
+  <br>*Evidence:* The `at_risk` field on every prediction in this manifest, parsed by `tools/at-risk.js`; the 25 and the 7 are frozen as literal lists in `test/test-findings.js` so they cannot be quietly unmarked, and the corrected rate is generated into the prose by `tools/render-docs.js` beside the raw counts rather than instead of them. A verdict may be moved, but only LOUDLY: the manifest's `reaudits` list is where a departure from that baseline is argued, and an id absent from it may not change bucket. Sticky rather than immovable — an immovable list would make the CORPUS wrong on the day somebody earned a change, and the only way green would be to leave a known-false annotation standing.
+  <br>*Asserted in:* `test/test-findings.js`
 
 ---
 

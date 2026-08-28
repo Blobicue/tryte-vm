@@ -14,11 +14,21 @@ for *this* repository. What follows is the part that is not about ternary.
 ## What it produced
 
 <!--g:method-tally-->Forty-four prediction sets, **185 registered predictions, 152 held, 33 failed.** Nineteen
-distinct failure classes, which bit **58 times** between them. Forty-six findings
+distinct failure classes, which bit **58 times** between them. Forty-seven findings
 measured but never registered<!--/g-->, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
 document drifts from the manifest, the suite fails.
+
+**That last clause was not true of the registered set itself, and a read-only audit
+found it out.** <!--g:method-at-risk-->Twenty-five of those 185 were never at risk at all, and seven cannot be called either way. Corrected to what a run could
+actually have refuted, the record is **153 at risk, 120 held, 33 failed — a 21.6%
+failure rate** against 17.8% over everything registered<!--/g-->. The raw counts above are
+not lowered: 185 predictions were registered and that is a fact about what happened.
+The failures were never the problem — every one of them is real, and not one is among
+the decorative, which is the rule validating itself, because a fact that was never at
+risk cannot fail. What is not evidence is a sixth of the successes. `at_risk` is now a
+compulsory per-prediction field and the audit is `F-REGISTRATION-IS-NOT-RISK`.
 
 A prediction carries two independent labels, and running them together was costing
 something. `outcome` is the prediction against the run — held or failed. **`basis` is
@@ -28,7 +38,7 @@ each with its argument written out beside its measurement. The measurement is st
 required. A proof does not excuse running it — an argument is also a thing that can be
 wrong, and the run is what would say so.
 
-**The five failures produced more than the forty-nine successes.** Each one is
+**<!--g:method-failures-lede-->The 33 failures produced more than the 120 successes that were genuinely at risk<!--/g-->.** Each one is
 still in the manifest, marked `FAILED`, with the result it led to:
 
 | failed | what it claimed | what it produced |
@@ -320,9 +330,18 @@ The minimum viable version, for a domain you can check:
    — including that registrations really do precede results.
 3. Every prediction id mentioned in the test that asserts it, checked both ways.
 4. Every defect converted to a check that is demonstrated to fail without the fix.
-5. A reader who did not write the claim, with access to the code and not just the
+5. **A per-claim record of how it could have come out the other way**, written at
+   registration, and a check that fails on a claim registered without one. This is
+   the item added last and it is the one this record most needed: a sixth of the
+   successes here were arithmetic the registration had already performed. The
+   discriminator is not confidence, it is *whose quantities the arithmetic runs
+   over*. A derivation over someone else's numbers is a real prediction; a
+   derivation over numbers you fixed yourself is decoration in a registration's
+   clothes, and it will always hold.
+6. A reader who did not write the claim, with access to the code and not just the
    output.
 
-Items 1 through 4 are mechanical and an agent can maintain them alone. Item 5 is
+Items 1 through 5 are mechanical and an agent can maintain them alone. Item 6 is
 the one that cannot be self-served, and on this evidence it is where most of the
-interesting errors live.
+interesting errors live — including this one, which the record could not see about
+itself for forty-three phases.

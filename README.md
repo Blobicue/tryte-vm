@@ -9,11 +9,11 @@ its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
 before it was measured, in its own commit, and every failed prediction was kept.
-One hundred and sixty-five predictions, one hundred and thirty-eight held, twenty-seven failed —
-and the twelve produced more than the hundred and four. That loop is written up separately in
+<!--g:readme-lede-tally-->185 predictions, 152 held, 33 failed — and of those
+successes only 120 were ever at risk<!--/g-->. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**1,815 checks**, all passing. Every number below is recomputed by one of them,
+**1,836 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -69,6 +69,11 @@ failures are kept, and four of them produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
 [`FINDINGS.json`](FINDINGS.json).
+
+**And the successes are worth less than that line says.**
+<!--g:readme-at-risk-->Twenty-five of those predictions were never at risk — computable from the registration's own text before the run — and seven cannot be called either way. Against the 153 that were genuinely at risk the failure rate is **21.6%**, not the 17.8% the raw counts give. Both numbers are true and they answer different questions<!--/g-->.
+Every prediction carries an `at_risk` verdict in the manifest, and a check now fails
+on a set registered without one.
 
 | | claim | outcome |
 |---|---|---|

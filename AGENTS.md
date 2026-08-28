@@ -32,6 +32,46 @@ written after the run is not a prediction:
 5. **Add the outcomes to `FINDINGS.json`** and assert them in a test, using the
    prediction's id in the check name so the manifest validator can find it.
 
+### Every prediction carries an `AT RISK` line, and the suite fails without one
+
+Step 1 is not finished until each prediction says **how it could have come out the
+other way**. The line goes in the registration block, beside the claim, and the
+manifest entry carries an `at_risk` value in the vocabulary `FINDINGS.json` declares.
+`test/test-findings.js` reads both, and binds every set from `AQ` onward — the manifest
+side catches a missing annotation, and the registration side catches one back-filled
+after the run, which is a prediction grading itself.
+
+**Why it is compulsory rather than encouraged.** A read-only audit scored all 181
+predictions registered as of `1acfeee` against the registration text as `git show`
+returns it, and found **25 that were never at risk**: the answer and the derivation
+that produces it both standing in the registration's own text, over quantities the
+registrant had stipulated, so the run re-executed arithmetic already on the record.
+Every one of the 25 HELD and not one of the 32 failures was among them — a fact that
+was never at risk cannot fail. `AQ` was the only one of the 43 sets that had written
+`AT RISK` lines into its registration and the only one that scored zero decorative;
+`AR` was registered the same way and scored the same. That is a sample of two, and two
+agents happening to be told about it is not an antibody — which is why this is now a
+check rather than a habit. `F-REGISTRATION-IS-NOT-RISK` is the record.
+
+**And the line has to name something.** `AR`'s four each name a specific observation
+that would have refuted them — one leaf count past a line, a maximum landing somewhere
+the other one does not, a worked case pointing the opposite way — and `AR4` met its own
+condition and failed, which is the annotation earning its keep rather than decorating a
+success. A line that reads "genuinely at risk" and stops is this same defect wearing the
+antibody's clothes: the check goes green, the corpus looks disciplined, and nothing was
+at risk. The suite rejects the obviously empty ones and **cannot tell whether an
+annotation is true** — that part is a reader's job, and this is the sentence to read for.
+
+The test to apply is not "am I confident?" — it is **whose quantities does the
+arithmetic run over**. A hand derivation is fine and often better, and several derived
+predictions here have failed; what is decoration is arithmetic over numbers this set
+fixed itself. Anything you can finish on paper before the run belongs in the
+`NOT REGISTERED` block, where it costs nothing and inflates nothing. And `basis` does
+not catch this: only five of the ten `proven` predictions were decorative and twenty of
+the twenty-five decorative ones are marked `measured`, because a proof can be wrong and
+a sweep can be pointless. **They are independent axes and neither may be derived from
+the other.**
+
 Two things this protocol exists to prevent, both of which have been tempting here:
 
 - **Backdating.** If a fact was measured during design, it is not a prediction.

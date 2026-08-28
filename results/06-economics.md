@@ -995,6 +995,14 @@ the thing the prediction had been groping at:
 > 2^k wants four, in 13 of 19. **The tree branches in the base its address space is
 > counted in.**
 
+**Read that with the constraint it was measured under, which `AR` later lifted.** Every
+tree in this sweep has the same arity at every level. Let the arity vary by depth and 25
+of these 45 leaf counts change shape — 11 of the 18 powers of three among them — and
+`N` = 729 prefers `[4,4,4,4,3]` to six threes, for 0.0178% of the cost. The sentence is
+true of *constant* trees and is not a property of trees. The wording above stands because
+it is what was found; section `AR` below is the correction, and the finding itself now
+carries it (`F-TREE-BRANCHES-IN-ITS-OWN-BASE`, `AR4`, `F-THE-ARITY-OPTIMUM-IS-FLAT`).
+
 The 21-21 tie was a fact about how many of each shape the sweep happened to contain, not
 about trees. That is `T-CLAIM-NARROWED-BY-A-DESIGN` for the fourth time — a measured
 result stated as a property of the subject when it was a property of the design measuring

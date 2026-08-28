@@ -2,9 +2,9 @@
  "schema": "tryte-vm/slate@1",
  "purpose": "A retrieval-shaped projection of FINDINGS.json plus authored marginalia. Flat, addressable entries with stable ids, topic routes and validated cross-links. The manifest remains the authority; this is a view of it and never a second copy of the truth.",
  "counts": {
-  "entries": 263,
+  "entries": 264,
   "predictions": 185,
-  "findings": 46,
+  "findings": 47,
   "traps": 19,
   "notes": 13,
   "proven": 15,
@@ -272,6 +272,7 @@
    "F-LAMPORT-BASE-ADVANTAGE-IS-NOT-PER-SIZE",
    "F-TREE-BRANCHES-IN-ITS-OWN-BASE",
    "F-CONTROL-CANNOT-DISCRIMINATE",
+   "F-REGISTRATION-IS-NOT-RISK",
    "T-ONE-POINT",
    "T-STALE-CONSTANT",
    "T-SILENT-NAN",
@@ -6025,7 +6026,7 @@
    "routes_derived": false,
    "claim": "binary is never optimal for a vector commitment, the optimum never descends past three, and across the swept leaf counts THREE is the large-gamma optimum more often than four",
    "argument": null,
-   "note": "Failed on its last clause, and that clause was the whole point. The first three parts held exactly: no cell in 2,880 has argmin 2, the optimum never goes below 3, and it never widens as verifying gets dearer. But three does not beat four at the verify-dominated limit -- it TIES, 21 leaf counts each. Chasing the tie produced F-TREE-BRANCHES-IN-ITS-OWN-BASE, which is a better answer than the one predicted: 3^k leaf counts want three and 2^k leaf counts want four, so the tie was a property of how many of each shape this sweep contains rather than of trees. T-CLAIM-NARROWED-BY-A-DESIGN, fourth bite.",
+   "note": "Failed on its last clause, and that clause was the whole point. The first three parts held exactly: no cell in 2,880 has argmin 2, the optimum never goes below 3, and it never widens as verifying gets dearer. But three does not beat four at the verify-dominated limit -- it TIES, 21 leaf counts each. Chasing the tie produced F-TREE-BRANCHES-IN-ITS-OWN-BASE, which is a better answer than the one predicted: 3^k leaf counts want three and 2^k leaf counts want four, so the tie was a property of how many of each shape this sweep contains rather than of trees. T-CLAIM-NARROWED-BY-A-DESIGN, fourth bite. NARROWED AFTERWARDS, AND STATED HERE SO A READER OF AQ ALONE IS NOT MISLED: AR4 lifted the constant-arity constraint every tree in this sweep was built under, and F-TREE-BRANCHES-IN-ITS-OWN-BASE turned out to be a property of CONSTANT trees rather than of trees. 25 of these 45 leaf counts change shape once radix sequences are admitted, 11 of the 18 powers of three among them, and N = 729 wants [4,4,4,4,3] rather than six threes -- for 0.0178% of the total cost, a surface flat to four decimal places. AR's evidence for that is FREQUENCY and not magnitude: its null over 100 redraws has a tail reaching 23.7%, ABOVE the subject's own worst cell, so a structureless per-level cost can produce a larger maximum than the real regime does, while the frequency of improvement separates a hundredfold. T-CLAIM-NARROWED-BY-A-DESIGN, fifth bite, and the second time the class has bitten this same sentence.",
    "measured": {
     "cells": 2880,
     "cells_with_argmin_two": 0,
@@ -7143,7 +7144,7 @@
     "method"
    ],
    "routes_derived": false,
-   "claim": "Once verifying dominates bandwidth, an authenticated tree wants the branching factor its leaf count is written in. Of 18 leaf counts of the form 3^k, 15 take branching factor three; of 19 of the form 2^k, 13 take four. The two shapes are almost equally represented in the sweep, which is the entire reason AQ1 saw a 21-21 tie rather than a result.",
+   "claim": "Once verifying dominates bandwidth, an authenticated tree wants the branching factor its leaf count is written in. Of 18 leaf counts of the form 3^k, 15 take branching factor three; of 19 of the form 2^k, 13 take four. The two shapes are almost equally represented in the sweep, which is the entire reason AQ1 saw a 21-21 tie rather than a result. NARROWED BY SET AR, AND THE ORIGINAL WORDING IS KEPT ABOVE BECAUSE IT IS WHAT WAS FOUND: this holds only under the constraint that every level of the tree uses the SAME arity, which is the one constraint every tree in AQ's sweep was built under. Lift it and 25 of these 45 leaf counts change shape, 11 of the 18 powers of three among them -- N = 729 prefers the radix sequence [4,4,4,4,3] to six threes. It prefers it by 0.0178% of the total cost, so the surface this preference was read off is flat to four decimal places. A TREE BRANCHES IN ITS OWN BASE IS A PROPERTY OF CONSTANT TREES.",
    "argument": "At large gamma the cost is dominated by depth times arity, and depth is ceil(log_b N). When N is an exact power of b the ceiling is tight and no level is wasted; when it is not, the top level is partly empty and paid for in full. A leaf count of 3^k therefore pays nothing for branching by three and rounds up for branching by four, and the reverse holds for 2^k.",
    "note": null,
    "measured": null,
@@ -7255,6 +7256,27 @@
    "measured": null,
    "tool": null,
    "asserted_in": "test/test-radix.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-REGISTRATION-IS-NOT-RISK",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "Registering a prediction does not make it a prediction. A read-only audit of all 181 predictions registered as of 1acfeee scored 25 of them DECORATIVE -- the answer and its derivation both standing in the registration's own text, over quantities the registrant stipulated -- and 7 it could not call. PUBLISHED: 181 registered, 149 held, 32 failed, a 17.7% failure rate. CORRECTED to what was genuinely at risk: 149 registered, 117 held, 32 failed, 21.5%. Both numbers are true and they answer different questions, so both are kept and neither replaces the other; 181 predictions were registered and that is a fact about what happened. The failures were never the problem -- all 32 are real, and not one of them is among the 25, which is the rule validating itself, since a fact that was never at risk cannot fail. What is not evidence is 25 of the 149 successes.",
+   "argument": "The rule scored only what the registration itself wrote down, and it read that text with `git show <registered_at>:<tool>` rather than from the working tree, so no later editing of a docstring can move a verdict. Four routes to decorative: arithmetic performed inside the block; forcing by a theorem the block states; restatement of a definition or of a sibling's conclusion; and a commitment about the phase's own paperwork rather than about the machine. The 25 are spread across 18 of the 43 sets and the rate does not fall over time, so this is a habit rather than an early-project artefact. IT IS NOT THE SAME AXIS AS `basis`, which looks as though it should have caught it: only 5 of the 10 `proven` predictions are decorative, and 20 of the 25 decorative ones are marked `measured`. A derivation can be genuinely at risk because the derivation may be WRONG -- AK1's registration typed a group order at 25 digits where the true value has 28, and held only because the claim named the group rather than the numeral. AQ was the only one of the 43 sets audited that wrote `AT RISK` lines into its registration and the only one that scored zero decorative; AR, the 44th, was registered the same way. That is a sample of two, and two agents happening to have been told about it is not an antibody, which is why the annotation is now compulsory rather than advisory. Finally the count is a FLOOR: the rule cannot see arithmetic a registrant did silently, and six of the 25 -- Q4, R5, G1, AJ4, AE2, AL2 -- are contestable. Conceding all six leaves 19 and does not change the verdict.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-findings.js",
    "registered_at": null,
    "results_at": null,
    "links": []

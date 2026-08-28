@@ -40,6 +40,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SLATE = require('./render-slate.js');
+const RISK = require('./at-risk.js');
 
 const ROOT = path.join(__dirname, '..');
 const MAIN = require.main === module;
@@ -87,6 +88,14 @@ function facts() {
     unregistered: M.unregistered_findings.length,
     // The second axis: claims argued at every width rather than swept at one.
     proven: preds.filter(p => p.basis === 'proven').length,
+    // The third: whether the run could have refuted the claim at all. BOTH rates get
+    // published, never one. The raw counts above are a fact about what happened and
+    // are not lowered; the corrected rate answers a different question about the same
+    // corpus, and a correction that hides what was previously claimed is a worse
+    // defect than the thing it corrects. See `F-REGISTRATION-IS-NOT-RISK`.
+    ...(r => ({ atRisk: r.atRisk, notAtRisk: r.notAtRisk, uncalledRisk: r.uncalled,
+      heldAtRisk: r.heldAtRisk, failedAtRisk: r.failedAtRisk,
+      rateRaw: r.rateRaw, rateCorrected: r.rateCorrected }))(RISK.tally(preds)),
     trapClasses: M.traps_encountered.length,
     bites: M.traps_encountered.reduce((a, t) => a + t.count, 0),
     audits: inTools.length + elsewhere.length,
@@ -116,12 +125,41 @@ const TEMPLATES = {
   'readme-audits-tree': f => `the ${word(f.audits)} audits, each with its registered predictions`,
   'readme-tally': f =>
     `${Word(f.sets)} prediction sets, registered before their runs. **${f.held} held, ${f.failed} failed**`,
+  // The README's lede said "One hundred and sixty-five predictions ... and the twelve
+  // produced more than the hundred and four" three paragraphs above a claim that every
+  // number below it is recomputed. T-STALE-CONSTANT, twice in this pass, both in the
+  // sentence a reader meets first. Deliberately unbolded: test-findings.js reads the
+  // README's tally with the FIRST match of `**N held, M failed**`, and a second bolded
+  // tally here would capture it.
+  'readme-lede-tally': f =>
+    `${f.predictions} predictions, ${f.held} held, ${f.failed} failed — and of those\n`
+    + `successes only ${f.heldAtRisk} were ever at risk`,
+  // The correction, beside the number it corrects rather than in place of it.
+  'readme-at-risk': f =>
+    `${Word(f.notAtRisk)} of those predictions were never at risk — computable from the `
+    + `registration's own text before the run — and ${word(f.uncalledRisk)} cannot be called `
+    + `either way. Against the ${f.atRisk} that were genuinely at risk the failure rate is `
+    + `**${f.rateCorrected}%**, not the ${f.rateRaw}% the raw counts give. Both numbers are `
+    + `true and they answer different questions`,
 
   'method-tally': f =>
     `${Word(f.sets)} prediction sets, **${f.predictions} registered predictions, ` +
     `${f.held} held, ${f.failed} failed.** ${Word(f.trapClasses)}\n` +
     `distinct failure classes, which bit **${f.bites} times** between them. ${Word(f.unregistered)} findings\n` +
     `measured but never registered`,
+  'method-at-risk': f =>
+    `${Word(f.notAtRisk)} of those ${f.predictions} were never at risk at all, and ` +
+    `${word(f.uncalledRisk)} cannot be called either way. Corrected to what a run could\n` +
+    `actually have refuted, the record is **${f.atRisk} at risk, ${f.heldAtRisk} held, ` +
+    `${f.failedAtRisk} failed — a ${f.rateCorrected}%\nfailure rate** against ${f.rateRaw}% ` +
+    'over everything registered',
+  // This sentence read "the five failures ... the forty-nine successes" for as long as
+  // anyone had looked: T-STALE-CONSTANT, in the document that names it, one paragraph
+  // below a claim that every number here is recomputed. Generated now, and counted
+  // against the successes that were at risk rather than against all of them.
+  'method-failures-lede': f =>
+    `The ${f.failed} failures produced more than the ${f.heldAtRisk} successes that were `
+    + 'genuinely at risk',
   'method-trace': f => `the ${word(f.sets)} sets`,
   'method-basis': f =>
     `${Word(f.proven)} of those ${f.predictions} carry an argument that holds at every ` +
@@ -130,6 +168,9 @@ const TEMPLATES = {
   'results-table': f =>
     `| prediction sets | ${f.sets} |\n` +
     `| registered predictions | ${f.predictions} — **${f.held} held, ${f.failed} failed** |\n` +
+    `| of those, genuinely at risk | ${f.atRisk} — ${f.heldAtRisk} held, ${f.failedAtRisk} failed |\n` +
+    `| never at risk | ${f.notAtRisk} decorative, ${f.uncalledRisk} uncalled |\n` +
+    `| failure rate | **${f.rateCorrected}%** of what was at risk; ${f.rateRaw}% of all registered |\n` +
     `| measured but never registered | ${f.unregistered} |\n` +
     `| defect classes | ${f.trapClasses}, recurring ${f.bites} times |`,
 
@@ -144,6 +185,7 @@ const TEMPLATES = {
   'art-predictions': f => `<b>${f.predictions}</b>`,
   'art-held': f => `<b>${f.held}</b>`,
   'art-failed': f => `<b>${f.failed}</b>`,
+  'art-at-risk': f => `<b>${f.atRisk}</b>`,
   'art-failed-tally': f => `${Word(f.failed)} of ${f.predictions} predictions failed`,
   'art-instrument-bites': f => `${Word(f.instrumentBites)} instrument failures`,
   'slate-data': f =>

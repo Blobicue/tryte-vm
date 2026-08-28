@@ -66,22 +66,37 @@ function toolSource(id, subject, slug) {
  * ------------------------------------------------------------------------------
  * PREDICTED OUTCOMES — registered BEFORE the run, in their own commit, per AGENTS.md.
  *
+ * EVERY PREDICTION CARRIES AN \`AT RISK\` LINE AND THE SUITE FAILS WITHOUT ONE. A
+ * read-only audit of the first 181 predictions scored 25 of them decorative —
+ * computable from the registration's own text before the run — and every one of the 25
+ * HELD, because a fact that was never at risk cannot fail. The one set that had written
+ * these lines is the one set that scored zero decorative. The test is: could the run
+ * have come out the other way, over quantities somebody else fixed?
+ *
  *   ${id}1 STATE THE CLAIM IN CAPITALS, THEN THE NUMBER. Predicted <quantity> lands
  *       <where>, measured <how>. Register the alternative too: say what result would
  *       refute this rather than merely disappoint it.
+ *       AT RISK: it comes out the other way if <the thing that would refute it>, and
+ *       here is what I have on paper pointing each way.
  *
  *   ${id}2 ONE CLAIM PER PREDICTION. A compound prediction with one failing leg is a
  *       failed prediction, and the manifest note then has to explain which leg —
  *       so split them here instead if they can genuinely differ.
+ *       AT RISK: <how>. If the answer and the arithmetic that produces it both sit in
+ *       this block, over quantities this set stipulated, it is decoration — move it to
+ *       the NOT REGISTERED section rather than counting it as a prediction.
  *
  *   ${id}3 PREDICT SOMETHING THAT COULD EMBARRASS YOU. The useful results in this
  *       corpus came from predictions that were wrong. A set of four safe claims
  *       produces four held predictions and no knowledge.
+ *       AT RISK: <how>, and say which way your own hand evidence points. Registering
+ *       against your own sample is the choice that can embarrass you.
  *
  *   ${id}4 AND SAY WHAT THE MEASUREMENT CANNOT SHOW. Scope belongs in the
  *       registration, not in the write-up — T-SCOPE-DECIDES-THE-VERDICT has bitten
  *       four times, every time by a correct computation scored against the wrong
  *       question.
+ *       AT RISK: <how>.
  * ------------------------------------------------------------------------------
  * Run:  npm run audit:${slug}
  */
@@ -171,6 +186,16 @@ function manifestEntry(id, subject, slug) {
       id: `${id}${n}`,
       claim: '<the claim, in the words it was registered in>',
       outcome: 'HELD',
+      basis: 'measured',
+      // Three legal values, declared in the manifest's own `at_risk_values`. The
+      // default is 'AT RISK'; carry the registered route across after a colon. A
+      // prediction with no annotation fails test/test-findings.js, and so does a set
+      // whose registration block states no risk for one of its predictions.
+      // The placeholder below is DELIBERATELY not a legal value, for the same reason
+      // the scaffolded test fails until you measure: a placeholder that passes is a
+      // set reporting success for work nobody did.
+      at_risk: '<AT RISK: the registered route by which this could have come out the '
+        + 'other way>',
       measured: {},
       note: '<what the number means, and what it does not>',
     })),

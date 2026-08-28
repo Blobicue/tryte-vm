@@ -6,6 +6,13 @@
     "FAILED": "Registered as a prediction before the run, and the run refuted it. Kept, not corrected away.",
     "MEASURED_NOT_REGISTERED": "Measured during design rather than predicted. Listed separately so the pre-registration record is not inflated by facts that were never at risk."
   },
+  "at_risk_values": {
+    "AT RISK": "The run could have refuted it. The default, and what a registration is for. May be followed by \": \" and the route by which it could have come out the other way -- set AR wrote its four that way at registration time, and set AQ wrote the same lines into its tool.",
+    "NOT AT RISK": "Decorative: the answer AND the derivation that produces it both stand in the registration's own text, over quantities the registrant stipulated, so the run re-executed arithmetic already on the record. Must be followed by \": \" and the reason. See F-REGISTRATION-IS-NOT-RISK.",
+    "UNCALLED": "The audit could not decide, and forcing it either way would be a worse record than saying so. Must be followed by \": \" and what it turned on.",
+    "HOW THE FIRST 181 WERE SCORED": "By a read-only audit at commit 1acfeee, against the registration text recovered with `git show <registered_at>:<tool>` rather than against the current files, so that later editing of a docstring cannot move a verdict. The four predictions of set AR carry their own registered AT RISK lines instead. test/test-findings.js freezes the 25 and the 7 as literal lists so they cannot be quietly unmarked.",
+    "HOW A VERDICT MOVES": "The 25 and the 7 are frozen as literal lists in test/test-findings.js: that is the BASELINE scored at 1acfeee, not a verdict beyond appeal. A prediction whose current value differs from the baseline needs a matching entry in `reaudits` — id, direction, the registered wording it meets, the argument, and the commit carrying it — or the suite fails. And a re-audit has to meet the original on the original's terms: the baseline was scored against the registration text as `git show <registered_at>:<tool>` returns it, so an appeal to a tool's CURRENT wording is an appeal to text that may have been edited since. And note what an EMPTY `reaudits` does not mean: six of the 25 were contestable on the auditor's own reading, so a corpus that grows a long way with nothing ever re-audited is a fact about who has looked rather than about whether the verdicts hold."
+  },
   "prediction_sets": [
     {
       "id": "P",
@@ -24,7 +31,8 @@
             "reach_w2": 9,
             "reach_w3": 27
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "P2",
@@ -35,7 +43,8 @@
             "reach_w2": 47,
             "reach_w3": 307
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "P3",
@@ -48,7 +57,8 @@
             "actual_w3": 307
           },
           "note": "The failure produced the real law. One composition step applies one control to ALL positions, so after d steps every position carries a word of length exactly d; the positions must agree on word LENGTH, which is weaker than a direct product. reach(w) = |union over d of (M_d)^w|, validated on five widths before being used at width 6.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "P4",
@@ -58,7 +68,8 @@
             "pure_any_width": 7,
             "all_w3": 307
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "P5",
@@ -69,7 +80,8 @@
             "claimed_by_source_conversation": 531441,
             "overstatement_factor": 6.84
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "P6",
@@ -80,7 +92,8 @@
             "reach_w2": 11,
             "reach_w3": 29
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -101,7 +114,8 @@
             "tables_available": 19683
           },
           "note": "19,683 tables collapse to 27 maps: one column is in play, so every position gets the same map.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "Q2",
@@ -113,7 +127,8 @@
             "top_w3": 27,
             "tgate_w3": 307
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "UNCALLED: A corollary of Q1 plus P's recorded reaches, so it adds no independent question -- but Q1 was itself unmeasured at registration, so the answer was not settled either."
         },
         {
           "id": "Q3",
@@ -125,7 +140,8 @@
             "reach_w3": 19683
           },
           "note": "And it explains why P3 failed: TOP can express the IDENTITY as a column, so positions idle while others advance, dissolving the equal-word-length constraint. TGATE has no identity mode.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "Q4",
@@ -138,7 +154,8 @@
               3
             ]
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: The registration carries the complete definitional proof of the 27^w ceiling -- a positionwise operation induces at most the 27 unary maps per position, and positions compose independently. CONTESTABLE: the audit flagged this one as among the six of its 25 it would concede; see `reaudits` for how a verdict is moved."
         },
         {
           "id": "Q5",
@@ -148,7 +165,8 @@
             "ceiling": 387420489,
             "understatement_factor": 729
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: 27^6 = 387,420,489 = 3^18, and the comparison against 531,441, are both performed inside the registration."
         }
       ]
     },
@@ -167,7 +185,8 @@
           "measured": {
             "reach_w2": 729
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "UNCALLED: A declared re-measurement control of a fact already on the record at Q3. Legitimate as a control; whether its vocabulary is identical to Q3's cannot be told from the registration."
         },
         {
           "id": "R2",
@@ -177,7 +196,8 @@
             "reach_w2": 729,
             "elements_bought": 0
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "UNCALLED: A control. Forced by Q4's ceiling once R1 holds, but the registration does not state that forcing, so the in-the-text rule cannot score it decorative."
         },
         {
           "id": "R3",
@@ -187,7 +207,8 @@
             "reach_w2": 251505,
             "factor": 345
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "R4",
@@ -197,7 +218,8 @@
             "reach_w2": 801,
             "elements_bought": 72
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "R5",
@@ -208,7 +230,8 @@
             "carry_gain": 250776
           },
           "note": "Not all coupling is equal, and this was NOT predicted: the carry buys 3,483x what the shift does, because a carry is data-dependent and a shift is a fixed relabelling.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: Opens \"Therefore\": the conclusion of R1 to R4 plus Q4's already-recorded ceiling, not an independent question. CONTESTABLE: the audit flagged this one as among the six of its 25 it would concede; see `reaudits` for how a verdict is moved."
         }
       ]
     },
@@ -233,7 +256,8 @@
             "instructions_after": 7
           },
           "note": "Held, with an accounting correction: S1 was written in STAGES, and each stage is six instructions, so the saving reads as 18-20 instructions rather than 3. The prose in the first run also mis-rendered this line before it was cleaned up.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "S2",
@@ -242,7 +266,8 @@
           "measured": {
             "multiplier_per_level": 27
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "S3",
@@ -251,7 +276,8 @@
           "measured": {
             "cells_per_duplicate": 9
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: A TOP table is nine cells by definition, so \"stores 9 cells rather than 9k\" restates that definition."
         },
         {
           "id": "S4",
@@ -260,7 +286,8 @@
           "measured": {
             "equivalence_broken_by": "one ADD between two TOPs"
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -281,7 +308,8 @@
             "tables_matching_at_one_input_pair": 81
           },
           "note": "The 81 is the point: a single-point comparison would have reported 81 false matches.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "U2",
@@ -291,7 +319,8 @@
             "reach_w2": 251505,
             "same_monoid_as_plain_translation": true
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "U3",
@@ -303,7 +332,8 @@
             "resulting_depth4_window": 9,
             "smallest_demo_span": 24
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -322,7 +352,8 @@
           "measured": {
             "reach_w1": 27
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "UNCALLED: Forced if TOPC's carry really is inert at width 1 -- but that inertness is a semantics claim about the artifact rather than a stipulation."
         },
         {
           "id": "V2",
@@ -331,7 +362,8 @@
           "measured": {
             "exceeds": true
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "V3",
@@ -342,7 +374,8 @@
             "factor": 2.11
           },
           "note": "The first run reported this as FAILED. It had not failed: at depth 16 the sampled vocabulary was still growing while the ADD one had closed, so a smaller number was read as a smaller reach. The auditor now distinguishes closed, capped and depth-exhausted, and a test asserts all three stay distinguishable.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "V4",
@@ -354,7 +387,8 @@
               80
             ]
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: \"The sample is a LOWER bound\" is true of any sample. The claim is about the method rather than about the artifact, and no run could have contradicted it."
         }
       ]
     },
@@ -376,7 +410,8 @@
             "neg_values": 729,
             "mismatches": 0
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "W2",
@@ -388,7 +423,8 @@
             "mismatches": 0
           },
           "note": "The first run reported this FAILED. The circuit was correct; the SOLVER was wrong -- reachability traversed through rails, so correct circuits resolved to X. Driven nodes are terminals now. Second time an instrument here produced a false verdict on its own prediction; the first was V3.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "W3",
@@ -407,7 +443,8 @@
             "radix_economy_bar_per_digit": 3.077
           },
           "note": "The ternary side taps a third rail this model hands out free; real ternary logic must generate its mid level with dividers that burn static power. Switch count per gate is also a different currency from the 3.08x per-digit bar.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -443,7 +480,8 @@
             "output_rows_total": 27
           },
           "note": "The row counts were derived by hand and written into the registration before the run. They were right. On this integer domain a strict n(t) is an inclusive n(t+1), and a device that can never conduct is indistinguishable from an absent one, so the mutation is a transformation of the device list rather than a patch to the solver.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "X2",
@@ -461,7 +499,8 @@
             "x_init_vs_z_init_rows_total": 27
           },
           "note": "FAILED on its premise, not its answer. It asked which seeds of the self-inverter are self-consistent, taking for granted that every seed resolves to something. Two of three do not: seeded at a level the network runs -1 -> +1 -> -1 forever and solve() throws. That falsified N7, which claimed resolution cannot oscillate, full stop -- true only from the all-Z start, where a node on a gate CYCLE never gets a determined gate and so lands on X and stays. Nodes elsewhere firm up in gate-dependency order and may pass THROUGH X: an earlier wording of the correction said they reach X on the first pass and stay, which is false, and 481 passing checks did not notice because none of them looked at an intermediate pass. One does now. N7 was reworded to say so. The second half of X2 held exactly: 0 of 27 rows differ, because conducts() maps Z and X alike to unknown.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "X3",
@@ -472,7 +511,8 @@
             "matching": 25,
             "linking_node_degraded_on_rows": 0
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "X4",
@@ -484,7 +524,8 @@
             "terminal_orders_agreeing": 6,
             "why_six_not_twelve": "D4 -- terminals are interchangeable, checked here rather than assumed"
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "X5",
@@ -508,7 +549,8 @@
             "standard_ternary_inverter_found": true
           },
           "note": "The positive control first reported the standard ternary inverter ABSENT from a search that had in fact found it: the network key ordered its terminals, and D4 says terminals have no order. Third time an instrument here produced a false verdict on its own prediction. V3 and W2 were the others.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -535,7 +577,8 @@
             "sampling_stride": 11
           },
           "note": "The carry-out was part of the claim on purpose. Without it the circuit is a mod-729 unit rather than an adder, and a sweep that ignored it would pass on a circuit that silently discards overflow.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "Y2",
@@ -548,7 +591,8 @@
             "passes_with_no_carry": 7
           },
           "note": "Derived before the run rather than probed: reachability is transitive closure, so a fully determined chain of switches resolves in ONE pass however long it is, and staging happens only where a gate is still unknown. Cell 0 resolves on pass 1, cell i on pass i+1, and pass 7 observes nothing changed. Ripple delay is invisible to a model with no delays in it -- the single cost a ripple adder is famous for is the one this model cannot show. Five hand-picked pairs had been checked during design; 531,441 is what made it a result.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "Y3",
@@ -564,7 +608,8 @@
             "saving": 0.3846
           },
           "note": "Registered as the most likely of the five to fail. A shared leaf ties two mid-level selectors to one node, so the shared circuit contains conducting paths BETWEEN mid nodes that the tree structure did not have -- identical tables do not in general imply identical circuits, and a pass network is where that distinction bites. Here they did.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "Y4",
@@ -574,7 +619,8 @@
             "pairs": 531441,
             "not_exactly_seven": 0
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "Y5",
@@ -635,7 +681,8 @@
             "control_wrong": 0
           },
           "note": "W3 measured 0.80 for MIN and predicted it should not be believed. Both numbers are real and the currency did not change: MIN is positionwise, so six wide slices beat ten narrow ones, while an adder is a table and a selector tree over three inputs is 3^3 wide in ternary against 2^3 in binary. The per-digit saving is spent on tree width. The binary adder compared against was itself checked exhaustively at five bits, because a cost comparison against a circuit that does not work is not a comparison.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -665,7 +712,8 @@
             "adder_reversible": false
           },
           "note": "T5 says the generator cannot be built inside the model at all: a divider between vss and vdd is two rails reaching one node, which is contention. So this break-even is a charge from outside the vocabulary rather than a circuit that could be drawn here. What can be said exactly is how dear it would have to be, and twelve switches is not dear.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: \"parity is at 48 + G = 60, so G = 12\", the 13 beside it, and the impossibility for 624 against 280 are all arithmetic on W's already-measured figures, done inside the registration."
         },
         {
           "id": "Z2",
@@ -691,7 +739,8 @@
             "selector_tree_cell_depth": 6
           },
           "note": "FAILED on its conclusion, not its numbers. The buffered floors are exactly as registered: 6 -> 4 -> 4 ternary and 3 -> 2 -> 2 binary. What failed is the clause that followed -- that 4 is the best depth ternary can buy AT ANY PRICE. Nothing measured quantified over designs; it quantified over where buffers go inside one family of selector trees. Decode the select instead of gating on it: a four-switch detector pulls to vss for LOW and HIGH and passes vmid for MID, paid once per select signal rather than once per selector, and then every selector arm is a single device including the middle one. The decoded adder cell reaches depth 3 -- equal to binary unrestored -- at 90 switches against 104, so it is shallower AND cheaper than the design the floors were measured on. Third time a clause in this repository outran its measurement; P3 and X2 were the others. Kept as FAILED, and the refutation is checked in test/test-midrail.js.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "Z3",
@@ -727,7 +776,8 @@
             }
           },
           "note": "Restoring makes the ratio worse, not better, and increases the mid-rail tap count rather than reducing it. Buffering both levels costs nearly double buffering one and buys no depth at all on either side, because the cheaper option already reaches both floors.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "Z4",
@@ -741,7 +791,8 @@
             "sampling_stride_binary": 37
           },
           "note": "At risk because a restoring buffer is an inverter driven BY a pass network and driving another one, which is the exact arrangement stated limit 2 handles by assumption. If that assumption were doing work, this is where it would have shown.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "Z5",
@@ -761,7 +812,8 @@
             "pairs_differing_by_data": 0
           },
           "note": "All six counts were derived by hand before the run from gate-dependency depth: each inverter is its own stage, so a two-inverter buffer adds two per level, times the number of digits, plus the pass that observes nothing changed. Still independent of the data, exactly as Y2 found for the unrestored circuit. Depth here is structural, never arithmetic.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -788,7 +840,8 @@
             "pairs_needing_more_than_predicted": 0
           },
           "note": "At risk in a way the selector tree was not: the carry feeds a DETECTOR as well as three raw arms, so cell i depends on cell i-1 through two paths that have to agree. They do. test-decoded.js also checks the two adders against EACH OTHER rather than both against T.add -- different primitives, same function on every sampled pair. The first sweep skipped the correctness check for any pair that did not settle inside the predicted budget, so this result was conditional on that bucket being empty. It is measured now: zero pairs need more than thirteen passes, and every one of the 531,441 was compared.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "E2",
@@ -801,7 +854,8 @@
             "selector_tree_shared": 384,
             "decomposition": "18 detectors x 4, plus 12 trees x 13 selectors x 3"
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "E3",
@@ -813,7 +867,8 @@
             "binary_depth": 3
           },
           "note": "Half the selector tree, and equal to the binary adder unrestored. The chain resets at every gate and a carry is read as a gate, which is why six cells are no deeper than one.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "E4",
@@ -837,7 +892,8 @@
             "buckets_sum_to_total": true
           },
           "note": "FAILED on universality, not on arithmetic. Thirteen is correct as the WORST case, which is what the derivation actually bounded; the range is 9 to 13 and it DEPENDS ON THE OPERANDS. First circuit in the repository whose settling time is arithmetic rather than structural, and it scoped Y2 and Z5. Their independence-of-data result is a property of gating every arm on the RAW select, which makes all conduction known at one instant so nothing can settle early. Decoding splits the gating across two dependency levels: with the carry-in LOW the LOW arm already conducts while the MID arm gate is still unknown, so if both arms lead to the same rail the node is determined a pass early, by N3. Six of the carry table nine leaves have their LOW and MID cells equal; none of the sum table do. The three outcomes were separated on a second run: 279,936 settle in fewer than thirteen, 251,505 in exactly thirteen, and 0 in more. So 128 of every 243 settle early, and thirteen is a genuine ceiling rather than merely the predicted number. The count is no longer unexplained: the F set derives it exactly. The six agreeing carry leaves enable the saving, and the sum tree never being early is what decides which positions can use it.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "E5",
@@ -855,7 +911,8 @@
             "detectors": 18
           },
           "note": "The ratio half held exactly: 1.93 and 1.64, never below 1.36 at any width from one trit to six, and 3.21x per digit against a log2(3) break-even of 1.585. The mid-rail half was BACKWARDS. The decoded design taps vmid 186 times against 168 -- one more per detector, eighteen of them -- because each detector reaches vmid through its own series pair. So the design that wins on switch count does it partly by leaning harder on the rail Z1 established that nobody is charging for. Kept as FAILED on the X2 precedent: a prediction with a refuted half is not trimmed to the half that survived.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -905,7 +962,8 @@
             "scope": "carry-in 0 throughout; with a non-zero carry-in the bottom position can save as well (six of its nine digit-pairs qualify) and the walk is a different one"
           },
           "note": "Reproducing a total is much weaker than reproducing it term by term, so this was registered in the strong form. Zero disagreements against the actual solver over 597,861 pairs across five widths, every one of them exhaustive. The distribution sums to 531,441. Scoped to carry-in 0 after the fact: every sweep fixed it, and the exclusion of the bottom position is a property of that choice rather than of the circuit. Caught by asking what the sweep actually visited, which is T-CLAIM-NARROWED-BY-A-DESIGN checking itself.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "F2",
@@ -917,7 +975,8 @@
             "carry_tree_agreements": 12
           },
           "note": "Early settling needs the arm conducting on the raw select and the arm still waiting on the MID detector to lead to the same rail. For the carry tree that is carry(s+c) == carry(s), true for 12 of 18, because the carry function is flat over stretches. For the sum tree it is lowTrit(s+c) == lowTrit(s), true for none of them, because adding one always moves a low trit. So only the carry tree is ever early; the top position SUM is always the last node to move; and a saving at the top position is therefore invisible. That is exactly why the earlier naive count over-predicted by one, always in the same direction.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "F3",
@@ -972,7 +1031,8 @@
             "fraction": "128/243"
           },
           "note": "The matrix is derived from the adder own tables inside the check rather than written down, and comes out as nine ways from the middle carry state and three from each end. The 3^5 in the denominator is four constrained positions plus one free top digit.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: The matrix walk v0 to v4 and \"9 x 27945 = 251,505\" are written out in full and labelled \"Predicted to the digit\". The at-risk form of this question is F1 and F4, registered separately."
         },
         {
           "id": "F4",
@@ -1009,7 +1069,8 @@
             ]
           },
           "note": "Checked against the actual circuit exhaustively at all five widths. A rule fitted to six trits rather than derived would come apart here. It does not.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -1040,7 +1101,8 @@
             ]
           },
           "note": "Decisive in the bluntest available way. At width 1 the monoid acts on three points, so the entire space of functions there is 3^3 = 27 and every monoid at that width, whatever its vocabulary, is at most that. Both vocabularies do reach 27 -- at a single position the positionwise maps already give every unary function. The three-trit adder has 729 operand pairs of which 621 settle late. The monoid universe is smaller than the number it would have to match, so the failure is not a wrong value but no room for one.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: \"its entire universe is 3^3 = 27 functions\", plus the observation that a translation cannot add to a set that is already everything; 729 and 621 were already on the record. CONTESTABLE: the audit flagged this one as among the six of its 25 it would concede; see `reaudits` for how a verdict is moved."
         },
         {
           "id": "G2",
@@ -1059,7 +1121,8 @@
             ]
           },
           "note": "The recurrence was derived by hand from the transfer matrix characteristic polynomial before the run and reproduces every count to width 12. Its dominant root is irrational, so the adder family multiplies by about 7.37 per step; the monoid multiplies by about 9,315 across the only span where both are computable. Across eleven adder counts and every monoid reach in the manifest, exactly one value coincides -- the one already known.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "G3",
@@ -1082,7 +1145,8 @@
             }
           },
           "note": "They differ at the first width and agree at the second. No formula is claimed for how the monoid ceiling grows -- two data points do not determine one, and the question did not need it.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: \"Predicted exactly that -- 27 against 729, then 531,441 against 531,441\": all four numbers were already recorded and the rest is exponent arithmetic."
         },
         {
           "id": "G4",
@@ -1103,7 +1167,8 @@
             "self_reference_excluded": "the censusing set, matched by its tool name"
           },
           "note": "The instrument produced a false verdict first, and this is the fourth time that has happened here. The registration said prediction sets THAT MEASURE DIFFERENT THINGS and the first loop dropped the clause, counting 279,936 as colliding with itself because two sets record the same adder count, and 4,489 likewise because two sets share a sampling stride. Corrected by classifying each set by which library its tool imports -- derived, not hardcoded -- and requiring a collision to cross that line. The disambiguation rule was chosen after the first run, which is a degree of freedom worth declaring; it implements a clause that was in the registration beforehand, and the two excluded values are restatements of one quantity under any reading. Then a second correction, and a better one. Recording this very result put 279,936 and 4,489 into the manifest again -- as the values G4 had just EXCLUDED -- and on the next run they crossed the halves and G4 failed. The measurement had become part of the corpus it measures. A census cannot count the set that is the census; the tool and the test now drop it by matching the censusing tool name rather than an id.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -1145,7 +1210,8 @@
             "spread_above_512_devices": 1.64
           },
           "note": "FAILED on both registered criteria, and the direction of the failure is the useful part. The exponent came in BELOW 1.0 both times - sublinear, better than predicted - because fixed per-solve overhead dominates the smallest networks and the derivation had no term for it. Above 512 devices, where overhead washes out, the spread is 1.64x and the exponent 1.088: both inside the registered band. Worse, the spread criterion was not reproducible - 3.72 on one run and 2.89 on the next, either side of the line it had been given. A criterion whose verdict depends on run-to-run noise is a defect in the prediction. The claim being tested is nonetheless settled: the solver is not superlinear, and the two documents saying so were corrected. The registration also mis-cited one of those documents as design/04-device-model.md, which is design/04-storage.md; the claim lives in design/10-integration.md, design/11-open.md and two doctree pillars, all four now corrected.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "H2",
@@ -1160,7 +1226,8 @@
             "six_trit_adder_devices": 624
           },
           "note": "The registered output was the crossover, and it is the sharpest thing this set produced: a full 531,441-pair sweep fits inside an hour only up to about 4,800 devices. The six-trit adder is 624 and sits comfortably inside. The machine is ~50,000 and does not. So the machine can be RUN and cannot be SWEPT, which makes it the first subject in this repository that sits outside the exhaustive discipline every other result rests on - and the exhaustibility precondition in METHOD.md stops applying to the thing the method was built to study.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "H3",
@@ -1174,7 +1241,8 @@
             "patch": "one rule: an isolated node keeps its previous value instead of becoming Z"
           },
           "note": "Zero differences anywhere. Derived before the run and confirmed: every circuit here is solved from a cold all-Z start, and a node with no previous value is Z under either rule. The two semantics can only diverge where a node is driven on one pass and isolated on a later one, which no existing circuit does. The comparison is not vacuous - test-headroom.js shows the two solvers DO differ on a written-then-isolated node, which is the case storage needs.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "H4",
@@ -1191,7 +1259,8 @@
             "design_phase_estimate": 5
           },
           "note": "A single pass gate onto an isolated node writes and holds all three trits. One switch against nineteen, and the 729-word memory drops from 48,114 switches to 4,374 - eleven times, against the five the design phase estimated. Since memory is about 93% of the machine, this is the whole decision, and it costs nothing in the existing corpus by H3. The design documents ranking this change fourth by blast radius and first by leverage were right about the ordering and understated the size.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -1239,7 +1308,8 @@
             ]
           },
           "note": "Reading dmux before the search is what made this worth doing properly. Its middle arm is n(selMid, MID, ...), which conducts iff the detector output is at or above MID, so the CONTRACT is that the output be non-negative exactly at MID -- not the particular table that was built. Four tables satisfy it and only one had ever been considered. Nothing at one, two or three switches computes any of them.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "I2",
@@ -1251,7 +1321,8 @@
             "built_detector_found": true
           },
           "note": "A search that finds nothing proves nothing unless it can find something. Four distinct four-switch networks compute the built contract, the one in use among them -- the same count X5 found for NEG.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "I3",
@@ -1272,7 +1343,8 @@
             ]
           },
           "note": "So the choice between an n-type and a p-type middle arm is free, and the selector cannot be improved by switching polarity.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "I4",
@@ -1287,7 +1359,8 @@
             "detectors_in_adder": 18
           },
           "note": "A negative result, and the arithmetic for the other outcome was registered in advance so it could not be massaged afterwards: a three-switch detector would have taken the adder to 522 and the ratio to 1.864. The detector count of 18 is derived from the netlist rather than assumed.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: A conditional on its own siblings I1 and I3, and the alternative arithmetic -- 540 to 522, 1.929 to 1.864 -- is pre-computed in the registration too."
         }
       ]
     },
@@ -1311,7 +1384,8 @@
             "feedback_loops_per_solve": 6
           },
           "note": "At risk because six feedback loops settle inside one solve, and nothing in this project had ever solved a network with more than one loop. N7 is about loops and had surfaced consequences twice that only appeared once state arrived. It did not this time.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "J2",
@@ -1326,7 +1400,8 @@
             "mid_rail_taps": 24
           },
           "note": "The 48-switch difference is six input buffers, which T5 makes mandatory at any boundary with a primary input. Enable fan-out is free in this model and is the largest thing these numbers hide.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "J3",
@@ -1340,7 +1415,8 @@
             "test_stride": 17
           },
           "note": "With hold asserted and the write enable low, sweeping the data over the range moves the stored tryte not at all. Strides are stated in the output rather than quietly chosen.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "J4",
@@ -1353,7 +1429,8 @@
             "saw_neither": 0
           },
           "note": "FAILED, cleanly and in the opposite direction. The mechanism is exact and obvious afterwards: while the write enable is asserted the feedback loop is held OPEN -- that is the whole trick that makes the write possible -- so the cell is driven straight from its input and the seeded value has nothing holding it. S0 is a TRANSPARENT LATCH, not a flip-flop, and a transparent latch is see-through by definition. So master-slave is required and the register file is double what design/05 budgeted. design/11 had already listed this as one of five outcomes that would falsify the plan, which is the design phase working: the consequence was named before the measurement, so it could not be argued with afterwards.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -1376,7 +1453,8 @@
             "saw_neither": 0
           },
           "note": "The property J4 measured the single latch to lack. Not automatic that the textbook answer would survive this model: three of the four obvious ways to build the single cell were forbidden by axioms.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "K2",
@@ -1390,7 +1468,8 @@
             "design_05_estimate": 228
           },
           "note": "Exactly double the single latch and nothing more. The slave needs no input buffer because its input is the master output, already rail-driven. design/05 had estimated ~228.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "K3",
@@ -1401,7 +1480,8 @@
             "wrong": 0,
             "idle_holds": true
           },
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "K4",
@@ -1413,7 +1493,8 @@
             "saw_old": 0
           },
           "note": "With both phases high the structure degenerates to precisely the transparent latch J4 measured. So the non-overlap discipline is load-bearing rather than conventional, and the failure it exists to prevent was produced deliberately rather than assumed. Registering the failure mode alongside the success is the point: a structure that only works under a discipline should be shown breaking when the discipline is dropped, or the discipline reads as superstition.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -1437,7 +1518,8 @@
             "steps_where_the_register_leaked": 0
           },
           "note": "The sum being right is the lesser half. The register is read by the adder while the adder is computing the register next value, and on none of the 6,561 steps did it stop reading the OLD accumulator. That is K1 property under load, and the whole reason the J4 failure mattered.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "L2",
@@ -1451,7 +1533,8 @@
             "mid_rail_taps": 210
           },
           "note": "No buffer between adder and register because the sum is already rail-driven, which is the one place T5 does not charge. B needs none either, since it only ever gates selectors.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "UNCALLED: 540 + 132 = 672 on two already-recorded figures, but the \"no input buffer between them\" premise is a live design claim that the build tests."
         },
         {
           "id": "L3",
@@ -1471,7 +1554,8 @@
             "varies": true
           },
           "note": "Inherited from the decoded adder, which E4 measured at 9 to 13 passes depending on its operands. So a machine built on this design has no fixed clock period -- the first consequence in this project that behaves like a property of the computation rather than of the structure.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "L4",
@@ -1496,7 +1580,8 @@
             "mismatches": 0
           },
           "note": "The first computation in this repository carried out by simulated transistors holding their own state between steps, wrapping correctly where the running total leaves the tryte range.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -1531,7 +1616,8 @@
             "predicted_asymmetry_confirmed": true
           },
           "note": "Exactly the predicted shape. tmux gates every leg on the select INPUT, known at pass one. dmux gates its middle leg on a COMPUTED detector output, unknown at pass one, and N6 makes unknown conduction possible -- so the selected word is bridged to a second word and two rails reach it. At sel=MID only one word is bridged, there is no second rail, and it reads cleanly. The mechanism was derived from the solver before the run and the measurement matched it.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "B1b",
@@ -1551,7 +1637,8 @@
             "cases": "all 3 addresses x all 27 stored patterns"
           },
           "note": "So a stored value CAN drive a selector source terminal. The roadmap phase-0 gate passes and I0, the read mux and the address path are all viable. This prediction FIRST reported dmux at 45 of 81 -- see T-TRANSCRIBED-TABLE. The failure was in the seed, not the circuit.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "B2",
@@ -1571,7 +1658,8 @@
             "second_consecutive_read": "clean in every case"
           },
           "note": "Checked along the trajectory rather than at the fixed point, because a suite of 481 fixed-point checks once missed exactly this. No stored trit passed through X even transiently, and a second read from the state the first one left is still correct.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "B3",
@@ -1585,7 +1673,8 @@
             "internal_nodes": 13
           },
           "note": "A PROPOSED term in the budget tested against a built structure and matching exactly. The formula for the read path is no longer a guess -- though the decoder and write-enable terms still are.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "B4",
@@ -1600,7 +1689,8 @@
             "roadmap_allowed_for": "roughly half"
           },
           "note": "A counting argument, and it decides 243 words. A 27-way read mux has 13 internal nodes and a write path needs 27 one-hot word selects, one per word; 13 < 27, so D0 survives in the write path no matter what D1 does. design/07 suspected the two were one structure seen from both ends. They share 2.3%, not half. 243 words stays out of the sweep budget and the target machine is 81. The 2.3% figure is against the 525-switch address path as budgeted at the time of the run; the read path then moved to tmux (see B1a), so the tool re-run today reports the same 12 shared switches as 2.0% of a 603-switch path. The share changed because the basis did, not the sharing.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -1630,7 +1720,8 @@
             "whole_memory": 2301
           },
           "note": "All three errors confirmed and the derived total hit within rounding. (a) the decoder term charged one 3-way selector per output LINE where a node makes three, (b) it charged a bare routing tree, which C2 shows is not a decoder, so each node needs 4 pull-downs on top of 3 route-in legs -- and \"not MID\" costs two of them because it is two thresholds, (c) the write term charged 6xW for a per-cell write switch that J2's 11-switch cell already contains. Plus two omissions: the complement plane and the T5 data buffers. The overcounts win, so the target machine got CHEAPER: 81 words under M1 moves 3,916 to 3,562.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "C2",
@@ -1648,7 +1739,8 @@
             "pulldown_cost": "4 switches per node, 52 of the decoder's 105"
           },
           "note": "The defect was produced, not asserted. With route-in legs only, an unselected select line is Z; a Z on a write-enable gate is unknown conduction, which by N6 poisons the cell it gates. Not one write landed and 104 words were corrupted across four attempts. With pull-downs added, 4 of 4 land and nothing else moves.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "C3",
@@ -1668,7 +1760,8 @@
             }
           },
           "note": "Checked along the path, not only at the fixed point, because that distinction has cost this project twice. Nothing is disturbed at any intermediate pass either. Holds under CONE-RESOLVED seeding. Under state-only seeding the array does not start at all -- 26 of 27 words corrupt on every write (T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE). That precondition was discovered during the run and not registered, unlike B1a/B1b which split their seeding regimes in advance; the seeder was changed mid-run to supply it.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "C4",
@@ -1687,7 +1780,8 @@
             "never_settled": 0
           },
           "note": "The first round trip through an address in this project: write word k, drop the write enable, read word k back through the tmux tree. 108 of 108. Holds under CONE-RESOLVED seeding. Under state-only seeding the array does not start at all -- 26 of 27 words corrupt on every write (T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE). That precondition was discovered during the run and not registered, unlike B1a/B1b which split their seeding regimes in advance; the seeder was changed mid-run to supply it.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "C5",
@@ -1701,7 +1795,8 @@
             "withheld_seed_detectable": true
           },
           "note": "The roadmap said a seed-completeness check should exist BEFORE the array rather than after it. This is the array, and it does. A deliberately withheld seed stays at Z and is detectable rather than absorbed.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -1755,7 +1850,8 @@
             "formula_that_would_have_been_wrong": "ceil((S-1)/2) gives 2 for S=4; the built tree is 3 nodes"
           },
           "note": "I0 wins in exactly one corner of the surface -- one destination, three sources -- and loses everywhere else. design/06 said \"I0 is the one this project is set up to win with\" and the roadmap registered \"I0 wins at this scale and loses badly by eight sources\". Both wrong, and wrong about the AXIS: I0 grows as destinations x sources, I2 as sources alone, so the destination count decides it and the source count barely matters. Node counts were built rather than derived, which mattered: the obvious formula is wrong at S=4, the headline case.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "A2",
@@ -1776,7 +1872,8 @@
             }
           },
           "note": "The first half held: I0 with register sources routes correctly under state-only seeding, because its selects are address INPUTS known at pass one. The SECOND half -- registered explicitly as the boundary, to avoid claiming too much for the topology -- is false, and its falsity is the more useful result. A computed DATA source is still rail-driven through whatever produced it, so it resolves rather than poisoning. What bites is an unresolved CONTROL node, which is unknown at pass one and gates rather than feeds. So the distinction is not computed-versus-seeded, it is CONTROL versus DATA, and T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE is named correctly after all. Registering the boundary is what made this measurable; predicting it correctly would have taught less.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "A3",
@@ -1811,7 +1908,8 @@
             }
           },
           "note": "Produced rather than asserted. And the two-enable result carries something nobody predicted: the bus goes X only on the trits where the two sources DISAGREE. 5 and -5 are trit-wise negatives, so they differ on three positions and agree (at zero) on the other three -- and the bus is X on exactly those three. A double-enable fault is therefore INVISIBLE whenever the contending sources happen to hold the same value. N4 does not say \"contention is detected\"; it says contention is X, and X only appears where there was something to disagree about. One correction to this audit's own first phrasing: it said \"I0 has no shared node to contend for\", which is false -- a tmux output IS shared between its legs. The difference is not whether a node is shared but how exclusion is guaranteed: I0 gates every leg on one select trit, so exclusion is structural; I2 needs S separate enables to be one-hot, which is an invariant something has to maintain. The comfortable phrasing was the wrong one.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "A4",
@@ -1834,7 +1932,8 @@
           },
           "note": "SCOPE COMMITMENT, NOT A FALSIFIABLE CLAIM ABOUT THE CIRCUIT. Recorded as HELD because the phase did what it registered it would do, but flagged so it does not become a template for padding sets with unfalsifiable process entries. It is the only prediction in twenty-one sets that is about the PHASE rather than the SUBJECT. I2 is 3.8x cheaper and needs a second control cone solved and seeded every step. Whether that is affordable is a question about how a step works, and design/09 is unbuilt -- so forcing the pick here would be deciding a sequencing question inside a wiring phase. Registered in advance that deferring is the expected outcome, so that it reads as a result rather than an omission. One bound the ledger needs: its I0 row says \"no cold-start precondition -- selects are inputs\", which is true of the RIG and not of the machine. In the assembled machine I0 selects come from instruction DECODE, which is a computed control node, so I0 inherits a control cone there too. The real comparison is therefore ONE cone (decode, already required by any design) against TWO (decode plus bus enables) -- which sharpens the deferral rather than weakening it.",
           "kind": "scope-commitment",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: Not a falsifiable claim about the circuit but a commitment about the phase's own paperwork: that the pick stays PROPOSED pending sequencing. The registration says as much itself."
         }
       ]
     },
@@ -1864,7 +1963,8 @@
             "random_permutation_image_after_20": 729
           },
           "note": "Exact. So the structural rule holds and is now measured rather than asserted: an iterated hash of this shape must use a PERMUTATION, and its compression must come from TRUNCATION at the end. A non-bijective f throws away a third of the space on the first call.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "D2",
@@ -1878,6 +1978,7 @@
           },
           "note": "The whole positionwise family is dead for this purpose, provably rather than statistically. A trit permutation has order 1, 2 or 3; applying one per position, f^m is the identity exactly when every position is, so the order is an lcm drawn from {1,2,3}. A state of ANY width returns to itself within six calls. This is strictly stronger than Q4's 27^w ceiling, because a ceiling still permits a large orbit and a period of six does not.",
           "basis": "proven",
+          "at_risk": "NOT AT RISK: \"the order of f is the lcm of orders drawn from {1,2,3} -- at most 6\" is a complete proof, stated in the registration.",
           "argument": "A trit permutation has order 1, 2 or 3. Applying one per position, f^m is the identity exactly when every position's is, so the order is an lcm drawn from {1,2,3} and is at most 6 — at ANY width, not just the one swept."
         },
         {
@@ -1914,7 +2015,8 @@
             }
           },
           "note": "Wrong, and wrong twice over. First the sub-claim that s + sbox(s) is not in general a permutation held, but for a reason worth more than the claim: it is injective exactly when the s-box is an ORTHOMORPHISM (see F-ORTHOMORPHISM-GATE). Second, and the actual failure: with a correct orthomorphic s-box, rotate(s + sbox(s)) still lands at 130 cycles against a baseline of 6.6. It does not resemble a random permutation at all. The reason the prediction missed is that a positionwise 3-cycle IS addition of a constant, so s + sbox(s) stays AFFINE, and affine maps over this ring have tiny order. Fixing the s-box fixes injectivity and does nothing whatsoever for mixing. Carry alone is not enough; the addend must be nonlinear in s.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "D4",
@@ -1928,7 +2030,8 @@
             "predicted_f_pos": "far off, too few collisions"
           },
           "note": "All three land at 0.96x, indistinguishable from each other and near-ideal -- including the positionwise map that D2 proves repeats every six calls. The prediction missed because truncating ANY permutation to three trits yields exactly 27 buckets of 27, which is perfectly uniform by construction. So uniformity is what a permutation gives away for free, and a collision count CANNOT distinguish a good hash from a relabelling. This failure is worth more than the prediction would have been: it disqualifies the most obvious test anyone would reach for.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -1952,7 +2055,8 @@
             "cross_check": "the M3 group enumerated by brute force (151,632 elements) matches the chain exactly"
           },
           "note": "Four of five on the first run, and the fifth was the TEST CASE rather than the tool: it paired a 3-cycle with a 25-CYCLE, which between them move only 25 of the 27 points, and the tool correctly returned 25!/2 -- the right answer to the question actually asked. Scored WRONG against an expectation of 27!/2. A test case that does not generate what its name says is an instrument-false-verdict aimed at the instrument instead of at itself. Both cases are now kept, the 27-point one and the 25-point one, with their correct expectations.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "M1",
@@ -1977,6 +2081,7 @@
           },
           "note": "Exact, no sampling. Reversible 2-bit gates are 4! = 24 and |AGL(2,2)| = 6 x 4 = 24, so every one of them is affine. Reversible 2-trit gates are 9! = 362,880 and |AGL(2,3)| = 48 x 9 = 432. Since affine maps compose to affine, an all-affine gate set generates a subgroup of AGL however it is wired -- so binary two-bit gate sets cannot reach the symmetric group at ANY width, which is why binary reversible computation needs a three-bit gate.",
           "basis": "proven",
+          "at_risk": "NOT AT RISK: \"4! = 24\", \"|AGL(2,2)| = 24\", \"9! = 362,880 and |AGL(2,3)| = 48 x 9 = 432\", and affine-composes-to-affine: every numeral and both arguments stand in the registration before the run.",
           "argument": "The reversible 2-bit gates number 4! = 24 and |AGL(2,2)| = 24, so every one of them is affine. Affine composes to affine, so no 2-bit set reaches the symmetric group at any width. Counting, not sampling."
         },
         {
@@ -1998,6 +2103,7 @@
           },
           "note": "Predicted from parity rather than left to chance: INC is nine disjoint 3-cycles and each C1INC is three, a 3-cycle is even, so the group lies inside the alternating group and S_27 was forbidden before the run. It came out exactly A_27. C1INC is non-affine because the indicator of t == 1 is quadratic over GF(3). The family half was registered separately so one gate would not be read as the family, and 20 of 20 cleared the bar.",
           "basis": "proven",
+          "at_risk": "AT RISK",
           "argument": "INC is nine disjoint 3-cycles and each C1INC is three; a 3-cycle is even, so the generated group lies inside the alternating group. S_27 was excluded by parity before the run rather than found absent by it."
         },
         {
@@ -2013,7 +2119,8 @@
             "elements_failing_membership": 0
           },
           "note": "One gate changed from non-affine to affine -- same widths, same wiring, same four generators -- and universality disappears by twenty-three orders of magnitude. Checked by MEMBERSHIP and not by an order bound: all 151,632 elements were enumerated and every one is of the form x -> Ax + b. An order bound would have passed for any small group. The group is index 2 in AGL(3,3) because all four generators are even.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: Forced by the closure theorem M1 states -- an all-affine generating set lies in AGL -- so both the 303,264 order bound and the membership result follow from the registration."
         }
       ]
     },
@@ -2042,7 +2149,8 @@
             }
           },
           "note": "Exhaustive over one variable in both fields. This is set M's advantage traced to its root: the simplest possible conditional -- act if the control equals a specific value -- is LINEAR in binary and NONLINEAR in ternary, so binary must AND two controls together to get nonlinearity and that is why it needs a three-bit gate. Restricted to ONE control digit on purpose: the indicator of a single POINT of two binary digits is quadratic too, which is what x AND y is, so the general claim would be false.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "O2",
@@ -2054,7 +2162,8 @@
             "middle_mid_taps": 1
           },
           "note": "The direction held and the magnitude was understated. The registration said \"equals MID needs two\", counting THRESHOLD COMPARISONS; the switch cost is five, because the interval test needs the whole isMid detector at four plus one select switch. So an outer trigger is five times cheaper per gate, not twice. Caveat as registered: this is the per-gate marginal cost, and E/I showed a MID detector amortises across every selector sharing a control, so in a machine it may be a wash.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "O3",
@@ -2085,7 +2194,8 @@
             }
           },
           "note": "Both derived numbers hit exactly, and both gates verified correct exhaustively. Built in the SAME pass-network idiom with T5 obeyed on both sides -- every source rail-driven, buffers counted, no trick used on one side and withheld from the other. An earlier estimate put the binary side at ~22 by building it from NAND gates while giving the ternary side pass-transistor tricks; that strawman is recorded rather than quietly dropped. Two operands instead of three buys 1.2x, not 3x.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "O4",
@@ -2114,7 +2224,8 @@
             }
           },
           "note": "The tie lands at exactly the predicted price. The device model's FIRST stated limit is that vmid is free and it calls that the largest of the four; the ternary gate takes two mid taps and the binary gate takes none. So the honest statement is not \"ternary is cheaper\" -- it is that ternary's advantage is STRUCTURAL and not economic, and every switch of the economic margin is borrowed from the one assumption this model flags as its biggest. A myth killed before it was built on.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: \"price a mid tap at the cost of one switch and the two gates TIE at 12\": 10 + 2 = 12 against 12, on O3's own derived numbers."
         }
       ]
     },
@@ -2147,7 +2258,8 @@
             }
           },
           "note": "Failed two ways. (i) The selectors were predicted to need no tap; measured at 1 and 2, because the rig wires their SOURCES to the rails and the vmid source IS the tap. With abstract sources they are zero. Both readings are true of different questions -- a selector has no tap of its own and acquires one the moment it must be able to pass MID -- and the prediction did not say which it was asking. (ii) The more interesting failure: the test asks \"does THIS BUILD put MID on a node\", which is not the rule as registered. The rule was \"must some node carry MID for the FUNCTION to compute\". isMid is scored FORCED and N2 proves it is not, and the counterexample was sitting in the next section the whole time. Telling the two apart needs a search over equivalent circuits, which this test does not do.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "N2",
@@ -2175,7 +2287,8 @@
             "consumer_patterns_in_repo": 2
           },
           "note": "Same four switches, one fewer rail. Every consumer in the repository gates a detector at threshold MID, which conducts for anything at or above it, so HIGH serves exactly as MID does. Both consumer patterns swept exhaustively. NOT tested: a decoded adder rebuilt on the variant, because dRippleAdder calls isMid internally and cannot be swapped without editing device.js -- an earlier version of this section printed \"the shipped decoded adder still checks out\", which exercised the ORIGINAL detector and could not have failed for the reason it claimed. Removed rather than left standing.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "N3",
@@ -2199,7 +2312,8 @@
             "read_path_decision": "does not flip -- tmux was never cheaper (960 vs 736 at 81 words); B chose it on correctness"
           },
           "note": "Every derived number exact. The memory multiplier is 1.15x and not the doubling that 34% on the adder would suggest, because the memory is dominated by storage cells at 18% and a read tree at zero. The decoded adder -- this repository's best circuit result -- is the MORE tap-hungry of the two families and loses to the tree adder above a price of 4.67. So the headline result survives a moderate price and not a high one.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "N4",
@@ -2211,7 +2325,8 @@
             "forced_share": "99.1%"
           },
           "note": "N2 removes three taps of 339. The other 336 come from sti inverters and tBuffers whose outputs are trit-valued, and by T5 a node that must take MID must reach vmid. So the assumption cannot be designed around, only priced -- which lands \"ternary is optimal for general compute\" on a single physical question this model is structurally unable to answer, with a number attached to how much depends on the answer.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -2234,7 +2349,8 @@
             "compared_on": "A, C, PC, output length, halted, every step"
           },
           "note": "The ground truth the rest of the set rests on. The interpreter takes the opcode only to look up its control word and then never refers to it again -- every branch is driven by a control field. If the table were missing a distinction, some program would diverge. None does. Note that this establishes SUFFICIENCY, not that the table is a good design: a table can be sufficient and still be poorly factored.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "T2",
@@ -2261,7 +2377,8 @@
             "fits": false
           },
           "note": "Exactly as derived. The control word is injective, so it carries precisely the opcode information -- spread across eleven trits instead of three. And eleven does not fit in six, so the FREE version of C5 is dead: decode cannot be made to vanish by widening the opcode into the spare trits of its own cell. That is the headline, and it is a fact about this control table rather than about ternary.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "T3",
@@ -2313,7 +2430,8 @@
             "any_fits": false
           },
           "note": "Every registered class size matched. Registering them exactly is what made a miscount catchable, and it caught one during the derivation: an earlier version of the fit rule asked only \"max class <= 9\", which is correct for a ONE-trit field, and reported the three-trit ALU field as fitting on a max class of 7. The cap for width w is 3^(3-w), which for that field is 1. Caught before the registration was written rather than after.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "T4",
@@ -2337,7 +2455,8 @@
             "decode_after": "312 switches"
           },
           "note": "Wrong by exactly one trit, and wrong about injectivity. Six trits of spare capacity exist, but NO subset of fields totalling six is jointly injective on the 25 opcodes -- the fields are chunky (widths 1,1,1,1,3,1,1,2) and no combination summing to six separates every opcode. The best is five trits, with a max joint class of 3 that the one remaining trit exactly covers. So the saving is 45% of decode rather than the 55% predicted, still at zero memory cost because the spare trits were already paid for. The prediction being optimistic by one trit is the whole error.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -2361,7 +2480,8 @@
             "live_cases_resolving_cleanly": 0
           },
           "note": "The only case that is actually a handshake resolves to unknown. A request/acknowledge pair is a feedback loop of mutually COMPUTED control nodes, and this project measured what those do three times before -- unknown at pass one, and unknown conduction poisons whatever it gates. So Q3 is not available and design/09s concession stands. The first version of this section counted the two disabled cases as \"settled cleanly\", which would have reported Q3 as AVAILABLE on the strength of two circuits in which no handshake occurs.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AA2",
@@ -2374,7 +2494,8 @@
             "failed_to_resolve": 1
           },
           "note": "Nothing advanced. Seed the control cone the way the memory array in C had to be seeded and the handshake resolves -- to ONE state, which a second solve does not move. So the seeding is not a workaround for the handshake: the SEEDING IS THE CLOCK, and it is external. That is the concession arriving from a different direction.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AA3",
@@ -2386,7 +2507,8 @@
             "states_that_moved_on_a_second_solve": 0
           },
           "note": "Every state the solver returns is a genuine fixed point: re-solving from it with the same inputs returns it unchanged, across every circuit family checked. So the solver contract is that it returns a state where nothing changed, or it throws. A sequencer needs SUCCESSIVE DISTINCT states, so sequencing inside one solve would require a network that does not settle -- and not settling is an error rather than an output. Q3 is unavailable in principle here rather than merely difficult, and the concession in design/09 is a consequence of the model rather than a weakness of the design.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AA4",
@@ -2400,7 +2522,8 @@
             "expected": 27
           },
           "note": "A master-slave state register plus a next-state incrementer, stepped from outside, cycles through all 27 states and returns to its start. Every part already existed. What does not exist in this model is time.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -2429,7 +2552,8 @@
             "column_criterion_vs_full_pair_sweep": "100/100 agree"
           },
           "note": "Predicted 216, 4, 18 and 198 exactly, and every one landed. The instruction map is (A,W) -> (f(A,W), W), injective exactly when each of the three columns of the table is a bijection of the three trit values -- 6^3 = 216. Binary has 2 columns and 2 permutations each, so 4 of 16. The argument was not trusted: the column criterion was checked against a direct sweep of all 531,441 pairs on a sample of tables, and agrees on every one. The gap is the point -- a randomly chosen two-input ternary operation is about 23 times less likely to be reversible than a binary one, which is the same asymmetry M1 found on the 27-point arena arriving on the 729-point one.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AB2",
@@ -2446,7 +2570,8 @@
             "ADD_bits_erased": 0
           },
           "note": "Scored against the CLAUSE language, and the registration was ambiguous about which reading it meant -- worth stating rather than leaving for a checker to find. The header said \"under the datapath state\", and this tool defines that as the (accumulator, addressed word) PAIR for an address operand; under that strict reading MIN, MAX and CSUM are single fixed figures, the split is 7 fixed and 2 varying, and AB2 fails. But the clauses say \"for every operand\" and \"depends on the operand\", which only parse if the operand is a parameter rather than part of the state -- and the operand-dependence clause is not even well-formed under the pair reading. Scored on the clauses, every predicted count and every predicted membership held. The tool prints both readings side by side so neither is hidden. The load-bearing part held too: STORE erases the full 9.5098 bits and never touches the accumulator. Under the pair state it maps (A,W) to (A,A), destroying the addressed word outright -- the textbook Landauer erasure sitting in plain sight in an instruction set nobody wrote for thermodynamics, and the instruction whose name says it is SAVING something. ADD by contrast is a permutation of the entire 531,441-pair datapath, because the operand survives in memory: it is exactly the difference between ADD and K.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AB3",
@@ -2466,7 +2591,8 @@
             "shift_bits_per_trit": 1.5849625
           },
           "note": "The mean 4.5033 was derived before the run as 6*(0 + 2/3 + log2 3)/3 and measured at 4.5033. CSUM was predicted never to reach the maximum and does not -- it tops out at exactly 4 bits, so a single tritwise gate cannot erase a whole tryte however hostile its operand. SHL n and SHR n erase identically at n*log2 3: one drops the high trits and one the low, and an information count cannot tell those apart, which is a real limit of this measure and not a fact about the machine.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AB4",
@@ -2481,7 +2607,8 @@
             "predicted_largest_overcharge": "> 2"
           },
           "note": "FAILED, and the failure is the answer to the question the set was opened to ask. Predicted a gap for every program and a factor above two for at least one; measured a gap for two of eight and a largest factor of 1.21. Six of the eight programs charge EXACTLY their text bound, because every opcode they execute is fixed-price -- the operand-dependent instructions (MIN, MAX, CSUM, SHL, SHR) simply do not appear in them. So the static count DOES transfer, conditionally: erasure is recoverable from the program text exactly when the instruction mix is operand-independent, and this repository's programs mostly are. The tick's virtue is not lost here, it is contingent on the ISA subset in use, which is a sharper claim than either the prediction or its negation.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AB5",
@@ -2502,7 +2629,8 @@
             "symmetric_group_729_digits": 1773
           },
           "note": "The first clause HELD exactly: 1,458, which is the 729 translations extended by negation, verified by sifting all 1,459 instruction maps through a chain built from two of them. The second clause FAILED, and inverts the conclusion. Admitting every one of AB1's 216 reversible tables at every operand does NOT reach the symmetric group. The orders land on a closed form, 2^W * 3^((3^W-1)/2), matching exactly at widths 1 through 5. Width 1 is the only place reversibility is free -- there the fragment IS S_3. From width 2 the fraction collapses: 324 of 362,880, then 10^-21, then 10^-100. So REVERSIBILITY DOES NOT BUY UNIVERSALITY here, and the eraser is load-bearing rather than a convention of the opcode table -- the same shape as the result that no term over {B,C,W,I} can select. Registered honestly: at width 6 the stabiliser chain had not finished after two hours on this host, so 2^6 * 3^364 is the closed form extrapolated from five exactly measured widths, NOT a measurement. \"Does not finish\" would be a duration claim, which is T-CRITERION-IN-THE-NOISE and the class this project has already bitten twice; what is recorded is what was observed.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -2529,7 +2657,8 @@
             "read_input_but_cost_a_constant": 5
           },
           "note": "Failed on the count, on the membership, and on its own premise. fold does NOT vary; multiply and threeway do. And the premise that five of eight execute IN was itself wrong -- ALL EIGHT do, which a broken detector had hidden. The corrected picture is sharper than the prediction and points the same way the design question cares about: reading input is universal here and cost-invariance is still the norm. FIVE OF EIGHT PROGRAMS COST EXACTLY THE SAME NUMBER OF STEPS whatever data they are handed, so their price can be published once and nobody ever needs to run them again. multiply varies only mildly, 119 to 128, because its loop is bounded by trit count rather than by operand size; the variation is in the early-exit paths, not the iteration count.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AC2",
@@ -2544,7 +2673,8 @@
             "cost_of_the_predictor": "2 executions"
           },
           "note": "Exact on 200 of 200, worst error zero. Two executions price two hundred, and the ratio only improves with the size of the sweep. This is the cheapest possible refutation of an implied receipt for this program: the number can be had without doing the work, so holding the number proves nothing about work performed. Data-dependence alone establishes NOTHING -- it is necessary for an implied receipt and nowhere near sufficient.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AC3",
@@ -2562,7 +2692,8 @@
             "differing_source_lines": 1
           },
           "note": "The structural claim HELD and the number FAILED. Two programs differing in a single immediate operand -- LOADI 1 against LOADI 364 -- have the same instruction count and the same opcode histogram under both a naive linear reader and the assembler's own tokenizer, and cost 4 steps against 730. Any predictor reading only the static shape of a program returns one number for both and is wrong on one by a factor of 183. That is a counterexample rather than a failed search, and it settles the question against SYMBOL COUNTING specifically: a price computed from a program's text cannot track what running it costs. The 300x figure was optimistic for a reason worth recording -- the four-step floor of the cheap program sits in the denominator, so the ratio is 730/4 and not 364/1. Predicting a ratio without accounting for constant overhead is the same error as quoting a speedup without the serial fraction.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AC4",
@@ -2578,7 +2709,8 @@
             "same_program": false
           },
           "note": "Failed on the number, held on the ordering. The spread is 1.68x against a predicted 2x, which is narrower than expected -- the eight programs are more alike in erasure intensity than in anything else this project has measured about them, all falling between 3.6 and 6.1 bits per instruction. But the ordering claim held: the program that runs the longest is not the one that destroys the most per step. So a currency denominated in steps and one denominated in destroyed information do rank these programs differently, just less dramatically than predicted. Choosing between them remains a decision rather than a units conversion, on a narrower margin than the prediction assumed.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -2608,7 +2740,8 @@
             "distinct_lengths": 20
           },
           "note": "The same procedure that priced countdown on 200 of 200 inputs is right on 2 of 363 here -- 0.6% against 100%. And the cost is not monotone: 33 of 242 adjacent pairs run the wrong way as the input grows, which rules out any predictor built from the magnitude of the input alone. So a DISCOVERED loop bound really is a different object from a READ one, and hailstone is the first program in this repository that has one.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AD2",
@@ -2625,7 +2758,8 @@
             "table_agrees_with_runner": true
           },
           "note": "Every one of the 729 accumulator values is resolved exactly once -- 728 evaluations, one short of the state count because the terminating value is seeded. Answering the same questions by independent re-running costs 3,777. So a predictor expecting more than SEVENTY queries should tabulate, and from the seventy-first onward every answer is free. Being genuinely discovered is therefore NOT SUFFICIENT for an implied receipt. The predictor does not have to be clever; it is allowed to be patient.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AD3",
@@ -2638,7 +2772,8 @@
             "terminating_trajectories_revisiting_a_value": 0
           },
           "note": "Demonstrated rather than asserted: every terminating trajectory was checked for a revisit and none has one, so each is a simple path through the state space and cannot exceed 729 steps. The bound is pigeonhole and belongs to the state space rather than to hailstone -- it holds for any single-accumulator map whatever. The observed maximum uses 2.61% of the available headroom, so the tabulator wins by a wide margin rather than a narrow one.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "UNCALLED: The first clause is explicit pigeonhole and the registration says so; the second, \"far below that ceiling\", is unquantified, so neither bucket fits cleanly."
         },
         {
           "id": "AD4",
@@ -2653,7 +2788,8 @@
             "states_at_3_extra_words": "282429536481"
           },
           "note": "Every scratch word was poisoned before the run and all 729 answers were unchanged, so the cost really is a function of the accumulator alone and AD2's bound of 729 is tight rather than generous. The arithmetic that follows is DERIVED: each live word beyond the accumulator multiplies the tabulator's one-off cost by 729 while leaving the runner's single query untouched. Taken with AD2 this is the result of the set -- THE SECURITY PARAMETER OF AN IMPLIED RECEIPT IS REACHABLE STATE COUNT, not whether the loop bound is discovered. That is the same shape as key length, and a different design problem from the one the question started with.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -2679,7 +2815,8 @@
             "generators": "translation-by-1 and negation, unchanged between cases"
           },
           "note": "AB5 measured 1,458 for the zero-erasure ALU fragment on 729 accumulator states and called it \"the translations extended by negation\". Run the identical construction through the identical stabiliser chain on TWELVE points and it returns 24 -- the dihedral group musical set theory has called T/I since the 1960s. So this project independently rebuilt a group that has been studied for sixty years, and AB5's conclusion is the one music theory reached from the other side: transposition and inversion preserve interval content and can never carry one set class into another. AB5 phrased the same fact as \"without an eraser the named set is inert\". The tryte width is not special; 1,458 is 2 x 729.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "UNCALLED: Dihedral order 2n is textbook and the 1,458 was already recorded, but it doubles as an instrument replication of the stabiliser chain on a new input."
         },
         {
           "id": "AE2",
@@ -2699,7 +2836,8 @@
             "Z729_lengths": "1 3 9 27 81 243 729"
           },
           "note": "Exact on all four. The comparison that makes it vivid held too: 720 and 729 are ONE APART in size and have 30 divisors against 7. Every period in a Z/3^k space is a power of three, so consecutive available periods differ by a factor of exactly three and nothing sits between them. Z/27 offers periods 1, 3, 9, 27 and therefore has no analogue of the whole-tone scale, which lives at period 6, or the diminished seventh at period 4 -- not because nobody has looked, but because 6 and 4 do not divide 27. NARROWED AFTER THE FACT: this was first written up as \"a place ternary is structurally worse\", which is the numbers right and the noun far too big. What is measured is ONE musical affordance -- how many chords transpose onto themselves -- and it says nothing about consonance, rhythm, contour or timbre, nor about ternary used as an ADDRESSING scheme rather than a tuning. The surviving claim is that a PRIME-POWER pitch-class space is poor in transpositional symmetry. It does NOT say binary does better -- nothing measured here bears on that, and asserting it would have been the same error one layer down.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: Orbit-length count equals divisor count, with d(12) = 6, d(27) = 4, d(729) = 7 and d(720) = 30 all stated in the registration. CONTESTABLE: the audit flagged this one as among the six of its 25 it would concede; see `reaudits` for how a verdict is moved."
         },
         {
           "id": "AE3",
@@ -2721,7 +2859,8 @@
             "Z27_tetrachord_classes": 364
           },
           "note": "The load-bearing part is the control. Four figures -- 224, 12, 29 and 50 -- are in the musicological literature and were not derived here, and the instrument reproduced all four before its ternary answers were looked at. An audit that agrees with sixty years of published counting on the case where the answer is known has earned the case where it is not. Z/27 lands at 2,493,726, near 2^27/54 because at that size the identity element dominates the Burnside average. Worth noting the nuance the prediction did not ask for: Z/27 has 61 trichord classes against Z/12's 12, so ternary space is RICHER in raw variety while AE4 shows it is far poorer in structure.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AE4",
@@ -2741,7 +2880,8 @@
             "predicted_orders_over": 3
           },
           "note": "Failed on one threshold and held on everything that mattered. Z/12 measures 1.81% against a predicted above-2%, so the prediction was optimistic by a fifth. The Z/27 clause held at 0.000380% against a predicted below-0.001%, and the gap held at 3.7 orders of magnitude against a predicted more-than-three: Z/12 is 4,755 times richer in transpositionally symmetric subsets. Those are the chords Western harmony leans on -- the augmented triad, the diminished seventh, the whole-tone scale -- and a prime-power space has a single unbranched chain of subgroups and almost none of them. The failure is a reminder that a threshold picked to sound decisive is a worse prediction than the ratio it was standing in for, which is the same lesson T-CRITERION-IN-THE-NOISE keeps teaching in a different costume.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -2773,7 +2913,8 @@
             "total_error_81EDO_cents": 22.84
           },
           "note": "All three clauses held: 27-EDO's fifth is 4.68x worse than 12-EDO's, its harmonic seventh 3.48x better, and its minor third better at 4.53 against 15.64. But the sweep answered a bigger question nobody asked. SUMMED OVER THE SIX JUST RATIOS, 27-EDO TOTALS 45.48 CENTS OF ERROR AGAINST 12-EDO'S 64.41, and 81-EDO totals 22.84. A ternary division of the octave is not merely defensible on consonance, it BEATS twelve. The withdrawn claim that \"ternary is genuinely worse for music\" was not just too broad, it was wrong in the opposite direction on the axis it never measured.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AF2",
@@ -2792,7 +2933,8 @@
             "twelve_is_a_power_of_either_radix": false
           },
           "note": "Exact on every clause. No power of two or three below 100 exceeds 7 divisors, while 60 has 12. The counts of 32 and 27 differ by exactly the predicted maximum of 2, so POWERS OF TWO ARE POOR ON THE SAME SCALE AS POWERS OF THREE. AE2 was never a binary-versus-ternary result and should never have been written up as one: 12 = 2^2 x 3 is a power of neither radix, and the advantage it has belongs to compositeness.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AF3",
@@ -2809,7 +2951,8 @@
             "those_have_both_factors": true
           },
           "note": "Held exactly, and it refutes something said in this conversation without measuring: that rhythm favours base three. It does not, on the ordinary repertoire. Base two represents three of the six common subdivisions exactly and base three represents one, because Western notation is halves, quarters and eighths. The two neither base gets -- a sixth and a twelfth -- are exactly those with both 2 and 3 as prime factors, and base six gets all of them. Compositeness again, from a completely different direction.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AF4",
@@ -2829,7 +2972,8 @@
             "smaller_n_beating_64": 18
           },
           "note": "FAILED, and the failure is the useful part because it shows the layers DECOUPLE rather than agree. The n with the lowest total consonance error between 5 and 72 is 53, which is PRIME -- divisible by neither 2 nor 3 -- and 31 is close behind at 18.19. The divisor clause held (60, divisible by both) and the beaten-by-a-smaller-composite clause held for both radices. So the tidy unifying story was wrong: HARMONIC SYMMETRY AND RHYTHM WANT COMPOSITENESS, AND CONSONANCE DOES NOT CARE ABOUT IT AT ALL. Consonance is a question about how well n*log2(r) lands near an integer, which has nothing to do with how n factors, and the prime divisions that microtonalists favour are exactly the counterexample. Predicting that three layers would agree was reaching for a single sentence where the measurement supports two.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -2860,7 +3004,8 @@
             "countdown_cost_range": "8 to 203"
           },
           "note": "FAILED, and the failure produced a factor the whole thread was missing. threeway measures FIVE live input words -- it classifies five values and every one changes the path -- which is above AD4's three-word threshold and refutes the prediction. But its cost spread across the entire sweep is 1.02x, from 55 steps to 56. A tabulator facing 729^6 states to learn a number that is always 55 or 56 would not tabulate; it would guess 54 and be right almost always. Meanwhile countdown has width ONE and a spread of 25.38x. SO WIDTH AND COST VARIANCE ARE INDEPENDENT, AND NEITHER IS THE SECURITY PARAMETER ALONE. The interpreter clause held and then some: interp measures 0, not the predicted 2, because the program it interprets is assembled into its own image and is identical on every run.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AG2",
@@ -2877,7 +3022,8 @@
             "varying_c_moves_cost": true
           },
           "note": "Held exactly. A nested loop over three loaded words -- outer count, inner subtrahend, starting value -- gives a live width of 3 in 28 instructions, and each of the three demonstrably moves the cost. The state space is 729^4 = 282,429,536,481, past what AD2's tabulator could afford. The point is that WIDTH IS A PROPERTY OF THE HARNESS, NOT THE MACHINE: nothing about the ternary datapath prevented this, and no existing program has it only because none of them was written to take its work as runtime input. Reported in instructions rather than cells because the prediction was in instructions and an instruction is two cells.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AG3",
@@ -2895,7 +3041,8 @@
             "vm_instruction_cost": 1
           },
           "note": "The magnitude clause held for the decoded family at 5,400 node-updates and failed for the tree family at 4,368; the pass clause failed outright. Two separate errors, both about importing a constant across the conditions it was measured under. First, the registration cited E4's thirteen while the first version of the tool built the TREE adder, and E4's thirteen belongs to the DECODED one -- the same design note records the tree at 7. Second, thirteen is E4's MAXIMUM over operand pairs, not its typical value: E4 measured 9 to 13 and called the data-dependence its finding, so quoting the ceiling as though it were the number was quoting a result against its own headline. Both families are above 1,000x, which is what the argument needed; only one clears 5,000.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AG4",
@@ -2910,7 +3057,8 @@
             "tabulator_bill_device_tick": 3936600
           },
           "note": "Held. log(5,400)/log(729) = 1.304, so redefining a tick from one VM instruction to one device-level solve buys slightly more than one word of state for free. WORTH HAVING AND NOT SUFFICIENT ALONE, which is the honest shape of the answer: the work factor imported from WaveSeeds is a real second knob, it is already built into the switch-level machine this project spent its life on, and it moves the tabulator's bill for a 729-state arena from 729 evaluations to 3,936,600 node-updates. The state still has to be widened.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -2940,7 +3088,8 @@
             "countdown_width": 1
           },
           "note": "Held by an order of magnitude: 513.8x against a predicted 50x, and 88 distinct costs across 120 runs. So the three-word program satisfies the FIRST item of AG's spec, which is the one that matters most -- threeway had five live words and a spread of 1.02x, which is a wide state no tabulator would bother indexing. Width without variance is security theatre; this has both.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AH2",
@@ -2958,7 +3107,8 @@
             "reuse_drop": 3.3
           },
           "note": "FAILED on the number that mattered and produced a FOURTH factor. The hailstone clause held enormously at 10.43x -- and its 3,777 visits reproduce AD2's figure exactly, which is the cross-check that the two sets are measuring one thing. But the three-word program still reuses each state 3.20 times, not the predicted under-1.5. The reason is structural: an input sharing its subtrahend and outer count with another converges onto the same inner-loop suffix whatever its starting value, so a subtractive loop has heavy suffix convergence BY CONSTRUCTION. WIDENING THE STATE DOES NOT AUTOMATICALLY DESTROY SHARING. Convergence is a property of the map, not of the state count, and a tabulator exploits convergence rather than smallness. Reuse fell 3.3x, which is real, and nowhere near enough to call the sharing dead.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AH3",
@@ -2976,7 +3126,8 @@
             "AG4_claimed_worth": "1.304 words of state"
           },
           "note": "Held exactly, and it corrects AG4. Widening the state by one word multiplies the attacker's bill by 729 and leaves the honest cost at 1,150 steps, untouched. Moving to a device-level tick multiplies BOTH by 5,400 -- the honest party pays 6,210,000 node-updates for the same run. SO THE RATIO GAINS 729x FROM STATE AND EXACTLY 1x FROM THE WORK FACTOR. AG4 called the work factor \"worth slightly more than one word of state\", which treats the two as one currency; on the asymmetry it is worth nothing at all. What it buys is ABSOLUTE infeasibility -- turning a cheap attack into an expensive one in wall-clock terms -- which is real, is what a KDF is for, and is a different claim. AG4 never measured the honest side, which is the only place the difference shows.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AH4",
@@ -2994,7 +3145,8 @@
             "identical": true
           },
           "note": "FAILED on both magnitudes and held on its structural point. The control space is (w, b, c) = 729^3 = 387,420,489, not the 10^11 predicted -- that figure was 729^4, which counts a fourth word this program does not have, since its step counter never gates a branch. And one honest run costs 1,150 steps rather than under 300, because the loop is genuinely long. The margin is therefore 3.37 x 10^5, not above 10^8: real, and three orders short of the claim. The clause that held is the one AH3 predicts: the margin is IDENTICAL under an instruction tick and a device tick, because the work factor cancels out of a ratio exactly. Quote the margin as a ratio and it is a statement about the state space alone; quote it in seconds and the work factor is the whole story. Both are true and they answer different questions.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -3025,7 +3177,8 @@
             "rivals_matching_the_ladder": 3
           },
           "note": "H(prev) = SUM prev + [prev != empty] reproduces Fibonacci with two zeros at the front for all 40 terms checked, against the 9 the Ladder itself verified, and there is no special case at the genesis -- which is the operator's whole claim to being more fundamental than the two-term recurrence. Three of the four competing rules fail exactly where the Ladder says: cur+last first at step 1, sum(prev) wrong at 8 of 9, sum(prev)+1 first at step 0. The fourth disagrees -- my reconstruction of \"cur + len(prev)\" first fails at step 2 where the Ladder records 6 -- and that is a fact about reading a four-word label, not about its result. The definitions were left as read rather than tuned until they agreed, which would be fitting the instrument to the answer.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AI2",
@@ -3043,7 +3196,8 @@
             "n4_vs_width_5_words": "39 digits against 15"
           },
           "note": "Exact at every rung: 27, 19,683, 7,625,597,484,987, then a 39-digit number, each the cube of the last because 3^(3^(n+1)) = (3^(3^n))^3. This is a different growth law from the one this project has been using. AD4's width ladder MULTIPLIES by 729 per live word; the arity ladder CUBES. Arity passes width at n = 3 and by n = 4 they are not in the same range -- 39 digits against 15. Adding an input is not a bigger version of adding a word, it is a different operation.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: \"each rung is exactly the CUBE of the last, since 3^(3^(n+1)) = (3^(3^n))^3\", with 27, 19,683 and 7,625,597,484,987 all given."
         },
         {
           "id": "AI3",
@@ -3062,6 +3216,7 @@
           },
           "note": "A function is reversible in its leading argument exactly when each of its 3^(n-1) columns is a bijection of three values, so the count is 6^(3^(n-1)) and the fraction (2/9)^(3^(n-1)). AB1 measured 216 of 19,683 by sweeping every table one at a time; the formula gives the same figure to four significant figures without a sweep, and 216 is exactly 6^3. SO AB1 WAS ONE RUNG OF A LADDER NOBODY HAD WRITTEN DOWN. The fraction collapses fast -- 22.22%, 1.097%, then 0.000132% -- which is the arity version of the scarcity M1 found at fixed width.",
           "basis": "proven",
+          "at_risk": "NOT AT RISK: The closed form 6^(3^(n-1)) and the fraction (2/9)^(3^(n-1)) are stated and evaluated at 22.22%, 1.097% and 0.000132% -- and the 1.097% was already AB1's measurement.",
           "argument": "A function is reversible in its leading argument exactly when each of its 3^(n-1) columns is a bijection of three values. So the count is 6^(3^(n-1)) and the fraction (2/9)^(3^(n-1)), for every n — a closed form, not a fit."
         },
         {
@@ -3083,6 +3238,7 @@
           },
           "note": "HELD, and it answers what AH2 left open. Taking an n-input function as shift-register feedback -- state (x1..xn), next (x2..xn, f(x1..xn)) -- a leading-argument-reversible f makes the state map a BIJECTION: maximum in-degree exactly 1, zero unreachable states, every one of the 531,441 states with in-degree 1. Nothing merges, so a tabulator's reuse is exactly 1.00 against AH2's 3.20 and hailstone's 10.43, and there is nothing to amortise. The non-reversible comparison is worse than predicted rather than better: tritwise MIN gives a maximum in-degree of 729 and leaves 91.22% of the state space UNREACHABLE, against a predicted quarter. So AB1's 216 tables are not a curiosity. THEY ARE EXACTLY THE FEEDBACK FUNCTIONS THAT MAKE THE FOURTH FACTOR COME OUT RIGHT, and this project measured them four sets before it knew what they were for.",
           "basis": "proven",
+          "at_risk": "AT RISK",
           "argument": "With state (x1..xn) and next (x2..xn, f(x1..xn)), a leading-argument-reversible f makes the state map injective: two states with the same successor would need the same tail and the same f-value, forcing them equal. Holds for every n."
         }
       ]
@@ -3110,6 +3266,7 @@
           },
           "note": "Maximum in-degree 1, zero unreachable, over all 531,441 (sum, lag) states -- AI4's bijection criterion met with NO special feedback table. The inverse is explicit rather than abstract: given (sum+lag, sum+1), recover sum = second - 1 and lag = first - sum, and it recovered all five probes including the wrapping corner (364,-364). THE PROPERTY IS REVERSIBILITY, NOT SELF-REFERENCE, and not memory either: a FORGETFUL two-word carry has it exactly as much as an append-only history would, because every component is ADD and AB2 measured ADD at zero bits erased. AI4 had to search 19,683 tables to find 216 that work; this needs nothing but addition.",
           "basis": "proven",
+          "at_risk": "AT RISK",
           "argument": "Every component is ADD, which erases nothing, and the inverse is explicit: from (sum+lag, sum+1) recover sum = second - 1 and lag = first - sum. An explicit inverse is a proof of injectivity, not evidence of it."
         },
         {
@@ -3123,7 +3280,8 @@
             "predicted_over": 3
           },
           "note": "Eighty-one histories of length four collapse onto nine outputs, erasing 3.5944 bits by the AB measure. The state map is a bijection and the emitted value is a nine-to-one channel, at the same time and without contradiction, because they are different maps. Anyone reading only the number H produces is reading an erasing channel however well-behaved the state carrying it happens to be -- which is the distinction AB2 already drew between the accumulator reading and the pair reading, arriving here from a completely different direction.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AJ3",
@@ -3139,7 +3297,8 @@
             "predicted_over": 4
           },
           "note": "programs/ladder.tasm reproduces the ladder exactly against an independent implementation, so the operator is now self-hosting in the weak sense -- expressible in the language its own ladder produces. It costs 152 instructions for nine terms and erases 6.2564 bits per instruction, which is the second-highest figure in the corpus after fold. SELF-HOSTING DOES NOT INHERIT THE REVERSIBILITY OF THE THING HOSTED: the map is a bijection and the program calls STORE on every turn of the loop, and AB2 measured STORE at the full 9.5098 bits. A reversible mathematics implemented on an erasing machine still erases, which is the gap between having a property and running it.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AJ4",
@@ -3154,7 +3313,8 @@
             "machine_wraps": true
           },
           "note": "The ladder grows like phi^n and a tryte holds -364..+364, so term 15 at 377 does not fit and fourteen do. Asked for eighteen terms the machine emits 233 then -352, wrapping rather than growing, which is the only thing bounded memory can do. THE PRICE OF A TRAJECTORY GRAPH THAT CANNOT CONVERGE IS A STATE THAT CANNOT BE BOUNDED. Every real machine erases for exactly this reason, and an implied receipt has to buy its way out of that trade rather than assume it away -- which is what AJ1 shows is possible, since reversibility gets the non-convergence without the unbounded state.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: \"exceeds a tryte at term 15, where 377 > 364\": the comparison is performed in the registration. CONTESTABLE: the audit flagged this one as among the six of its 25 it would concede; see `reaudits` for how a verdict is moved."
         }
       ]
     },
@@ -3182,6 +3342,7 @@
           },
           "note": "All fifteen gate instances are permutations of the 27 states and every one has order exactly 3, so a program's inverse is that program with each gate applied twice more and THE LANGUAGE NEEDS NO INVERSE INSTRUCTION SET. The group they generate is A_27, agreeing with M's recorded figure from an implementation written separately -- two independent codings landing on one 28-digit number is what makes a re-implementation worth having. ERRATUM, AND THE REASON IT IS ONLY AN ERRATUM: the registration typed A_27 as a 25-digit number, dropping three zeros, so the decimal expansion in the prediction was wrong by a factor of a thousand. The tool COMPUTES 27!/2 rather than comparing against the typed digits, which is why a transcription slip in the registration is a footnote instead of a false verdict. AGENTS.md already says to derive constants and never hardcode them; the tool obeyed it and the prose did not.",
           "basis": "proven",
+          "at_risk": "AT RISK",
           "argument": "Each form adds a fixed amount mod 3 to one trit under a condition on another, so three applications return every state. Order exactly 3 by construction, which is what makes the inverse derivable and an inverse instruction set unnecessary."
         },
         {
@@ -3198,6 +3359,7 @@
           },
           "note": "Four hundred random programs of random length, and every one has in-degree exactly 1 at all 27 states with zero unreachable. A composition of bijections is a bijection, so THERE IS NOTHING A PROGRAMMER CAN WRITE IN THIS LANGUAGE THAT BREAKS IT. Compare what factor four cost everywhere else: AI4 had to search 19,683 tables to find the 216 that work, and AJ1 needed the map to be built out of addition on purpose. Here it costs no analysis, no search and no discipline -- it is a property of the alphabet rather than of the program.",
           "basis": "proven",
+          "at_risk": "NOT AT RISK: A composition of bijections is a bijection, and the registration says so. The manifest's own argument field concedes it: \"the 400 sampled were a check on the implementation, never the grounds for the claim\".",
           "argument": "A composition of bijections is a bijection. Every primitive is a bijection, so in-degree 1 holds for every program that can be written — the 400 sampled were a check on the implementation, never the grounds for the claim."
         },
         {
@@ -3213,7 +3375,8 @@
             "threeway_spread": 1.02
           },
           "note": "Every one of fifty straight-line programs costs exactly its own length in gates, for all 27 starting states: a spread of 1.0000. That is FLATTER THAN THE 1.02x AG1 CALLED SECURITY THEATRE, and against the 513.8x AH1 needed. Nothing in the language depends on the data, because branching on data means testing data and a test that discards its answer is erasing. So going fully reversible BUYS FACTOR FOUR AND LOSES FACTOR THREE, and the alternative registered -- that some program would show a spread above 1.00 and the worry was unfounded -- did not occur on any of them.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: Cost is defined as gate count and the language has no branching, so a straight-line program's spread of exactly 1.00 restates the cost model."
         },
         {
           "id": "AK4",
@@ -3229,7 +3392,8 @@
             "thousand_steps_costs": "167 trytes of history"
           },
           "note": "Six constructions from this corpus tabulated against the three properties, and NONE HAS ALL THREE. The reversible language has in-degree one and bounded state with a flat cost; hailstone and the three-word program have a varying cost and bounded state with trajectories that merge; and buying the first two together is Bennett's construction -- a reversible machine CAN branch on data, but only by keeping the record of which way it went, so the history grows at least one trit per branch. A thousand data-dependent steps costs 167 trytes that can never be discarded, and AJ4 already measured what happens when bounded memory meets a state that will not stop growing: it wraps at term fifteen. IN-DEGREE ONE, A COST THAT VARIES, BOUNDED STATE -- PICK TWO.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -3256,6 +3420,7 @@
           },
           "note": "Exact. 27 = 3^3, one per (alpha, beta, gamma). The reversible count of 216 reproduces AB1 from a criterion written independently, and the 18 affine-reversible is 2 x 3 x 3 because alpha must be nonzero for every column to be a bijection -- AB1 measured that same 18 by checking affineness of tables it had already found reversible, so the two routes cross-check rather than restate. THE POINT IS THE FRACTION: the grokking literature studies a task drawn from 0.137% of this space and holds the algebraic variable fixed while sweeping everything else.",
           "basis": "proven",
+          "at_risk": "NOT AT RISK: 27 = 3^3 affine tables by parameter counting, and the 18 affine-and-reversible was already AB1's measured number. The manifest's own argument field concedes it: \"Parameter counting, exhaustive by construction.\"",
           "argument": "27 = 3^3, one affine table per (alpha, beta, gamma). The 18 affine-and-reversible is 2 x 3 x 3 because alpha must be nonzero for every column to be a bijection. Parameter counting, exhaustive by construction."
         },
         {
@@ -3270,7 +3435,8 @@
             "histogram": "4 rows:162, 5:3240, 6:11880, 7:3888, 8:486, 9:27"
           },
           "note": "Exhaustive over every (alpha,beta,gamma) and every table. Exactly 27 reach 9 of 9 rows and they are exactly the affine ones; the best any non-affine table manages is 8 of 9, and 486 of them get that close. So the label is not a convention -- it is precisely what a model with no nonlinearity can represent, and 19,656 tables need one. Modular addition, the literature task, is among the 27.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "NOT AT RISK: A perfect linear fit over every row IS the definition of affine, so \"fails on all 19,656 others\" restates the definition. CONTESTABLE: the audit flagged this one as among the six of its 25 it would concede; see `reaudits` for how a verdict is moved."
         },
         {
           "id": "AL3",
@@ -3289,7 +3455,8 @@
             "erasure_nonaffine_erasing": "1.585 .. 2.667"
           },
           "note": "The quadrant counts held exactly -- 18, 9, 198, 19,458, totalling 19,683 -- and the independence claim with them: reversibility and affineness really are separate axes. The variation clause FAILED, and for a reason that is itself a result. Both REVERSIBLE quadrants are pinned at exactly 1.585 bits with no spread at all, because reversible-in-the-leading-argument means every column is a bijection, so each output value appears exactly three times across the nine pairs and the erasure is log2(3) by construction. Only the erasing quadrants vary. Note also that this column measures the OUTPUT map, nine pairs onto three values, and not AB2 pair map which preserves the second argument -- the same distinction AJ2 drew, arriving again unbidden.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AL4",
@@ -3305,7 +3472,8 @@
             "within_order_of_magnitude": false
           },
           "note": "The counts held; the comparison failed. 729 against 12,769 is a factor of 17.5, which is not within an order of magnitude however generously read -- the canonical setup sits BETWEEN the three-trit arena and the six-trit one rather than beside either. The ladder still brackets it, which is what an experiment needs, but the sentence claimed something tidier than the arithmetic supports and the arithmetic was available before the claim was written.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -3333,7 +3501,8 @@
             "nonaffine_test90_at_step": 3800
           },
           "note": "Held with room to spare. Both reversible tasks memorise 292 training pairs by step 200 and do not reach 90% on the 437 held-out pairs until thousands of steps later -- gaps of 36x and 19x against a predicted 5x. So the phenomenon reproduces on a family that is NOT modular arithmetic, and whose hidden structure is a base-three FACTORISATION rather than a Fourier basis: the network sees a and b as opaque tokens in 0..26 and has to discover that the operation is positionwise in base three.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AM2",
@@ -3351,7 +3520,8 @@
             "identical": "architecture, optimiser, split, step budget"
           },
           "note": "FAILED, and it inverted rather than merely missing. The AFFINE task -- ternary modular addition, which is what the grokking literature studies almost exclusively -- is the SLOWER of the two on every paired seed, with a median of 10,800 steps against 6,200, and on one seed it never reached 90% at all inside a 40,000-step budget while the non-affine task generalised on all five. Run once this would be a draw; run five times with everything but the algebra held fixed it is a direction. THE CANONICAL GROKKING TASK IS HARDER THAN A NON-AFFINE SIBLING, which is a comparison the literature has not been able to make because it has no labelled task ladder to make it on. Stated limit: one table per quadrant, so this measures seed-stability and not table-stability, and sweeping tables within a quadrant is the obvious next thing.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AM3",
@@ -3365,7 +3535,8 @@
             "predicted_over": 0.4
           },
           "note": "FAILED, and the reasoning behind it was the error. I conflated \"erases in the leading argument\" with \"has a skewed output distribution\", and they are different properties. The affine-erasing table is f = b, which is a BIJECTION in its second argument, so its outputs are perfectly uniform and its baseline is 0.0457 -- identical to the reversible tasks. Only tritwise MIN is genuinely skewed, at 0.1918, and even that is far short of 40%. AL3 had already shown the erasure column for that quadrant spans 1.585 to 3.170 and the table chosen sat at the uniform end, so the information needed to avoid this was on the record before the prediction was written.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AM4",
@@ -3382,7 +3553,8 @@
             "alpha_forced_zero": true
           },
           "note": "Held at 0.028 against a predicted tenth: 200 steps versus 7,200, with no memorisation-to-generalisation gap at all. And it is degenerate BY PROOF rather than by luck -- an affine table is reversible in its leading argument exactly when alpha is nonzero, so affine AND erasing forces alpha = 0 and the function ignores its first input entirely. All nine tables in that quadrant are one-input functions, so the prediction covers the quadrant and not just the table trained.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -3412,7 +3584,8 @@
             "pseudorandom_control_sd_over_binomial": "0.973, 1.021, 1.051, 0.977, 1.023, 1.020"
           },
           "note": "FAILED at two of six difficulties, and the failure is the whole result. Two of the three legs held: the mean first hit sat within 15% of the finite-population null at every k, and both bijective controls gave a hit-count variance of EXACTLY zero against a binomial 12.73 -- which is the discriminator D4 could not supply, since truncating any permutation gives perfectly uniform buckets and a collision count therefore cannot separate a hash from a relabelling. The leg that failed is the one that mattered. The candidate came in at 0.729x and 0.674x of binomial at k = 1 and k = 2, MORE uniform than chance, and a puzzle more uniform than chance is structured. Chasing that deviation found the structure (see F-MESSAGE-COMMUTES-OUT-OF-A-GROUP-FEEDFORWARD). The registration said in advance that agreement would not be a certificate and that only disagreement could refute; the disagreement arrived and did exactly that.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AN2",
@@ -3431,7 +3604,8 @@
             "AD2_break_even_queries": 70
           },
           "note": "Held on every clause. AD2 tabulated a program to price it and broke even at seventy queries; here the same attack breaks a bijective puzzle outright at one lookup, because a permutation can be walked backwards from the target. The affine candidate is strictly worse: the nonce is a rotation of a difference, so there is nothing to precompute but a single 6x6 inversion and the attack is profitable on query one. The gap between the two is exactly the 729-entry table. So the two algebraic labels this project has carried since AL are, for a puzzle, both disqualifying -- and in a strict order.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AN3",
@@ -3448,7 +3622,8 @@
             "survives_the_keyed_fix": "35 and 283 at k = 5 and k = 6"
           },
           "note": "Held, and it is the symmetric twin of the receipt result. The receipt died needing in-degree one; the puzzle NEEDS in-degree above one, or AN2(a) inverts it -- and pays for that in messages no nonce can mine. At maximum difficulty 264 of 729 messages, 36.2%, have no solution at all, and a miner holding one grinds forever. Both bijective controls strand exactly zero, so the property that guarantees every message is mineable is the same property that lets an attacker skip the mining. The number survives the keyed reconstruction (35 and 283), which is what shows the result is about compression rather than about this particular construction.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         },
         {
           "id": "AN4",
@@ -3466,7 +3641,8 @@
             "truncated_understatement": "58%"
           },
           "note": "Held on both halves, and they moved together. A twelve-trit nonce absorbed in two blocks through the same compression function strands nothing at maximum difficulty and raises the mean search from 311.2 to 735.0, which is within 0.8% of 3^6 = 729 -- the figure a proper lottery owes and the one a truncated nonce space understates by 58%. So AN3 is not a fact about irreversibility as such but about a nonce space too small for the target, and the design rule is measured rather than borrowed: nonce space must exceed target rarity by orders of magnitude. That is what the extraNonce field in Bitcoin is for.",
-          "basis": "measured"
+          "basis": "measured",
+          "at_risk": "AT RISK"
         }
       ]
     },
@@ -3483,6 +3659,7 @@
           "claim": "the pseudorandom ceremony map measures E within 5% of the 0.8265 null while exposing, within 10% of 268, secrets whose preimage is a single point",
           "outcome": "FAILED",
           "basis": "measured",
+          "at_risk": "AT RISK",
           "measured": {
             "E": 0.8894,
             "E_null": 0.8265,
@@ -3504,6 +3681,7 @@
           "claim": "truncating the mixer to m trits gives every output exactly 3^(6-m) preimages, minimum equal to maximum, while the pseudorandom map has a minimum of 1",
           "outcome": "HELD",
           "basis": "proven",
+          "at_risk": "AT RISK",
           "argument": "The mixer is a bijection, so the 729 secrets land on 729 distinct values; grouping those by their low m trits partitions them into 3^m classes of exactly 3^(6-m). Flatness is forced by the pigeonhole equality, not observed -- and it holds at every width where the truncation divides the space.",
           "measured": {
             "m1": {
@@ -3536,6 +3714,7 @@
           "claim": "truncation attains the pigeonhole hiding bound at every power of three and the pseudorandom map attains it nowhere",
           "outcome": "HELD",
           "basis": "measured",
+          "at_risk": "AT RISK",
           "measured": {
             "bound": "image <= floor(729/h)",
             "bits_at_h_1_3_9_27": [
@@ -3555,6 +3734,7 @@
           "claim": "the count of fully-exposed secrets lands within 10% of both the 268 null and AN3's measured 264 stranded blocks, because both are tails of the same Poisson(1)",
           "outcome": "HELD",
           "basis": "measured",
+          "at_risk": "AT RISK",
           "measured": {
             "exposed": 252,
             "null": 268.4,
@@ -3581,6 +3761,7 @@
           "claim": "an attacker holding one valid signature can forge exactly one message, the one already signed",
           "outcome": "HELD",
           "basis": "measured",
+          "at_risk": "AT RISK",
           "measured": {
             "signed_messages_swept": 729,
             "targets_per_message": 729,
@@ -3596,6 +3777,7 @@
           "claim": "two signatures under one key leak at the binomial rate, mean within 5% of 21.43, maximum 64 and minimum 1",
           "outcome": "HELD",
           "basis": "measured",
+          "at_risk": "AT RISK",
           "measured": {
             "ordered_pairs": 531441,
             "mean_forgeable": 21.433,
@@ -3615,6 +3797,7 @@
           "claim": "ternary leaks less of its own space than binary on key reuse, 2.94% against 5.63%",
           "outcome": "HELD",
           "basis": "measured",
+          "at_risk": "NOT AT RISK: The project's own verdict at the time, already recorded in the note and in should_not_have_been_registered: both sides are the closed form (1 + (b-1)/b)^pos and the registration computed both before the run.",
           "measured": {
             "ternary": "2.94% of 729",
             "binary": "5.63% of 1024",
@@ -3630,6 +3813,7 @@
           "claim": "ternary pays for that advantage in destruction: 12 of 18 preimages against 10 of 20, and strictly more erased bits",
           "outcome": "HELD",
           "basis": "measured",
+          "at_risk": "NOT AT RISK: The project's own verdict at the time, already recorded in the note and in should_not_have_been_registered: (b-1)/b and the projection erasure are closed forms over a scheme whose base and position count the registration stipulated.",
           "measured": {
             "ternary": "18 preimages, 6 revealed, 12 destroyed, 66.7%",
             "binary": "20 preimages, 10 revealed, 10 destroyed, 50.0%",
@@ -3654,6 +3838,7 @@
           "claim": "binary is never optimal for a vector commitment, the optimum never descends past three, and across the swept leaf counts THREE is the large-gamma optimum more often than four",
           "outcome": "FAILED",
           "basis": "measured",
+          "at_risk": "AT RISK",
           "measured": {
             "cells": 2880,
             "cells_with_argmin_two": 0,
@@ -3664,13 +3849,14 @@
             "leaf_counts_preferring_three_at_the_limit": 21,
             "leaf_counts_preferring_four_at_the_limit": 21
           },
-          "note": "Failed on its last clause, and that clause was the whole point. The first three parts held exactly: no cell in 2,880 has argmin 2, the optimum never goes below 3, and it never widens as verifying gets dearer. But three does not beat four at the verify-dominated limit -- it TIES, 21 leaf counts each. Chasing the tie produced F-TREE-BRANCHES-IN-ITS-OWN-BASE, which is a better answer than the one predicted: 3^k leaf counts want three and 2^k leaf counts want four, so the tie was a property of how many of each shape this sweep contains rather than of trees. T-CLAIM-NARROWED-BY-A-DESIGN, fourth bite."
+          "note": "Failed on its last clause, and that clause was the whole point. The first three parts held exactly: no cell in 2,880 has argmin 2, the optimum never goes below 3, and it never widens as verifying gets dearer. But three does not beat four at the verify-dominated limit -- it TIES, 21 leaf counts each. Chasing the tie produced F-TREE-BRANCHES-IN-ITS-OWN-BASE, which is a better answer than the one predicted: 3^k leaf counts want three and 2^k leaf counts want four, so the tie was a property of how many of each shape this sweep contains rather than of trees. T-CLAIM-NARROWED-BY-A-DESIGN, fourth bite. NARROWED AFTERWARDS, AND STATED HERE SO A READER OF AQ ALONE IS NOT MISLED: AR4 lifted the constant-arity constraint every tree in this sweep was built under, and F-TREE-BRANCHES-IN-ITS-OWN-BASE turned out to be a property of CONSTANT trees rather than of trees. 25 of these 45 leaf counts change shape once radix sequences are admitted, 11 of the 18 powers of three among them, and N = 729 wants [4,4,4,4,3] rather than six threes -- for 0.0178% of the total cost, a surface flat to four decimal places. AR's evidence for that is FREQUENCY and not magnitude: its null over 100 redraws has a tail reaching 23.7%, ABOVE the subject's own worst cell, so a structureless per-level cost can produce a larger maximum than the real regime does, while the frequency of improvement separates a hundredfold. T-CLAIM-NARROWED-BY-A-DESIGN, fifth bite, and the second time the class has bitten this same sentence."
         },
         {
           "id": "AQ2",
           "claim": "counting cells whose cost-minimising branching factor is a power of three against those where it is a power of two, three takes strictly more, despite ten powers of two being in range against six of three",
           "outcome": "FAILED",
           "basis": "measured",
+          "at_risk": "AT RISK",
           "measured": {
             "cells_won_by_a_power_of_two": 1044,
             "cells_won_by_a_power_of_three": 821,
@@ -3686,6 +3872,7 @@
           "claim": "unit invariance FAILS: recomputing every cost in whole trytes rather than whole bytes moves at least one argmin, because a proof travels in whole units and that rounding is a ceiling a bare scale factor is not",
           "outcome": "HELD",
           "basis": "measured",
+          "at_risk": "AT RISK",
           "measured": {
             "argmins_moved": 8,
             "cells": 2880,
@@ -3699,6 +3886,7 @@
           "claim": "at every cell where either arity is within 15% of that cell's optimum, the totals at branching factor 64 and 256 differ by no more than 15%",
           "outcome": "FAILED",
           "basis": "measured",
+          "at_risk": "AT RISK",
           "measured": {
             "cells_where_either_is_near_optimal": 909,
             "cells_exceeding_the_fifteen_percent_band": 571,
@@ -3723,7 +3911,7 @@
           "claim": "letting the arity vary is worth less than a sixth: at every cell of both vector-regime sweeps the best radix sequence costs at least 85% of the best constant arity's cost",
           "outcome": "HELD",
           "basis": "measured",
-          "at_risk": "It comes out the other way if ONE leaf count anywhere in [2, 8192] leaves the constant optimiser worse stranded than N = 11 did. Five leaf counts worked on paper give 1.5%, 4.0%, 4.2%, 7.1% and 9.99%, the last found by deliberately hunting a bad case; five of 8,236 is not a sample to extrapolate from, and a single cell past the line refutes it.",
+          "at_risk": "AT RISK: It comes out the other way if ONE leaf count anywhere in [2, 8192] leaves the constant optimiser worse stranded than N = 11 did. Five leaf counts worked on paper give 1.5%, 4.0%, 4.2%, 7.1% and 9.99%, the last found by deliberately hunting a bad case; five of 8,236 is not a sample to extrapolate from, and a single cell past the line refutes it.",
           "measured": {
             "grid_cells": 2880,
             "contiguous_cells": 65528,
@@ -3742,7 +3930,7 @@
           "claim": "the staircase flattens by more than half: over the deep contiguous window at the verify-dominated rate, the largest single-leaf relative cost jump is less than half as large when arity may vary as when it may not",
           "outcome": "HELD",
           "basis": "measured",
-          "at_risk": "It comes out the other way if the varying tree has a single bad step anywhere the constant tree happens to be smooth, because both sides are maxima over 7,167 consecutive pairs and need not occur at the same leaf count. Only one pair was worked on paper.",
+          "at_risk": "AT RISK: It comes out the other way if the varying tree has a single bad step anywhere the constant tree happens to be smooth, because both sides are maxima over 7,167 consecutive pairs and need not occur at the same leaf count. Only one pair was worked on paper.",
           "measured": {
             "window_low": 1024,
             "window_high": 8192,
@@ -3759,7 +3947,7 @@
           "claim": "variation helps most leaf counts, not a few: over the deep contiguous window at the verify-dominated rate, more than half of the leaf counts have a strictly cheaper varying optimum",
           "outcome": "HELD",
           "basis": "measured",
-          "at_risk": "It comes out the other way if the constant optimiser's freedom to pick its own depth is worth as much as the sequence's freedom to pick its own widths, which cannot be settled short of running it. The evidence against was my own: four of the six leaf counts I worked by hand were NOT helped.",
+          "at_risk": "AT RISK: It comes out the other way if the constant optimiser's freedom to pick its own depth is worth as much as the sequence's freedom to pick its own widths, which cannot be settled short of running it. The evidence against was my own: four of the six leaf counts I worked by hand were NOT helped.",
           "measured": {
             "leaf_counts": 7169,
             "helped": 6144,
@@ -3775,7 +3963,7 @@
           "claim": "the optimal tree gets deeper more often than shallower: over the deep contiguous window at the verify-dominated rate, leaf counts whose varying optimum is strictly deeper than their constant optimum outnumber those whose varying optimum is strictly shallower",
           "outcome": "FAILED",
           "basis": "measured",
-          "at_risk": "It comes out the other way if the per-level bytes charge outweighs the per-level rounding slack, and a worked case already said it does -- at N = 10^8 the hand arithmetic puts the varying optimum three levels SHALLOWER. Both declared tie-breaks also push against it.",
+          "at_risk": "AT RISK: It comes out the other way if the per-level bytes charge outweighs the per-level rounding slack, and a worked case already said it does -- at N = 10^8 the hand arithmetic puts the varying optimum three levels SHALLOWER. Both declared tie-breaks also push against it.",
           "measured": {
             "leaf_counts": 7169,
             "deeper": 2176,
@@ -4082,10 +4270,11 @@
       "id": "F-TREE-BRANCHES-IN-ITS-OWN-BASE",
       "outcome": "MEASURED_NOT_REGISTERED",
       "basis": "measured",
-      "claim": "Once verifying dominates bandwidth, an authenticated tree wants the branching factor its leaf count is written in. Of 18 leaf counts of the form 3^k, 15 take branching factor three; of 19 of the form 2^k, 13 take four. The two shapes are almost equally represented in the sweep, which is the entire reason AQ1 saw a 21-21 tie rather than a result.",
+      "claim": "Once verifying dominates bandwidth, an authenticated tree wants the branching factor its leaf count is written in. Of 18 leaf counts of the form 3^k, 15 take branching factor three; of 19 of the form 2^k, 13 take four. The two shapes are almost equally represented in the sweep, which is the entire reason AQ1 saw a 21-21 tie rather than a result. NARROWED BY SET AR, AND THE ORIGINAL WORDING IS KEPT ABOVE BECAUSE IT IS WHAT WAS FOUND: this holds only under the constraint that every level of the tree uses the SAME arity, which is the one constraint every tree in AQ's sweep was built under. Lift it and 25 of these 45 leaf counts change shape, 11 of the 18 powers of three among them -- N = 729 prefers the radix sequence [4,4,4,4,3] to six threes. It prefers it by 0.0178% of the total cost, so the surface this preference was read off is flat to four decimal places. A TREE BRANCHES IN ITS OWN BASE IS A PROPERTY OF CONSTANT TREES.",
       "argument": "At large gamma the cost is dominated by depth times arity, and depth is ceil(log_b N). When N is an exact power of b the ceiling is tight and no level is wasted; when it is not, the top level is partly empty and paid for in full. A leaf count of 3^k therefore pays nothing for branching by three and rounds up for branching by four, and the reverse holds for 2^k.",
       "evidence": "tools/branching-audit.js limitPreference(), over the 45 leaf counts of set AQ",
-      "asserted_in": "test/test-branching.js"
+      "asserted_in": "test/test-branching.js",
+      "scope": "The narrowing is AR4 and F-THE-ARITY-OPTIMUM-IS-FLAT, at 12b5570. What survives is the constant-arity statement, which is still true and still explains AQ1's 21-21 tie. What does not survive is the noun: the sweep visited one design -- trees of a single width -- and the sentence named trees. T-CLAIM-NARROWED-BY-A-DESIGN, fifth bite, already counted at AR's results commit rather than here."
     },
     {
       "id": "F-CONTROL-CANNOT-DISCRIMINATE",
@@ -4133,8 +4322,18 @@
       "argument": "One direction is immediate -- if the optimal sequence is constant it is available to the constant optimiser, so nothing is gained. The other direction is not forced by anything in the construction and is what the measurement adds: no leaf count has a strictly non-constant optimum that merely ties the best constant tree.",
       "evidence": "tools/radix-audit.js bestSequence and bestConstant over every integer leaf count in [1024, 8192] at the verify-dominated rate",
       "asserted_in": "test/test-radix.js"
+    },
+    {
+      "id": "F-REGISTRATION-IS-NOT-RISK",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "Registering a prediction does not make it a prediction. A read-only audit of all 181 predictions registered as of 1acfeee scored 25 of them DECORATIVE -- the answer and its derivation both standing in the registration's own text, over quantities the registrant stipulated -- and 7 it could not call. PUBLISHED: 181 registered, 149 held, 32 failed, a 17.7% failure rate. CORRECTED to what was genuinely at risk: 149 registered, 117 held, 32 failed, 21.5%. Both numbers are true and they answer different questions, so both are kept and neither replaces the other; 181 predictions were registered and that is a fact about what happened. The failures were never the problem -- all 32 are real, and not one of them is among the 25, which is the rule validating itself, since a fact that was never at risk cannot fail. What is not evidence is 25 of the 149 successes.",
+      "argument": "The rule scored only what the registration itself wrote down, and it read that text with `git show <registered_at>:<tool>` rather than from the working tree, so no later editing of a docstring can move a verdict. Four routes to decorative: arithmetic performed inside the block; forcing by a theorem the block states; restatement of a definition or of a sibling's conclusion; and a commitment about the phase's own paperwork rather than about the machine. The 25 are spread across 18 of the 43 sets and the rate does not fall over time, so this is a habit rather than an early-project artefact. IT IS NOT THE SAME AXIS AS `basis`, which looks as though it should have caught it: only 5 of the 10 `proven` predictions are decorative, and 20 of the 25 decorative ones are marked `measured`. A derivation can be genuinely at risk because the derivation may be WRONG -- AK1's registration typed a group order at 25 digits where the true value has 28, and held only because the claim named the group rather than the numeral. AQ was the only one of the 43 sets audited that wrote `AT RISK` lines into its registration and the only one that scored zero decorative; AR, the 44th, was registered the same way. That is a sample of two, and two agents happening to have been told about it is not an antibody, which is why the annotation is now compulsory rather than advisory. Finally the count is a FLOOR: the rule cannot see arithmetic a registrant did silently, and six of the 25 -- Q4, R5, G1, AJ4, AE2, AL2 -- are contestable. Conceding all six leaves 19 and does not change the verdict.",
+      "evidence": "The `at_risk` field on every prediction in this manifest, parsed by `tools/at-risk.js`; the 25 and the 7 are frozen as literal lists in `test/test-findings.js` so they cannot be quietly unmarked, and the corrected rate is generated into the prose by `tools/render-docs.js` beside the raw counts rather than instead of them. A verdict may be moved, but only LOUDLY: the manifest's `reaudits` list is where a departure from that baseline is argued, and an id absent from it may not change bucket. Sticky rather than immovable — an immovable list would make the CORPUS wrong on the day somebody earned a change, and the only way green would be to leave a known-false annotation standing.",
+      "asserted_in": "test/test-findings.js"
     }
   ],
+  "reaudits": [],
   "traps_encountered": [
     {
       "id": "T-ONE-POINT",

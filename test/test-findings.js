@@ -524,9 +524,280 @@ console.log('\n=== 7. THE SCAFFOLD PRODUCES PAPERWORK THIS FILE CAN READ ===');
   check('   and the manifest entry it prints leaves results_at PENDING, because a '
     + 'registration commit carries no measurement',
     JSON.parse(demo.manifest).results_at === 'PENDING');
+  // A new set must be born compliant with section 8, or the annotation is compulsory
+  // only for whoever happens to have been told about it -- which is how the first
+  // forty-three sets went unannotated while AGENTS.md described the defect exactly.
+  check('   and every prediction in the block it writes carries an AT RISK line',
+    (() => {
+      const r = require('../tools/at-risk.js').registrationRisk(tool);
+      return r && ids.length > 0 && ids.every(id => typeof r[id] === 'string');
+    })());
+  check('   and the manifest entry it prints carries an at_risk field per prediction',
+    JSON.parse(demo.manifest).predictions.every(p => typeof p.at_risk === 'string'));
   check('   and the test it writes spawns the tool as a subprocess — the antibody '
     + 'for T-TOOL-CHECKED-ONLY-BY-IMPORT',
     demo.files.find(f => f.path.startsWith('test/')).body.includes('execFileSync'));
+}
+
+console.log('\n=== 8. AT RISK: COULD THE RUN HAVE REFUTED IT AT ALL? ===');
+{
+  // The THIRD axis, and the one the first forty-three sets had no way to state.
+  // `outcome` is the prediction against the run. `basis` is the scope of the claim.
+  // `at_risk` is whether the run could have contradicted it in the first place.
+  //
+  // A read-only audit of all 181 predictions registered as of `1acfeee` scored 25 of
+  // them DECORATIVE -- the answer and the derivation that produces it both standing in
+  // the registration's own text, over quantities the registrant stipulated -- and 7 it
+  // could not call. Every one of the 25 HELD and none of the 32 failures was among
+  // them: a fact that was never at risk cannot fail. `AGENTS.md` had named the defect
+  // from the start and nothing measured it for forty-three sets, because the annotation
+  // was advisory. It is compulsory here. `F-REGISTRATION-IS-NOT-RISK` records the
+  // audit; `tools/at-risk.js` owns the vocabulary, so the manifest, the ledger and the
+  // doc generator cannot disagree about what a value means.
+  const R = require('../tools/at-risk.js');
+
+  const bad = allPreds.filter(p => R.classify(p.at_risk) === null);
+  check(`all ${allPreds.length} predictions declare whether the run could have refuted them`,
+    bad.length === 0, `no usable at_risk: ${bad.map(p => p.id).join(' ')}`);
+  check('   and the three values are declared in the manifest beside outcome_values, '
+    + 'not assumed by this file',
+    ['AT RISK', 'NOT AT RISK', 'UNCALLED'].every(k => k in (M.at_risk_values || {})));
+  // Teeth, run through the SAME classifier the check above uses rather than asserting
+  // something true of any object: a prediction with no annotation, one with an empty
+  // reason, and one with a sentinel nobody declared must all come back unusable.
+  check('   and a prediction with no annotation, or a malformed one, would be caught',
+    [{ id: 'X' }, { id: 'Y', at_risk: 'NOT AT RISK: ' }, { id: 'Z', at_risk: 'PROBABLY' },
+      { id: 'W', at_risk: true }].every(p => R.classify(p.at_risk) === null)
+    && R.classify('AT RISK') === 'at-risk');
+
+  const marked = allPreds.filter(p => ['not-at-risk', 'uncalled'].includes(R.classify(p.at_risk)));
+  check(`${marked.length} predictions are marked otherwise, and every one says why`,
+    marked.length > 0 && marked.every(p => R.reason(p.at_risk).length > 40),
+    marked.filter(p => R.reason(p.at_risk).length <= 40).map(p => p.id).join(' '));
+
+  // The audit's verdicts, frozen the way the failed set is frozen above. The scoring
+  // read each registration as `git show <registered_at>:<tool>` returned it, so
+  // re-scoring from the current files would read edited wording and is not the same
+  // measurement. These lists may not shrink; a later set is free to add its own.
+  const DECORATIVE_AT_1ACFEEE = ['Q4', 'Q5', 'R5', 'S3', 'V4', 'Z1', 'F3', 'G1', 'G3', 'I4',
+    'A4', 'D2', 'M1', 'M3', 'O4', 'AE2', 'AI2', 'AI3', 'AJ4', 'AK2', 'AK3', 'AL1', 'AL2',
+    'AP3', 'AP4'];
+  const UNCALLED_AT_1ACFEEE = ['Q2', 'R1', 'R2', 'L2', 'V1', 'AE1', 'AD3'];
+  //
+  // STICKY, NOT IMMUTABLE. Six of the 25 are contestable on the auditor's own reading,
+  // and a list that could never move would make the CORPUS wrong on the day somebody
+  // demonstrated one of them was genuinely at risk -- the only way back to green being
+  // to leave a known-false annotation standing. A check that can only be satisfied by
+  // lying is the failure mode this project already has a name for.
+  //
+  // So the lists are the BASELINE and `reaudits` is where a departure from it is
+  // argued: id, direction, the registered wording it meets, the argument, and the
+  // commit carrying it. Absent a record, nothing moves. And a re-audit must meet the
+  // original on the original's terms -- the baseline was scored against the
+  // registration text as `git show <registered_at>:<tool>` returns it, so an appeal to
+  // a tool's CURRENT wording is an appeal to text that may have been edited since.
+  const baseline = id =>
+    (DECORATIVE_AT_1ACFEEE.includes(id) ? 'not-at-risk'
+      : UNCALLED_AT_1ACFEEE.includes(id) ? 'uncalled' : null);
+  const VALID_REAUDIT = r =>
+    !!r && typeof r.id === 'string'
+    && ['at-risk', 'not-at-risk', 'uncalled'].includes(r.to)
+    && r.from === baseline(r.id) && r.to !== r.from
+    && typeof r.registered_wording === 'string' && r.registered_wording.length > 20
+    && typeof r.at === 'string' && r.at.length >= 7
+    && typeof r.argument === 'string' && r.argument.length > 80;
+  {
+    const kind = id => R.classify((allPreds.find(p => p.id === id) || {}).at_risk);
+    const moved = new Map((M.reaudits || []).filter(VALID_REAUDIT).map(r => [r.id, r]));
+    const undocumented = id => kind(id) !== baseline(id)
+      && !(moved.has(id) && moved.get(id).to === kind(id));
+    const slipped = DECORATIVE_AT_1ACFEEE.filter(undocumented);
+    const forced = UNCALLED_AT_1ACFEEE.filter(undocumented);
+    check(`the ${DECORATIVE_AT_1ACFEEE.length} scored decorative at 1acfeee still are, or a `
+      + `\`reaudits\` entry argues otherwise (${(M.reaudits || []).length} re-audit(s) on record)`,
+      slipped.length === 0, `changed with no record: ${slipped.join(' ')}`);
+    check(`   and the ${UNCALLED_AT_1ACFEEE.length} the audit could not call are still uncalled, `
+      + 'rather than forced into whichever bucket flatters the rate',
+      forced.length === 0, `changed with no record: ${forced.join(' ')}`);
+    // Teeth on the door itself: a record that names no wording, cites no commit, argues
+    // nothing, or claims a direction the baseline never had must not open it.
+    check('   and a re-audit missing its wording, its commit, its argument or its direction '
+      + 'does not open the door',
+      [{ id: 'Q4', from: 'not-at-risk', to: 'at-risk' },
+        { id: 'Q4', from: 'not-at-risk', to: 'at-risk', registered_wording: 'x'.repeat(30) },
+        { id: 'Q4', from: 'not-at-risk', to: 'at-risk', registered_wording: 'x'.repeat(30),
+          at: '1acfeee', argument: 'too short' },
+        { id: 'Q4', from: 'uncalled', to: 'at-risk', registered_wording: 'x'.repeat(30),
+          at: '1acfeee', argument: 'y'.repeat(90) }].every(r => !VALID_REAUDIT(r))
+      && VALID_REAUDIT({ id: 'Q4', from: 'not-at-risk', to: 'at-risk',
+        registered_wording: 'x'.repeat(30), at: '1acfeee', argument: 'y'.repeat(90) }));
+    check('   and every re-audit actually on record is well-formed and matches the '
+      + 'prediction it names',
+      (M.reaudits || []).every(r => VALID_REAUDIT(r) && kind(r.id) === r.to),
+      (M.reaudits || []).filter(r => !VALID_REAUDIT(r)).map(r => r.id).join(' '));
+    // The six the audit would concede are named where a reader meets them, so nobody
+    // has to re-derive which judgements are softest.
+    const CONTESTABLE = ['Q4', 'R5', 'G1', 'AJ4', 'AE2', 'AL2'];
+    check(`   and the ${CONTESTABLE.length} the audit called contestable say so on their own `
+      + 'entries, not only in the finding',
+      CONTESTABLE.every(id => /CONTESTABLE:/
+        .test((allPreds.find(p => p.id === id) || {}).at_risk || '')),
+      CONTESTABLE.filter(id => !/CONTESTABLE:/
+        .test((allPreds.find(p => p.id === id) || {}).at_risk || '')).join(' '));
+  }
+
+  // The annotation belongs to the REGISTRATION, which is why this reads the tool
+  // rather than the manifest: a set that only fills in `at_risk` at results time is
+  // grading itself. Note honestly what this reads -- the tool AS IT STANDS. The
+  // registered block is what `git show <registered_at>:<tool>` returns, which is what
+  // the decoration audit read and what any re-audit must read; a line edited in later
+  // is visible in that history rather than invisible to it, but it is not this check
+  // that would notice. (The same is true of the completeness check in section 2, which
+  // reads current tools for the prediction ids themselves. Moving both to the
+  // registration commit is one coherent change and not a patch for this one.)
+  //
+  // The rule cannot be applied backwards -- a commit that is already history cannot
+  // grow an AT RISK line -- so it binds from `AQ`, the first set that wrote them, and
+  // everything appended after it is bound automatically. Position in the manifest
+  // rather than a literal list of the forty-two grandfathered sets: T-STALE-CONSTANT is
+  // the most-recurring defect in this repository.
+  const CONVENTION_STARTS_AT = 'AQ';
+  {
+    const at = M.prediction_sets.findIndex(s => s.id === CONVENTION_STARTS_AT);
+    const bound = at === -1 ? [] : M.prediction_sets.slice(at);
+    const offenders = [];
+    const empty = [];
+    for (const s of bound) {
+      const file = path.join(ROOT, s.tool);
+      if (!fs.existsSync(file)) { offenders.push(`${s.id}: no ${s.tool}`); continue; }
+      const lines = R.registrationRisk(fs.readFileSync(file, 'utf8'), s.tool.endsWith('.py'));
+      if (!lines) { offenders.push(`${s.id}: no PREDICTED OUTCOMES block`); continue; }
+      const silent = s.predictions.filter(p => typeof lines[p.id] !== 'string');
+      if (silent.length) offenders.push(`${s.id}: ${silent.map(p => p.id).join(' ')}`);
+      const hollow = s.predictions.filter(p => typeof lines[p.id] === 'string'
+        && R.vacuous(lines[p.id]));
+      if (hollow.length) empty.push(`${s.id}: ${hollow.map(p => p.id).join(' ')}`);
+    }
+    check(`every set from \`${CONVENTION_STARTS_AT}\` on registers an AT RISK line per prediction `
+      + `(${bound.length} set(s) bound)`,
+      bound.length > 0 && offenders.length === 0, `no AT RISK line for: ${offenders.join('; ')}`);
+    // A FLOOR, AND SAID TO BE ONLY A FLOOR. Nothing here can tell whether an annotation
+    // is true, or even whether it names the right observation -- only that it names
+    // something. The way this antibody fails is by the line decaying into the words
+    // "genuinely at risk" as prose: green check, disciplined-looking corpus, nothing at
+    // risk. That is the form a reader has to catch, and the standard for a reader is
+    // what `AR1` actually wrote -- "it comes out the other way if ONE leaf count
+    // anywhere in [2, 8192] has a factorisation that leaves the constant optimiser
+    // worse stranded than N = 11 did", with the hand evidence beside it.
+    check('   and the line names something rather than restating the label — a floor '
+      + 'only: this cannot check that an annotation is TRUE',
+      empty.length === 0, `says nothing: ${empty.join('; ')}`);
+    check('   and both halves of that would be caught, on a real registered line and a '
+      + 'hollow one',
+      (() => {
+        const block = [' * PREDICTED OUTCOMES', ' *', ' *   ZZ1  a claim.',
+          ' *        AT RISK: this comes out the other way if ONE leaf count anywhere in',
+          ' *        [2, 8192] has a factorisation that leaves the constant optimiser',
+          ' *        worse stranded than N = 11 did.',
+          ' *        CANNOT SHOW: this bounds the improvement.', ' *',
+          ' *   ZZ2  a second claim, with nothing that could refute it.', ' *',
+          ' *   ZZ3  a third, with a line that says nothing.',
+          ' *        AT RISK: genuinely at risk.', ' */'].join('\n');
+        const seen2 = R.registrationRisk(block);
+        return seen2 && typeof seen2.ZZ1 === 'string' && !R.vacuous(seen2.ZZ1)
+          && !/CANNOT SHOW/.test(seen2.ZZ1)
+          && seen2.ZZ2 === null
+          && typeof seen2.ZZ3 === 'string' && R.vacuous(seen2.ZZ3);
+      })());
+  }
+
+  // WHY THIS IS A FLAG AND NOT A LAW, and the reason is written down because someone
+  // will otherwise tighten it. Zero of the 33 failures are marked as never having been
+  // at risk, and that is real evidence the scoring rule tracks something -- but it is a
+  // property that currently holds, not one that cannot stop. A derivable prediction
+  // fails whenever the registrant derives it WRONGLY: `AK1`'s registration typed a
+  // group order at 25 digits where the true value has 28, and it survived only because
+  // the claim named the group rather than the numeral. A check that made the
+  // combination illegal would, on the day it fired, be telling someone their honest
+  // annotation is forbidden, and the cheapest way out would be to relabel the
+  // prediction as at-risk -- which is exactly the corruption this field exists to
+  // prevent. So the combination is legal and must carry its explanation.
+  {
+    const t = R.tally(allPreds);
+    const unexplained = t.failedNotAtRisk
+      .map(id => allPreds.find(p => p.id === id))
+      .filter(p => !(p.note && p.note.length > 40));
+    check(`${t.failedNotAtRisk.length} of ${t.failed} failures are marked as never at risk, and any `
+      + 'such prediction explains which premise was wrong',
+      unexplained.length === 0, `unexplained: ${unexplained.map(p => p.id).join(' ')}`);
+
+    // `basis` looks as though it should have caught the decoration and does not. The
+    // two axes are independent in BOTH directions, and that is asserted structurally
+    // rather than as a pair of counts, because the counts move as the corpus grows.
+    const proven = allPreds.filter(p => p.basis === 'proven');
+    check('`basis` and `at_risk` are independent axes, and neither may be derived from '
+      + 'the other',
+      proven.some(p => R.classify(p.at_risk) === 'at-risk')
+      && proven.some(p => R.classify(p.at_risk) === 'not-at-risk')
+      && marked.some(p => p.basis === 'measured'),
+      'one direction of the independence has collapsed');
+
+    check(`published ${t.failed} of ${t.total} = ${t.rateRaw}%; corrected ${t.failedAtRisk} of `
+      + `${t.atRisk} at risk = ${t.rateCorrected}%, and the raw counts are not lowered`,
+      t.atRisk + t.notAtRisk + t.uncalled === t.total
+      && t.total === allPreds.length && t.rateCorrected > t.rateRaw);
+    check('   and the audit that produced those numbers is in the manifest, not only in a '
+      + 'commit message',
+      M.unregistered_findings.some(f => f.id === 'F-REGISTRATION-IS-NOT-RISK'));
+  }
+
+  // The PUBLISHED table is a claim about a COMMIT, so it is checked against that
+  // commit rather than against whatever this file happens to have typed. Both triples
+  // are parsed back out of the finding's own prose and recomputed from
+  // `git show 1acfeee:FINDINGS.json` plus the two frozen lists -- which also proves
+  // every scored id existed there and that all 32 of them HELD, the fact the whole
+  // rule rests on. Not lowering the raw counts is only meaningful if the raw counts
+  // are still checkable.
+  {
+    const F = M.unregistered_findings.find(f => f.id === 'F-REGISTRATION-IS-NOT-RISK');
+    const pub = /PUBLISHED: (\d+) registered, (\d+) held, (\d+) failed, a ([\d.]+)%/
+      .exec(F ? F.claim : '');
+    const cor = /CORRECTED[^:]*: (\d+) registered, (\d+) held, (\d+) failed, ([\d.]+)%/
+      .exec(F ? F.claim : '');
+    let then = null, why = '';
+    try {
+      const raw = execFileSync('git', ['show', '1acfeee:FINDINGS.json'],
+        { cwd: ROOT, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+      then = JSON.parse(raw).prediction_sets.flatMap(s => s.predictions);
+    } catch (e) { why = e.message.split('\n')[0]; }
+    if (!then) {
+      check('the audit commit is reachable, so its published table can be recomputed',
+        false, why);
+    } else {
+      const scored = [...DECORATIVE_AT_1ACFEEE, ...UNCALLED_AT_1ACFEEE];
+      const thenById = new Map(then.map(p => [p.id, p]));
+      const absent = scored.filter(id => !thenById.has(id));
+      const notHeld = scored.filter(id => (thenById.get(id) || {}).outcome !== 'HELD');
+      check(`all ${scored.length} scored ids existed at 1acfeee and every one of them HELD `
+        + '— a fact that was never at risk cannot fail',
+        absent.length === 0 && notHeld.length === 0,
+        `absent: ${absent.join(' ')}  not held: ${notHeld.join(' ')}`);
+      const held = then.filter(p => p.outcome === 'HELD').length;
+      const failed = then.filter(p => p.outcome === 'FAILED').length;
+      const atRisk = then.length - scored.length;
+      const pct = (a, b) => Math.round((a / b) * 1000) / 10;
+      check(`the published table is what 1acfeee actually held: ${then.length} registered, `
+        + `${held} held, ${failed} failed, ${pct(failed, then.length)}%`,
+        pub !== null && Number(pub[1]) === then.length && Number(pub[2]) === held
+        && Number(pub[3]) === failed && Number(pub[4]) === pct(failed, then.length),
+        pub ? pub.slice(1).join(' ') : 'the finding states no published table');
+      check(`   and the corrected one follows from the frozen lists: ${atRisk} at risk, `
+        + `${atRisk - failed} held, ${failed} failed, ${pct(failed, atRisk)}%`,
+        cor !== null && Number(cor[1]) === atRisk && Number(cor[2]) === atRisk - failed
+        && Number(cor[3]) === failed && Number(cor[4]) === pct(failed, atRisk),
+        cor ? cor.slice(1).join(' ') : 'the finding states no corrected table');
+    }
+  }
 }
 
 console.log('\n' + '='.repeat(64));
