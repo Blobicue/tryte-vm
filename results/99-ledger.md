@@ -1913,7 +1913,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/branching-audit.js` |
 | asserted in | `test/test-branching.js` |
 | registered | `b21c19c` |
-| results | `PENDING` |
+| results | `4a110ce` |
 
 ### `AQ1` — FAILED
 

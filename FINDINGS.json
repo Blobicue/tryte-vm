@@ -3646,7 +3646,7 @@
       "subject": "How wide should an authenticated tree be, and does a power of three ever beat a power of two? A cost model over every integer branching factor from 2 to 1024, 45 leaf counts, and a bytes-per-verify-operation exchange rate swept across eight decades",
       "tool": "tools/branching-audit.js",
       "registered_at": "b21c19c",
-      "results_at": "PENDING",
+      "results_at": "4a110ce",
       "asserted_in": "test/test-branching.js",
       "predictions": [
         {
