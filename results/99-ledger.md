@@ -1989,6 +1989,8 @@ branch rather than merely present in a local object store.
 
 **Claim.** binary is never optimal for a vector commitment, the optimum never descends past three, and across the swept leaf counts THREE is the large-gamma optimum more often than four
 
+**At risk.** the first half leans on a continuous argument and this set exists because ceilings break those. depth(N, 2) can fall well below the smooth law at particular N, and one cell with argmin 2 refutes it. The second half -- which of 3 and 4 wins more leaf counts -- I cannot call at all.
+
 **Measured.** cells: 2880; cells_with_argmin_two: 0; narrowest_optimum: 3; widest_optimum: 1024; distinct_optima: 61; cells_where_optimum_widens_as_verify_dearer: 0; leaf_counts_preferring_three_at_the_limit: 21; leaf_counts_preferring_four_at_the_limit: 21
 
 **Note.** Failed on its last clause, and that clause was the whole point. The first three parts held exactly: no cell in 2,880 has argmin 2, the optimum never goes below 3, and it never widens as verifying gets dearer. But three does not beat four at the verify-dominated limit -- it TIES, 21 leaf counts each. Chasing the tie produced F-TREE-BRANCHES-IN-ITS-OWN-BASE, which is a better answer than the one predicted: 3^k leaf counts want three and 2^k leaf counts want four, so the tie was a property of how many of each shape this sweep contains rather than of trees. T-CLAIM-NARROWED-BY-A-DESIGN, fourth bite. NARROWED AFTERWARDS, AND STATED HERE SO A READER OF AQ ALONE IS NOT MISLED: AR4 lifted the constant-arity constraint every tree in this sweep was built under, and F-TREE-BRANCHES-IN-ITS-OWN-BASE turned out to be a property of CONSTANT trees rather than of trees. 25 of these 45 leaf counts change shape once radix sequences are admitted, 11 of the 18 powers of three among them, and N = 729 wants [4,4,4,4,3] rather than six threes -- for 0.0178% of the total cost, a surface flat to four decimal places. AR's evidence for that is FREQUENCY and not magnitude: its null over 100 redraws has a tail reaching 23.7%, ABOVE the subject's own worst cell, so a structureless per-level cost can produce a larger maximum than the real regime does, while the frequency of improvement separates a hundredfold. T-CLAIM-NARROWED-BY-A-DESIGN, fifth bite, and the second time the class has bitten this same sentence.
@@ -1996,6 +1998,8 @@ branch rather than merely present in a local object store.
 ### `AQ2` — FAILED
 
 **Claim.** counting cells whose cost-minimising branching factor is a power of three against those where it is a power of two, three takes strictly more, despite ten powers of two being in range against six of three
+
+**At risk.** entirely, and the arithmetic starts against it. Ten powers of two sit in 2..1024 and only six powers of three, so the geometry has to overcome a handicap of almost two to one.
 
 **Measured.** cells_won_by_a_power_of_two: 1044; cells_won_by_a_power_of_three: 821; powers_of_two_in_range: 10; powers_of_three_in_range: 6; cells_per_power_of_two: 104; cells_per_power_of_three: 137
 
@@ -2005,6 +2009,8 @@ branch rather than merely present in a local object store.
 
 **Claim.** unit invariance FAILS: recomputing every cost in whole trytes rather than whole bytes moves at least one argmin, because a proof travels in whole units and that rounding is a ceiling a bare scale factor is not
 
+**At risk.** AT RISK, and deliberately against the obvious answer: a unit is a scale factor and a scale factor cannot move an argmin. The escape is that a proof travels in whole units, so rounding each term up reintroduces a ceiling, and near-ties between adjacent arities are common enough that one should flip. If this fails, the unit is free and that is worth knowing too.
+
 **Measured.** argmins_moved: 8; cells: 2880; fraction: 0.0028; argmins_moved_under_the_registered_conversion: 103
 
 **Note.** Held, registered deliberately against the obvious answer that a scale factor cannot move an argmin. Eight cells of 2,880 flip, all of them near-ties between adjacent arities, exactly as the argument said they would. It held for the right reason on an effect thirteen times smaller than the instrument first reported: the registered conversion divided a COUNT OF OPERATIONS by bytes-per-tryte and rounded it, a category error twice over, and showed 103. Caught before scoring because a 19% unit change cannot honestly move an optimum from three to six. T-INSTRUMENT-FALSE-VERDICT, eighteenth bite. The wrong conversion is kept in the tool and both numbers are pinned, so the fix cannot silently regress.
@@ -2012,6 +2018,8 @@ branch rather than merely present in a local object store.
 ### `AQ4` — FAILED
 
 **Claim.** at every cell where either arity is within 15% of that cell's optimum, the totals at branching factor 64 and 256 differ by no more than 15%
+
+**At risk.** this is the question that was actually asked, and 15% is a number picked before looking -- wide enough to be interesting, narrow enough to fail. ------------------------------------------------------------------------------ node tools/branching-audit.js
 
 **Measured.** cells_where_either_is_near_optimal: 909; cells_exceeding_the_fifteen_percent_band: 571; worst_spread_percent: 148.8; of_those_at_different_depths: 426; of_those_at_the_same_depth: 145
 
@@ -2033,7 +2041,7 @@ branch rather than merely present in a local object store.
 
 **Claim.** letting the arity vary is worth less than a sixth: at every cell of both vector-regime sweeps the best radix sequence costs at least 85% of the best constant arity's cost
 
-**At risk.** It comes out the other way if ONE leaf count anywhere in [2, 8192] leaves the constant optimiser worse stranded than N = 11 did. Five leaf counts worked on paper give 1.5%, 4.0%, 4.2%, 7.1% and 9.99%, the last found by deliberately hunting a bad case; five of 8,236 is not a sample to extrapolate from, and a single cell past the line refutes it.
+**At risk.** this comes out the other way if ONE leaf count anywhere in [2, 8192] has a factorisation that leaves the constant optimiser worse stranded than N = 11 did. Five leaf counts worked on paper give 1.5%, 4.0%, 4.2%, 7.1% and 9.99%, the last found by deliberately hunting a bad case, so the line stands about 50% above the worst thing five attempts could find and is refuted by a single cell past it. Five of 8,236 leaf counts is not a sample I can extrapolate from; the corners those five did not visit are the bytes-dominated rates and the very small counts.
 
 **Measured.** grid_cells: 2880; contiguous_cells: 65528; worst_gain_grid_percent: 9.99; worst_gain_grid_at_leaf_count: 128; worst_gain_contiguous_percent: 12.3; worst_gain_contiguous_at_leaf_count: 257; median_gain_deep_window_percent: 3.15; mean_gain_deep_window_percent: 2.87; null_max_gain_percent: 23.7
 
@@ -2043,7 +2051,7 @@ branch rather than merely present in a local object store.
 
 **Claim.** the staircase flattens by more than half: over the deep contiguous window at the verify-dominated rate, the largest single-leaf relative cost jump is less than half as large when arity may vary as when it may not
 
-**At risk.** It comes out the other way if the varying tree has a single bad step anywhere the constant tree happens to be smooth, because both sides are maxima over 7,167 consecutive pairs and need not occur at the same leaf count. Only one pair was worked on paper.
+**At risk.** this comes out the other way if the varying tree has a single bad step anywhere the constant tree happens to be smooth, because both sides are MAXIMA over 7,167 consecutive pairs and they need not occur at the same leaf count. I have one pair on paper, N = 1,024 -> 1,025, where the constant jump is 11.97% and the varying jump 4.00%; where either maximum actually sits is not something arithmetic hands me, and if the varying maximum sits somewhere other than 1,025 the ratio can be anything.
 
 **Measured.** window_low: 1024; window_high: 8192; leaf_counts: 7169; max_jump_constant_percent: 11.97; max_jump_varying_percent: 4; ratio: 0.334; both_maxima_at_leaf_count: 1024
 
@@ -2053,7 +2061,7 @@ branch rather than merely present in a local object store.
 
 **Claim.** variation helps most leaf counts, not a few: over the deep contiguous window at the verify-dominated rate, more than half of the leaf counts have a strictly cheaper varying optimum
 
-**At risk.** It comes out the other way if the constant optimiser's freedom to pick its own depth is worth as much as the sequence's freedom to pick its own widths, which cannot be settled short of running it. The evidence against was my own: four of the six leaf counts I worked by hand were NOT helped.
+**At risk.** AT RISK, AND THIS IS THE ONE I CANNOT CALL: it comes out the other way if the constant optimiser's freedom to pick its own depth is worth as much as the sequence's freedom to pick its own widths, and I have no way to settle that short of running it. The reasoning FOR is that a constant tree must round every level up together while a sequence rounds only a minority of them, so equality needs the rounding remainder to land on 0 or on d, roughly a 2/(d+1) coincidence. The evidence AGAINST is my own: of six leaf counts I worked by hand, four were NOT helped. I am registering the reasoning against my own sample, which is the choice that can embarrass me, and if the sample is right rather than the reasoning then the flexibility is a rarity rather than a rule and `AR1`'s bound describes a corner case.
 
 **Measured.** leaf_counts: 7169; helped: 6144; helped_percent: 85.7; unhelped: 1025; optima_that_are_a_constant_arity: 1025; null_helped_percent: 0.83
 
@@ -2063,7 +2071,7 @@ branch rather than merely present in a local object store.
 
 **Claim.** the optimal tree gets deeper more often than shallower: over the deep contiguous window at the verify-dominated rate, leaf counts whose varying optimum is strictly deeper than their constant optimum outnumber those whose varying optimum is strictly shallower
 
-**At risk.** It comes out the other way if the per-level bytes charge outweighs the per-level rounding slack, and a worked case already said it does -- at N = 10^8 the hand arithmetic puts the varying optimum three levels SHALLOWER. Both declared tie-breaks also push against it.
+**At risk.** it comes out the other way if the per-level bytes charge O outweighs the per-level rounding slack, and I have a worked case where it does -- at N = 10^8 the hand arithmetic puts the varying optimum THREE levels SHALLOWER than the constant one, which is the direction opposite to the one registered. Both declared tie-breaks also push against it: the constant baseline breaks ties toward the smaller arity and so toward the deeper tree, and the sequence breaks ties toward the smaller depth and so toward the shallower one. The reasoning FOR is only that the slack a sequence exploits is per-level, so there is more of it where there are more levels.
 
 **Measured.** leaf_counts: 7169; deeper: 2176; shallower: 3580; same_depth: 1413; ratio_shallower_to_deeper: 1.65; verify_budget_identical: 2861; verify_budget_smaller: 4308; verify_budget_larger: 0; shallower_at_identical_verify_budget: 1836
 

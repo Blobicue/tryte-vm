@@ -692,6 +692,36 @@ console.log('\n=== 8. AT RISK: COULD THE RUN HAVE REFUTED IT AT ALL? ===');
     check('   and the line names something rather than restating the label — a floor '
       + 'only: this cannot check that an annotation is TRUE',
       empty.length === 0, `says nothing: ${empty.join('; ')}`);
+    // AND THE MANIFEST MUST NOT PARAPHRASE THE REGISTRATION. The floor above guards
+    // the line in the TOOL, which is the copy that sits in the registration commit and
+    // cannot be back-filled. But the manifest carries its own `at_risk`, and that is
+    // the copy the ledger renders and the published page shows -- so until this check
+    // existed, a reader could be shown an annotation nobody ever registered.
+    //
+    // It was not hypothetical. `AQ`'s four manifest entries carried the bare label and
+    // no reason at all while its tool held 281, 175, 362 and 253 characters of one;
+    // `AR`'s were abridged paraphrases of lines up to 805 characters. A fabricated
+    // annotation -- "it comes out the other way if the moon is made of cheese" --
+    // passed all 125 checks.
+    //
+    // This repository's answer to a second copy of the truth is always the same: keep
+    // it if it is useful, and make the suite fail when it drifts. The manifest keeps
+    // its copy because renderers want a self-contained record; the copy is now the
+    // registered line, byte for byte after whitespace normalisation.
+    const drift = [];
+    for (const s of bound) {
+      const file = path.join(ROOT, s.tool);
+      if (!fs.existsSync(file)) continue;
+      const lines = R.registrationRisk(fs.readFileSync(file, 'utf8'), s.tool.endsWith('.py'));
+      if (!lines) continue;
+      for (const p of s.predictions) {
+        const flat = t => String(t || '').replace(/^AT RISK:\s*/i, '').replace(/\s+/g, ' ').trim();
+        if (flat(p.at_risk) !== flat(lines[p.id])) drift.push(p.id);
+      }
+    }
+    check('   and the manifest quotes the registered line rather than paraphrasing it',
+      drift.length === 0, `manifest and registration differ for: ${drift.join(' ')}`);
+
     check('   and both halves of that would be caught, on a real registered line and a '
       + 'hollow one',
       (() => {

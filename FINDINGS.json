@@ -3838,7 +3838,7 @@
           "claim": "binary is never optimal for a vector commitment, the optimum never descends past three, and across the swept leaf counts THREE is the large-gamma optimum more often than four",
           "outcome": "FAILED",
           "basis": "measured",
-          "at_risk": "AT RISK",
+          "at_risk": "AT RISK: the first half leans on a continuous argument and this set exists because ceilings break those. depth(N, 2) can fall well below the smooth law at particular N, and one cell with argmin 2 refutes it. The second half -- which of 3 and 4 wins more leaf counts -- I cannot call at all.",
           "measured": {
             "cells": 2880,
             "cells_with_argmin_two": 0,
@@ -3856,7 +3856,7 @@
           "claim": "counting cells whose cost-minimising branching factor is a power of three against those where it is a power of two, three takes strictly more, despite ten powers of two being in range against six of three",
           "outcome": "FAILED",
           "basis": "measured",
-          "at_risk": "AT RISK",
+          "at_risk": "AT RISK: entirely, and the arithmetic starts against it. Ten powers of two sit in 2..1024 and only six powers of three, so the geometry has to overcome a handicap of almost two to one.",
           "measured": {
             "cells_won_by_a_power_of_two": 1044,
             "cells_won_by_a_power_of_three": 821,
@@ -3872,7 +3872,7 @@
           "claim": "unit invariance FAILS: recomputing every cost in whole trytes rather than whole bytes moves at least one argmin, because a proof travels in whole units and that rounding is a ceiling a bare scale factor is not",
           "outcome": "HELD",
           "basis": "measured",
-          "at_risk": "AT RISK",
+          "at_risk": "AT RISK: AT RISK, and deliberately against the obvious answer: a unit is a scale factor and a scale factor cannot move an argmin. The escape is that a proof travels in whole units, so rounding each term up reintroduces a ceiling, and near-ties between adjacent arities are common enough that one should flip. If this fails, the unit is free and that is worth knowing too.",
           "measured": {
             "argmins_moved": 8,
             "cells": 2880,
@@ -3886,7 +3886,7 @@
           "claim": "at every cell where either arity is within 15% of that cell's optimum, the totals at branching factor 64 and 256 differ by no more than 15%",
           "outcome": "FAILED",
           "basis": "measured",
-          "at_risk": "AT RISK",
+          "at_risk": "AT RISK: this is the question that was actually asked, and 15% is a number picked before looking -- wide enough to be interesting, narrow enough to fail. ------------------------------------------------------------------------------ node tools/branching-audit.js",
           "measured": {
             "cells_where_either_is_near_optimal": 909,
             "cells_exceeding_the_fifteen_percent_band": 571,
@@ -3911,7 +3911,7 @@
           "claim": "letting the arity vary is worth less than a sixth: at every cell of both vector-regime sweeps the best radix sequence costs at least 85% of the best constant arity's cost",
           "outcome": "HELD",
           "basis": "measured",
-          "at_risk": "AT RISK: It comes out the other way if ONE leaf count anywhere in [2, 8192] leaves the constant optimiser worse stranded than N = 11 did. Five leaf counts worked on paper give 1.5%, 4.0%, 4.2%, 7.1% and 9.99%, the last found by deliberately hunting a bad case; five of 8,236 is not a sample to extrapolate from, and a single cell past the line refutes it.",
+          "at_risk": "AT RISK: this comes out the other way if ONE leaf count anywhere in [2, 8192] has a factorisation that leaves the constant optimiser worse stranded than N = 11 did. Five leaf counts worked on paper give 1.5%, 4.0%, 4.2%, 7.1% and 9.99%, the last found by deliberately hunting a bad case, so the line stands about 50% above the worst thing five attempts could find and is refuted by a single cell past it. Five of 8,236 leaf counts is not a sample I can extrapolate from; the corners those five did not visit are the bytes-dominated rates and the very small counts.",
           "measured": {
             "grid_cells": 2880,
             "contiguous_cells": 65528,
@@ -3930,7 +3930,7 @@
           "claim": "the staircase flattens by more than half: over the deep contiguous window at the verify-dominated rate, the largest single-leaf relative cost jump is less than half as large when arity may vary as when it may not",
           "outcome": "HELD",
           "basis": "measured",
-          "at_risk": "AT RISK: It comes out the other way if the varying tree has a single bad step anywhere the constant tree happens to be smooth, because both sides are maxima over 7,167 consecutive pairs and need not occur at the same leaf count. Only one pair was worked on paper.",
+          "at_risk": "AT RISK: this comes out the other way if the varying tree has a single bad step anywhere the constant tree happens to be smooth, because both sides are MAXIMA over 7,167 consecutive pairs and they need not occur at the same leaf count. I have one pair on paper, N = 1,024 -> 1,025, where the constant jump is 11.97% and the varying jump 4.00%; where either maximum actually sits is not something arithmetic hands me, and if the varying maximum sits somewhere other than 1,025 the ratio can be anything.",
           "measured": {
             "window_low": 1024,
             "window_high": 8192,
@@ -3947,7 +3947,7 @@
           "claim": "variation helps most leaf counts, not a few: over the deep contiguous window at the verify-dominated rate, more than half of the leaf counts have a strictly cheaper varying optimum",
           "outcome": "HELD",
           "basis": "measured",
-          "at_risk": "AT RISK: It comes out the other way if the constant optimiser's freedom to pick its own depth is worth as much as the sequence's freedom to pick its own widths, which cannot be settled short of running it. The evidence against was my own: four of the six leaf counts I worked by hand were NOT helped.",
+          "at_risk": "AT RISK: AT RISK, AND THIS IS THE ONE I CANNOT CALL: it comes out the other way if the constant optimiser's freedom to pick its own depth is worth as much as the sequence's freedom to pick its own widths, and I have no way to settle that short of running it. The reasoning FOR is that a constant tree must round every level up together while a sequence rounds only a minority of them, so equality needs the rounding remainder to land on 0 or on d, roughly a 2/(d+1) coincidence. The evidence AGAINST is my own: of six leaf counts I worked by hand, four were NOT helped. I am registering the reasoning against my own sample, which is the choice that can embarrass me, and if the sample is right rather than the reasoning then the flexibility is a rarity rather than a rule and `AR1`'s bound describes a corner case.",
           "measured": {
             "leaf_counts": 7169,
             "helped": 6144,
@@ -3963,7 +3963,7 @@
           "claim": "the optimal tree gets deeper more often than shallower: over the deep contiguous window at the verify-dominated rate, leaf counts whose varying optimum is strictly deeper than their constant optimum outnumber those whose varying optimum is strictly shallower",
           "outcome": "FAILED",
           "basis": "measured",
-          "at_risk": "AT RISK: It comes out the other way if the per-level bytes charge outweighs the per-level rounding slack, and a worked case already said it does -- at N = 10^8 the hand arithmetic puts the varying optimum three levels SHALLOWER. Both declared tie-breaks also push against it.",
+          "at_risk": "AT RISK: it comes out the other way if the per-level bytes charge O outweighs the per-level rounding slack, and I have a worked case where it does -- at N = 10^8 the hand arithmetic puts the varying optimum THREE levels SHALLOWER than the constant one, which is the direction opposite to the one registered. Both declared tie-breaks also push against it: the constant baseline breaks ties toward the smaller arity and so toward the deeper tree, and the sequence breaks ties toward the smaller depth and so toward the shallower one. The reasoning FOR is only that the slack a sequence exploits is per-level, so there is more of it where there are more levels.",
           "measured": {
             "leaf_counts": 7169,
             "deeper": 2176,
