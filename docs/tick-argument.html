@@ -395,7 +395,7 @@
     <span><!--g:art-held--><b>156</b><!--/g--> held</span>
     <span><!--g:art-failed--><b>33</b><!--/g--> failed</span>
     <span><!--g:art-at-risk--><b>157</b><!--/g--> at risk</span>
-    <span><b><!--g:checks-->1,908<!--/g--></b> checks passing</span>
+    <span><b><!--g:checks-->1,914<!--/g--></b> checks passing</span>
     <span><b><!--g:suites-->56<!--/g--></b> suites</span>
   </div>
 </header>
@@ -1356,7 +1356,7 @@
       </div>
       <p class="paper" data-work></p>
       <div class="ctl" style="margin:14px 0 0">
-        <button class="key" data-all>try all 21,840 compensating edits</button>
+        <button class="key" data-all>try every compensating edit</button>
         <span class="val" data-allv></span>
       </div>
       <div class="pinrow">
@@ -2187,7 +2187,9 @@
      question a ledger actually faces is not whether it can be reversed. It is
      whether the head can be forged, and the cheapest forgery there is mints d to
      one account and burns d from another, leaving the total untouched.
-     Checked against tools/ledger-audit.js over the same 21,840 edits.
+     Checked against tools/ledger-audit.js. The sweep below counts DISTINCT edits:
+     swapping which entry gains and which loses, with the sign of d, is the same
+     forgery, and the published figures counted it twice until set AS said so.
      ========================================================================== */
   var LEDGER = [12, -40, 7, 155, -3, 88];
   function idx(v) { return v + 364; }
@@ -2247,8 +2249,7 @@
       var btn = ev.currentTarget; btn.disabled = true; vAll.textContent = 'sweeping…';
       setTimeout(function () {
         var s0 = headSum(LEDGER), h0 = headHash(LEDGER), tried = 0, sOK = 0, hOK = 0, a, b, dd, f;
-        for (a = 0; a < 6; a++) for (b = 0; b < 6; b++) {
-          if (a === b) continue;
+        for (a = 0; a < 6; a++) for (b = a + 1; b < 6; b++) {
           for (dd = -364; dd <= 364; dd++) {
             if (dd === 0) continue;
             f = LEDGER.slice(); f[a] = ledgerWrap(f[a] + dd); f[b] = ledgerWrap(f[b] - dd);
@@ -2257,7 +2258,7 @@
             if (headHash(f) === h0) hOK++;
           }
         }
-        vAll.innerHTML = '<span class="miss">summed accepts ' + comma(sOK) + ' of ' + comma(tried) + '</span>'
+        vAll.innerHTML = '<span class="miss">summed accepts ' + comma(sOK) + ' of ' + comma(tried) + ' distinct</span>'
           + '<span class="lbl">, every one. </span>'
           + '<span class="hit">hashed accepts ' + hOK + '</span>'
           + '<span class="lbl">, against a chance rate of ' + fmt(tried / N) + '.</span>';

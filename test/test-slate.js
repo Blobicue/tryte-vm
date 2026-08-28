@@ -216,9 +216,13 @@ check('   and the summed head is still UNCHANGED, which is the whole point',
 fIn['data-all'].fire('click');
 const swept = fIn['data-allv'].innerHTML;
 check('the full sweep runs in the page and reproduces the audit exactly',
-  swept.includes('21,840 of 21,840') && swept.includes('hashed accepts 26'), swept);
-check('   and quotes the chance rate rather than leaving 26 unanchored',
-  swept.includes('30.0'));
+  swept.includes('10,920 of 10,920') && swept.includes('hashed accepts 13'), swept);
+check('   and quotes the chance rate rather than leaving 13 unanchored',
+  swept.includes('15.0'));
+// The page counted each forgery twice until set AS caught it, and so did this check.
+// The doubled figures must not come back through either.
+check('   and neither the doubled count nor the doubled accepts survives in the page',
+  !swept.includes('21,840') && !swept.includes('accepts 26'), swept);
 
 fIn['data-pin'].fire('click');
 check('pinning reaches the notes panel', notesCount.textContent === '1');

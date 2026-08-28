@@ -6,7 +6,7 @@
  * at risk is what `N-arithmetic-is-not-prediction` names as the way this discipline
  * turns into decoration.
  *
- *   `F-FINDABILITY-NOT-COUNT`     the summed head accepts all 21,840 compensating
+ *   `F-FINDABILITY-NOT-COUNT`     the summed head accepts all 10,920 distinct compensating
  *                                 edits and the mixer accepts 26, against 29.96
  *   `F-MIXER-HEAD-IS-NOT-FLAT`    N^(L-1) is an IDEAL hash's preimage count, and the
  *                                 concrete chain runs 629..851 rather than a flat 729
@@ -67,7 +67,27 @@ check('the head moves for SOME edit, so neither accumulator is constant',
 console.log('\n=== 1. F-FINDABILITY-NOT-COUNT — THE COMPENSATING PAIR ===');
 
 const comp = A.sweepCompensating();
-check('6 x 5 ordered pairs x 728 non-zero deltas = 21,840 forgeries', comp.tried === 21840);
+check('6 x 5 ordered pairs x 728 non-zero deltas = 21,840 ORDERED tries', comp.tried === 21840);
+// Each forgery appears twice in that enumeration, and the published counts were twice
+// the truth until set AS said so. The identity is checked rather than asserted.
+check('   which are 10,920 DISTINCT forgeries, because +d at i and -d at j is one edit',
+  comp.distinct === 10920 && comp.distinct * 2 === comp.tried, String(comp.distinct));
+check('   and forge(i, j, d) really is forge(j, i, -d), at every position and sign',
+  (() => {
+    for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) {
+      if (i === j) continue;
+      for (const d of [1, -1, 7, 200, -364, 363]) {
+        if (forge(LEDGER, i, j, d).join() !== forge(LEDGER, j, i, -d).join()) return false;
+      }
+    }
+    return true;
+  })());
+check('   so the sum accepts 10,920 of 10,920 and the mixer 13, against a chance of 14.979',
+  comp.sumDistinct === 10920 && comp.hashDistinct === 13
+  && Math.abs(comp.chanceDistinct - 14.979) < 1e-3,
+  `${comp.sumDistinct}/${comp.hashDistinct}/${comp.chanceDistinct}`);
+check('   and every ratio survives the correction, which is why the conclusion did',
+  comp.hash / comp.tried === comp.hashDistinct / comp.distinct);
 check('the summed head accepts every single one of them', comp.sum === 21840,
   `accepted ${comp.sum}`);
 check('   which is what "one linear equation" means, not a search', comp.sum / comp.tried === 1);
@@ -140,6 +160,9 @@ check('the flatness claim quotes the numbers this run produced',
   c2.includes('531,441') && c2.includes('629') && c2.includes('851') && c2.includes('729'));
 const note = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'docs', 'slate-notes.json'), 'utf8'))
   .notes.find(n => n.id === 'N-findability-not-count');
+check('the finding is narrowed in its own entry, not only in the one that corrected it',
+  (F('F-FINDABILITY-NOT-COUNT') || {}).scope !== undefined
+  && ((F('F-FINDABILITY-NOT-COUNT') || {}).scope || '').includes('10,920'));
 check('the slate note walks back to both findings rather than asserting alone',
   !!note && note.links.includes('F-FINDABILITY-NOT-COUNT')
   && note.links.includes('F-MIXER-HEAD-IS-NOT-FLAT'));
@@ -225,8 +248,16 @@ if (!fs.existsSync(PAGE)) {
         embed[1].indexOf('<') < 0);
     }
   }
-  check('bench 08 quotes 21,840 on its own button, and the sweep produced 21,840',
-    page.includes('21,840 compensating edits') && comp.tried === 21840);
+  // The page used to name the ordered figure on its button. It now sweeps DISTINCT
+  // edits, like the tool, and says so -- a published page teaching a doubled number to
+  // every reader is the worst place for this defect to have survived.
+  const prose = page.split('<script type="application/json" id="slate-data">')[0]
+    + page.split('<\/script>').slice(-2).join('');
+  check('bench 08 sweeps distinct edits and no longer quotes the doubled count',
+    !prose.includes('21,840 compensating edits')
+    && page.includes('try every compensating edit')
+    && page.includes(' distinct'),
+    prose.includes('21,840 compensating edits') ? 'still in the page prose' : 'button or label missing');
 }
 
 console.log(`\n${'='.repeat(64)}`);

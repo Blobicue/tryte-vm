@@ -26,7 +26,12 @@
  *
  * SCOPE, because scope has decided four verdicts in this corpus already. The sweep
  * ranges over ORDERED pairs of DISTINCT entries and non-zero deltas -- 6 x 5 x 728 =
- * 21,840 forgeries of one fixed six-entry ledger. It is a census of that ledger's
+ * 21,840 ORDERED forgeries of one fixed six-entry ledger -- which are 10,920 DISTINCT
+ * ones, because `forge(E, i, j, d)` and `forge(E, j, i, -d)` are the same edit written
+ * twice, and this sweep enumerated both. Every ratio here survives that, since the
+ * chance rate was double-counted identically, but the COUNTS published from it were
+ * inflated twofold until set `AS` caught it. Both are reported below now, and the
+ * distinct figure is the one a forger would recognise. It is a census of that ledger's
  * neighbourhood, not of ledger space, and the single-entry control below is what
  * says the compensating structure is doing the work rather than the arithmetic.
  *
@@ -93,6 +98,10 @@ function sweepCompensating(entries = LEDGER) {
   const s0 = headSum(entries), h0 = headHash(entries);
   const L = entries.length;
   let tried = 0, sum = 0, hash = 0;
+  // Ordered pairs enumerate each forgery twice; `i < j` counts it once. Both are kept
+  // because the published record quotes the ordered figures and a correction that
+  // silently replaces a number is worse than the number.
+  let distinct = 0, sumD = 0, hashD = 0;
   for (let i = 0; i < L; i++) {
     for (let j = 0; j < L; j++) {
       if (i === j) continue;
@@ -100,12 +109,17 @@ function sweepCompensating(entries = LEDGER) {
         if (d === 0) continue;
         const f = forge(entries, i, j, d);
         tried++;
-        if (headSum(f) === s0) sum++;
-        if (headHash(f) === h0) hash++;
+        const okS = headSum(f) === s0, okH = headHash(f) === h0;
+        if (okS) sum++;
+        if (okH) hash++;
+        if (i < j) { distinct++; if (okS) sumD++; if (okH) hashD++; }
       }
     }
   }
-  return { tried, sum, hash, chance: tried / N, s0, h0 };
+  return {
+    tried, sum, hash, chance: tried / N, s0, h0,
+    distinct, sumDistinct: sumD, hashDistinct: hashD, chanceDistinct: distinct / N,
+  };
 }
 
 /**
@@ -158,6 +172,10 @@ function report() {
 
   const pct = (n, d) => `${(100 * n / d).toFixed(2)}%`;
   log('  compensating pairs (+d here, -d there, total unchanged)');
+  log(`    DISTINCT forgeries ${comp.distinct.toLocaleString('en-US')}   `
+    + `(the sweep enumerates ${comp.tried.toLocaleString('en-US')} ordered tries, each edit twice)`);
+  log(`    summed accepts     ${comp.sumDistinct.toLocaleString('en-US')}, hashed accepts `
+    + `${comp.hashDistinct}, against a chance of ${comp.chanceDistinct.toFixed(3)}`);
   log(`    forgeries tried   ${comp.tried.toLocaleString('en-US')}`);
   log(`    summed accepts    ${comp.sum.toLocaleString('en-US')}  ${pct(comp.sum, comp.tried).padStart(7)}   every single one`);
   log(`    hashed accepts    ${String(comp.hash).padStart(6)}  ${pct(comp.hash, comp.tried).padStart(7)}   chance is ${comp.chance.toFixed(1)}\n`);
