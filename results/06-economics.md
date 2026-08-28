@@ -965,6 +965,76 @@ so much.
 
 ---
 
+### 16. How wide the tree should be, and the answer nobody predicted
+
+A ledger that keeps every transaction has to be able to prove one of them without
+shipping all of them, and that is what an authenticated tree is for. The published
+constructions branch 256 ways at every node. The question put to this project was
+whether it has to be 256 — and whether a machine whose natural ladder is 3, 9, 27, 81,
+243, 729 ought to branch by powers of three instead.
+
+`AQ` is a **cost model**, and the distinction matters. It says nothing about whether any
+of these trees is secure, and `F-REVERSIBLE-CANNOT-DESTROY` had already settled that a
+machine made of bijections cannot destroy a secret, so a trusted-setup ceremony is not
+merely unperformed here but **inexpressible**. Every setup-requiring commitment is out
+before arity is asked at all. What is left is the ceremony-free shape: an opening whose
+size does not grow with the branching factor, and a verification that does.
+
+Three of the four predictions failed.
+
+**Binary is never optimal.** Not once in 2,880 cells. The optimum never descends past
+three and never widens as verifying gets more expensive. That part held exactly, and it
+is worth stating plainly: for a vector commitment, the binary tree that every hash-based
+construction reaches for is the one shape that is never the right answer. In the
+hash-based regime the reverse is absolute — `b = 2` wins all 2,880 cells there.
+
+**But three does not beat four. It ties, 21 leaf counts each.** Chasing that tie found
+the thing the prediction had been groping at:
+
+> A leaf count of 3^k wants branching factor three, in 15 of 18 cases. A leaf count of
+> 2^k wants four, in 13 of 19. **The tree branches in the base its address space is
+> counted in.**
+
+The 21-21 tie was a fact about how many of each shape the sweep happened to contain, not
+about trees. That is `T-CLAIM-NARROWED-BY-A-DESIGN` for the fourth time — a measured
+result stated as a property of the subject when it was a property of the design measuring
+it — and it is the fourth time this project has had a prediction fail by counting its own
+setup.
+
+The practical reading is the one that answers the original question. **If the address
+space is counted in threes, branch in threes.** A ternary machine addressing 3^k leaves
+pays nothing for a ternary tree and rounds up for a binary one. The reverse holds just as
+firmly, which is why the published 256-ary choice is not wrong — it is right *for a state
+space counted in bytes*.
+
+**And 64 is not interchangeable with 256.** 571 of the 909 cells where either is near
+optimal have them differing by more than 15%, worst case 149%. But 426 of those 571 are
+cells where the two sit at **different depths**: when 256 saves a whole level it wins by
+that level, and when it does not it pays four times the verification for nothing. The
+question as asked has no answer that does not name the leaf count.
+
+The one prediction that held was registered against the obvious answer. Recomputing every
+cost in whole **trytes** rather than whole bytes moves eight argmins — a unit is a scale
+factor and a scale factor cannot move an optimum, except that a proof travels in whole
+units, and that rounding is a ceiling. It held for exactly that reason, on an effect
+thirteen times smaller than the instrument first reported: the registered conversion
+divided a *count of operations* by bytes-per-tryte and rounded it, which is a category
+error twice over. Caught before scoring, because a 19% unit change cannot honestly move
+an optimum from three to six.
+
+The set's own control was worse than that. It gave its two cost terms the same
+pseudorandom draw, so the swept exchange rate cancelled out of it algebraically and its
+answer was constant in exactly the dimension being measured. **It could only ever agree.**
+That is a new defect class — `T-CONTROL-CANNOT-DISCRIMINATE` — and the honest remedy was a
+second control, declared post-hoc and scoring nothing, which does move: seven distinct
+optima and 131 backward steps, against the vector regime's smooth descent and zero.
+
+None of this is `bitblock` evidence and it does not try to be. That project's
+authenticated-state plan admits a Verkle candidate only after a descriptor freezes the
+scheme, arity, curve, proof sizes and setup assumptions, and says plainly that outside
+measurements are research *inputs*. This is such an input: the arity line of that
+descriptor now has a sweep behind it instead of an inherited constant.
+
 ## Owned sets
 
 | set | subject | outcome |
@@ -979,5 +1049,6 @@ so much.
 | `AN` | a purpose-built search puzzle, and whether it has the asymmetry | 3 held, `AN1` failed — and the failure found the shortcut |
 | `AO` | can an erasing machine certify a wipe, and is erasure the certificate | 3 held, `AO1` failed — on its own frozen control |
 | `AP` | a hash-only key layer, and what one-time ownership costs | all four held — and two should not have been registered |
+| `AQ` | how wide an authenticated tree should be, and whether three ever wins | 1 held, `AQ1`, `AQ2` and `AQ4` failed — and `AQ1`'s failure found the answer |
 
 Full text in [`99-ledger.md`](99-ledger.md).

@@ -54,7 +54,7 @@ const SET_ROUTES = {
   AJ: ['reversibility'], AK: ['reversibility', 'cost-model'],
   AL: ['algebra', 'learning'], AM: ['learning'], AN: ['puzzle', 'summary-statistics'],
   AO: ['erasure', 'summary-statistics'], AP: ['keys', 'ternary-vs-binary'],
-  L: ['device'],
+  L: ['device'], AQ: ['tree', 'ternary-vs-binary', 'cost-model'],
 };
 
 /** Per-entry overrides, where one prediction sits in a different subject to its set. */
@@ -72,6 +72,8 @@ const ENTRY_ROUTES = {
   'F-LAMPORT-BASE-ADVANTAGE-IS-NOT-PER-SIZE': ['keys', 'ternary-vs-binary', 'method'],
   'F-FINDABILITY-NOT-COUNT': ['ledger', 'hashing', 'summary-statistics'],
   'F-MIXER-HEAD-IS-NOT-FLAT': ['ledger', 'hashing'],
+  'F-TREE-BRANCHES-IN-ITS-OWN-BASE': ['tree', 'ternary-vs-binary', 'method'],
+  'F-CONTROL-CANNOT-DISCRIMINATE': ['instrument', 'method'],
 };
 
 /**

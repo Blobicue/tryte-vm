@@ -39,6 +39,7 @@
     "audit:reversible": "node tools/reversible-audit.js",
     "audit:nonlinearity": "node tools/nonlinearity-audit.js",
     "audit:midprice": "node tools/midrail-price-audit.js",
+    "audit:branching": "node tools/branching-audit.js",
     "ledger": "node tools/render-ledger.js --write",
     "docs": "node tools/render-docs.js --write",
     "slate": "node tools/render-slate.js --write",

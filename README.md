@@ -4,7 +4,7 @@
 
 **A working computer that counts in three states instead of two** — core
 arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
-assembly, transistors underneath it, and <!--g:readme-audits-lede-->forty-three audits establishing<!--/g--> exactly what
+assembly, transistors underneath it, and <!--g:readme-audits-lede-->forty-four audits establishing<!--/g--> exactly what
 its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
@@ -13,7 +13,7 @@ One hundred and sixty-five predictions, one hundred and thirty-eight held, twent
 and the twelve produced more than the hundred and four. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**1,619 checks**, all passing. Every number below is recomputed by one of them,
+**1,754 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -24,7 +24,7 @@ node src/run.js programs/multiply.tasm 7 5
 
 | | |
 |---|---|
-| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + <!--g:readme-audits-badge-->forty-three audits<!--/g--> |
+| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + <!--g:readme-audits-badge-->forty-four audits<!--/g--> |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
 | **What was found** | [`results/`](results/) — every result keyed by subject, with a generated ledger of every prediction |
 | **What is not built** | [`design/`](design/) — interconnect, decode and sequencing, enumerated before anything is chosen, and [`design/12-roadmap.md`](design/12-roadmap.md) for the order to build them in |
@@ -54,7 +54,7 @@ programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
 design/      the design phase for the machine that does not exist yet
 results/     the same corpus keyed by SUBJECT rather than by date, plus 99-ledger.md
-tools/       <!--g:readme-audits-tree-->the forty-three audits, each with its registered predictions<!--/g-->
+tools/       <!--g:readme-audits-tree-->the forty-four audits, each with its registered predictions<!--/g-->
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
 build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
@@ -64,7 +64,7 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-<!--g:readme-tally-->Forty-two prediction sets, registered before their runs. **148 held, 29 failed**<!--/g--> — the
+<!--g:readme-tally-->Forty-three prediction sets, registered before their runs. **149 held, 32 failed**<!--/g--> — the
 failures are kept, and four of them produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
@@ -114,6 +114,7 @@ with registering commits and the tests that assert each one, in
 | **AN1–AN4** | a purpose-built search puzzle: does it have the asymmetry? | 3 held, **AN1 failed — and the failure found the shortcut** |
 | **AO1–AO4** | can an erasing machine certify that a secret was wiped? | 3 held, **AO1 failed — on its own frozen control** |
 | **AP1–AP4** | can a hash-only key layer give a minted coin an owner? | all four held — **and two should not have been registered** |
+| **AQ1–AQ4** | how wide should an authenticated tree be, and does three ever win? | 1 held, **AQ1, AQ2 and AQ4 failed — and AQ1's failure found the answer** |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:

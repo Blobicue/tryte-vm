@@ -3640,6 +3640,75 @@
           "note": "Held. The wipe is a projection from a b-tuple of preimages onto the one revealed, and AB's own erasure measure agrees with the closed form log2(ALPHA^(b-1)) exactly, so the ternary key destroys 19.020 bits of material against binary's 15.850. AP3's leak advantage is bought with a larger wipe, and AO already priced what a wipe costs. Like AP3 this was arithmetic before it was measured: (b-1)/b and the projection erasure are both closed forms, and the only thing genuinely measured was that erasureOf agrees with them."
         }
       ]
+    },
+    {
+      "id": "AQ",
+      "subject": "How wide should an authenticated tree be, and does a power of three ever beat a power of two? A cost model over every integer branching factor from 2 to 1024, 45 leaf counts, and a bytes-per-verify-operation exchange rate swept across eight decades",
+      "tool": "tools/branching-audit.js",
+      "registered_at": "b21c19c",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-branching.js",
+      "predictions": [
+        {
+          "id": "AQ1",
+          "claim": "binary is never optimal for a vector commitment, the optimum never descends past three, and across the swept leaf counts THREE is the large-gamma optimum more often than four",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "measured": {
+            "cells": 2880,
+            "cells_with_argmin_two": 0,
+            "narrowest_optimum": 3,
+            "widest_optimum": 1024,
+            "distinct_optima": 61,
+            "cells_where_optimum_widens_as_verify_dearer": 0,
+            "leaf_counts_preferring_three_at_the_limit": 21,
+            "leaf_counts_preferring_four_at_the_limit": 21
+          },
+          "note": "Failed on its last clause, and that clause was the whole point. The first three parts held exactly: no cell in 2,880 has argmin 2, the optimum never goes below 3, and it never widens as verifying gets dearer. But three does not beat four at the verify-dominated limit -- it TIES, 21 leaf counts each. Chasing the tie produced F-TREE-BRANCHES-IN-ITS-OWN-BASE, which is a better answer than the one predicted: 3^k leaf counts want three and 2^k leaf counts want four, so the tie was a property of how many of each shape this sweep contains rather than of trees. T-CLAIM-NARROWED-BY-A-DESIGN, fourth bite."
+        },
+        {
+          "id": "AQ2",
+          "claim": "counting cells whose cost-minimising branching factor is a power of three against those where it is a power of two, three takes strictly more, despite ten powers of two being in range against six of three",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "measured": {
+            "cells_won_by_a_power_of_two": 1044,
+            "cells_won_by_a_power_of_three": 821,
+            "powers_of_two_in_range": 10,
+            "powers_of_three_in_range": 6,
+            "cells_per_power_of_two": 104,
+            "cells_per_power_of_three": 137
+          },
+          "note": "The handicap was real and the geometry did not overcome it: two takes 1,044 cells to three's 821. But PER ARITY IN RANGE the ordering reverses -- each power of three wins 137 cells against each power of two's 104 -- so the registered wording measured how many of each arity I put in the sweep as much as it measured the trees. The claim was answerable only because a design decision had already half-decided it."
+        },
+        {
+          "id": "AQ3",
+          "claim": "unit invariance FAILS: recomputing every cost in whole trytes rather than whole bytes moves at least one argmin, because a proof travels in whole units and that rounding is a ceiling a bare scale factor is not",
+          "outcome": "HELD",
+          "basis": "measured",
+          "measured": {
+            "argmins_moved": 8,
+            "cells": 2880,
+            "fraction": 0.0028,
+            "argmins_moved_under_the_registered_conversion": 103
+          },
+          "note": "Held, registered deliberately against the obvious answer that a scale factor cannot move an argmin. Eight cells of 2,880 flip, all of them near-ties between adjacent arities, exactly as the argument said they would. It held for the right reason on an effect thirteen times smaller than the instrument first reported: the registered conversion divided a COUNT OF OPERATIONS by bytes-per-tryte and rounded it, a category error twice over, and showed 103. Caught before scoring because a 19% unit change cannot honestly move an optimum from three to six. T-INSTRUMENT-FALSE-VERDICT, eighteenth bite. The wrong conversion is kept in the tool and both numbers are pinned, so the fix cannot silently regress."
+        },
+        {
+          "id": "AQ4",
+          "claim": "at every cell where either arity is within 15% of that cell's optimum, the totals at branching factor 64 and 256 differ by no more than 15%",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "measured": {
+            "cells_where_either_is_near_optimal": 909,
+            "cells_exceeding_the_fifteen_percent_band": 571,
+            "worst_spread_percent": 148.8,
+            "of_those_at_different_depths": 426,
+            "of_those_at_the_same_depth": 145
+          },
+          "note": "Failed and not narrowly -- 571 of 909, worst case 149%. But 426 of those 571 are cells where 64 and 256 sit at DIFFERENT DEPTHS, and when 256 saves a whole level it wins by that level while when it does not it pays four times the verify for nothing. So the two are close to interchangeable at a fixed depth and completely different across a depth step, which makes the answer a fact about the leaf count rather than about either arity. The question as asked -- is 64 as good as 256 -- has no answer that does not name N."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -3927,6 +3996,24 @@
       "argument": "The summed head is flat because addition is a bijection in the last entry, which fixes the preimage count at N^(L-1) by construction. The chain step P(a + e) - e is NOT a bijection in e -- that non-invertibility is exactly what AN registered it for -- so its preimage counts are free to vary, and they do.",
       "evidence": "tools/ledger-audit.js preimageProfile(2), a full enumeration rather than a sample",
       "asserted_in": "test/test-ledger.js"
+    },
+    {
+      "id": "F-TREE-BRANCHES-IN-ITS-OWN-BASE",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "Once verifying dominates bandwidth, an authenticated tree wants the branching factor its leaf count is written in. Of 18 leaf counts of the form 3^k, 15 take branching factor three; of 19 of the form 2^k, 13 take four. The two shapes are almost equally represented in the sweep, which is the entire reason AQ1 saw a 21-21 tie rather than a result.",
+      "argument": "At large gamma the cost is dominated by depth times arity, and depth is ceil(log_b N). When N is an exact power of b the ceiling is tight and no level is wasted; when it is not, the top level is partly empty and paid for in full. A leaf count of 3^k therefore pays nothing for branching by three and rounds up for branching by four, and the reverse holds for 2^k.",
+      "evidence": "tools/branching-audit.js limitPreference(), over the 45 leaf counts of set AQ",
+      "asserted_in": "test/test-branching.js"
+    },
+    {
+      "id": "F-CONTROL-CANNOT-DISCRIMINATE",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "proven",
+      "claim": "Set AQ's registered control could not have detected the failure it was written to detect. Its two cost terms are the same pseudorandom draw, so its total is d*NOISE[b]*(1+gamma) and gamma factors out entirely: its optimum is invariant in the exchange rate at every one of the 45 leaf counts. A post-hoc control drawing the two terms independently gives 7 distinct optima with 131 backward steps and a narrowest optimum of 207, against the vector regime's 61 optima, 0 backward steps and narrowest optimum of 3 -- which is what actually establishes that the vector regime is structure rather than the shape of the arithmetic.",
+      "argument": "A control exists to show that the instrument does not manufacture the effect. If the swept parameter cancels out of the control algebraically, the control is constant in exactly the dimension the claim is about, and it can only ever agree.",
+      "evidence": "tools/branching-audit.js argminControl2() and control2Profile(); the invariance is checked exhaustively rather than argued",
+      "asserted_in": "test/test-branching.js"
     }
   ],
   "traps_encountered": [
@@ -3962,7 +4049,7 @@
     },
     {
       "id": "T-INSTRUMENT-FALSE-VERDICT",
-      "count": 17,
+      "count": 18,
       "description": "The measuring tool, not the thing measured, producing the failure. V3 read depth exhaustion as saturation; W2 traversed reachability through rails; X5 keyed a network by ordered terminals when D4 says terminals have no order; G4 dropped a qualifier that was present in its own registration and counted a quantity restated in a second set as colliding with itself. Each reported a verdict about the world that was a fact about the instrument. When a result contradicts a prediction, suspect the instrument first, and check the loop against the sentence that was registered. Fourth bite: the terminal audit held its storage cells with hold=LOW, which is the WRITE configuration -- the hold switches are n-types at threshold HIGH, so LOW opens the feedback loop and every cell floats. Every one of 81 cases in both families read Z, and the audit would have reported the roadmap blocking question as answered NO. A verdict of \"nothing works\" against a family that demonstrably works is the instrument. Fifth bite: the memory rig built its decoder with the first address trit MOST significant and its read tree with that trit LEAST significant. Each half was internally consistent; together they addressed different words for 18 of 27 addresses, so writes appeared to land in the wrong place and every read-back failed. Two halves of one address path disagreeing about endianness reads exactly like a broken circuit. Sixth bite: the interconnect rig named its sources `src0_0`, `src1_0`, ... and SEEDED them, without building anything behind them. A seed is an initial value, not a driver -- T5 says reachability starts at rails and only at rails -- so every source resolved to Z on pass one and stayed there. Both topologies routed Z, which read as \"interconnect does not work at all\" rather than \"these are not sources\". The same fact this repository already records as \"an input gates but never sources\", arriving in a form nobody recognised. Seventh bite, and inverted: a TEST CASE accused a correct instrument. The Schreier-Sims verification paired a 3-cycle with a 25-cycle and called the pair \"A_27\"; between them they move 25 of 27 points, so the tool returned 25!/2 -- exactly right for what was actually built -- and was scored WRONG. When a verification case fails, the case is as suspect as the thing it checks. Eighth bite: the sequencer rig called tAdderCell without its TAG, which names every internal node of the cells two tables. All three cells received the tag `undefined`, so their internal trees shared node names and merged into one circuit -- the incrementer resolved to unknown and the sequencer appeared to visit two states instead of twenty-seven. An omitted parameter that looks optional silently welded three circuits together. Ninth bite, in the same phase and pointing the other way: the handshake section counted the two driving values that DISABLE the loop as \"settled cleanly\", which would have reported a self-timed handshake as working on the strength of two circuits in which no handshake occurs. A false positive and a false negative from one tool in one run. Two more, found by reconciling this list against results/07-negative.md, which had one occurrence the manifest never named and lacked two the manifest did: the detector truth table hand-copied from a comment and INVERTED, which produced 36 failures out of 54 -- every one where the middle word disagreed with the selected word and none where they agreed, the exact signature real contention would leave, reading as the publishable headline that the decoded selector cannot read storage. Two views of one list drifted apart in opposite directions, which is what a second copy of a record is for and against. Twelfth bite: AB2s first erasure census folded the operand INTO the state, which is a defensible boundary and not the one AB2 asked about, so MIN read as a single fixed 4.5033 bits when the registered prediction was about a range from 0 to 9.5098 -- a correct computation about a different question, which would have recorded a prediction as FAILED when it held in full. Thirteenth bite, and it produced the most interesting wrong headline yet. AC1 detected whether a program reads input with a regex anchored at the start of the line, which misses every LABELLED instruction -- threeway.tasm carries \"body:   IN\". So the audit reported a program that never reads input whose step count nonetheless varied with the input: a deterministic machine charging different amounts for data it never touches, which would have been the finding of the set. It was a broken parser standing next to an exported real one. Replaced with the assembler's own tokenizer, which moved the count of input-reading programs from five to eight and changed what AC1 was even about. Fourteenth bite, and it pointed the flattering way, which is the dangerous one. AD2's tabulator memoised only TERMINATING values, so each of the 366 divergent inputs walked its full three-thousand-step guard, learned nothing, and left the next divergent input to do it again: 1,098,362 evaluations to price 729 inputs. It reported a patient predictor as three hundred times WORSE than simply re-running, which is exactly the answer that would have made AD2 fail and the implied receipt look sound. Non-termination is an answer too, and a correct tabulator records it; walking until the path meets either a known value or itself resolves every state once and costs 728. An instrument that errs toward the hypothesis under test will not be caught by finding the result surprising, because it is not surprising. Fifteenth bite, and the SAME MECHANISM AS THE ELEVENTH in the same thread. AH2's reuse instrument walked every hailstone input to a 3,000-step guard, including the 366 that never terminate -- and those cycle through a handful of states three thousand times each, so hailstone measured 1,513x reuse against its true 10.43x. AD2's first tabulator failed for exactly this reason a few sets earlier and the repair was recorded there. A guard counted as work is apparently not a lesson that transfers by having been written down once; it has to be looked for. The repaired figure of 3,777 visits reproduces AD2's number exactly, which is the cross-check that says the two sets now measure one thing. Sixteenth bite, and a new flavour: MISREADING SOMEONE ELSE'S SPEC. AI1 implemented the Ladder's history operator with \"SUM prev\" read as the sum of everything so far INCLUDING the most recent term. That generates 0, 1, 2, 4, 8, 16 -- the powers of two -- and agrees with Fibonacci at exactly one of forty terms, so the audit reported that an external artifact's central operator does not do what it says. The Ladder's own derivation line states the indexing unambiguously, L(n+1) = 1 + SUM L(0..n-1), so prev EXCLUDES the last term. One term short and the sequence changes species. Every earlier bite in this list was a wrong instrument pointed at this project's own subject; this one was a wrong instrument pointed at somebody else's finished work, where the failure mode is publishing a refutation of a thing you misread. Seventeenth bite, in AN: the shift attack wrapped a value that was already a value in val() a second time, shifting every nonce it produced by TRYTE_MIN. It reported solving 0 of 729 messages at the two hardest difficulties and looked entirely plausible on its own -- a structured puzzle that resists a structural attack is a perfectly sensible-sounding result. What caught it was the CONTRADICTION with AN3, which had measured 465 of those same messages as mineable by exhaustive search. The antibody is not a code review but a cross-check: the fast attack and the slow sweep must agree on WHICH messages are solvable, not merely produce numbers of a believable size."
     },
     {
@@ -3987,7 +4074,7 @@
     },
     {
       "id": "T-CLAIM-NARROWED-BY-A-DESIGN",
-      "count": 3,
+      "count": 4,
       "description": "A measured result stated as a property of the SUBJECT when it was a property of the DESIGN measured. Z2 swept buffer placements in one family of trees and concluded a depth floor for ternary at any price; a different selector beat it. E4, and Y2 and Z5 before it, measured raw-select circuits and concluded settling time is never data-dependent; a decoded selector made it data-dependent. Both times the numbers were right and the noun was too big. Before writing ternary, or this model, ask whether the sweep visited more than one design. Third bite, and the first scored against this project's own prose rather than against a sweep. AE2 and AE4 measured exactly one musical affordance -- the availability of transpositionally symmetric chords -- and the write-up headed the section \"and here ternary is genuinely worse\", generalising from one affordance to an entire art form. Consonance, rhythm, contour and timbre were untouched, and so was the distinction between ternary as a TUNING and ternary as an ADDRESSING scheme, which is the layer a 3x3 pad grid actually uses. The tell is the same every time: the sweep visited one thing and the sentence named a category. Ask what the sweep did NOT visit before choosing the noun."
     },
     {
@@ -4019,6 +4106,11 @@
       "id": "T-TOOL-CHECKED-ONLY-BY-IMPORT",
       "count": 1,
       "description": "A tool that is exercised only through require(), so the path it takes when actually RUN is never covered. The erasure audit was made silent on import by a mechanical rename of every console.log call to log -- which rewrote the body of log itself into a call to itself. The tool crashed with a stack overflow on every single run, and every check in its suite stayed green, because a test that imports the module sets MAIN false and no print path ever executes. Nothing about the numbers was wrong; the program was simply broken in the half nobody looked at. The antibody is a check that spawns the tool as a subprocess and asserts it exits cleanly and printed every section, made affordable by an environment variable that caps its most expensive sweep. Mutation-tested: reintroducing the recursive definition turns all three of those checks red."
+    },
+    {
+      "id": "T-CONTROL-CANNOT-DISCRIMINATE",
+      "count": 1,
+      "description": "A control that cannot fail, because the parameter the claim is about cancels out of it. Set AQ's control gave its two cost terms the same pseudorandom draw, so the exchange rate factored out and its optimum was constant in exactly the dimension the sweep was measuring -- it could only ever agree, whatever the trees did. The antibody is to check the control's RESPONSIVENESS before reading its verdict: the suite now asserts that the registered control is invariant in gamma at all 45 leaf counts, so the defect is recorded as a fact rather than left looking like evidence, and a second control with independent draws carries the discriminating work."
     }
   ]
 }

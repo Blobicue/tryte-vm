@@ -2,13 +2,13 @@
  "schema": "tryte-vm/slate@1",
  "purpose": "A retrieval-shaped projection of FINDINGS.json plus authored marginalia. Flat, addressable entries with stable ids, topic routes and validated cross-links. The manifest remains the authority; this is a view of it and never a second copy of the truth.",
  "counts": {
-  "entries": 248,
-  "predictions": 177,
-  "findings": 40,
-  "traps": 18,
+  "entries": 255,
+  "predictions": 181,
+  "findings": 42,
+  "traps": 19,
   "notes": 13,
-  "proven": 12,
-  "failed": 29
+  "proven": 13,
+  "failed": 32
  },
  "routes": {
   "algebra": [
@@ -62,6 +62,10 @@
    "AK2",
    "AK3",
    "AK4",
+   "AQ1",
+   "AQ2",
+   "AQ3",
+   "AQ4",
    "F-FOLD-BUYS-DEPTH",
    "F-RADIX-ECONOMY",
    "F-GATES-FROM-SWITCHES",
@@ -182,6 +186,7 @@
   "instrument": [
    "AN1",
    "AO1",
+   "F-CONTROL-CANNOT-DISCRIMINATE",
    "T-ONE-POINT",
    "T-STALE-CONSTANT",
    "T-SILENT-NAN",
@@ -200,6 +205,7 @@
    "T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE",
    "T-SCOPE-DECIDES-THE-VERDICT",
    "T-TOOL-CHECKED-ONLY-BY-IMPORT",
+   "T-CONTROL-CANNOT-DISCRIMINATE",
    "N-verify-the-instrument",
    "N-scope-decides-the-verdict"
   ],
@@ -255,6 +261,8 @@
    "F-COLLAPSING-FEEDBACK-STRANDS-MOST-OF-THE-SPACE",
    "F-STRANDING-IS-AN-IMAGE-DEFICIT",
    "F-LAMPORT-BASE-ADVANTAGE-IS-NOT-PER-SIZE",
+   "F-TREE-BRANCHES-IN-ITS-OWN-BASE",
+   "F-CONTROL-CANNOT-DISCRIMINATE",
    "T-ONE-POINT",
    "T-STALE-CONSTANT",
    "T-SILENT-NAN",
@@ -273,6 +281,7 @@
    "T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE",
    "T-SCOPE-DECIDES-THE-VERDICT",
    "T-TOOL-CHECKED-ONLY-BY-IMPORT",
+   "T-CONTROL-CANNOT-DISCRIMINATE",
    "N-mean-cannot-certify",
    "N-program-relative",
    "N-disqualifying-is-qualifying",
@@ -380,6 +389,10 @@
    "AP1",
    "AP2",
    "AP3",
+   "AQ1",
+   "AQ2",
+   "AQ3",
+   "AQ4",
    "F-BRANCH-BENEFIT",
    "F-531441-COINCIDENCE",
    "F-GATES-FROM-SWITCHES",
@@ -396,7 +409,15 @@
    "F-COLLAPSING-FEEDBACK-STRANDS-MOST-OF-THE-SPACE",
    "F-CANONICAL-GROKKING-TASK-IS-THE-HARD-ONE",
    "F-LAMPORT-BASE-ADVANTAGE-IS-NOT-PER-SIZE",
+   "F-TREE-BRANCHES-IN-ITS-OWN-BASE",
    "N-asymptotic-does-not-settle-a-width"
+  ],
+  "tree": [
+   "AQ1",
+   "AQ2",
+   "AQ3",
+   "AQ4",
+   "F-TREE-BRANCHES-IN-ITS-OWN-BASE"
   ],
   "unrouted": [
    "F-ADD-IS-A-TABLE",
@@ -5978,6 +5999,125 @@
    "links": []
   },
   {
+   "id": "AQ1",
+   "kind": "prediction",
+   "set": "AQ",
+   "subject": "How wide should an authenticated tree be, and does a power of three ever beat a power of two? A cost model over every integer branching factor from 2 to 1024, 45 leaf counts, and a bytes-per-verify-operation exchange rate swept across eight decades",
+   "outcome": "FAILED",
+   "basis": "measured",
+   "routes": [
+    "tree",
+    "ternary-vs-binary",
+    "cost-model"
+   ],
+   "routes_derived": false,
+   "claim": "binary is never optimal for a vector commitment, the optimum never descends past three, and across the swept leaf counts THREE is the large-gamma optimum more often than four",
+   "argument": null,
+   "note": "Failed on its last clause, and that clause was the whole point. The first three parts held exactly: no cell in 2,880 has argmin 2, the optimum never goes below 3, and it never widens as verifying gets dearer. But three does not beat four at the verify-dominated limit -- it TIES, 21 leaf counts each. Chasing the tie produced F-TREE-BRANCHES-IN-ITS-OWN-BASE, which is a better answer than the one predicted: 3^k leaf counts want three and 2^k leaf counts want four, so the tie was a property of how many of each shape this sweep contains rather than of trees. T-CLAIM-NARROWED-BY-A-DESIGN, fourth bite.",
+   "measured": {
+    "cells": 2880,
+    "cells_with_argmin_two": 0,
+    "narrowest_optimum": 3,
+    "widest_optimum": 1024,
+    "distinct_optima": 61,
+    "cells_where_optimum_widens_as_verify_dearer": 0,
+    "leaf_counts_preferring_three_at_the_limit": 21,
+    "leaf_counts_preferring_four_at_the_limit": 21
+   },
+   "tool": "tools/branching-audit.js",
+   "asserted_in": "test/test-branching.js",
+   "registered_at": "b21c19c",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AQ2",
+   "kind": "prediction",
+   "set": "AQ",
+   "subject": "How wide should an authenticated tree be, and does a power of three ever beat a power of two? A cost model over every integer branching factor from 2 to 1024, 45 leaf counts, and a bytes-per-verify-operation exchange rate swept across eight decades",
+   "outcome": "FAILED",
+   "basis": "measured",
+   "routes": [
+    "tree",
+    "ternary-vs-binary",
+    "cost-model"
+   ],
+   "routes_derived": false,
+   "claim": "counting cells whose cost-minimising branching factor is a power of three against those where it is a power of two, three takes strictly more, despite ten powers of two being in range against six of three",
+   "argument": null,
+   "note": "The handicap was real and the geometry did not overcome it: two takes 1,044 cells to three's 821. But PER ARITY IN RANGE the ordering reverses -- each power of three wins 137 cells against each power of two's 104 -- so the registered wording measured how many of each arity I put in the sweep as much as it measured the trees. The claim was answerable only because a design decision had already half-decided it.",
+   "measured": {
+    "cells_won_by_a_power_of_two": 1044,
+    "cells_won_by_a_power_of_three": 821,
+    "powers_of_two_in_range": 10,
+    "powers_of_three_in_range": 6,
+    "cells_per_power_of_two": 104,
+    "cells_per_power_of_three": 137
+   },
+   "tool": "tools/branching-audit.js",
+   "asserted_in": "test/test-branching.js",
+   "registered_at": "b21c19c",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AQ3",
+   "kind": "prediction",
+   "set": "AQ",
+   "subject": "How wide should an authenticated tree be, and does a power of three ever beat a power of two? A cost model over every integer branching factor from 2 to 1024, 45 leaf counts, and a bytes-per-verify-operation exchange rate swept across eight decades",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "tree",
+    "ternary-vs-binary",
+    "cost-model"
+   ],
+   "routes_derived": false,
+   "claim": "unit invariance FAILS: recomputing every cost in whole trytes rather than whole bytes moves at least one argmin, because a proof travels in whole units and that rounding is a ceiling a bare scale factor is not",
+   "argument": null,
+   "note": "Held, registered deliberately against the obvious answer that a scale factor cannot move an argmin. Eight cells of 2,880 flip, all of them near-ties between adjacent arities, exactly as the argument said they would. It held for the right reason on an effect thirteen times smaller than the instrument first reported: the registered conversion divided a COUNT OF OPERATIONS by bytes-per-tryte and rounded it, a category error twice over, and showed 103. Caught before scoring because a 19% unit change cannot honestly move an optimum from three to six. T-INSTRUMENT-FALSE-VERDICT, eighteenth bite. The wrong conversion is kept in the tool and both numbers are pinned, so the fix cannot silently regress.",
+   "measured": {
+    "argmins_moved": 8,
+    "cells": 2880,
+    "fraction": 0.0028,
+    "argmins_moved_under_the_registered_conversion": 103
+   },
+   "tool": "tools/branching-audit.js",
+   "asserted_in": "test/test-branching.js",
+   "registered_at": "b21c19c",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AQ4",
+   "kind": "prediction",
+   "set": "AQ",
+   "subject": "How wide should an authenticated tree be, and does a power of three ever beat a power of two? A cost model over every integer branching factor from 2 to 1024, 45 leaf counts, and a bytes-per-verify-operation exchange rate swept across eight decades",
+   "outcome": "FAILED",
+   "basis": "measured",
+   "routes": [
+    "tree",
+    "ternary-vs-binary",
+    "cost-model"
+   ],
+   "routes_derived": false,
+   "claim": "at every cell where either arity is within 15% of that cell's optimum, the totals at branching factor 64 and 256 differ by no more than 15%",
+   "argument": null,
+   "note": "Failed and not narrowly -- 571 of 909, worst case 149%. But 426 of those 571 are cells where 64 and 256 sit at DIFFERENT DEPTHS, and when 256 saves a whole level it wins by that level while when it does not it pays four times the verify for nothing. So the two are close to interchangeable at a fixed depth and completely different across a depth step, which makes the answer a fact about the leaf count rather than about either arity. The question as asked -- is 64 as good as 256 -- has no answer that does not name N.",
+   "measured": {
+    "cells_where_either_is_near_optimal": 909,
+    "cells_exceeding_the_fifteen_percent_band": 571,
+    "worst_spread_percent": 148.8,
+    "of_those_at_different_depths": 426,
+    "of_those_at_the_same_depth": 145
+   },
+   "tool": "tools/branching-audit.js",
+   "asserted_in": "test/test-branching.js",
+   "registered_at": "b21c19c",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
    "id": "F-ADD-IS-A-TABLE",
    "kind": "finding",
    "set": null,
@@ -6856,6 +6996,51 @@
    "links": []
   },
   {
+   "id": "F-TREE-BRANCHES-IN-ITS-OWN-BASE",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "tree",
+    "ternary-vs-binary",
+    "method"
+   ],
+   "routes_derived": false,
+   "claim": "Once verifying dominates bandwidth, an authenticated tree wants the branching factor its leaf count is written in. Of 18 leaf counts of the form 3^k, 15 take branching factor three; of 19 of the form 2^k, 13 take four. The two shapes are almost equally represented in the sweep, which is the entire reason AQ1 saw a 21-21 tie rather than a result.",
+   "argument": "At large gamma the cost is dominated by depth times arity, and depth is ceil(log_b N). When N is an exact power of b the ceiling is tight and no level is wasted; when it is not, the top level is partly empty and paid for in full. A leaf count of 3^k therefore pays nothing for branching by three and rounds up for branching by four, and the reverse holds for 2^k.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-branching.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-CONTROL-CANNOT-DISCRIMINATE",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "proven",
+   "routes": [
+    "instrument",
+    "method"
+   ],
+   "routes_derived": false,
+   "claim": "Set AQ's registered control could not have detected the failure it was written to detect. Its two cost terms are the same pseudorandom draw, so its total is d*NOISE[b]*(1+gamma) and gamma factors out entirely: its optimum is invariant in the exchange rate at every one of the 45 leaf counts. A post-hoc control drawing the two terms independently gives 7 distinct optima with 131 backward steps and a narrowest optimum of 207, against the vector regime's 61 optima, 0 backward steps and narrowest optimum of 3 -- which is what actually establishes that the vector regime is structure rather than the shape of the arithmetic.",
+   "argument": "A control exists to show that the instrument does not manufacture the effect. If the swept parameter cancels out of the control algebraically, the control is constant in exactly the dimension the claim is about, and it can only ever agree.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-branching.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
    "id": "T-ONE-POINT",
    "kind": "trap",
    "set": null,
@@ -7015,7 +7200,7 @@
    "argument": null,
    "note": null,
    "measured": {
-    "bites": 17
+    "bites": 18
    },
    "tool": null,
    "asserted_in": null,
@@ -7135,7 +7320,7 @@
    "argument": null,
    "note": null,
    "measured": {
-    "bites": 3
+    "bites": 4
    },
    "tool": null,
    "asserted_in": null,
@@ -7276,6 +7461,30 @@
    ],
    "routes_derived": false,
    "claim": "A tool that is exercised only through require(), so the path it takes when actually RUN is never covered. The erasure audit was made silent on import by a mechanical rename of every console.log call to log -- which rewrote the body of log itself into a call to itself. The tool crashed with a stack overflow on every single run, and every check in its suite stayed green, because a test that imports the module sets MAIN false and no print path ever executes. Nothing about the numbers was wrong; the program was simply broken in the half nobody looked at. The antibody is a check that spawns the tool as a subprocess and asserts it exits cleanly and printed every section, made affordable by an environment variable that caps its most expensive sweep. Mutation-tested: reintroducing the recursive definition turns all three of those checks red.",
+   "argument": null,
+   "note": null,
+   "measured": {
+    "bites": 1
+   },
+   "tool": null,
+   "asserted_in": null,
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "T-CONTROL-CANNOT-DISCRIMINATE",
+   "kind": "trap",
+   "set": null,
+   "subject": null,
+   "outcome": null,
+   "basis": "measured",
+   "routes": [
+    "instrument",
+    "method"
+   ],
+   "routes_derived": false,
+   "claim": "A control that cannot fail, because the parameter the claim is about cancels out of it. Set AQ's control gave its two cost terms the same pseudorandom draw, so the exchange rate factored out and its optimum was constant in exactly the dimension the sweep was measuring -- it could only ever agree, whatever the trees did. The antibody is to check the control's RESPONSIVENESS before reading its verdict: the suite now asserts that the registered control is invariant in gamma at all 45 leaf counts, so the defect is recorded as a fact rather than left looking like evidence, and a second control with independent draws carries the discriminating work.",
    "argument": null,
    "note": null,
    "measured": {

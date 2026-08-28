@@ -204,6 +204,17 @@ input: find it once, then check it twice thereafter -- settles at k, does not
 settle at k-1. Two solves, not eighty. When an instrument is slow, check whether
 it is searching for something it already knows how to confirm.
 
+`T-CONTROL-CANNOT-DISCRIMINATE` **A control that cannot fail, because the parameter
+the claim is about cancels out of it.** Set `AQ` swept a bytes-per-operation exchange
+rate and gave its control's two cost terms the SAME pseudorandom draw -- so the control's
+total was a constant times (1 + gamma), the rate factored straight out, and its optimum
+was invariant in exactly the dimension the sweep was measuring. It could only ever agree,
+whatever the trees did. A control is there to show the instrument does not manufacture
+the effect; if the swept parameter is algebraically absent from it, it shows nothing.
+Check a control's RESPONSIVENESS before reading its verdict -- assert that it moves when
+the thing it is controlling for moves -- and if it cannot, say so on the record rather
+than letting it stand as evidence.
+
 `T-TOOL-CHECKED-ONLY-BY-IMPORT` **A tool exercised only through require(), so the
 path it takes when actually run is never covered.** Making an audit silent on import
 by mechanically renaming every `console.log` call to `log` also rewrote the body of

@@ -94,8 +94,8 @@
  * everything BETWEEN those two ends, and what the ceiling does to the boundary.
  *
  * ------------------------------------------------------------------------------
- * REGISTERED PREDICTIONS. Committed before the run, in a commit containing no
- * measurement.
+ * PREDICTED OUTCOMES — registered before the run, per AGENTS.md, in a commit that
+ * contains no measurement.
  *
  *   AQ1  BINARY IS NEVER OPTIMAL FOR A VECTOR COMMITMENT, AND THE FLOOR IS THREE OR
  *        FOUR. Predicted that in the vector regime no cell in the sweep has argmin
@@ -211,7 +211,17 @@ function total(regime, n, b, gamma, trytes) {
   const d = DEPTH.get(n)[b];
   const { bytes, verify } = REGIMES[regime](d, b);
   if (!trytes) return bytes + gamma * verify;
-  return Math.ceil(bytes / BYTES_PER_TRYTE) + gamma * Math.ceil(verify / BYTES_PER_TRYTE);
+  // `verify` is a COUNT OF OPERATIONS, not a quantity of bytes. The registered version
+  // of this line divided it by BYTES_PER_TRYTE and rounded it up, which is a category
+  // error twice over: it converts a unit the number does not carry, and it rounds
+  // something that is never transmitted and therefore never travels in whole anything.
+  // It moved 103 argmins and would have scored AQ3 HELD on an artifact.
+  //
+  // Only the PROOF travels, so only the proof rounds. `gamma` converts one operation
+  // to bytes, so it converts to trytes by the same factor and applies once.
+  //   T-INSTRUMENT-FALSE-VERDICT, caught before scoring because a unit change of 19%
+  //   cannot honestly move an optimum from three to six.
+  return Math.ceil(bytes / BYTES_PER_TRYTE) + (gamma * verify) / BYTES_PER_TRYTE;
 }
 
 /**
@@ -256,10 +266,80 @@ function profile(cells) {
   };
 }
 
+/**
+ * The registered conversion, kept so the fix above cannot quietly regress. It divides
+ * a COUNT OF OPERATIONS by bytes-per-tryte and rounds it, which is a category error
+ * twice over, and it moves argmins by a factor of thirteen more than the honest one.
+ * A test pins both numbers: an instrument defect this project has already paid for
+ * should cost nothing the second time.
+ */
+function totalNaive(regime, n, b, gamma) {
+  const d = DEPTH.get(n)[b];
+  const { bytes, verify } = REGIMES[regime](d, b);
+  return Math.ceil(bytes / BYTES_PER_TRYTE) + gamma * Math.ceil(verify / BYTES_PER_TRYTE);
+}
+
+function argminNaive(regime, n, gamma) {
+  let best = Infinity, at = 0;
+  for (const b of ARITIES) { const t = totalNaive(regime, n, b, gamma); if (t < best) { best = t; at = b; } }
+  return at;
+}
+
+/**
+ * A SECOND control, added AFTER the run and scoring no registered prediction.
+ *
+ * The registered control sets bytes and verify to the SAME draw, so gamma factors out
+ * of its total entirely and its argmin cannot move with gamma no matter what. It could
+ * never have detected the failure it was written to detect. That is its own defect
+ * class -- a control that cannot discriminate is not a control -- and the honest
+ * remedy is a second one that CAN move, declared as post-hoc rather than quietly
+ * swapped in for the registered one.
+ */
+const NOISE_B = new Int32Array(B_MAX + 1), NOISE_V = new Int32Array(B_MAX + 1);
+(() => {
+  let s = 777;
+  const rnd = () => { s = (Math.imul(s, 1103515245) + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+  for (const b of ARITIES) { NOISE_B[b] = 1 + Math.floor(rnd() * 1024); NOISE_V[b] = 1 + Math.floor(rnd() * 1024); }
+})();
+
+function argminControl2(n, gamma) {
+  let best = Infinity, at = 0;
+  for (const b of ARITIES) {
+    const d = DEPTH.get(n)[b];
+    const t = d * NOISE_B[b] + gamma * d * NOISE_V[b];
+    if (t < best) { best = t; at = b; }
+  }
+  return at;
+}
+
+/** The post-hoc control's profile, in the same terms as `profile()` reports. */
+function control2Profile() {
+  const seen = new Set();
+  let backwardSteps = 0;
+  for (const n of LEAVES) {
+    const seq = GAMMAS.map(g => argminControl2(n, g));
+    for (let i = 1; i < seq.length; i++) if (seq[i] > seq[i - 1]) backwardSteps++;
+    seq.forEach(a => seen.add(a));
+  }
+  const a = [...seen].sort((x, y) => x - y);
+  return { distinctArities: a.length, backwardSteps, minArity: a[0], maxArity: a[a.length - 1] };
+}
+
+/** Which arity a leaf count wants once verifying dominates, and what shape that count is. */
+function limitPreference() {
+  const gMax = Math.max(...GAMMAS);
+  return LEAVES.map(n => ({
+    n,
+    arity: argmin('vector', n, gMax).arity,
+    shape: isPow3(n) ? '3^k' : isPow2(n) ? '2^k' : 'other',
+  }));
+}
+
 module.exports = {
   H, O, C, ALPHA, BITS_PER_TRYTE, BYTES_PER_TRYTE,
   ARITIES, POW2, POW3, GAMMAS, LEAVES, NOISE, REGIMES, DEPTH,
   isPow2, isPow3, depth, total, argmin, sweep, profile,
+  totalNaive, argminNaive, argminControl2, control2Profile, limitPreference,
 };
 
 if (MAIN) {
@@ -268,7 +348,20 @@ if (MAIN) {
   log(`  gammas    ${GAMMAS.length} across eight decades, swept and not chosen`);
   log(`  leaves    ${LEAVES.length} counts, 3^k and 2^k up to k = 20`);
   log(`  cells     ${(LEAVES.length * GAMMAS.length).toLocaleString('en-US')} per regime\n`);
-  log('  This file prints no results at registration time. The measurement lives in');
-  log('  test/test-branching.js and lands in the results commit, after this one is');
-  log('  pushed — which is the only part of the ceremony a later edit cannot fake.');
+  const V = sweep('vector'), vp = profile(V), c2 = control2Profile();
+  const pref = limitPreference();
+  const shapeWin = {};
+  for (const r of pref) { const k = r.shape + ' -> ' + r.arity; shapeWin[k] = (shapeWin[k] || 0) + 1; }
+  log('  VECTOR REGIME');
+  log(`    argmin 2 in ${V.filter(c => c.arity === 2).length} cells, narrowest optimum ${vp.minArity}, widest ${vp.maxArity}`);
+  log(`    ${vp.distinctArities} distinct optima, ${vp.backwardSteps} cells where it widens as verifying gets dearer`);
+  log(`    powers of two win ${vp.pow2} cells, powers of three ${vp.pow3}\n`);
+  log('  ONCE VERIFYING DOMINATES, A TREE BRANCHES IN ITS OWN BASE');
+  for (const [k, v] of Object.entries(shapeWin).sort()) log(`    ${k.padEnd(14)} ${v}`);
+  log('');
+  log('  CONTROLS');
+  log(`    registered  ${profile(sweep('control')).distinctArities} distinct optima  `
+    + '(bytes === verify, so gamma cancels and it CANNOT respond -- see F-CONTROL-CANNOT-DISCRIMINATE)');
+  log(`    post-hoc    ${c2.distinctArities} distinct optima, ${c2.backwardSteps} backward steps, `
+    + `narrowest ${c2.minArity} -- structureless noise looks nothing like the vector regime`);
 }

@@ -13,8 +13,8 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-<!--g:method-tally-->Forty-two prediction sets, **177 registered predictions, 148 held, 29 failed.** Eighteen
-distinct failure classes, which bit **50 times** between them. Forty findings
+<!--g:method-tally-->Forty-three prediction sets, **181 registered predictions, 149 held, 32 failed.** Nineteen
+distinct failure classes, which bit **53 times** between them. Forty-two findings
 measured but never registered<!--/g-->, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
@@ -23,7 +23,7 @@ document drifts from the manifest, the suite fails.
 A prediction carries two independent labels, and running them together was costing
 something. `outcome` is the prediction against the run — held or failed. **`basis` is
 the scope of the claim**: swept at the width it was swept at, or argued at every width.
-<!--g:method-basis-->Ten of those 177 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
+<!--g:method-basis-->Ten of those 181 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
 each with its argument written out beside its measurement. The measurement is still
 required. A proof does not excuse running it — an argument is also a thing that can be
 wrong, and the run is what would say so.
@@ -46,6 +46,9 @@ still in the manifest, marked `FAILED`, with the result it led to:
 | **AM3** | erasing tasks have a majority-class baseline above 40% | it is 0.0457, identical to the reversible tasks, because f = b is a bijection in its second argument so its outputs are uniform. Conflating "erases in the leading argument" with "has a skewed output distribution" — different properties, and AL3 had the information on the record already |
 | **AN1** | the hit-count variance of a proof-of-work candidate sits within 25% of binomial at every difficulty | it came in at 0.729x and 0.674x at the two easiest, MORE uniform than chance. A puzzle more uniform than chance is structured, and chasing the deviation found the structure: the message commuted out of the feed-forward, so one 729-entry index solved every mineable message in 1.54 lookups. THE PREDICTION THAT FAILED IS THE ONE THAT DETECTED THE BREAK |
 | **AO1** | a pseudorandom ceremony map measures erasure within 5% of its null while exposing a third of all secrets | the exposing clause held — 252 of 729 recovered EXACTLY while E read a healthy 0.89 — and the erasure clause missed at 7.6%. Then 400 draws showed the null was exact and 336 of 400 would have passed: the band was fine, the frozen seed was a 2.09-sigma draw. A SINGLE FIXED PSEUDORANDOM OBJECT IS ONE SAMPLE AND A NULL IS A DISTRIBUTION |
+| **AQ1** | binary is never optimal for a vector commitment, the optimum never descends past three, and three is the large-gamma optimum more often than four | the first three clauses held across all 2,880 cells — 0 with binary, none below three, none widening as verifying got dearer — and the last one TIED, 21 leaf counts each. Chasing the tie found the better answer: a leaf count of 3^k wants branching factor three in 15 of 18 cases and 2^k wants four in 13 of 19. A TREE BRANCHES IN THE BASE ITS ADDRESS SPACE IS COUNTED IN, and the tie measured how many of each shape I put in the sweep |
+| **AQ2** | a power of three is the cost-minimising branching factor in more cells than a power of two | two takes 1,044 cells to three's 821, so the ten-to-six handicap held. But per arity in range the ordering reverses — 137 cells for each power of three against 104 for each power of two — which the registered wording could not express. The claim counted how many of each I had swept as much as it counted trees |
+| **AQ4** | branching factors 64 and 256 differ by no more than 15% wherever either is near optimal | 571 of 909 near-optimal cells exceed the band, worst case 149%. But 426 of those 571 are cells where the two sit at DIFFERENT DEPTHS: when 256 saves a whole level it wins by that level, and when it does not it pays four times the verify for nothing. THE QUESTION HAS NO ANSWER THAT DOES NOT NAME THE LEAF COUNT |
 | **AH2** | widening the live state to three words collapses the memoisation a tabulator lives on, to under 1.5x reuse | it falls only to 3.20x from hailstone's 10.43x, on a control space 500,000x larger. A subtractive inner loop converges onto a shared suffix whenever two inputs agree on the subtrahend, so A TABULATOR EXPLOITS TRAJECTORY CONVERGENCE AND NOT A SMALL STATE SPACE — the receipt rests on four things, not three |
 | **AH4** | tabulating costs above 10^11 state-evaluations against under 300 honest steps, a margin above 10^8 | the control space is 729^3 = 387 million, not 10^11 — that figure was 729^4, counting a fourth word the program does not have. One honest run is 1,150 steps. The margin is 3.37 x 10^5, three orders short. The structural clause held: it is identical at either tick level, because a ratio cannot see a factor charged to both sides |
 | **AG1** | every program here has a live control-state width of at most two, so none is tier three | threeway measures FIVE — it classifies five values and each changes the path. But its cost spread is 1.02x, from 55 steps to 56, while countdown has width ONE and a spread of 25.38x. WIDTH AND COST VARIANCE ARE INDEPENDENT and neither is the security parameter alone: a tabulator facing 729^6 states to learn a number that is always 55 or 56 would guess instead |
@@ -172,7 +175,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-two sets<!--/g--> and they form very nearly
+fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-three sets<!--/g--> and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from
@@ -239,7 +242,7 @@ wasteful when it does not.
 
 ## The failure catalogue, off ternary
 
-These are the eighteen classes that actually bit, stated so they transfer. The count
+These are the nineteen classes that actually bit, stated so they transfer. The count
 is how many times each recurred *after* being named — which is itself a measure of
 how well naming a thing prevents it.
 
@@ -262,6 +265,7 @@ how well naming a thing prevents it.
 | **a transcribed table** | a fact that could have been *run* was hand-copied. A detector's truth table, copied from a comment into a seed, came out inverted -- and produced 36 failures out of 54 whose pattern exactly matched what a real contention bug would look like. Wrong instruments do not produce noise; they produce clean, mechanistic, entirely wrong findings. |
 | **a tool checked only by import** | a tool exercised only through require(), so the path it takes when actually run is never covered. A mechanical rename made an audit silent on import and rewrote the body of the logging function into a call to itself; it crashed on every run while every check stayed green. Cover both paths, and cap the expensive sweep so covering the run path is cheap. |
 | **the scope decides the verdict** | a correct computation scoring a prediction wrongly, because the measurement drew its state boundary somewhere the prediction did not. Bit twice. Neither instrument computed anything wrong; both answered a question adjacent to the one registered. Declare the boundary in the registration, and where a question admits more than one, report every reading. |
+| **a control that cannot fail** | a control whose two terms share a draw, so the parameter the claim is about cancels out of it algebraically. A sweep over an exchange rate gave its control the same value on both sides of that rate, so the control's answer was constant in exactly the dimension being measured and could only ever agree. Check that a control MOVES when the thing it controls for moves, before reading its verdict. |
 | **a census that counts itself** | a measurement over a corpus that the measurement is then written into. A survey of repeated numbers in the record failed on its next run, because recording its own answer added those numbers to the record. Nothing was wrong with the first answer, or with the world. |
 
 Two further shapes, from the prose rather than the code:
