@@ -1,0 +1,181 @@
+{
+  "schema": "tryte-vm/slate-notes@1",
+  "purpose": "Marginalia. Cross-cutting observations that belong to no single prediction set, written while working and kept addressable so a retriever can route to them the same way it routes to a finding. Each note names the entries it generalises over, so a claim can always be walked back to the runs underneath it.",
+  "notes": [
+    {
+      "id": "N-mean-cannot-certify",
+      "title": "A summary statistic has hidden the failure three times",
+      "routes": [
+        "summary-statistics",
+        "method"
+      ],
+      "links": [
+        "D4",
+        "AN1",
+        "AO1"
+      ],
+      "text": "D4 failed because truncating any permutation gives perfectly uniform buckets, so a collision count cannot tell a hash from a relabelling. AN1 failed because the hit-count MEAN looked healthy while one 729-entry index solved every mineable block in 1.54 lookups. AO1's erasure read 0.89 bits while 252 of 729 secrets were recovered exactly. Three sets, three different quantities, one shape: the statistic that summarises is not the statistic that binds. Security is a minimum and every one of these was a mean."
+    },
+    {
+      "id": "N-reversibility-inverts",
+      "title": "Four jobs want the same property and three of them want it backwards",
+      "routes": [
+        "reversibility",
+        "puzzle",
+        "ledger",
+        "erasure"
+      ],
+      "links": [
+        "AI4",
+        "AJ1",
+        "AK2",
+        "AN2",
+        "AN3",
+        "F-REVERSIBLE-CANNOT-DESTROY"
+      ],
+      "text": "The receipt needed in-degree exactly one, so nothing merges and a tabulator has nothing to amortise. The puzzle needs in-degree ABOVE one, or AN2 inverts it at one lookup per solve. The ceremony needs collapse, and cannot have it on a reversible substrate at all. The ledger wants in-degree one again, because an entry that merges is an entry lost. Same measured property, four requirements, and they do not agree. Whenever this project has found a primitive that suits one of them, that suitability has been the disqualification for the next."
+    },
+    {
+      "id": "N-erasure-is-price-and-security",
+      "title": "A hash's energy floor and its security are the same property",
+      "routes": [
+        "erasure",
+        "puzzle",
+        "physics"
+      ],
+      "links": [
+        "AN2",
+        "AO2",
+        "AP4"
+      ],
+      "text": "AN2 showed an invertible candidate dies to a 729-entry table at one lookup per solve, so a hash MUST erase. Landauer charges kT ln 2 per bit erased. SHA-256's compression takes 768 bits and emits 256, so it destroys at least 512, which is 2.94e-18 J per double-SHA attempt at 300 K. You cannot make a hash cheaper than its erasure without making it invertible, and an invertible hash is not one. The catch is the distance: a modern ASIC sits about 5.1e6 above that floor, so physics is real and is nowhere near binding. Six point seven orders of magnitude of headroom is a market, not a wall."
+    },
+    {
+      "id": "N-program-relative",
+      "title": "The wall is program-relative versus function-relative",
+      "routes": [
+        "cost-model",
+        "method"
+      ],
+      "links": [
+        "AK4"
+      ],
+      "text": "Ladderlang's latency_floor proves that no machine of any width runs a given term in fewer than its depth cycles, axiom-free. It does not prove that no other program computes the same function faster. That second statement is a circuit depth lower bound and it is open for deep reasons rather than unfinished ones. Every cost argument this project can make lives on the first side of that line, and a design that needs the second side needs something nobody has."
+    },
+    {
+      "id": "N-disqualifying-is-qualifying",
+      "title": "The property that ruins a construction for one job is what it is for",
+      "routes": [
+        "method",
+        "erasure",
+        "ledger"
+      ],
+      "links": [
+        "D4",
+        "AO2",
+        "AJ1"
+      ],
+      "text": "D4's forced uniformity made a collision count worthless as evidence of mixing, and AO2 found it is exactly what a wipe needs: every secret hidden among precisely as many others as every other secret. The history operator's refusal to forget disqualifies it as a hash and is the whole specification of a ledger. Twice now the fastest route to a use has been to take a thing this corpus already rejected and ask which requirement it was rejected against."
+    },
+    {
+      "id": "N-findability-not-count",
+      "title": "Collision count is not the security parameter; findability is",
+      "routes": [
+        "ledger",
+        "summary-statistics"
+      ],
+      "links": [
+        "D4",
+        "F-FINDABILITY-NOT-COUNT",
+        "F-MIXER-HEAD-IS-NOT-FLAT"
+      ],
+      "text": "Against an ideal hash into the same range, a summed ledger head has exactly the same number of colliding ledgers -- N^(L-1) of N^L -- and carries the same log2(N) bits about the whole history however long it grows. Measured over six entries, the summed head accepted 21,840 of 21,840 compensating edits and the mixer accepted 26, against a chance rate of 29.96. The control holds: on the 4,368 single edits, which move the total, the sum accepted 0 and the mixer 7 against a chance rate of 6. The counts are the same and the sum simply hands you a collision by solving one linear equation. The concrete mixer is not ideal either -- its two-entry preimage counts run 629 to 851 rather than a flat 729 -- which is a 17 percent bias at the peak and nothing a forger can turn into an equation."
+    },
+    {
+      "id": "N-verify-the-instrument",
+      "title": "Two of three inputs verifying is what makes the third findable",
+      "routes": [
+        "instrument",
+        "method"
+      ],
+      "links": [
+        "T-INSTRUMENT-FALSE-VERDICT"
+      ],
+      "text": "Seventeen instrument failures on the record. The ones that were caught were caught by contradiction between two measurements of one quantity, never by reading the code. The bitblock display receipt localised in one step because the payload length, the frame tag and the policy tag all matched and only the receipt did not. The shift attack was caught because AN3 had already counted 465 of those messages as mineable. Build the second measurement before trusting the first, and when they disagree the instrument is the better suspect."
+    },
+    {
+      "id": "N-arithmetic-is-not-prediction",
+      "title": "Two predictions held and should never have been registered",
+      "routes": [
+        "method"
+      ],
+      "links": [
+        "AP3",
+        "AP4"
+      ],
+      "text": "AP3 and AP4 are the closed forms (1+(b-1)/b)^pos and (b-1)/b, and the registration itself computed both before the run. Nothing in either was at risk. AGENTS.md names the failure directly: inflating the registered set with facts that were never at risk turns the discipline into decoration. A set that scores four from four in this corpus is a warning, because every finding here worth defending arrived by a prediction being wrong."
+    },
+    {
+      "id": "N-asymptotic-does-not-settle-a-width",
+      "title": "An asymptotic argument does not settle a particular width",
+      "routes": [
+        "ternary-vs-binary",
+        "method"
+      ],
+      "links": [
+        "F-LAMPORT-BASE-ADVANTAGE-IS-NOT-PER-SIZE",
+        "AL4"
+      ],
+      "text": "A Lamport key costs b/ln b per value, minimised at b = e, which puts three ahead of two by 5.4 percent. Across ten digest sizes binary wins at 256 and at 1024, the two tie at 64 and 4096, and ternary takes the other six, because the position count is an integer and a ceiling is a step. The same shape appeared in AL4, where an order-of-magnitude claim missed because the canonical arena sat between the two this project measures rather than beside either."
+    },
+    {
+      "id": "N-depth-is-blind-to-algebra",
+      "title": "A cost model prices the intended work and cannot see that it is skippable",
+      "routes": [
+        "cost-model",
+        "puzzle"
+      ],
+      "links": [
+        "AN1",
+        "AN2"
+      ],
+      "text": "AN found a puzzle whose message commuted straight out of the feed-forward, so one 729-entry index solved every mineable block in 1.54 lookups. The depth of that construction was completely unchanged by the shortcut. A tick model would have called it sound. Ticks catches scheduling shortcuts and misses algebraic ones; AN's variance test catches algebraic shortcuts and misses scheduling ones. Neither is optional and neither subsumes the other."
+    },
+    {
+      "id": "N-registration-order-is-the-evidence",
+      "title": "The ordering is the only part a later edit cannot fake",
+      "routes": [
+        "method"
+      ],
+      "links": [],
+      "text": "Predictions live in their own commit with no measurement in it, that commit is pushed before the audit runs, and both hashes are pinned in the manifest with a check that the first really precedes the second. Everything else in this repository could in principle be written after the fact. That ordering could not, which is why it is the part worth the ceremony rather than the prose around it."
+    },
+    {
+      "id": "N-scope-decides-the-verdict",
+      "title": "A correct computation scored against the wrong question",
+      "routes": [
+        "instrument",
+        "method"
+      ],
+      "links": [
+        "T-SCOPE-DECIDES-THE-VERDICT"
+      ],
+      "text": "Four bites. AB2's census folded the operand into the state. AG1 measured the program where the question was about the input. AO's hiding statistics had to exclude outputs that never occur, or the safest wipe would have scored as the most exposed. In every case the arithmetic was right and the boundary was wrong, which is why scope now goes in the registration rather than the write-up."
+    },
+    {
+      "id": "N-detection-not-inversion",
+      "title": "A ledger is asked for detection and this project kept hearing inversion",
+      "routes": [
+        "ledger",
+        "reversibility",
+        "method"
+      ],
+      "links": [
+        "AK2",
+        "F-REVERSIBLE-CANNOT-DESTROY",
+        "F-FINDABILITY-NOT-COUNT"
+      ],
+      "text": "Holding every transaction does not let you undo one. The history operator remembers, and remembering is auditability; reversing would need the mint step itself to be invertible, and it is not -- that non-invertibility is the same property AN2 required of the puzzle and AO required of the wipe. I had read the ledger requirement as in-degree one, which is an INVERSION requirement, when what a ledger needs is only that any change to any entry changes the head. That is a DETECTION requirement, it is strictly weaker, and it is satisfied by a map that merges states freely. The correction came from outside this corpus and it moved the ledger out of AK4's trilemma entirely."
+    }
+  ]
+}

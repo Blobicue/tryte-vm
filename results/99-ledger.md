@@ -8,7 +8,7 @@ Every registered prediction, in the order it was registered, rendered from
 line here is wrong, the manifest is wrong.
 
 **42 sets · 177 predictions · 148 held · 29 failed**
-· 38 measured but never registered
+· 40 measured but never registered
 · 18 defect classes, 50 occurrences
 
 Each set names the commit that registered it and the commit that recorded its
@@ -2018,6 +2018,14 @@ not inflated by things that were never at risk.
   <br>*Argument:* Cost per value is b * log_b N / log N = b / ln b, whose derivative vanishes at b = e; 3/ln3 = 2.731 against 2/ln2 = 2.885. The per-size flip follows from ceil(log_b N) being a step function: at N = 2^k the binary position count is exact while the ternary one rounds up.
   <br>*Evidence:* measured while choosing the arena for AP, which is exactly when a fact stops being a prediction
   <br>*Asserted in:* `test/test-keylayer.js`
+- **`F-FINDABILITY-NOT-COUNT`** — A summed ledger head and a hashed one carry the same 9.5098 bits about a history of any length, so a collision COUNT cannot separate them. What separates them is findability. Over one six-entry ledger, all 21,840 compensating pairs -- add d to one entry, subtract it from another, leave the total alone -- were accepted by the summed head, every single one, and 26 were accepted by the split-round mixer fed forward, against a chance rate of 29.96. The control says the compensating structure is doing the work: of the 4,368 single edits, which move the total, the summed head accepted 0 and the mixer accepted 7 against a chance rate of 6.
+  <br>*Argument:* The summed head is linear in the entries, so a compensating pair is not a search at all -- it is one equation with a solution by construction. The mixer chain a' = P(a + e) - e has no such solution, so a forger is reduced to trying, and 26 of 21,840 is what trying gets.
+  <br>*Evidence:* tools/ledger-audit.js sweeps both accumulators over the same 21,840 forgeries and the same 4,368 single-edit controls
+  <br>*Asserted in:* `test/test-ledger.js`
+- **`F-MIXER-HEAD-IS-NOT-FLAT`** — The N^(L-1) collision count is a property of an IDEAL hash, and the concrete mixer is not one. Over all 531,441 two-entry ledgers the summed head is exactly flat at 729 preimages per head, while the split-round chain ranges from 629 to 851 -- 17 percent above the ideal at its peak. No head is unreachable, so the chain is onto and the bias is in the spread rather than in the range.
+  <br>*Argument:* The summed head is flat because addition is a bijection in the last entry, which fixes the preimage count at N^(L-1) by construction. The chain step P(a + e) - e is NOT a bijection in e -- that non-invertibility is exactly what AN registered it for -- so its preimage counts are free to vary, and they do.
+  <br>*Evidence:* tools/ledger-audit.js preimageProfile(2), a full enumeration rather than a sample
+  <br>*Asserted in:* `test/test-ledger.js`
 
 ---
 

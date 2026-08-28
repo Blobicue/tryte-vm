@@ -162,6 +162,23 @@ console.log('\n=== 5. THE LEDGER IS GENERATED, NOT AUTHORED ===');
   // test-findings.js that watch these files all pass unchanged, which is what proves
   // the generator reproduces the hand-written text rather than quietly replacing it
   // -- but from here those phrasings are produced rather than policed.
+  // The retrieval projection follows the same contract: generated, and stale output is
+  // a failure rather than a stale file nobody notices. `slate.json` is a VIEW of the
+  // manifest and never a second copy of the truth, so it must never be hand-edited.
+  const slate = require('../tools/render-slate.js');
+  const slateRun = slate.run(false);
+  check('docs/slate.json is current with the manifest and the authored notes',
+    !slateRun.changed, 'run npm run slate');
+  check('   and every cross-link it carries resolves to an entry that exists',
+    (() => { try { slate.build(); return true; } catch (e) { return false; } })());
+  check(`   ${slateRun.slate.counts.entries} entries across `
+    + `${Object.keys(slateRun.slate.routes).length} routes, `
+    + `${slateRun.slate.counts.notes} of them authored notes`,
+    slateRun.slate.counts.entries > 200 && slateRun.slate.counts.notes > 0);
+  check('   and a derived route is labelled as derived rather than passed off as assigned',
+    slateRun.slate.entries.some(e => e.routes_derived === true)
+    && slateRun.slate.entries.some(e => e.routes_derived === false));
+
   const docs = require('../tools/render-docs.js');
   const pending = docs.run(false).report.filter(r => r.changed);
   check('every generated region in the prose is already current',

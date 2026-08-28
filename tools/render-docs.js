@@ -39,6 +39,8 @@
 const fs = require('fs');
 const path = require('path');
 
+const SLATE = require('./render-slate.js');
+
 const ROOT = path.join(__dirname, '..');
 const MAIN = require.main === module;
 const log = (...a) => { if (MAIN) console.log(...a); };
@@ -69,6 +71,7 @@ const Word = n => { const w = word(n); return w[0].toUpperCase() + w.slice(1); }
 
 /** Everything derivable from the manifest and the tree, in one object. */
 function facts() {
+  const built = SLATE.build().slate;
   const M = JSON.parse(fs.readFileSync(path.join(ROOT, 'FINDINGS.json'), 'utf8'));
   const preds = M.prediction_sets.flatMap(s => s.predictions);
   // An audit is a tool a set names, wherever it lives -- the same rule test-findings
@@ -91,6 +94,14 @@ function facts() {
     // rests on it: the instrument, not the subject, producing the verdict.
     instrumentBites: (M.traps_encountered
       .find(t => t.id === 'T-INSTRUMENT-FALSE-VERDICT') || { count: 0 }).count,
+    // The page's retrieval index, projected from the same manifest. It is the largest
+    // generated region by four orders of magnitude, and the only reason it is here
+    // rather than pasted is that a pasted one would go stale the next time a finding
+    // is added -- which is the exact failure this tool exists to abolish.
+    slateEmbed: SLATE.embed(built),
+    slate: built.counts,
+    unrouted: (built.routes.unrouted || []).length,
+    routeCount: Object.keys(built.routes).length,
   };
 }
 
@@ -135,6 +146,14 @@ const TEMPLATES = {
   'art-failed': f => `<b>${f.failed}</b>`,
   'art-failed-tally': f => `${Word(f.failed)} of ${f.predictions} predictions failed`,
   'art-instrument-bites': f => `${Word(f.instrumentBites)} instrument failures`,
+  'slate-data': f =>
+    `<script type="application/json" id="slate-data">${f.slateEmbed}</script>`,
+  'art-slate-tally': f =>
+    `<b>${f.slate.entries}</b> entries — ${f.slate.predictions} predictions, `
+    + `${f.slate.findings} findings, ${f.slate.traps} defect classes and ${f.slate.notes} notes — `
+    + `across ${f.routeCount} routes`,
+  'art-slate-unrouted': f =>
+    `${Word(f.unrouted)} entries stay <span class="mono">unrouted</span>`,
 };
 
 const TARGETS = [
