@@ -1,0 +1,75 @@
+'use strict';
+/* theme.js — the arithmetic behind both theme suites.
+ *
+ * `test-style.js` was written because three real defects shipped past inspection: a
+ * Cyrillic 'A' inside a dark-mode hex literal, and two text-on-background pairs below
+ * WCAG AA. Inspection missed all three and arithmetic caught them. When the same
+ * arithmetic was wanted for a second document the honest options were to copy it or
+ * to share it, and a copied instrument is two instruments that can disagree -- which
+ * is the one thing this repository will not have in a checker.
+ *
+ * So the maths lives here once. The PAIRS a page must satisfy stay in that page's
+ * suite, because which text sits on which background is a fact about the page.
+ */
+
+/** WCAG relative luminance of a #rrggbb literal. */
+const lum = h => {
+  const c = [1, 3, 5].map(i => parseInt(h.substr(i, 2), 16) / 255)
+    .map(v => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+};
+
+/** Contrast ratio, lighter over darker, so argument order cannot change a verdict. */
+const ratio = (a, b) => {
+  const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+  return (x + 0.05) / (y + 0.05);
+};
+
+/** The hex tokens declared inside one CSS block. */
+const tokens = block => {
+  const o = {};
+  if (block) for (const t of block.matchAll(/(--[a-z0-9-]+):\s*(#[0-9A-Fa-f]{6})/g)) o[t[1]] = t[2];
+  return o;
+};
+
+/** The first capture of `re` against the stylesheet, or '' when it does not match. */
+const blockOf = (css, re) => { const m = css.match(re); return m ? m[1] : ''; };
+
+/**
+ * The structural rules that hold for ANY themed page, returned rather than asserted
+ * so each suite can name them in its own voice.
+ *
+ *   orphanTokens   declared in a theme block but never in bare :root, so the
+ *                  un-stamped default state has no value for them at all
+ *   danglingVars   var(--x) with no definition and no fallback
+ *   themesDisagree tokens where the media query and the [data-theme] block differ
+ */
+function structure(css) {
+  const base = blockOf(css, /^[ \t]*:root\s*\{([\s\S]*?)\n[ \t]*\}/m);
+  const dark = blockOf(css, /:root\[data-theme="dark"\]\s*\{([\s\S]*?)\n[ \t]*\}/);
+  const media = blockOf(css, /@media\s*\(prefers-color-scheme:\s*dark\)\s*\{[\s\S]*?:root:not\(\[data-theme="light"\]\)\s*\{([\s\S]*?)\n\s*\}/);
+
+  const names = b => new Set([...b.matchAll(/(--[a-z0-9-]+):/g)].map(m => m[1]));
+  const baseNames = names(base);
+  const allNames = names(css);
+  const orphanTokens = [...allNames].filter(t => !baseNames.has(t));
+
+  // var(--x, fallback) is defined by its fallback, so only the bare form can dangle.
+  const bare = [...css.matchAll(/var\(\s*(--[a-z0-9-]+)\s*\)/g)].map(m => m[1]);
+  const danglingVars = [...new Set(bare)].filter(t => !allNames.has(t));
+
+  const D = tokens(dark), M = tokens(media);
+  const themesDisagree = Object.keys(D).filter(t => M[t] !== D[t])
+    .concat(Object.keys(M).filter(t => D[t] === undefined));
+
+  if (!base.trim()) throw new Error('theme: no bare :root block found -- the parse failed, not the palette');
+
+  return {
+    light: tokens(base), dark: D, media: M,
+    orphanTokens, danglingVars, themesDisagree: [...new Set(themesDisagree)],
+    hasDark: Object.keys(D).length > 0,
+    nonAsciiHex: /#[0-9A-Fa-f]*[^\x00-\x7F][0-9A-Fa-f]*\s*[;}]/.test(css),
+  };
+}
+
+module.exports = { lum, ratio, tokens, blockOf, structure };

@@ -28,12 +28,9 @@ const LIGHT = tokensIn(/^:root \{([\s\S]*?)\n\}/m);
 const DARK  = tokensIn(/:root\[data-theme="dark"\] \{([\s\S]*?)\n\}/);
 const MEDIA = tokensIn(/@media \(prefers-color-scheme: dark\) \{[\s\S]*?:root:not\(\[data-theme="light"\]\) \{([\s\S]*?)\n  \}/);
 
-const lum = h => {
-  const c = [1, 3, 5].map(i => parseInt(h.substr(i, 2), 16) / 255)
-    .map(v => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
-  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
-};
-const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+// The luminance and contrast maths moved to test/theme.js when a second document
+// wanted it. Two copies of a checker are two checkers that can disagree.
+const { ratio } = require('./theme.js');
 
 /* Every pair where the page paints text on a background. */
 const PAIRS = [
