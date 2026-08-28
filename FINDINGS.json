@@ -4132,7 +4132,7 @@
       "subject": "What does an INSERTION cost a ledger forger? Set AS left the route open by naming it: P has one fixed point, so from every accumulator exactly one entry value leaves the mixer head unchanged, and every forgery in AS keeps the ledger at six entries. This set prices a forger who may lengthen it -- insert, delete and rearrange against a ledger publishing BOTH heads -- in two currencies stated before the run, operations and GROWTH, with no exchange rate invented between them",
       "tool": "tools/insert-audit.js",
       "registered_at": "db57466",
-      "results_at": "PENDING",
+      "results_at": "7b84123",
       "asserted_in": "test/test-insert.js",
       "predictions": [
         {

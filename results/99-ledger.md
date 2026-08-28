@@ -2139,7 +2139,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/insert-audit.js` |
 | asserted in | `test/test-insert.js` |
 | registered | `db57466` |
-| results | `PENDING` |
+| results | `7b84123` |
 
 ### `AT1` — HELD
 
