@@ -455,19 +455,28 @@ function twoInsertSweep(e, a, step = STEP) {
   const L = e.length;
   let tried = 0, accepted = 0;
   const rows = [];
+  // The gap DISTANCE breakdown is what localised AT3's failure to a single cell, so it
+  // is carried rather than recomputed: distance zero is both insertions at one gap.
+  const hitByDistance = new Int32Array(L + 1), triedByDistance = new Int32Array(L + 1);
+  let hitAtGapZero = 0, triedAtGapZero = 0;
   for (let p = 0; p <= L; p++) {
     for (let q = p; q <= L; q++) {
-      const target = a[q];
+      const target = a[q], d = q - p;
       for (let x = 0; x < N; x++) {
         const y = negEntry(x);
         let b = step[a[p] * N + x];
         for (let r = p; r < q; r++) b = step[b * N + e[r]];
-        tried++;
-        if (step[b * N + y] === target) { accepted++; rows.push([p, q, x, y]); }
+        tried++; triedByDistance[d]++;
+        if (d === 0 && p === 0) triedAtGapZero++;
+        if (step[b * N + y] === target) {
+          accepted++; hitByDistance[d]++; rows.push([p, q, x, y]);
+          if (d === 0 && p === 0) hitAtGapZero++;
+        }
       }
     }
   }
-  return { tried, accepted, rows };
+  return { tried, accepted, rows, hitByDistance, triedByDistance,
+    hitAtGapZero, triedAtGapZero };
 }
 /** The forged ledger from one two-insertion row, so a match can be rebuilt, not trusted. */
 function applyTwoInsert(e, [p, q, x, y]) {
@@ -478,6 +487,87 @@ function applyTwoInsert(e, [p, q, x, y]) {
     if (r < e.length) out.push(e[r]);
   }
   return out;
+}
+
+/**
+ * WHY `AT3`'s CHANCE VALUE OF 28 WAS WRONG, computed exhaustively AFTER the run
+ * because it is the mechanism of a failure rather than a prediction.
+ *
+ * At a same-gap pair the two insertions land on one accumulator `a`, and the map
+ * T_x : a -> STEP[STEP[a][x]][-x] is a composition of two bijections in the
+ * accumulator (D3), so it is a PERMUTATION for every x. The pair is accepted exactly
+ * when `a` is a fixed point of T_x, so this counts, for every accumulator, how many of
+ * the 729 values of x fix it. The sum over all 729 accumulators is about 729 -- an
+ * average of one -- which is where the registered chance value came from.
+ *
+ * But GAP ZERO IS THE SAME ACCUMULATOR ON EVERY LEDGER. `c(ZERO)` is therefore not a
+ * draw from that distribution, it is one number that every ledger inherits, and the
+ * family's true expectation is gapPairs(L) - 1 + c(ZERO) rather than gapPairs(L).
+ */
+function sameGapProfile(step = STEP) {
+  const c = new Int32Array(N);
+  for (let a = 0; a < N; a++) {
+    for (let x = 0; x < N; x++) {
+      if (step[step[a * N + x] * N + negEntry(x)] === a) c[a]++;
+    }
+  }
+  let total = 0, max = 0, zero = 0;
+  for (const v of c) { total += v; if (v > max) max = v; if (!v) zero++; }
+  const witnesses = [];
+  for (let x = 0; x < N; x++) {
+    const y = negEntry(x);
+    if (step[step[ZERO * N + x] * N + y] === ZERO) witnesses.push([x, y, val(x), val(y)]);
+  }
+  return { counts: c, total, mean: total / N, max, zeroAt: zero,
+    atIdentity: c[ZERO], witnesses };
+}
+const correctedTwoInsertChance = (L, atIdentity) => gapPairs(L) - 1 + atIdentity;
+
+/**
+ * THE ANSWER THIS SET ACTUALLY FOUND, and no prediction claimed it. Each witness of
+ * `sameGapProfile` is a PAIR of entry values that, prepended to ANY ledger, returns
+ * the accumulator to the identity and sums to zero -- so it restores both heads on
+ * every ledger of every length, with no search and no knowledge of the entries at all.
+ * Verified by rebuilding rather than argued, across six lengths.
+ */
+function universalPair(step = STEP, witnesses = null, seed = 13) {
+  const w = witnesses || sameGapProfile(step).witnesses;
+  const r = rng(seed);
+  let tried = 0, ok = 0;
+  for (const [x, y] of w) {
+    for (const L of [0, 1, 2, 3, 6, 9, 12]) {
+      for (let n = 0; n < 20; n++) {
+        const e = drawLedgerOfLength(r, L);
+        const f = [x, y].concat(e);
+        tried++;
+        if (headOf(f, step) === headOf(e, step) && totalOf(f) === totalOf(e)) ok++;
+      }
+    }
+  }
+  return { pairs: w.map(([x, y, vx, vy]) => [vx, vy]), count: w.length, tried, ok,
+    universal: w.length > 0 && tried > 0 && ok === tried, growth: 2, ops: 0 };
+}
+
+/**
+ * `AT2`'s third leg is a bound on a MAXIMUM and the arithmetic that placed it was a
+ * bound on a MEAN. This draws the null's tail directly, at length two, so the record
+ * says whether 100 was ever a line the mixer could have been measured against.
+ * `T-CONTROL-CANNOT-DISCRIMINATE`: reported as a rate over many draws, not one.
+ */
+function tailNull(L, draws, seed, fixFirst = null) {
+  const r = rng(seed);
+  let over100 = 0, max = 0, tot = 0;
+  for (let n = 0; n < draws; n++) {
+    const gens = Array.from({ length: L + 1 }, (_, i) =>
+      (i === 0 && fixFirst !== null) ? fixFirst : randInt(r, N));
+    const m = minInsertions(gens).min;
+    tot += m;
+    if (m > max) max = m;
+    if (m > 100) over100++;
+  }
+  return { length: L, draws, mean: tot / draws, max, over100,
+    rateOver100: over100 / draws,
+    expectedOver100In2000: 2000 * over100 / draws };
 }
 
 // ------------------------------------------------------------- AT3(b), deletions
@@ -603,6 +693,11 @@ function census(ledgers, seed, L, step, noOp, full = true) {
   // two insertions
   let tiTried = 0, tiEnumerated = 0, tiDistinct = 0;
   const tiCounts = new Int32Array(ledgers);
+  const tiHitByDistance = new Int32Array(L + 1), tiTriedByDistance = new Int32Array(L + 1);
+  let tiHitAtGapZero = 0, tiTriedAtGapZero = 0;
+  // the minimum's whole distribution, because a mean hides the 1s and the tail
+  const minHist = new Int32Array(64);
+  let minOverflow = 0;
   // deletions
   let delTried = 0, delHead = 0, delSum = 0, delBoth = 0, delLedgers = 0;
   // rearrangements
@@ -633,6 +728,7 @@ function census(ledgers, seed, L, step, noOp, full = true) {
     }
     const m = minInsertions(gens);
     mins[n] = m.min; minOps += m.ops;
+    if (m.min < minHist.length) minHist[m.min]++; else minOverflow++;
     // Rebuilt and both heads recomputed from scratch, on a sample. A count cannot tell
     // a working attack from a relabelled broken one -- AS's mutation 3.
     if (n < 200) {
@@ -646,6 +742,10 @@ function census(ledgers, seed, L, step, noOp, full = true) {
 
     const ti = twoInsertSweep(e, a, step);
     tiTried += ti.tried; tiEnumerated += ti.accepted;
+    tiHitAtGapZero += ti.hitAtGapZero; tiTriedAtGapZero += ti.triedAtGapZero;
+    for (let d = 0; d <= L; d++) {
+      tiHitByDistance[d] += ti.hitByDistance[d]; tiTriedByDistance[d] += ti.triedByDistance[d];
+    }
     const tiSeen = new Set();
     for (const row of ti.rows) tiSeen.add(applyTwoInsert(e, row).join(','));
     tiCounts[n] = tiSeen.size; tiDistinct += tiSeen.size;
@@ -675,6 +775,7 @@ function census(ledgers, seed, L, step, noOp, full = true) {
   const out = {
     ledgers, length: L, coverage,
     min: stat(mins), minOps: minOps / ledgers,
+    minHist: Array.from(minHist), minOverflow,
     orders: [...orderTally.entries()].sort((x, y) => x[0] - y[0]),
     degenerateGapPairs, ledgersWithDegenerateGap,
     rebuilt: { ok: rebuiltOk, tried: rebuiltTried },
@@ -684,6 +785,9 @@ function census(ledgers, seed, L, step, noOp, full = true) {
   out.twoInsert = {
     ...stat(tiCounts), tried: tiTried, enumerated: tiEnumerated, distinct: tiDistinct,
     chance: twoInsertChance(L), family: twoInsertFamily(L),
+    hitByDistance: Array.from(tiHitByDistance), triedByDistance: Array.from(tiTriedByDistance),
+    atGapZero: { hit: tiHitAtGapZero, tried: tiTriedAtGapZero,
+      perLedger: tiHitAtGapZero / ledgers },
   };
   out.deletion = { tried: delTried, headOnly: delHead, sumOnly: delSum, both: delBoth,
     ledgersWithOne: delLedgers, chanceLedgers: ledgers * ((1 << L) - 1) / (N * N) };
@@ -885,14 +989,23 @@ function measure() {
       bruteAgrees: null,
     },
     universal: universalPrepend(STEP, noOp),
+    sameGap: sameGapProfile(STEP),
+    sameGapControl: sameGapProfile(ctrl.step),
     census: census(LEDGERS, SEED, L6, STEP, noOp, true),
-    control: census(Math.min(LEDGERS, 500), SEED ^ 0x27d4eb2f, L6, ctrl.step, ctrl.noOp, true),
+    control: census(LEDGERS, SEED ^ 0x27d4eb2f, L6, ctrl.step, ctrl.noOp, true),
     lengths: LENGTHS.map(L =>
       census(LEDGERS, SEED ^ (L * 0x9e3779b9), L, STEP, noOp, false)),
     nulls: LENGTHS.map(L => uniformGeneratorNull(LEDGERS, SEED ^ (L * 0x85ebca6b), L)),
     canonical: null,
     hybrid: hybridInsertEdit(Math.min(LEDGERS, 500), SEED ^ 0x165667b1, STEP, noOp),
+    // AT2's third leg was a bound on a maximum placed by arithmetic about a mean, so
+    // the null's own tail goes on the record beside it.
+    tail: [tailNull(2, LEDGERS >= 500 ? 50000 : 2000, SEED ^ 0x1b873593, null),
+      tailNull(2, LEDGERS >= 500 ? 50000 : 2000, SEED ^ 0xcc9e2d51, null)],
   };
+  M.universalPair = universalPair(STEP, M.sameGap.witnesses);
+  M.tailMatched = tailNull(2, LEDGERS >= 500 ? 50000 : 2000, SEED ^ 0x2545f491,
+    M.universal.generator);
   // The BFS against direct enumeration, on real ledgers rather than on synthetic gens.
   {
     const r = rng(23);
@@ -967,6 +1080,21 @@ function report() {
     + ` ${U.ok} of ${U.tried} rebuilt across six lengths -- ${U.universal}`);
   log('      no search, no knowledge of the entries, and the same value every time.');
 
+  log('\n--- NOT REGISTERED, AND THE ANSWER THE SET ACTUALLY FOUND: A UNIVERSAL PAIR ---');
+  const P2 = M.universalPair, SG = M.sameGap;
+  log(`      Gap zero is the SAME accumulator on every ledger, and at that one`);
+  log(`      accumulator ${SG.atIdentity} of the 729 free values x admit a partner -x that`);
+  log('      returns the accumulator to where it started. So each of those is a PAIR of');
+  log('      entries that forges ANY ledger of ANY length, both heads, at zero ops:');
+  for (const [vx, vy] of P2.pairs) log(`        prepend ${vx} then ${vy}`);
+  log(`      rebuilt on ${P2.tried} ledgers across seven lengths: ${P2.ok} of ${P2.tried}`
+    + ` -- ${P2.universal}`);
+  log(`      the same statistic over all 729 accumulators: total ${SG.total},`
+    + ` mean ${SG.mean.toFixed(4)}, max ${SG.max}, and ${SG.zeroAt} accumulators admit none`);
+  log(`      the control chain's identity accumulator admits ${M.sameGapControl.atIdentity}`
+    + `, mean ${M.sameGapControl.mean.toFixed(4)} -- so ${SG.atIdentity} is a draw from a`
+    + ' distribution whose mean is one, taken at the one place every ledger stands');
+
   log('\n--- AT1  the shortest insertion-only forgery, at length six ---');
   const C = M.census;
   log(`      ${C.ledgers.toLocaleString('en-US')} drawn ledgers, exact minimum by BFS over Z_729`);
@@ -984,6 +1112,14 @@ function report() {
     log(`      ${String(o).padStart(5)}  ${String(k).padStart(9)}   `
       + `${(k / (C.ledgers * (L6 + 1)) * N).toFixed(2)}`);
   }
+  log('      the whole distribution, because a mean hides both ends');
+  log('      minimum   ledgers    share');
+  for (let k = 0; k < C.minHist.length; k++) {
+    if (!C.minHist[k]) continue;
+    log(`      ${String(k).padStart(7)}  ${String(C.minHist[k]).padStart(8)}   `
+      + `${(100 * C.minHist[k] / C.ledgers).toFixed(2)}%`);
+  }
+  if (C.minOverflow) log(`      above ${C.minHist.length - 1}: ${C.minOverflow}`);
   log(`      rebuilt and both heads recomputed: ${C.rebuilt.ok} of ${C.rebuilt.tried}`);
   log(`      T-INSTRUMENT-FALSE-VERDICT: ${C.ledgersWithDegenerateGap} ledger(s) have an entry`
     + ` that is its own gap's no-op, giving ${C.degenerateGapPairs} interchangeable gap pair(s)`);
@@ -1002,6 +1138,14 @@ function report() {
   for (let i = 1; i < means.length; i++) if (!(means[i] < means[i - 1])) strictly = false;
   log(`      strictly decreasing at every one of the ${means.length - 1} steps: ${strictly}`);
   log(`      worst single ledger at any length: ${Math.max(...M.lengths.map(c => c.min.max))}`);
+  log('\n      the null\'s OWN tail at length two, because a bound on a maximum was placed');
+  log('      by arithmetic about a mean (T-CONTROL-CANNOT-DISCRIMINATE: a rate, not a draw)');
+  for (const t of [...M.tail, M.tailMatched]) {
+    log(`        ${t.draws.toLocaleString('en-US')} uniform draws: mean ${t.mean.toFixed(3)},`
+      + ` max ${t.max}, ${t.over100} above 100 (${(100 * t.rateOver100).toFixed(3)}%)`
+      + ` -- so 2,000 draws expect ${t.expectedOver100In2000.toFixed(2)}`);
+  }
+  log('      the third line fixes the gap-zero generator at the subject\'s own constant.');
 
   log('\n--- AT3  two free insertions, and deletion ---');
   const T = M.census.twoInsert, D = M.census.deletion;
@@ -1015,6 +1159,27 @@ function report() {
     + ` -- ${(T.enumerated - T.distinct).toLocaleString('en-US')} collisions`);
   log(`      control chain: mean ${M.control.twoInsert.mean.toFixed(4)},`
     + ` variance/mean ${M.control.twoInsert.varOverMean.toFixed(4)}`);
+  log('\n      by gap distance -- which is where the whole departure lives');
+  log('      dist   pairs        tried      accepts   rate x chance   control');
+  for (let d = 0; d <= L6; d++) {
+    const t = T.triedByDistance[d], h = T.hitByDistance[d];
+    if (!t) continue;
+    const ct = M.control.twoInsert.triedByDistance[d], ch = M.control.twoInsert.hitByDistance[d];
+    log(`      ${d}      ${String(L6 + 1 - d).padStart(4)}   ${String(t).padStart(10)}`
+      + `   ${String(h).padStart(9)}    ${(h / t * N).toFixed(4).padStart(11)}`
+      + `   ${(ch / ct * N).toFixed(4)}`);
+  }
+  const CC = correctedTwoInsertChance(L6, M.sameGap.atIdentity);
+  log(`      at GAP ZERO alone: ${T.atGapZero.hit.toLocaleString('en-US')} accepts in`
+    + ` ${T.atGapZero.tried.toLocaleString('en-US')} tries =`
+    + ` ${T.atGapZero.perLedger.toFixed(4)} per ledger, against c(ZERO) =`
+    + ` ${M.sameGap.atIdentity}`);
+  log(`      so the family's TRUE expectation is gapPairs - 1 + c(ZERO) = ${CC}, not`
+    + ` ${T.chance}: the measured ${T.mean.toFixed(4)} is`
+    + ` ${Math.abs(T.mean - CC).toFixed(4)} from it`);
+  const CCC = correctedTwoInsertChance(L6, M.sameGapControl.atIdentity);
+  log(`      and the control, whose c(ZERO) is ${M.sameGapControl.atIdentity}, has true`
+    + ` expectation ${CCC} and measures ${M.control.twoInsert.mean.toFixed(4)}`);
   log(`      deletions: ${D.tried.toLocaleString('en-US')} subsets tried,`
     + ` ${D.headOnly} preserve the mixer head, ${D.sumOnly} the total,`
     + ` ${D.both} BOTH`);
@@ -1039,7 +1204,9 @@ function report() {
   log('\n--- NOT REGISTERED: what a forger actually pays, in BOTH currencies ---');
   const K = M.cost, CA = M.canonical;
   log('      attack                          ops        growth   knowledge needed');
-  log(`      universal prepend (I4)          ${String(K.universalPrepend.ops).padStart(9)}`
+  log(`      universal PAIR                  ${String(M.universalPair.ops).padStart(9)}`
+    + `  ${String(M.universalPair.growth).padStart(8)}   none at all`);
+  log(`      universal prepend run (I4)      ${String(K.universalPrepend.ops).padStart(9)}`
     + `  ${String(K.universalPrepend.growth).padStart(8)}   none at all`);
   log(`      shortest no-op run (AT1)        ${K.noOpRun.ops.toFixed(0).padStart(9)}`
     + `  ${K.noOpRun.growth.toFixed(2).padStart(8)}   the ledger's accumulators`);
@@ -1080,5 +1247,7 @@ module.exports = {
   twoInsertSweep, applyTwoInsert, deletionSweep, permutationsOf, PERMS6,
   rearrangementSweep, moveSweep, controlChain, drawLedgerOfLength, census,
   uniformGeneratorNull, checkTruncationAgrees, checkNoOpIsFree, checkSingleGapRun,
-  bfsControls, universalPrepend, hybridInsertEdit, costLadder, measure, report,
+  bfsControls, universalPrepend, hybridInsertEdit, costLadder,
+  sameGapProfile, correctedTwoInsertChance, universalPair, tailNull,
+  measure, report,
 };

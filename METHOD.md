@@ -13,18 +13,21 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-<!--g:method-tally-->Forty-five prediction sets, **189 registered predictions, 156 held, 33 failed.** Nineteen
-distinct failure classes, which bit **58 times** between them. Fifty-two findings
+<!--g:method-tally-->Forty-six prediction sets, **193 registered predictions, 158 held, 35 failed.** Nineteen
+distinct failure classes, which bit **59 times** between them. Fifty-six findings
 measured but never registered<!--/g-->, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
 document drifts from the manifest, the suite fails.
 
 **That last clause was not true of the registered set itself, and a read-only audit
-found it out.** <!--g:method-at-risk-->Twenty-five of those 189 were never at risk at all, and seven cannot be called either way. Corrected to what a run could
-actually have refuted, the record is **157 at risk, 124 held, 33 failed — a 21%
-failure rate** against 17.5% over everything registered<!--/g-->. The raw counts above are
-not lowered: 185 predictions were registered and that is a fact about what happened.
+found it out.** <!--g:method-at-risk-->Twenty-five of those 193 were never at risk at all, and seven cannot be called either way. Corrected to what a run could
+actually have refuted, the record is **161 at risk, 126 held, 35 failed — a 21.7%
+failure rate** against 18.1% over everything registered<!--/g-->. The raw counts above are
+not lowered: every one of those predictions was registered before its run, and that is
+a fact about what happened. (This sentence used to carry the total as a literal, and it
+went stale by eight the moment two more sets landed — `T-STALE-CONSTANT` inside the
+document that names it. The count it wanted is generated two paragraphs up.)
 The failures were never the problem — every one of them is real, and not one is among
 the decorative, which is the rule validating itself, because a fact that was never at
 risk cannot fail. What is not evidence is a sixth of the successes. `at_risk` is now a
@@ -33,16 +36,18 @@ compulsory per-prediction field and the audit is `F-REGISTRATION-IS-NOT-RISK`.
 A prediction carries two independent labels, and running them together was costing
 something. `outcome` is the prediction against the run — held or failed. **`basis` is
 the scope of the claim**: swept at the width it was swept at, or argued at every width.
-<!--g:method-basis-->Ten of those 189 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
+<!--g:method-basis-->Ten of those 193 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
 each with its argument written out beside its measurement. The measurement is still
 required. A proof does not excuse running it — an argument is also a thing that can be
 wrong, and the run is what would say so.
 
-**<!--g:method-failures-lede-->The 33 failures produced more than the 124 successes that were genuinely at risk<!--/g-->.** Each one is
+**<!--g:method-failures-lede-->The 35 failures produced more than the 126 successes that were genuinely at risk<!--/g-->.** Each one is
 still in the manifest, marked `FAILED`, with the result it led to:
 
 | failed | what it claimed | what it produced |
 |---|---|---|
+| **AT2** | insertion-forgery length falls with ledger length, and no ledger anywhere needs more than 100 insertions | three legs held — the curve is strictly decreasing at all ten steps and tracks the uniform null to within 0.17 from length three on — and the bound on the MAXIMUM was placed by a heuristic that is only about a MEAN. The same exponential approximation that predicts 4.87 at length six, accurate to 0.03, puts the chance of exceeding 100 at length two at essentially zero; drawn directly, the null exceeds 100 in 22, 25 and 33 of 50,000 draws, so 2,000 draws expect about one and **the line had a 58% chance of firing on the null alone**. The measured 146 is not evidence about the subject: the null's own maximum is 243. DRAW THE NULL'S TAIL BEFORE REGISTERING A BOUND ON A MAXIMUM |
+| **AT3** | two free insertions accept at their chance value of 28 | 30.0120, missing by 0.012 — and it is seventeen standard errors, so the line was fine and the CHANCE VALUE was wrong. The fact that breaks it stood in the same set's own registration two hundred lines above: gap zero is the tritwise identity on every ledger, so one of the 28 gap pairs is never a random accumulator. The true expectation is 30, and the measured value sits 0.012 from it. Chasing that found **three pairs of entry values that forge any ledger of any length at zero cost in search**, which is worth more than the prediction was |
 | **P3** | a reach formula factored across digit positions | the corrected law, and Q3 explaining why the wrong one was plausible |
 | **X2** | which seeds of a cyclic network are self-consistent | it assumed every seed resolves; two do not — this rewrote an axiom |
 | **Z2** | a depth floor for ternary "at any price" | a different circuit design, **cheaper and shallower** than the one measured |
@@ -186,7 +191,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-five sets<!--/g--> and they form very nearly
+fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-six sets<!--/g--> and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from

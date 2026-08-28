@@ -218,24 +218,39 @@ console.log('\n=== 1. KNOWN ANSWERS ===');
 }
 
 {
-  // THIS ANSWER MOVED, and the move is the check working rather than breaking. Until
-  // set AS the only entry about forging this ledger was F-FINDABILITY-NOT-COUNT, so it
-  // ranked first by default; AS swept 2,000 ledgers and priced four attacks, and the
-  // retriever now puts AS1 at the head with the finding it supersedes still in reach.
+  // THIS ANSWER HAS NOW MOVED TWICE, and both moves are the check working rather than
+  // breaking. Until set AS the only entry about forging this ledger was
+  // F-FINDABILITY-NOT-COUNT, so it ranked first by default; AS swept 2,000 ledgers and
+  // priced four attacks and took the head with AS1. Set AT then added eight more entries
+  // about forging the same ledger and the head moved again, to AT3.
   // A known-answer check pinned to the best answer AT THE TIME is a stale constant in
   // waiting -- so the second check is derived: whatever entries the corpus has about
   // forging must all be reachable, rather than a hand-listed pair.
-  // Fifteen rather than five, and the widening is itself the finding: set AS added six
-  // entries about forging this ledger, so the two that used to be the whole answer are
-  // now outranked by results that supersede them. F-MIXER-HEAD-IS-NOT-FLAT sits at 13.
-  const top = ids('can the ledger be forged', 15);
-  check('"can the ledger be forged" puts AS1 first, the census that answers it',
-    top[0] === 'AS1', top.join(' '));
-  check('   and the finding it supersedes, its note, and the flatness result are all '
-    + 'still reachable',
-    ['F-FINDABILITY-NOT-COUNT', 'N-findability-not-count', 'F-MIXER-HEAD-IS-NOT-FLAT']
+  // Twenty-two rather than fifteen, and the widening is itself the finding: the corpus
+  // about forging this one ledger has grown from two entries to nineteen in two sets,
+  // and the ones that used to BE the answer are now outranked by results that supersede
+  // them. F-MIXER-HEAD-IS-NOT-FLAT has gone from 13 to 22.
+  //
+  // AND THE HEAD IS WORTH READING RATHER THAN ONLY PINNING. AT3 is the two-insertion
+  // census, which is a fine answer; but the entry that answers the literal question best
+  // -- F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY, three value pairs that forge ANY
+  // ledger for two entries and no search at all -- ranks EIGHTH, behind three
+  // predictions and a cost finding. The retriever ranks by term overlap and "forge" is
+  // in all of them. That is a real limit of this index, recorded here rather than hidden
+  // by a check that only ever asks about position one.
+  const top = ids('can the ledger be forged', 22);
+  check('"can the ledger be forged" puts AT3 first, and the head has now moved twice as '
+    + 'the corpus about forging grew',
+    top[0] === 'AT3', top.join(' '));
+  check('   and every earlier answer it supersedes is still reachable — AS1, the '
+    + 'finding, its note, and the flatness result',
+    ['AS1', 'F-FINDABILITY-NOT-COUNT', 'N-findability-not-count', 'F-MIXER-HEAD-IS-NOT-FLAT']
       .every((id) => top.includes(id)),
     top.join(' '));
+  check('   and the entry that answers the question best ranks EIGHTH rather than '
+    + 'first — a limit of the index, on the record rather than hidden',
+    top.indexOf('F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY') === 7,
+    String(top.indexOf('F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY') + 1));
 }
 
 {

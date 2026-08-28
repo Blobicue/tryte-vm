@@ -1259,6 +1259,137 @@ everything a 9.5-bit permutation-based head can do — it is indistinguishable f
 permutation on every statistic tried — and `F-MITM-PRICES-THE-MIXER-AT-SEVEN-OPS` says
 that is worth a factor of seven over adding the entries up.
 
+### `AT` — the forger is allowed to LENGTHEN the ledger, and the price collapses to two entries
+
+`AS` left this route open by naming it. `P` has exactly one fixed point, so from every one
+of the 729 accumulators there is exactly one entry value that leaves the mixer head
+unchanged, and **every forgery in `AS` keeps the ledger at six entries**, so not one of
+them can use it. `AT` prices the forger who may lengthen it.
+
+**The class, stated because it is strictly larger and the difference is qualitative.** The
+ledger publishes **both** heads — the arithmetic total and the mixer head — and a forgery
+must reproduce both. `AS` never had to say that out loud because its family preserved the
+total by construction. `AS`'s forger edits in place at a fixed length over a family of
+10,920. This one may insert at any of the L + 1 gaps, delete any subset, and rearrange, so
+**the family is unbounded**, and "how many forgeries" stops being a question with a finite
+answer. That is why the cost model carries **two currencies, stated before the run**: `AS`'s
+operation, so the two sets are comparable, and **growth** — entries added — which nothing in
+this repository converts into operations. Both are reported and no exchange rate is
+invented. And the precondition, which is not a cost: **this forger exists only where the
+verifier does not authenticate the ledger's length.**
+
+**The answer, and no prediction claimed it.** There are exactly **three pairs of entry
+values — (136, −136), (295, −295) and (362, −362) — each of which, prepended to any ledger
+of any length, leaves both heads unchanged.** Two added entries, **zero operations**, no
+knowledge of the ledger's contents, precomputable once for the mixer rather than per
+ledger, verified by rebuilding both heads on 420 drawn ledgers across seven lengths
+(`F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY`). The mechanism is one sentence: the
+accumulator before the first entry is the tritwise identity on *every* ledger, so gap zero
+is one fixed accumulator every ledger stands on; inserting `x` then `−x` there returns the
+accumulator exactly when that accumulator is a fixed point of `a → STEP[STEP[a][x]][−x]`,
+which by `AS`'s D3 is a permutation for every `x`. Across all 729 accumulators the number
+of `x` fixing each sums to 741 — a mean of 1.0165 — and **256 accumulators admit none**, so
+a pair need not have existed; the random-permutation control's identity accumulator admits
+**zero**. This one admits three.
+
+**`AT1` HELD. The no-op-only route costs about five entries and nothing else.** An
+insertion that must leave the mixer head alone has a *forced* value, one per gap, so an
+insertion-only forgery is exactly a non-empty multiset of the seven forced values summing
+to zero in Z₇₂₉ — a shortest cycle on a 729-node Cayley graph, which is a breadth-first
+search and not a search over forgeries. Over 2,000 ledgers the exact minimum has mean
+**4.934** against a registered band of [4.0, 6.0], and the worst of the 2,000 needs **10**
+against a line at 12. The uniform-generator null measures 4.966 and a random-permutation
+chain 4.911, so **the seven forced values are not distinguishable from seven independent
+uniform draws.** The order census looks like structure and is not: 414.96 per 729 at order
+729 against a null 486 is entirely the gap-zero generator counted once per ledger, and
+removing it leaves (4708 − 2000)/12000 = 0.2257 against a null 0.2222. **The interesting
+end is the left one** — 18 of the 2,000 ledgers have a minimum of **1**, and those are
+exactly the chains that stand on the fixed point `u*` at some gap, where the forced value
+is arithmetically zero and a single inserted entry forges both heads.
+
+**`AT2` FAILED, on one leg of four, and the failure is arithmetic I did myself.** Three
+legs held: the mean minimum is strictly decreasing at every one of the ten steps from
+length two to length twelve, 13.592 at two is above 9.0, and 3.3625 at twelve is below 4.5
+— and the whole curve tracks the uniform null — within 0.64 at length two and within 0.17
+from length three on — so **a longer ledger really is cheaper to forge by insertion**, for the counting reason and not a
+structural one. The fourth leg registered a bound on a **maximum** using a heuristic that
+is only about a **mean**. The measured worst is **146** against a registered 100. Drawn
+directly, the uniform null exceeds 100 in 22, 25 and 33 of 50,000 draws at three seeds, so
+2,000 draws expect about one and **the line had roughly a 58% chance of firing on the null
+alone**; the null's own maximum is 243 at every seed. **No claim is made that the subject's
+tail is heavier than chance** — 146 against a single-draw null maximum of 81 is two samples
+from one heavy tail. `T-CRITERION-IN-THE-NOISE`, fourth bite, in the form that needs no
+run-to-run variation at all.
+
+**`AT3` FAILED by 0.012, and the miss is where the universal pair was found.** The
+two-free-insertion family is 28 gap pairs × 729 free values, the second value forced by the
+arithmetic total: 20,412 candidates, registered chance 28.0. Measured **30.0120** over
+distinct forged ledgers — seventeen standard errors out, so the **line** was fine and the
+**chance value** was wrong. Broken down by gap distance the entire departure sits in one
+cell: distance zero reads 1.296× chance and every other distance is within 2.3% of 1.0.
+Gap zero is not a draw from the mean-one distribution above, it is **one number every
+ledger inherits**, and here it is 3. The family's true expectation is
+gapPairs − 1 + c(ZERO) = **30**, and the measurement sits 0.012 from it. The control
+settles it: a random-permutation chain has c(ZERO) = 0, true expectation 27, measured
+27.1865. **The fact that breaks the 28 was written into this set's own registration two
+hundred lines above the prediction** and the connection was not made. Half (b) held
+outright: **0 of 2,000 ledgers admit any deletion-only forgery** over all 63 subsets,
+against a chance of 0.237 — 173 of 126,000 subsets preserve the mixer head and 190 preserve
+the total, both at chance, and none does both. **Deletion has no free parameter**, and that
+asymmetry is the whole result.
+
+**`AT4` HELD, and its control is a certainty rather than a statistic.** Every rearrangement
+preserves the arithmetic total exactly, so **the summed head accepts 1,426,480 of
+1,426,480** — every single one. On that family the mixer stands alone, and it stands at
+exactly chance: **1,907 accepts against 1,956.76**, a ratio of 0.9746, variance-to-mean
+1.0392, worst ledger 6 against a line at 10. The registered route to failure was `AS`'s own
+D2 — this head is a *commutative sum* of `g`-values in the reparametrised variable, and a
+commutative sum does not care about order. It does not transfer, because the change of
+variable is triangular; had it transferred the count would have been 1,438,000. The
+length-preserving sub-family, which is what a verifier that *counts* entries still faces,
+is 49,903 distinct moves accepted 65 times against a chance of 68.45.
+
+**What an insertion costs, in both currencies, against `AS` cited rather than re-run**
+(`F-INSERTION-IS-PRICED-IN-LENGTH-NOT-IN-SEARCH`):
+
+| attack | operations | growth | knowledge needed |
+|---|---|---|---|
+| the universal pair | **0** | **+2** | none at all |
+| the universal prepend run | 0 | +243 | none at all |
+| shortest no-op run (`AT1`) | ~5,100 | +4.93 | the ledger's accumulators |
+| two free insertions (`AT3`) | ~2,380 | +2 | the whole ledger |
+| `AS` brute force, edits only | 4,414 | 0 | the whole ledger |
+| `AS` meet in the middle | 6.99 | 0 | + 2,125,764 slots |
+| the summed head, edits only | ~1 | 0 | a compensating pair is free |
+
+**So the factor of seven does not survive the enlarged class.** `AS` established that
+pricing rather than counting makes the mixer worth seven operations over a summed head
+against a forger who may only edit. Against a forger who may insert, **the mixer's search
+cost falls to zero** and the entire remaining defence is whether anyone counts the entries.
+That is a statement about the *verifier*, not the accumulator — the same shape as `AS`'s
+own conclusion that this is a width question rather than a mixing question, one level
+further out.
+
+**What this does not show.** Uniform entry distributions only; a real ledger of small mints
+and burns walks the accumulator differently. Six-entry rearrangements only, which is the
+largest length whose permutations can be swept exhaustively at this ledger count. And the
+universal pair is a property of `D`'s permutation, not of narrow iterated heads in general
+— the control chain has none, and 256 of 729 accumulators admit none. What *is* general is
+that **gap zero is never a random accumulator**, so any statistic averaged over gaps
+inherits one fixed cell.
+
+**And the surface this set leaves open is measured rather than named, because silence is
+how the last one waited.** A forger who pays for one insertion with one compensating
+**edit** has no free parameter left — the inserted value is forced by the gap and the edit
+by the total — so the family is 42 candidates per ledger. Over 500 ledgers it accepts 28 of
+20,970, **0.973× chance** (`F-THE-HYBRID-INSERT-AND-EDIT-IS-EXACTLY-CHANCE`). Named and not
+measured: **three or more free-value insertions**, a 729^(k−1)-parameter family that an
+`AS3`-style meet-in-the-middle would price and this set does not build; insertion against
+structured rather than uniform entries; and any family that edits more than one entry
+alongside an insertion. The k ≥ 3 route is the one worth taking next — two insertions
+already yield 30 forgeries per ledger, and a third multiplies the parameter space by 729
+while adding one constraint.
+
 ## Owned sets
 
 | set | subject | outcome |
@@ -1276,5 +1407,6 @@ that is worth a factor of seven over adding the entries up.
 | `AQ` | how wide an authenticated tree should be, and whether three ever wins | 1 held, `AQ1`, `AQ2` and `AQ4` failed — and `AQ1`'s failure found the answer |
 | `AR` | does a tree want the same arity at every depth, and what does varying buy | 3 held, `AR4` failed — inverted, and the inversion overturned `AQ`'s headline |
 | `AS` | does the mixer's residual algebra help a ledger forger, and what does one cost | all four held — and the attack that prices the head at 7 ops uses nothing about the mixer |
+| `AT` | what does an INSERTION cost, once the forger may lengthen the ledger | 2 held, `AT2` and `AT3` failed — and `AT3`'s failure found a universal forgery costing two entries and no search |
 
 Full text in [`99-ledger.md`](99-ledger.md).

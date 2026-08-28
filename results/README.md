@@ -97,13 +97,13 @@ anything.
 
 | | |
 |---|---|
-<!--g:results-table-->| prediction sets | 45 |
-| registered predictions | 189 — **156 held, 33 failed** |
-| of those, genuinely at risk | 157 — 124 held, 33 failed |
+<!--g:results-table-->| prediction sets | 46 |
+| registered predictions | 193 — **158 held, 35 failed** |
+| of those, genuinely at risk | 161 — 126 held, 35 failed |
 | never at risk | 25 decorative, 7 uncalled |
-| failure rate | **21%** of what was at risk; 17.5% of all registered |
-| measured but never registered | 52 |
-| defect classes | 19, recurring 58 times |<!--/g-->
+| failure rate | **21.7%** of what was at risk; 18.1% of all registered |
+| measured but never registered | 56 |
+| defect classes | 19, recurring 59 times |<!--/g-->
 
 The suite's check count is deliberately **not** repeated here — it lives in
 [`../README.md`](../README.md), where `run-all.js` verifies it, and a second copy

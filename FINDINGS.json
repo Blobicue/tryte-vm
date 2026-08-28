@@ -4126,6 +4126,249 @@
           "note": "Held at 0.4506 against a line at 0.5, and the margin needed a spread beside it rather than a point: the bootstrap 95% interval is [0.4425, 0.4589] and two further seeds give 0.4495 and 0.4566, none of them reaching the line. AN1's finding -- that this mixer's hit variance came in LOW, more uniform than chance -- was the registered route to failure and it did not transfer: g's differential table is as heavy-tailed as a random function's, with 8.01% of cells holding three or more and those cells carrying 26.4% of the mass, against the 26.4% the Poisson null predicts. THE MECHANISM IS EXACT AND IS THE MOST USEFUL THING IN THE SET. An accepted forgery at an adjacent pair IS the realisation of a two-round differential, so a delta whose cell is empty cannot be accepted -- 0 accepts in 2,669,929 tries -- and the accept rate rises linearly with the cell, 0.98x chance at cell one to 6.65x at cell seven. A forger with the 531,441-entry table discards 36.67% of the family with certainty and finds the top 8.04% carrying 26.86% of the accepts."
         }
       ]
+    },
+    {
+      "id": "AT",
+      "subject": "What does an INSERTION cost a ledger forger? Set AS left the route open by naming it: P has one fixed point, so from every accumulator exactly one entry value leaves the mixer head unchanged, and every forgery in AS keeps the ledger at six entries. This set prices a forger who may lengthen it -- insert, delete and rearrange against a ledger publishing BOTH heads -- in two currencies stated before the run, operations and GROWTH, with no exchange rate invented between them",
+      "tool": "tools/insert-audit.js",
+      "registered_at": "db57466",
+      "results_at": "PENDING",
+      "asserted_in": "test/test-insert.js",
+      "predictions": [
+        {
+          "id": "AT1",
+          "claim": "insertion is paid for in LENGTH and the length is single digits: over 2,000 independently drawn six-entry ledgers, the minimum number of forced no-op insertions that restores BOTH heads, computed exactly by breadth-first search over Z_729 on that ledger's seven forced generators, has a mean in [4.0, 6.0] and no single ledger of the 2,000 needs more than 12",
+          "outcome": "HELD",
+          "basis": "measured",
+          "at_risk": "AT RISK: the counting heuristic that puts this at 4.87 -- 791 non-empty multisets of size at most five against 729 residues -- assumes the seven forced values behave like seven independent uniform draws, and they are seven reads of ONE map v(a) = val(u* - a) at seven accumulators of one chain. Two observations already on the record say that assumption is doubtful in the same direction. The accumulator after the first entry is a_0 + g(a_0 + e_1), and `AS` measured g's image at 465 of 729, so a_1 can take only 465 values rather than 729; and `F-MIXER-HEAD-IS-NOT-FLAT` measured this same chain at 629 to 851 preimages against a flat 729 at length two. If that shortfall compounds along the chain the seven generators are drawn from a shrinking support with repeats, the reachable sums are fewer than the heuristic assumes, and the mean climbs past 6.0 while the maximum climbs past 12. In the other direction, the gap-0 generator is the same on all 2,000 ledgers -- the accumulator before the first entry is the tritwise identity, so the prepend value is the constant val(u*) -- and if its order in Z_729 is 1 or 3, which is the three values 0 and plus or minus 243 of the 729 it could be, then a fixed run of at most three prepends forges every ledger, the minimum is bounded by three everywhere and the mean falls below 4.0. I have not computed val(u*): this repository records that `P` has one fixed point and nowhere records which one, and `AS` measured the no-op's EXISTENCE at all 729 accumulators and its value at none of them.",
+          "measured": {
+            "ledgers": 2000,
+            "length": 6,
+            "gaps_per_ledger": 7,
+            "mean": 4.934,
+            "sd": 1.3291,
+            "min_over_ledgers": 1,
+            "max_over_ledgers": 10,
+            "histogram_1_to_10": [
+              18,
+              52,
+              217,
+              407,
+              618,
+              470,
+              192,
+              22,
+              3,
+              1
+            ],
+            "uniform_generator_null_mean": 4.966,
+            "uniform_generator_null_sd": 1.39,
+            "uniform_generator_null_max": 11,
+            "random_permutation_chain_mean": 4.9105,
+            "random_permutation_chain_max": 9,
+            "forced_value_order_census_over_14000_gaps": {
+              "1": 18,
+              "3": 32,
+              "9": 108,
+              "27": 317,
+              "81": 848,
+              "243": 4708,
+              "729": 7969
+            },
+            "ledgers_with_an_interchangeable_gap_pair": 14,
+            "rebuilt_and_both_heads_recomputed": "200 of 200",
+            "bfs_ops_per_ledger": 5109
+          },
+          "note": "Held on both legs, at 4.934 against a registered band of [4.0, 6.0] and a worst ledger of 10 against a line at 12. Neither named failure route fired. The uniform-generator null measures 4.966 and a chain built on a random permutation 4.911, so THE SEVEN FORCED VALUES ARE NOT DISTINGUISHABLE FROM SEVEN INDEPENDENT UNIFORM DRAWS at this length -- g's image being 465 of 729 does not compound into a shrinking support the way the registration feared. The order census looks like structure and is not: 414.96 per 729 at order 729 against a null 486 is entirely the gap-0 generator counted once per ledger, since that one generator is the same constant on all 2,000 and has order 243. Remove it and the other 12,000 gaps give (4708 - 2000)/12000 = 0.2257 against a null 0.2222 and 7969/12000 = 0.664 against 0.6667. THE INTERESTING END IS THE LEFT ONE: 18 of the 2,000 ledgers have a minimum of 1, and those are exactly the chains that stand on the fixed point u* at some gap, where the forced no-op is arithmetically zero and a SINGLE inserted entry forges both heads. What this does not price is a forger who inserts values that are NOT no-ops; that forger needs two entries on every ledger and no search at all, which is F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY and not this prediction."
+        },
+        {
+          "id": "AT2",
+          "claim": "and that is not a property of length six: over ledger lengths 2 through 12 with 2,000 independently drawn ledgers at each length, the mean minimum insertion count is strictly decreasing at every one of the ten steps, lies above 9.0 at length two and below 4.5 at length twelve, and no single ledger at any length needs more than 100 insertions",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "at_risk": "AT RISK: the tightest predicted gap is the last one, 3.49 against 3.35, which at 2,000 ledgers a length is about five standard errors -- so noise cannot flip a step but structure can, and two routes would. If val(u*) has order at most 3 the gap-0 generator alone bounds the minimum at EVERY length, the curve is flat rather than decreasing and length two's mean falls under 9.0, so the monotone leg and the endpoint leg fail together. If instead long chains revisit accumulators more often than birthday chance -- thirteen gaps on 729 states collide with probability about 10% if the chain is flat, and `F-MIXER-HEAD-IS-NOT-FLAT` says it is not -- then a repeated accumulator contributes a DUPLICATE generator rather than a new one, the added gaps stop paying at the long end and a step breaks there. A maximum past 100 refutes the third leg and would mean some drawn ledger's forced values all lie in a proper subgroup of Z_729.",
+          "measured": {
+            "ledgers_per_length": 2000,
+            "lengths": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "mean_by_length": [
+              13.592,
+              8.866,
+              6.6725,
+              5.6205,
+              4.938,
+              4.4645,
+              4.138,
+              3.836,
+              3.6535,
+              3.5195,
+              3.3625
+            ],
+            "max_by_length": [
+              146,
+              49,
+              25,
+              13,
+              9,
+              8,
+              7,
+              7,
+              6,
+              6,
+              5
+            ],
+            "uniform_null_mean_by_length": [
+              14.2245,
+              9.0335,
+              6.691,
+              5.6355,
+              4.966,
+              4.4735,
+              4.108,
+              3.906,
+              3.655,
+              3.5245,
+              3.379
+            ],
+            "uniform_null_max_by_length": [
+              81,
+              63,
+              18,
+              16,
+              11,
+              10,
+              8,
+              7,
+              6,
+              5,
+              5
+            ],
+            "strictly_decreasing_at_all_ten_steps": true,
+            "worst_single_ledger_any_length": 146,
+            "registered_line_on_the_maximum": 100,
+            "null_tail_at_length_two_over_50000_draws": [
+              {
+                "draws": 50000,
+                "mean": 14.159,
+                "max": 243,
+                "above_100": 22,
+                "rate": 0.00044,
+                "expected_in_2000": 0.88
+              },
+              {
+                "draws": 50000,
+                "mean": 14.242,
+                "max": 243,
+                "above_100": 25,
+                "rate": 0.0005,
+                "expected_in_2000": 1
+              },
+              {
+                "draws": 50000,
+                "mean": 13.789,
+                "max": 243,
+                "above_100": 33,
+                "rate": 0.00066,
+                "expected_in_2000": 1.32,
+                "gap0_generator_fixed_at": 393
+              }
+            ]
+          },
+          "note": "FAILED, on the third leg alone, and the failure is arithmetic I did myself rather than anything about the mixer. Three legs held: the mean is strictly decreasing at every one of the ten steps, 13.592 at length two is above 9.0, and 3.3625 at length twelve is below 4.5 -- and the whole curve tracks the uniform-generator null -- within 0.64 at length two and within 0.17 from length three on -- so a longer ledger really is cheaper to forge by insertion and it is cheaper for the counting reason and not a structural one. The fourth leg registered a bound on a MAXIMUM using a heuristic that is only about a MEAN. The exponential approximation that predicts 4.87 at length six -- accurate to 0.03 there -- puts the probability of a length-two ledger needing more than 100 insertions at essentially zero. Drawn directly, the uniform null exceeds 100 in 22, 25 and 33 of 50,000 draws at three seeds, so 2,000 draws expect about one and the line had roughly a 58% chance of firing on the null alone. The measured worst is 146; the null's own maximum over 50,000 draws is 243 at every seed. SO THE SUBJECT'S TAIL IS NOT HEAVIER THAN CHANCE and no claim is made that it is -- 146 against a single-draw null maximum of 81 is two samples from the same heavy tail. The lesson is the general one: a heuristic that is right about a mean can be wrong about a maximum by an order of magnitude, because the tail of this problem is governed by the cyclic subgroup a bad generator set generates rather than by counting multisets. T-CRITERION-IN-THE-NOISE, fourth bite."
+        },
+        {
+          "id": "AT3",
+          "claim": "insertion has free parameters and deletion has none: over 2,000 drawn six-entry ledgers, (a) the two-free-insertion family -- 28 gap pairs p <= q, the first value free over all 729 and the second forced by the arithmetic total, so 20,412 candidates and a chance yield of 28.0 -- accepts with a mean within 2.0 of 28.0 and a variance-to-mean ratio in [0.80, 1.25]; and (b) at most 3 of the 2,000 ledgers admit any deletion-only forgery over all 63 non-empty subsets of their entries, against a chance expectation of 0.237 ledgers",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "at_risk": "AT RISK: half (a) can fail LOW and that is not a noise story. Fix a gap pair and let the free value run over all 729; the second value is then forced, so that pair's accept count is the number of preimages of one target under one map on 729 points. If that map is a PERMUTATION the count is exactly one for every pair on every ledger, the total is exactly 28 with variance ZERO, and the ratio fails at the bottom of its band rather than the top. The map is x -> STEP[push(STEP[a_p][x])][-x], whose first factor is a_p + g(a_p + x) and g is not injective -- its image is 465 of 729 -- so I expect random-function behaviour and a ratio near one. But `AN1` registered this same mixer's hit variance as binomial and it came in LOW at two difficulties, MORE UNIFORM THAN CHANCE, which is exactly the direction that drives this ratio to zero, and I am registering against that observation. Half (b) fails if the two conservation laws correlate on a deletion rather than being independent: for a single deletion the sum needs the entry to be arithmetically zero and the mixer needs the accumulator before it to be the fixed point, and if those coincide more often than one in 729 squared the count rises. Four or more ledgers is a one-in-ten-thousand event under Poisson(0.237), so that line can only fire on structure.",
+          "measured": {
+            "ledgers": 2000,
+            "family_per_ledger": 20412,
+            "registered_chance": 28,
+            "mean_distinct": 30.012,
+            "mean_enumerated": 30.0885,
+            "distance_from_registered_chance": 2.012,
+            "registered_band": 2,
+            "variance": 28.061,
+            "variance_over_mean": 0.935,
+            "min_over_ledgers": 15,
+            "max_over_ledgers": 53,
+            "enumerated_accepts": 60177,
+            "distinct_forged_ledgers": 60024,
+            "collisions": 153,
+            "rate_by_gap_distance_x_chance": [
+              1.296,
+              0.993,
+              1.0228,
+              1.0016,
+              0.9932,
+              0.986,
+              0.9865
+            ],
+            "control_rate_by_gap_distance_x_chance": [
+              0.8702,
+              1.0033,
+              1.0026,
+              1.0159,
+              0.9902,
+              1.0305,
+              1.03
+            ],
+            "accepts_at_gap_zero_per_ledger": 3,
+            "c_of_identity_accumulator": 3,
+            "corrected_chance": 30,
+            "distance_from_corrected_chance": 0.012,
+            "control_chain_mean": 27.1865,
+            "control_chain_c_of_identity": 0,
+            "control_chain_corrected_chance": 27,
+            "control_chain_variance_over_mean": 1.0244,
+            "deletion_subsets_tried": 126000,
+            "deletion_preserving_the_mixer_head": 173,
+            "deletion_preserving_the_total": 190,
+            "deletion_preserving_both": 0,
+            "deletion_ledgers_with_one": 0,
+            "deletion_chance_ledgers": 0.237
+          },
+          "note": "FAILED on half (a) by 0.012, and the miss is a real effect rather than a line flipped by noise: 30.0120 against 28.0 is seventeen standard errors, not a coin. The LINE was fine; the CHANCE VALUE was wrong, and the fact that makes it wrong was written into this set's own registration two hundred lines above the prediction. I4 says gap zero is the tritwise identity on every ledger. At a same-gap pair the map x -> STEP[STEP[a][x]][-x] is a composition of two bijections in the accumulator, so it is a PERMUTATION for every x, and the pair is accepted exactly when a is one of its fixed points; summed over all 729 accumulators that is 741, a mean of 1.0165, which is where 28 came from. But gap zero is not a draw from that distribution -- it is ONE NUMBER every ledger inherits, and for this chain it is 3. The family's true expectation is gapPairs - 1 + c(ZERO) = 30, and the measured 30.0120 sits 0.012 from it. The control settles it: a random-permutation chain has c(ZERO) = 0, its true expectation is 27, and it measures 27.1865. Half (b) held outright -- 0 of 2,000 ledgers admit a deletion-only forgery against a chance of 0.237, and the two conservation laws are visibly independent on that family: 173 of 126,000 subsets preserve the mixer head and 190 preserve the total, both at chance, and no subset does both. The registered failure route, a variance-to-mean ratio driven to zero by a permutation-like map, did not fire: 0.935. THE PRICE OF THE FAILURE IS THE FINDING -- c(ZERO) = 3 is F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY, which is worth more than the prediction was."
+        },
+        {
+          "id": "AT4",
+          "claim": "the two heads have complementary blind spots and reordering is the sum's: every rearrangement preserves the arithmetic total exactly, so the summed head accepts all of them; predicted that the mixer catches them at chance and no better -- over 2,000 drawn six-entry ledgers, sweeping all 720 permutations of each exhaustively, the total number of accepted distinct non-identity rearrangements is within 15% of the exact chance expectation of about 1,972, with a variance-to-mean ratio in [0.80, 1.25] and no single ledger accepting more than 10",
+          "outcome": "HELD",
+          "basis": "measured",
+          "at_risk": "AT RISK: `AS` proved this chain's head is a COMMUTATIVE SUM. D2 says head = g(u_1) + ... + g(u_L) in the reparametrised variable u_k = a_{k-1} + e_k (`F-LEDGER-CHAIN-IS-A-SUM-IN-U`), and a commutative sum is precisely the object that does not care what order its terms arrive in. If that commutativity reaches the ENTRIES rather than stopping at the u's, all 719 rearrangements of every ledger are accepted, the count is 1,438,000 rather than 1,972, and the mixer is no better than the sum on the one family the sum cannot see at all. The change of variable is triangular, which is my reason for expecting it not to, and triangularity is doing the entire job -- nothing in `AS` or here has yet evaluated that head on a PERMUTED ledger. Failing low is live too: an adjacent transposition changes exactly two of the u's, so its accept condition is a collision in a SUM OF TWO g-values rather than in one, and if sums of two g-values collide less often than chance the ratio drops under 0.85.",
+          "measured": {
+            "ledgers": 2000,
+            "distinct_non_identity_rearrangements": 1426480,
+            "summed_head_accepts": 1426480,
+            "summed_head_accept_fraction": 1,
+            "mixer_accepts": 1907,
+            "exact_chance_expectation": 1956.76,
+            "ratio": 0.9746,
+            "mean_per_ledger": 0.9535,
+            "variance_over_mean": 1.0392,
+            "max_over_ledgers": 6,
+            "random_permutation_chain_ratio": 1.0262,
+            "move_subfamily_distinct": 49903,
+            "move_subfamily_accepts": 65,
+            "move_subfamily_chance": 68.45,
+            "move_subfamily_ratio": 0.9495
+          },
+          "note": "Held on all three legs: 0.9746 of the exact chance expectation, a variance-to-mean ratio of 1.0392, and a worst ledger of 6 against a line at 10. The control is the part that makes it readable and it is not a statistic but a certainty -- the summed head accepts 1,426,480 of 1,426,480 rearrangements, every single one, because the multiset of entries is unchanged. On this family the mixer is the only thing standing, and it stands at exactly chance. The registered route to failure was AS's own D2: this head is a commutative sum of g-values in the reparametrised variable u_k, and a commutative sum does not care about order. It does not transfer, because the change of variable is triangular and a rearrangement changes every u -- had it transferred the count would have been 1,438,000 rather than 1,907. The move sub-family, which is what a verifier that COUNTS entries still faces, is 49,903 distinct length-preserving moves accepted 65 times against a chance of 68.45."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -4528,6 +4771,46 @@
       "evidence": "tools/forge-audit.js noOpEntries(), checked at every accumulator rather than argued from the fixed-point count",
       "asserted_in": "test/test-forge.js",
       "scope": "This names an attack; it does not run one. What an insertion actually costs a forger, and whether two insertions can be made to cancel arithmetically, is open."
+    },
+    {
+      "id": "F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "There are exactly THREE pairs of entry values -- (136, -136), (295, -295) and (362, -362) -- each of which, prepended to ANY ledger of ANY length, leaves both the arithmetic total and D's split-round mixer head unchanged. The forgery costs TWO added entries and ZERO operations, needs no knowledge of the ledger's contents at all, and is precomputable once for the mixer rather than per ledger. Verified by rebuilding both heads on 420 drawn ledgers across seven lengths including the empty one.",
+      "argument": "The accumulator before the first entry is the tritwise identity on EVERY ledger, so gap zero is one fixed accumulator that every ledger stands on. Inserting x then y at one gap returns the accumulator to where it was exactly when a is a fixed point of T_x : a -> STEP[STEP[a][x]][-x], which by AS's D3 is a composition of two bijections in the accumulator and therefore a permutation for every x; the arithmetic total is restored because y is the arithmetic negation of x by construction. Over all 729 accumulators the number of x fixing each sums to 741, a mean of 1.0165, and 256 accumulators admit none -- so a pair need not have existed at all, and on a control chain built from a random permutation the identity accumulator admits ZERO. It admits three here. THIS IS THE ANSWER TO WHAT AN INSERTION COSTS, and it is cheaper in both currencies than anything in set AS: AS's meet-in-the-middle join pays 6.99 operations per forgery and 2,125,764 table slots, its brute-force baseline 4,414 operations, and this pays nothing and grows the ledger by two. It is also what made AT3 fail: the registered chance value of 28 treated all 28 gap pairs as random accumulators when one of them never is, and the family's true expectation is gapPairs - 1 + c(ZERO) = 30 against a measured 30.0120.",
+      "evidence": "tools/insert-audit.js sameGapProfile() over all 531,441 (accumulator, value) pairs, and universalPair() rebuilding both heads at seven lengths",
+      "asserted_in": "test/test-insert.js",
+      "scope": "A property of D's split-round permutation, not of iterated heads in general: the control chain has no such pair, and 256 of 729 accumulators admit none. What it does show generally is that gap zero is never a random accumulator, so any statistic averaged over gaps inherits one fixed cell. The forgery is defeated by authenticating the ledger's LENGTH, and by nothing else measured here."
+    },
+    {
+      "id": "F-INSERTION-IS-PRICED-IN-LENGTH-NOT-IN-SEARCH",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "Priced in the two currencies stated before the run, every insertion attack in set AT costs less SEARCH than either of set AS's edit attacks and pays instead in ledger GROWTH. The universal pair: 0 operations, +2 entries, no knowledge of the ledger. The universal prepend run: 0 operations, +243 entries, no knowledge of the ledger. The shortest no-op run: about 5,100 operations for a certainty rather than a chance, +4.93 entries on average and +1 on 0.90% of ledgers. Two free insertions: about 2,380 operations per accepted forgery, +2 entries. Against AS's cited figures for a forger who may not lengthen the ledger: 4,414 operations per forgery by brute force, or 6.99 amortised over a 2,125,764-slot meet-in-the-middle join.",
+      "argument": "The two currencies are not convertible and no exchange rate is invented, so the comparison is stated as a pair rather than a ratio. What the pair says is that the mixer's factor of seven over a summed head, which AS established for a forger who may only edit, DOES NOT SURVIVE THE ENLARGED CLASS: against a forger who may insert, the mixer's search cost falls to zero and the entire remaining defence is whether anyone counts the entries. That is a statement about the VERIFIER rather than about the accumulator, and it is the same shape as AS's own conclusion that the ledger question is a width question rather than a mixing question -- one level further out.",
+      "evidence": "tools/insert-audit.js costLadder(), with the AS figures cited from F-MITM-PRICES-THE-MIXER-AT-SEVEN-OPS and AS3 rather than re-run",
+      "asserted_in": "test/test-insert.js",
+      "scope": "Operations are counted in AS's unit and growth in entries; nothing here prices the DETECTABILITY of growth, which is the quantity a designer actually needs and which depends on a verifier this repository has not specified."
+    },
+    {
+      "id": "F-THE-UNIVERSAL-PREPEND-RUN-IS-243",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "The fixed point of D's split-round permutation is at value -336, so the forced no-op entry at gap zero -- the one every ledger shares -- is -336, its generator in Z_729 is 393, and its order is 243. A run of exactly 243 prepends of that one value therefore forges any ledger of any length, verified by rebuilding on 240 drawn ledgers across six lengths.",
+      "argument": "The EXISTENCE of a universal prepend run is derivable from AS's F-EVERY-ACCUMULATOR-HAS-A-NO-OP-ENTRY plus the fact that a_0 is the tritwise identity, and is in AT's NOT REGISTERED block as I4. Its LENGTH was not: 486 of the 729 possible values have order 729, 162 have 243, and three have order at most 3. Which one it is decided AT1's low-side failure route, since an order of 1 or 3 would have bounded every ledger's minimum at three and driven the mean under 4.0. It is 243, so the route did not fire. Recorded because the value of u* was nowhere in this repository before this set -- AS printed only that P has one fixed point.",
+      "evidence": "tools/insert-audit.js universalPrepend(), rebuilt rather than argued",
+      "asserted_in": "test/test-insert.js",
+      "scope": "One permutation. The order of a fixed point's complement is a property of the particular map and says nothing about iterated heads in general."
+    },
+    {
+      "id": "F-THE-HYBRID-INSERT-AND-EDIT-IS-EXACTLY-CHANCE",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "The surface set AT leaves open, measured rather than named. A forger who pays for one insertion with one compensating EDIT has no free parameter left -- the inserted value is forced by the gap and the edit is forced by the arithmetic total -- so the family is 42 candidates on a six-entry ledger. Over 500 drawn ledgers, 28 of 20,970 candidates are accepted, 0.973 times chance, on 24 of the 500 ledgers.",
+      "argument": "An unexamined attack surface reported as silence is how 26 against 29.96 stood unexamined since the ledger was built, and how the insertion question itself waited for set AT. So this one is measured. What is NAMED AND NOT MEASURED, in the same spirit: three or more free-value insertions, which is a 729^(k-1)-parameter family that an AS3-style meet-in-the-middle would price and that this set does not build; insertion against a structured rather than uniform entry distribution; and any family that edits more than one entry alongside an insertion. The k >= 3 route is the one worth taking next, because AT3's two-insertion family already yields 30 forgeries per ledger from 20,412 candidates and a third insertion multiplies the parameter space by 729 while adding one constraint.",
+      "evidence": "tools/insert-audit.js hybridInsertEdit() over 500 drawn ledgers",
+      "asserted_in": "test/test-insert.js",
+      "scope": "One insertion and one edit, six-entry ledgers, uniform entries. This measures a rate; it does not price the attack, because at chance there is nothing to price."
     }
   ],
   "reaudits": [],
@@ -4599,8 +4882,8 @@
     },
     {
       "id": "T-CRITERION-IN-THE-NOISE",
-      "count": 3,
-      "description": "A registered criterion whose verdict depends on run-to-run variation. H1 predicted a spread under 3x and measured 3.72 on one run and 2.89 on the next, either side of its own line, so the same world produced both a pass and a fail. The attempt to salvage a more robust shape from it flipped too. A threshold placed near the noise floor is a defect in the prediction rather than a fact about the subject; either widen it until it cannot flip, or measure the quantity and report it without asserting a bound. Second bite, and it was sitting inside the suite that records the first. test-headroom section 5 checked \"the six-trit adder is sweepable inside an hour\" against a LIVE timing. It passed on an idle machine and failed at 1.84 h inside a full suite run on a loaded one -- the same world returning both verdicts. Section 4 of the same file already refuses to assert durations and enforces that refusal by grepping itself; section 5 was quietly doing what section 4 forbids, four sections below the comment explaining why not to. The repair is the one the class prescribes: assert the RATIO, which survives any host -- a 50,000-device sweep costs about 80x a 624-device one -- and report the hour figures without checking them. On the loaded host the measured sweep budget is 335 devices against H2 recorded 4,806, so the figure was never a constant of nature and is now labelled as a measurement taken on a stated machine. Third bite, in AO1: a 5% band was registered around a null that 400 draws confirm exactly, but scored against ONE fixed pseudorandom map -- which turned out to sit 2.09 sigma out, while 336 of 400 draws would have passed. The criterion did not depend on run-to-run variation this time; it depended on WHICH SAMPLE WAS FROZEN AS THE CONTROL, which is the same defect seen from the other side. A single fixed pseudorandom object is one draw and a null model is a distribution; comparing them directly scores the seed rather than the claim. The remedy is to register the band against the control own empirical spread, or to sweep."
+      "count": 4,
+      "description": "A registered criterion whose verdict depends on run-to-run variation. H1 predicted a spread under 3x and measured 3.72 on one run and 2.89 on the next, either side of its own line, so the same world produced both a pass and a fail. The attempt to salvage a more robust shape from it flipped too. A threshold placed near the noise floor is a defect in the prediction rather than a fact about the subject; either widen it until it cannot flip, or measure the quantity and report it without asserting a bound. Second bite, and it was sitting inside the suite that records the first. test-headroom section 5 checked \"the six-trit adder is sweepable inside an hour\" against a LIVE timing. It passed on an idle machine and failed at 1.84 h inside a full suite run on a loaded one -- the same world returning both verdicts. Section 4 of the same file already refuses to assert durations and enforces that refusal by grepping itself; section 5 was quietly doing what section 4 forbids, four sections below the comment explaining why not to. The repair is the one the class prescribes: assert the RATIO, which survives any host -- a 50,000-device sweep costs about 80x a 624-device one -- and report the hour figures without checking them. On the loaded host the measured sweep budget is 335 devices against H2 recorded 4,806, so the figure was never a constant of nature and is now labelled as a measurement taken on a stated machine. Third bite, in AO1: a 5% band was registered around a null that 400 draws confirm exactly, but scored against ONE fixed pseudorandom map -- which turned out to sit 2.09 sigma out, while 336 of 400 draws would have passed. The criterion did not depend on run-to-run variation this time; it depended on WHICH SAMPLE WAS FROZEN AS THE CONTROL, which is the same defect seen from the other side. A single fixed pseudorandom object is one draw and a null model is a distribution; comparing them directly scores the seed rather than the claim. The remedy is to register the band against the control own empirical spread, or to sweep. Fourth bite, in AT2, and it is the form that does not need run-to-run variation at all: a bound on a MAXIMUM placed by arithmetic about a MEAN. The exponential counting heuristic that predicted the mean minimum insertion count to within 0.03 at length six put the chance of a length-two ledger needing more than 100 insertions at essentially zero; drawn directly, the uniform null exceeds 100 in 22, 25 and 33 of 50,000 draws at three seeds, so 2,000 draws expect about one and the registered line had roughly a 58% chance of firing on the null alone. The measured 146 is not evidence that the subject's tail is heavier than chance -- the null's own maximum is 243 at every seed. The remedy is the class's own: before registering a bound, DRAW THE NULL'S TAIL rather than integrating an approximation that was fitted to its centre."
     },
     {
       "id": "T-TRANSCRIBED-TABLE",
