@@ -63,7 +63,8 @@
     "audit:keylayer": "node tools/keylayer-audit.js",
     "audit:radix": "node tools/radix-audit.js",
     "audit:forge": "node tools/forge-audit.js",
-    "audit:insert": "node tools/insert-audit.js"
+    "audit:insert": "node tools/insert-audit.js",
+    "audit:width": "node tools/width-audit.js"
   },
   "license": "MIT",
   "private": true
