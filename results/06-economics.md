@@ -1698,12 +1698,12 @@ them, and the generalisation is not measured by either set.**
 
 The tally counts *visible* failures. An error caught by its own author before it reaches
 anything produces no visible failure and is therefore counted nowhere. That mechanism is
-not specific to criteria in the noise: **if it holds, every one of the nineteen classes
+not specific to criteria in the noise: **if it holds, every one of the classes
 undercounts by however many instances were self-caught before publication, and
 self-caught errors are systematically absent from all of them.** This thread supplies the
 motivating case and does not test the claim — three *reviewing* harnesses failed here,
 each producing a confident false verdict about correct work, and between them they
-produced **zero** bites of `T-INSTRUMENT-FALSE-VERDICT`, whose 21 recorded bites are all
+produced **zero** bites of `T-INSTRUMENT-FALSE-VERDICT`, whose recorded bites are all
 about *measuring* instruments. The proposed reading is that a measuring instrument's
 failure ships and a reviewing instrument's failure is caught in the act by the person
 holding it, so the second kind never enters the record.
