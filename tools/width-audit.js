@@ -709,6 +709,36 @@ function pairProfile(A, step) {
   return { total, mean: total / N, max, zeroAt, zeroFraction: zeroAt / N, atIdentity: cAt(A, step, ZERO) };
 }
 
+// ------------------------------------------------- the differential table, width-parametric
+/**
+ * `AS2`'s statistic, generalised: DDT[alpha][beta] = #{ u : g(u + alpha) - g(u) = beta }
+ * for g = P - I, tritwise, over the 3^w - 1 non-zero input differences. Returns the
+ * maximum cell.
+ *
+ * ADDED AFTER THE RUN, AND IT SCORES NOTHING. It is here because a reviewer used it to
+ * falsify a sentence in `F-A-WIDENED-FAMILY-CAN-COLLAPSE-WHERE-INFLUENCE-STILL-REACHES`,
+ * which claimed no distributional statistic could see the width-two collapse. A
+ * differential table sees it at the CEILING: when `P` is the identity, g is identically
+ * zero, so every input difference maps to the zero output difference with probability
+ * one and the maximum cell is N of N. The sentence was wrong and the corrected one cites
+ * `D4` instead. The check that replaces it recomputes these numbers rather than quoting
+ * them, and pins the width-six reading against `AS2`'s published 8 -- which is what says
+ * this implementation is right rather than merely producing numbers.
+ */
+function ddtMaxOf(A, perm) {
+  const { N, TADD, TSUB, ZERO } = A;
+  const g = Int32Array.from({ length: N }, (_, u) => TSUB[perm[u] * N + u]);
+  const row = new Int32Array(N);
+  let max = 0, argA = -1, argB = -1;
+  for (let a = 0; a < N; a++) {
+    if (a === ZERO) continue;                       // the zero difference is not an attack
+    row.fill(0);
+    for (let u = 0; u < N; u++) row[TSUB[g[TADD[u * N + a]] * N + g[u]]]++;
+    for (let b = 0; b < N; b++) if (row[b] > max) { max = row[b]; argA = a; argB = b; }
+  }
+  return { max, N, ceiling: N, atCeiling: max === N, argA, argB };
+}
+
 // ---------------------------------------------------------------- fitting
 /**
  * Least-squares slope and intercept of log y on log x. No library, so it is auditable.
@@ -1017,6 +1047,18 @@ function measure() {
   M.slopeSpread = slopeSpread([SEED ^ 0x5f3759df, 7, 99]);
   M.widthOne = widthOneScanProfile();
   M.nullSlopes = nullSlopes();
+  // The differential reading of each anchor head, so the corrected claim in
+  // F-A-WIDENED-FAMILY-CAN-COLLAPSE-WHERE-INFLUENCE-STILL-REACHES is recomputed and not
+  // quoted. Width two is the identity and reads its ceiling; width six must reproduce
+  // AS2's published 8, and the affine control its published 729.
+  M.ddt = { split: {}, affine: {} };
+  for (const w of WIDTHS) {
+    const A = arenaOf(w);
+    const sp = splitPerm(A);
+    if (sp) M.ddt.split[w] = ddtMaxOf(A, sp);
+    const af = affinePerm(A);
+    if (af) M.ddt.affine[w] = ddtMaxOf(A, af);
+  }
   CACHE = M;
   return CACHE;
 }
@@ -1315,6 +1357,25 @@ function report() {
       + ` measured ${fx(M.fits.sp.slope)}`);
   }
 
+  log('\n--- NOT REGISTERED, AND A CORRECTION: the width-two collapse IS visible, to the ---');
+  log('    right statistic. A reviewer falsified the sentence that said otherwise.');
+  {
+    log('      width   split head   max DDT cell of g = P - I   affine control');
+    for (const w of WIDTHS) {
+      const d = M.ddt.split[w], a = M.ddt.affine[w];
+      if (!d && !a) continue;
+      log(`      ${String(w).padStart(5)}   ${d ? (d.max === d.N ? 'IDENTITY  ' : 'permutation') : '     --    '}`
+        + `   ${d ? `${String(d.max).padStart(6)} of ${String(d.N).padEnd(5)}` : '        --      '}`
+        + `${d && d.atCeiling ? ' <-- AT THE CEILING' : ''}`
+        + `   ${a ? `${a.max} of ${a.N}` : 'singular'}`);
+    }
+    log('      When P is the identity g is identically zero, so every input difference maps');
+    log('      to the zero output difference with probability one. A differential table does');
+    log('      not merely see the collapse, it reads its maximum. What CANNOT see it is any');
+    log('      statistic of the OUTPUT DISTRIBUTION -- the identity is a permutation and all');
+    log('      permutations share one output distribution, which is D4.');
+  }
+
   log('\n--- NOT REGISTERED: the width-one first-accept index, whole distribution ---');
   {
     const wp = M.widthOne;
@@ -1344,5 +1405,5 @@ module.exports = {
   spScan, collisionScan, shuffleNull, mitm, mitmForgery, degenerateJoinRatio,
   noOpTable, minInsertions, orderIn, cAt, pairProfile,
   logFit, stat, drawLedger, measureHead, anchor, bfsControls, negationAgrees, carryCells,
-  slopeSpread, thinMargins, widthOneScanProfile, nullSlopes, measure, report,
+  slopeSpread, thinMargins, widthOneScanProfile, nullSlopes, ddtMaxOf, measure, report,
 };

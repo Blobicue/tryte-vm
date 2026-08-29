@@ -512,6 +512,50 @@ console.log('\n=== 7b. THE CORRECTION TWO READERS FOUND, REPRODUCED BEFORE IT WA
     && M.fits.collision.slope <= NS.registeredBand[1]);
 }
 
+console.log('\n=== 7c. THE COLLAPSE IS VISIBLE AFTER ALL, TO THE STATISTIC AS2 ALREADY BUILT ===');
+{
+  // A REVIEWER FALSIFIED A SENTENCE OF THIS SET'S IN EIGHT LINES. The finding claimed no
+  // distributional statistic could see the width-two collapse. A differential table sees
+  // it AT ITS CEILING: when P is the identity, g = P - I is identically zero, so every
+  // input difference maps to the zero output difference with probability one. These are
+  // recomputed here rather than quoted, and the width-six reading is pinned against AS2's
+  // published max_cell -- which is what says this implementation is right rather than
+  // merely producing numbers.
+  const d = M.ddt.split, a = M.ddt.affine;
+  check('the width-TWO split head reads its differential CEILING, 9 of 9, because the '
+    + 'identity makes g identically zero \u2014 so the collapse is loud, not invisible',
+    d[2].max === 9 && d[2].N === 9 && d[2].atCeiling === true);
+  check('   while widths four and six read 8 of 81 and 8 of 729, healthy and nowhere near '
+    + 'their ceilings',
+    d[4].max === 8 && d[4].N === 81 && !d[4].atCeiling
+    && d[6].max === 8 && d[6].N === 729 && !d[6].atCeiling,
+    `${d[4].max}/${d[4].N} ${d[6].max}/${d[6].N}`);
+  // THE CROSS-CHECK THAT MAKES THE OTHER TWO READABLE. A new implementation agreeing with
+  // a published one is the only reason to believe a number it produces alone.
+  const MAN0 = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'FINDINGS.json'), 'utf8'));
+  const as2 = MAN0.prediction_sets.find(x => x.id === 'AS').predictions.find(x => x.id === 'AS2');
+  check('   and the width-six reading reproduces AS2\'s published max_cell of 8, and the '
+    + 'affine control its published affine_max of 729, through a different implementation',
+    d[6].max === as2.measured.max_cell && a[6].max === as2.measured.affine_max
+    && as2.measured.max_cell === 8 && as2.measured.affine_max === 729);
+  check('   and the affine control reaches its ceiling at every width it exists at, so the '
+    + 'statistic is known to span its range',
+    [1, 2, 3, 5, 6].every(w => a[w] && a[w].atCeiling) && a[4] === undefined,
+    [1, 2, 3, 5, 6].map(w => `${w}:${a[w].max}/${a[w].N}`).join(' '));
+  // AND THE CORRECTED CLAIM, which is narrower and rests on a result the corpus holds.
+  const Fw = MAN0.unregistered_findings
+    .find(f => f.id === 'F-A-WIDENED-FAMILY-CAN-COLLAPSE-WHERE-INFLUENCE-STILL-REACHES');
+  check('the finding no longer claims NO distributional statistic can see it \u2014 it claims '
+    + 'no OUTPUT-DISTRIBUTION statistic can, and cites D4 for why',
+    !/no distributional statistic computed on it will say so/.test(Fw.claim)
+    && /output distribution/i.test(Fw.claim) && /D4/.test(Fw.claim)
+    && /9 of 9/.test(Fw.claim));
+  check('   and it records that a reviewer falsified the first version, rather than '
+    + 'quietly correcting it',
+    /THE FIRST VERSION OF THIS CLAIM SAID NO DISTRIBUTIONAL STATISTIC COULD SEE IT AND THAT WAS FALSE/
+      .test(Fw.claim) && /BLIND AND WHAT IS NOT/.test(Fw.argument));
+}
+
 console.log('\n=== 8. THE MANIFEST SAYS WHAT THIS FILE MEASURED ===');
 {
   const MAN = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'FINDINGS.json'), 'utf8'));
@@ -562,6 +606,18 @@ console.log('\n=== 8. THE MANIFEST SAYS WHAT THIS FILE MEASURED ===');
     + 'the line PASSED, so nothing made anybody look',
     trap.count >= 5 && /THE LINE PASSED/.test(trap.description)
     && /0\.9302/.test(trap.description));
+  // THE LINE COUNT THIS CATALOGUE FIRST CARRIED WAS WRONG IN BOTH DIRECTION AND
+  // MAGNITUDE, inherited from a peer's prose. AT1 opens at line 149 of the registered
+  // tool and AT2 at 183, so AT2 is the NEXT prediction and 33 lines BELOW, not 40 above.
+  // The phrasing is now structural, because a line count does not survive a reformat.
+  check('   and the sixth bite says AT2 is the VERY NEXT PREDICTION rather than carrying '
+    + 'a line count \u2014 the count it first carried was wrong in both direction and size',
+    /VERY NEXT PREDICTION/.test(trap.description)
+    && !/forty lines above/.test(trap.description));
+  check('   and it says the tally\'s TREND is no longer readable as a defect rate, now '
+    + 'that the count can rise from re-audit effort as well as from recurrence',
+    /TREND IS NOW UNREADABLE/.test(trap.description)
+    && /re-audit EFFORT/.test(trap.description));
   check('AU2\'s note carries the correction and says the verdict did NOT move',
     /0\.4665/.test(m('AU2').exact_null_own_slope_over_registered_window_two_to_six ? 'ok0.4665' : '')
     && m('AU2').exact_null_own_slope_over_registered_window_two_to_six === 0.4665
