@@ -126,6 +126,26 @@ registration.
 - **Derive constants, never hardcode them.** Read the opcode set from the ISA, the
   window size from the layout, the prediction ids from the tool. Hardcoded counts
   go stale silently and assert against a past version of the code.
+- **A tripwire needs a negative control with real traffic under it.** Mutation-testing
+  shows a check *can* fire; it says nothing about whether the check fires on things
+  that are fine. A guard added late in this session swept `results/` topic files for
+  corpus totals gone stale. Written the obvious way — any number before a corpus noun —
+  it flagged four sentences, and **every one was correct**: "six sets", "four sets",
+  "two sets" are legitimate sub-counts, a file owning six sets or a pair being two.
+  That is `T-CHECK-FORBIDS-HEALTHY-STATE` caught in the forward direction, before it
+  bit, and it is why the class had no guard rather than an oversight. The discriminator
+  turned out to be **totality** — a claim about *every* member of a collection is a
+  restatement of its count and nothing else — so the sweep matches "every one of the N
+  classes" and leaves bare numbers alone.
+  The rule that generalises: **find the sentences in the real corpus that the check
+  must NOT fire on, and pin those as the control.** An in-test string proves the regex
+  compiles. Live corpus text that the check correctly ignores proves the discriminator
+  is the right one, and it keeps proving it as the corpus grows.
+  And **pin the discriminator, never the tally.** "The naive form flags some of these
+  and the narrow form flags none" survives new sub-counts appearing; "the naive form
+  flags four" goes red the next time anybody writes a sentence containing "two sets".
+  It moved from four to five inside an hour, and the derived form absorbed it silently
+  where a literal would have failed a commit that did nothing wrong.
 - **State limits rather than dropping cases.** If something no longer fits, assert
   the refusal *and* that the error names the reason.
 
