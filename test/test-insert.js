@@ -586,7 +586,7 @@ console.log('\n=== 9. THE MANIFEST SAYS WHAT THIS FILE MEASURED ===');
   check('F-THE-BITE-COUNT-IS-WHAT-FAILED-NOT-WHAT-HAPPENED is recorded, and says the '
     + 'thing rather than gesturing at it',
     !!bite && bite.asserted_in === 'test/test-insert.js'
-    && /FORTY LINES APART IN ONE REGISTRATION/.test(bite.claim)
+    && /THIRTY-THREE LINES APART IN ONE REGISTRATION/.test(bite.claim)
     && /number of times it happened AND produced a visible failure/.test(bite.argument));
   check('   and it names its own remedy\'s failure — the 3.9% read off one exceedance — '
     + 'rather than correcting it away',

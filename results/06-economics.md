@@ -1405,7 +1405,7 @@ draws carrying 20 exceedances. Re-run at twelve seeds the subject's own maximum 
 modal outcome and the line sat one step above where chance lands anyway.
 
 **And `AT2`'s maximum leg — which failed, and became a counted bite of
-`T-CRITERION-IN-THE-NOISE` — sits forty lines above it in the same registration.** Same
+`T-CRITERION-IN-THE-NOISE` — sits thirty-three lines below it in the same registration.** Same
 author, same day, same error: a bound on a maximum placed by reasoning about a mean. One is
 in the corpus and one was invisible until `AU` supplied the rule that found it. So the count
 for this class is **the number of times it produced a visible failure, not the number of
@@ -1625,8 +1625,17 @@ rounds of a one-trit Feistel over a three-entry S-box return every state to itse
 found only because the invariant was checked at *every* even width rather than at the
 endpoints, and the endpoints are exactly where it hides: 4 and 6 both behave.
 
-**No distributional statistic computed on such a family would say so**, and neither would
-the obvious structural check. Asking which input positions can influence which outputs
+**No statistic of its OUTPUT DISTRIBUTION would say so** — the identity is a permutation
+and every permutation has the same output distribution, which is `D4` — and neither would
+the obvious structural check. **But a differential table screams.** The maximum cell of
+the table of `g = P − I` is **9 of 9 at width two, the absolute ceiling**, against 8 of 81
+at width four and 8 of 729 at width six: with `P` the identity, `g` is identically zero, so
+every input difference maps to the zero output difference with probability one — the same
+signature `AS2`'s affine control was built to show the statistic can reach, at 729 of 729.
+This paragraph first said *no distributional statistic* could see it; a reader falsified
+that in eight lines and the measurement is now part of the finding rather than a footnote
+to it. So the collapse is invisible to exactly the checks a width sweep is most likely to
+run, and loud to the one this thread had already built. Asking which input positions can influence which outputs
 says nothing about whether the influences *cancel*, so a family can have complete
 reachability at every width and still be a relabelling at one of them — and every
 distribution measured there would be measuring the identity and reporting it as a mixer.
