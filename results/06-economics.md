@@ -1685,6 +1685,38 @@ form only, length-two ledgers at a fixed total. No multi-round differential acro
 that anything is secure: every figure here is one attack family's cost, and a family that
 survives at 729 states has merely not yet been killed.
 
+### The silence this set leaves, which is about the catalogue rather than about width
+
+**Named rather than measured, and it belongs to no set yet.** `AU` established that a
+criterion sitting in the noise leaves no signal when it lands inside its band, so the
+corpus records that defect only when it happens to fail
+(`F-A-LINE-IN-THE-NOISE-THAT-PASSES-IS-THE-SAME-DEFECT`), and `AT`'s re-audit turned that
+rule on its own legs and found an instance
+(`F-THE-BITE-COUNT-IS-WHAT-FAILED-NOT-WHAT-HAPPENED`). Both findings scope themselves to
+one trap class. **Reviewing this work, `AT`'s author generalised the argument past both of
+them, and the generalisation is not measured by either set.**
+
+The tally counts *visible* failures. An error caught by its own author before it reaches
+anything produces no visible failure and is therefore counted nowhere. That mechanism is
+not specific to criteria in the noise: **if it holds, every one of the nineteen classes
+undercounts by however many instances were self-caught before publication, and
+self-caught errors are systematically absent from all of them.** This thread supplies the
+motivating case and does not test the claim — three *reviewing* harnesses failed here,
+each producing a confident false verdict about correct work, and between them they
+produced **zero** bites of `T-INSTRUMENT-FALSE-VERDICT`, whose 21 recorded bites are all
+about *measuring* instruments. The proposed reading is that a measuring instrument's
+failure ships and a reviewing instrument's failure is caught in the act by the person
+holding it, so the second kind never enters the record.
+
+**It is falsifiable and the sweep is cheap to state**: read the commit messages against
+the manifest's bites and count the defects described in prose that were never recorded as
+an occurrence of any class. What that would settle is whether the catalogue's counts are
+a defect *rate* or a publication rate. **`AU` records it as an open question and claims
+none of it** — no measurement here bears on it, it is a claim about the whole corpus
+rather than about width, and neither this set nor `AT` is the place for it. It is written
+down because this thread's silences have each become the next set, and because a
+generalisation that lives only in a review message is one nobody can find.
+
 ## Owned sets
 
 | set | subject | outcome |
