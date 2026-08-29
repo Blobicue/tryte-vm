@@ -102,7 +102,7 @@ anything.
 | of those, genuinely at risk | 165 — 128 held, 37 failed |
 | never at risk | 25 decorative, 7 uncalled |
 | failure rate | **22.4%** of what was at risk; 18.8% of all registered |
-| measured but never registered | 61 |
+| measured but never registered | 64 |
 | defect classes | 19, recurring 61 times |<!--/g-->
 
 The suite's check count is deliberately **not** repeated here — it lives in

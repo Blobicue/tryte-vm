@@ -303,6 +303,14 @@ const LEDGERS = Number(process.env.INSERT_LEDGERS || 2000);
 const SEED = 20260829;
 /** The registered length sweep, and the canonical length inside it. */
 const LENGTHS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+/**
+ * Seeds the near-line re-audit re-runs at. Added after the results commit, scoring
+ * nothing: set `AU` established that a criterion in the noise which lands INSIDE its
+ * band leaves no signal at all, so every near-line leg here is re-measured whatever its
+ * verdict was. The registered seed leads so a reader can see it reproduce.
+ */
+const SEED_REPLICATES = [20260829, 1, 7, 99, 424242, 20260830, 20260831, 12345, 6789,
+  555, 31337, 2718];
 const L6 = 6;
 /** Gap pairs p <= q over L + 1 gaps, and the two-insertion family's chance yield. */
 const gapPairs = L => ((L + 1) * (L + 2)) / 2;
@@ -554,8 +562,9 @@ function universalPair(step = STEP, witnesses = null, seed = 13) {
  * says whether 100 was ever a line the mixer could have been measured against.
  * `T-CONTROL-CANNOT-DISCRIMINATE`: reported as a rate over many draws, not one.
  */
-function tailNull(L, draws, seed, fixFirst = null) {
+function tailNull(L, draws, seed, fixFirst = null, lines = []) {
   const r = rng(seed);
+  const hist = new Int32Array(N + 1);            // I3 bounds the minimum by 729
   let over100 = 0, max = 0, tot = 0;
   for (let n = 0; n < draws; n++) {
     const gens = Array.from({ length: L + 1 }, (_, i) =>
@@ -564,10 +573,87 @@ function tailNull(L, draws, seed, fixFirst = null) {
     tot += m;
     if (m > max) max = m;
     if (m > 100) over100++;
+    hist[m]++;
   }
-  return { length: L, draws, mean: tot / draws, max, over100,
+  // ONE PASS, ANY LINE. `AT2`'s bound sits at 100 and `AT1`'s at 12, and a second tail
+  // sweep would be a second thing to disagree -- so the histogram is kept and every
+  // exceedance rate is read off it.
+  const at = {};
+  const p2000 = c => 1 - Math.pow(1 - c / draws, 2000);
+  for (const line of lines) {
+    let over = 0;
+    for (let k = line + 1; k <= N; k++) over += hist[k];
+    // AND THE INTERVAL TRAVELS WITH THE ESTIMATE, because the first version of `AT1`'s
+    // own disclosure quoted a rate off ONE exceedance in 50,000 draws and was low by a
+    // factor of two. A tail resting on a handful of draws has to say so itself.
+    at[line] = { line, over, rate: over / draws, probIn2000: p2000(over),
+      ci95In2000: over === 0
+        ? [0, p2000(3)]                          // rule of three
+        : [p2000(Math.max(0, over - 1.96 * Math.sqrt(over))),
+          p2000(over + 1.96 * Math.sqrt(over))] };
+  }
+  return { length: L, draws, fixFirst, mean: tot / draws, max, over100, at,
+    hist: Array.from(hist.slice(0, 32)),
     rateOver100: over100 / draws,
     expectedOver100In2000: 2000 * over100 / draws };
+}
+
+/**
+ * A SECOND IMPLEMENTATION OF THE SHORTEST RUN, sharing no code with `minInsertions`:
+ * iterated Minkowski sums over a reachability set, S_0 = {0} and S_k = S_{k-1} + gens,
+ * answering with the first k >= 1 whose set contains zero. No queue, no distance array,
+ * no parent pointers. `AGENTS.md`: a second implementation that is never compared is
+ * just an unchecked claim, so `test-insert.js` compares them. This exists because every
+ * number in `AT1`'s disclosure rests on that statistic and it had one implementation
+ * and one witness.
+ */
+function minInsertionsByReach(gens, cap = N) {
+  let S = new Uint8Array(N); S[0] = 1;
+  for (let k = 1; k <= cap; k++) {
+    const T = new Uint8Array(N);
+    for (let s = 0; s < N; s++) {
+      if (!S[s]) continue;
+      for (let i = 0; i < gens.length; i++) T[(s + gens[i]) % N] = 1;
+    }
+    if (T[0]) return k;
+    S = T;
+  }
+  return null;
+}
+
+/**
+ * SET `AU`'s ANTIBODY, TURNED ON THIS SET'S OWN LEGS. `F-A-LINE-IN-THE-NOISE-THAT-
+ * PASSES-IS-THE-SAME-DEFECT` says a criterion in the noise leaves NO signal when it
+ * lands inside its band, so a corpus records the defect only where it happened to fail.
+ * The only way to know is to re-measure every near-line leg whatever its verdict.
+ *
+ * Three of `AT`'s twelve legs sit near a line: `AT1`'s maximum at 12, `AT3`'s band of
+ * 2.0, and `AT4`'s maximum at 10. This re-runs all three at a list of seeds and reports
+ * which would have fired, for the HELD legs as well as the FAILED one. Lean on purpose
+ * -- only the families those three legs need -- so twelve seeds cost seconds.
+ */
+function nearLineLegs(seeds, ledgers = 2000, step = STEP, noOp = null) {
+  const table = noOp || noOpTable(step);
+  return seeds.map(seed => {
+    const r = rng(seed);
+    let minMax = 0, tot = 0, reMax = 0;
+    for (let n = 0; n < ledgers; n++) {
+      const e = drawLedgerOfLength(r, L6), a = chain(e, step);
+      const m = minInsertions(forcedAtGaps(a, table).gens).min;
+      if (m > minMax) minMax = m;
+      const ti = twoInsertSweep(e, a, step);
+      const seen = new Set();
+      for (const row of ti.rows) seen.add(applyTwoInsert(e, row).join(','));
+      tot += seen.size;
+      const re = rearrangementSweep(e, step);
+      if (re.accepted > reMax) reMax = re.accepted;
+    }
+    const mean = tot / ledgers;
+    return { seed, ledgers,
+      at1Max: minMax, at1Fires: minMax > 12,
+      at3Mean: mean, at3Distance: Math.abs(mean - 28), at3Fires: Math.abs(mean - 28) > 2.0,
+      at4Max: reMax, at4Fires: reMax > 10 };
+  });
 }
 
 // ------------------------------------------------------------- AT3(b), deletions
@@ -1006,6 +1092,12 @@ function measure() {
   M.universalPair = universalPair(STEP, M.sameGap.witnesses);
   M.tailMatched = tailNull(2, LEDGERS >= 500 ? 50000 : 2000, SEED ^ 0x2545f491,
     M.universal.generator);
+  // ADDED AFTER THE RESULTS COMMIT, AND SCORING NOTHING. Set AU's antibody applied to
+  // AT's own near-line legs, plus the null this set should have drawn at length SIX
+  // rather than only at length two. Neither outcome moves; see the disclosures on AT1
+  // and AT3 and F-THE-BITE-COUNT-IS-WHAT-FAILED-NOT-WHAT-HAPPENED.
+  M.maxLegNull = tailNull(L6, LEDGERS >= 500 ? 500000 : 5000, 31337, null, [9, 10, 11, 12]);
+  M.nearLine = nearLineLegs(SEED_REPLICATES, Math.min(LEDGERS, 2000), STEP, noOp);
   // The BFS against direct enumeration, on real ledgers rather than on synthetic gens.
   {
     const r = rng(23);
@@ -1234,6 +1326,38 @@ function report() {
   log('      729^(k-1)-parameter family an AS3-style join would price and this set does');
   log('      not build; insertion against structured rather than uniform entries; and');
   log('      any family that also EDITS more than one entry.');
+
+  log('\n--- ADDED AFTER THE RESULTS COMMIT: AU\'s ANTIBODY, TURNED ON THIS SET ---');
+  const NL = M.nearLine, ML = M.maxLegNull;
+  log('      A criterion in the noise that lands INSIDE its band leaves no signal, so');
+  log('      the corpus records this defect only where it happened to FAIL. Three of');
+  log('      AT\'s twelve legs sit near a line. Re-run at the seeds below:');
+  log('        seed        AT1 max (line 12)   AT3 mean (band 2.0)   AT4 max (line 10)');
+  for (const row of NL) {
+    log(`      ${String(row.seed).padStart(9)}        ${String(row.at1Max).padStart(3)}`
+      + ` ${row.at1Fires ? 'FIRES' : '     '}          ${row.at3Mean.toFixed(4)}`
+      + ` ${row.at3Fires ? 'FIRES' : '     '}         ${String(row.at4Max).padStart(3)}`
+      + ` ${row.at4Fires ? 'FIRES' : ''}`);
+  }
+  log(`      AT1 fires at ${NL.filter(r => r.at1Fires).length} of ${NL.length} seeds,`
+    + ` AT3 at ${NL.filter(r => r.at3Fires).length}, AT4 at`
+    + ` ${NL.filter(r => r.at4Fires).length}`);
+  log('      AT1 HELD and AT3 FAILED on the registered run and BOTH STAND. An outcome');
+  log('      fixed at the results commit is the only property of this record a later');
+  log('      edit cannot fake. What moves is what those legs are worth as evidence.');
+  log(`\n      and the null AT1 should have drawn -- ${ML.draws.toLocaleString('en-US')}`
+    + ` draws at length six, max ${ML.max}`);
+  log('      line   over   P(a 2,000-draw maximum exceeds it)   95% interval');
+  for (const k of [9, 10, 11, 12]) {
+    const a = ML.at[k];
+    log(`      ${String(k).padStart(4)}   ${String(a.over).padStart(4)}`
+      + `               ${a.probIn2000.toFixed(4)}              `
+      + `[${a.ci95In2000[0].toFixed(4)}, ${a.ci95In2000[1].toFixed(4)}]`);
+  }
+  log(`      P(that maximum is EXACTLY 10, which is what AT1 measured) =`
+    + ` ${(ML.at[9].probIn2000 - ML.at[10].probIn2000).toFixed(4)}`);
+  log('      At full size 10 is the null\'s single most likely maximum, so AT1\'s');
+  log('      measurement is the null\'s modal outcome and its line sat one step above it.');
   log('\n' + line);
   return M;
 }
@@ -1249,5 +1373,6 @@ module.exports = {
   uniformGeneratorNull, checkTruncationAgrees, checkNoOpIsFree, checkSingleGapRun,
   bfsControls, universalPrepend, hybridInsertEdit, costLadder,
   sameGapProfile, correctedTwoInsertChance, universalPair, tailNull,
+  SEED_REPLICATES, minInsertionsByReach, nearLineLegs,
   measure, report,
 };

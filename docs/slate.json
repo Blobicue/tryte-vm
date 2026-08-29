@@ -2,9 +2,9 @@
  "schema": "tryte-vm/slate@1",
  "purpose": "A retrieval-shaped projection of FINDINGS.json plus authored marginalia. Flat, addressable entries with stable ids, topic routes and validated cross-links. The manifest remains the authority; this is a view of it and never a second copy of the truth.",
  "counts": {
-  "entries": 290,
+  "entries": 293,
   "predictions": 197,
-  "findings": 61,
+  "findings": 64,
   "traps": 19,
   "notes": 13,
   "proven": 17,
@@ -212,7 +212,8 @@
    "F-LEDGER-CHAIN-IS-A-SUM-IN-U",
    "F-MITM-PRICES-THE-MIXER-AT-SEVEN-OPS",
    "F-EVERY-ACCUMULATOR-HAS-A-NO-OP-ENTRY",
-   "F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY"
+   "F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY",
+   "F-A-BAND-DRAWN-ROUND-AN-ASYMPTOTE-THE-WINDOW-CANNOT-REACH"
   ],
   "instrument": [
    "AN1",
@@ -308,6 +309,8 @@
    "F-CONTROL-CANNOT-DISCRIMINATE",
    "F-REGISTRATION-IS-NOT-RISK",
    "F-A-LINE-IN-THE-NOISE-THAT-PASSES-IS-THE-SAME-DEFECT",
+   "F-THE-BITE-COUNT-IS-WHAT-FAILED-NOT-WHAT-HAPPENED",
+   "F-A-BAND-DRAWN-ROUND-AN-ASYMPTOTE-THE-WINDOW-CANNOT-REACH",
    "T-ONE-POINT",
    "T-STALE-CONSTANT",
    "T-SILENT-NAN",
@@ -465,6 +468,7 @@
    "F-TREE-BRANCHES-IN-ITS-OWN-BASE",
    "F-MERKLE-WANTS-BINARY-AT-EVERY-LEVEL",
    "F-WIDTH-BUYS-THE-FORGERS-MEMORY-NOT-HIS-TIME",
+   "F-A-WIDENED-FAMILY-CAN-COLLAPSE-WHERE-INFLUENCE-STILL-REACHES",
    "N-asymptotic-does-not-settle-a-width"
   ],
   "tree": [
@@ -6505,7 +6509,7 @@
    "routes_derived": true,
    "claim": "insertion is paid for in LENGTH and the length is single digits: over 2,000 independently drawn six-entry ledgers, the minimum number of forced no-op insertions that restores BOTH heads, computed exactly by breadth-first search over Z_729 on that ledger's seven forced generators, has a mean in [4.0, 6.0] and no single ledger of the 2,000 needs more than 12",
    "argument": null,
-   "note": "Held on both legs, at 4.934 against a registered band of [4.0, 6.0] and a worst ledger of 10 against a line at 12. Neither named failure route fired. The uniform-generator null measures 4.966 and a chain built on a random permutation 4.911, so THE SEVEN FORCED VALUES ARE NOT DISTINGUISHABLE FROM SEVEN INDEPENDENT UNIFORM DRAWS at this length -- g's image being 465 of 729 does not compound into a shrinking support the way the registration feared. The order census looks like structure and is not: 414.96 per 729 at order 729 against a null 486 is entirely the gap-0 generator counted once per ledger, since that one generator is the same constant on all 2,000 and has order 243. Remove it and the other 12,000 gaps give (4708 - 2000)/12000 = 0.2257 against a null 0.2222 and 7969/12000 = 0.664 against 0.6667. THE INTERESTING END IS THE LEFT ONE: 18 of the 2,000 ledgers have a minimum of 1, and those are exactly the chains that stand on the fixed point u* at some gap, where the forced no-op is arithmetically zero and a SINGLE inserted entry forges both heads. What this does not price is a forger who inserts values that are NOT no-ops; that forger needs two entries on every ledger and no search at all, which is F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY and not this prediction.",
+   "note": "Held on both legs, at 4.934 against a registered band of [4.0, 6.0] and a worst ledger of 10 against a line at 12. Neither named failure route fired. The uniform-generator null measures 4.966 and a chain built on a random permutation 4.911, so THE SEVEN FORCED VALUES ARE NOT DISTINGUISHABLE FROM SEVEN INDEPENDENT UNIFORM DRAWS at this length -- g's image being 465 of 729 does not compound into a shrinking support the way the registration feared. The order census looks like structure and is not: 414.96 per 729 at order 729 against a null 486 is entirely the gap-0 generator counted once per ledger, since that one generator is the same constant on all 2,000 and has order 243. Remove it and the other 12,000 gaps give (4708 - 2000)/12000 = 0.2257 against a null 0.2222 and 7969/12000 = 0.664 against 0.6667. THE INTERESTING END IS THE LEFT ONE: 18 of the 2,000 ledgers have a minimum of 1, and those are exactly the chains that stand on the fixed point u* at some gap, where the forced no-op is arithmetically zero and a SINGLE inserted entry forges both heads. What this does not price is a forger who inserts values that are NOT no-ops; that forger needs two entries on every ledger and no search at all, which is F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY and not this prediction. DISCLOSURE ADDED AFTER THE FACT, AND THE OUTCOME IS NOT CHANGED. Set AU's F-A-LINE-IN-THE-NOISE-THAT-PASSES-IS-THE-SAME-DEFECT says a criterion sitting in the noise leaves no signal when it lands INSIDE its band, so the corpus records this defect only when it happens to fail. Applied to AT1's own maximum leg, it fires. The line was at 12 and the measurement was 10; the uniform null's most likely maximum over 2,000 draws IS 10, at probability 0.33, and P(a 2,000-draw null maximum exceeds 10) = 0.29, exceeds 11 = 0.12, exceeds 12 = 0.077 with a 95% interval of [0.044, 0.109] from 500,000 draws carrying 20 exceedances. Re-run at twelve seeds the subject's own maximum spans [9, 13] and CROSSES THE REGISTERED LINE AT TWO OF THEM. So the leg was not measuring the subject: its measured value is the null's modal outcome and its line sits one step above where chance lands anyway. AT1 STAYS HELD -- the registered run is the run, and an outcome fixed at the results commit is the only property of this record a later edit cannot fake. What changes is what the leg is worth as evidence, which is nothing. See F-THE-BITE-COUNT-IS-WHAT-FAILED-NOT-WHAT-HAPPENED, and note that AT1(a)'s mean leg is 31.4 standard errors from its nearest band edge and AT4's maximum leg fires at none of the twelve, so this is a diagnosis and not a blanket.",
    "measured": {
     "ledgers": 2000,
     "length": 6,
@@ -6542,7 +6546,58 @@
     },
     "ledgers_with_an_interchangeable_gap_pair": 14,
     "rebuilt_and_both_heads_recomputed": "200 of 200",
-    "bfs_ops_per_ledger": 5109
+    "bfs_ops_per_ledger": 5109,
+    "near_line_disclosure": {
+     "registered_line": 12,
+     "measured_max": 10,
+     "seeds": [
+      20260829,
+      1,
+      7,
+      99,
+      424242,
+      20260830,
+      20260831,
+      12345,
+      6789,
+      555,
+      31337,
+      2718
+     ],
+     "max_by_seed": [
+      10,
+      11,
+      9,
+      11,
+      13,
+      10,
+      10,
+      10,
+      9,
+      12,
+      13,
+      12
+     ],
+     "seeds_crossing_the_line": 2,
+     "uniform_null_draws": 500000,
+     "uniform_null_seed": 31337,
+     "uniform_null_max": 17,
+     "null_prob_a_2000_draw_exceeds": {
+      "9": 0.6187,
+      "10": 0.2939,
+      "11": 0.1166,
+      "12": 0.0769
+     },
+     "null_modal_maximum": 10,
+     "null_prob_maximum_is_exactly_10": 0.3248,
+     "null_prob_exceeds_12_ci95": [
+      0.0439,
+      0.1087
+     ],
+     "exceedances_behind_the_estimate": 20,
+     "mean_leg_standard_errors_from_nearest_edge": 31.4,
+     "second_implementation": "iterated Minkowski sums over a 729-element reachability set, agreeing with the BFS on 4,000 of 4,000 random generator sets and on 50,000 of 50,000 null draws with the same exceedance count and the same maximum"
+    }
    },
    "tool": "tools/insert-audit.js",
    "asserted_in": "test/test-insert.js",
@@ -6685,7 +6740,7 @@
    "routes_derived": true,
    "claim": "insertion has free parameters and deletion has none: over 2,000 drawn six-entry ledgers, (a) the two-free-insertion family -- 28 gap pairs p <= q, the first value free over all 729 and the second forced by the arithmetic total, so 20,412 candidates and a chance yield of 28.0 -- accepts with a mean within 2.0 of 28.0 and a variance-to-mean ratio in [0.80, 1.25]; and (b) at most 3 of the 2,000 ledgers admit any deletion-only forgery over all 63 non-empty subsets of their entries, against a chance expectation of 0.237 ledgers",
    "argument": null,
-   "note": "FAILED on half (a) by 0.012, and the miss is a real effect rather than a line flipped by noise: 30.0120 against 28.0 is seventeen standard errors, not a coin. The LINE was fine; the CHANCE VALUE was wrong, and the fact that makes it wrong was written into this set's own registration two hundred lines above the prediction. I4 says gap zero is the tritwise identity on every ledger. At a same-gap pair the map x -> STEP[STEP[a][x]][-x] is a composition of two bijections in the accumulator, so it is a PERMUTATION for every x, and the pair is accepted exactly when a is one of its fixed points; summed over all 729 accumulators that is 741, a mean of 1.0165, which is where 28 came from. But gap zero is not a draw from that distribution -- it is ONE NUMBER every ledger inherits, and for this chain it is 3. The family's true expectation is gapPairs - 1 + c(ZERO) = 30, and the measured 30.0120 sits 0.012 from it. The control settles it: a random-permutation chain has c(ZERO) = 0, its true expectation is 27, and it measures 27.1865. Half (b) held outright -- 0 of 2,000 ledgers admit a deletion-only forgery against a chance of 0.237, and the two conservation laws are visibly independent on that family: 173 of 126,000 subsets preserve the mixer head and 190 preserve the total, both at chance, and no subset does both. The registered failure route, a variance-to-mean ratio driven to zero by a permutation-like map, did not fire: 0.935. THE PRICE OF THE FAILURE IS THE FINDING -- c(ZERO) = 3 is F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY, which is worth more than the prediction was.",
+   "note": "FAILED on half (a) by 0.012, and the miss is a real effect rather than a line flipped by noise: 30.0120 against 28.0 is seventeen standard errors, not a coin. The LINE was fine; the CHANCE VALUE was wrong, and the fact that makes it wrong was written into this set's own registration two hundred lines above the prediction. I4 says gap zero is the tritwise identity on every ledger. At a same-gap pair the map x -> STEP[STEP[a][x]][-x] is a composition of two bijections in the accumulator, so it is a PERMUTATION for every x, and the pair is accepted exactly when a is one of its fixed points; summed over all 729 accumulators that is 741, a mean of 1.0165, which is where 28 came from. But gap zero is not a draw from that distribution -- it is ONE NUMBER every ledger inherits, and for this chain it is 3. The family's true expectation is gapPairs - 1 + c(ZERO) = 30, and the measured 30.0120 sits 0.012 from it. The control settles it: a random-permutation chain has c(ZERO) = 0, its true expectation is 27, and it measures 27.1865. Half (b) held outright -- 0 of 2,000 ledgers admit a deletion-only forgery against a chance of 0.237, and the two conservation laws are visibly independent on that family: 173 of 126,000 subsets preserve the mixer head and 190 preserve the total, both at chance, and no subset does both. The registered failure route, a variance-to-mean ratio driven to zero by a permutation-like map, did not fire: 0.935. THE PRICE OF THE FAILURE IS THE FINDING -- c(ZERO) = 3 is F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY, which is worth more than the prediction was. DISCLOSURE ADDED AFTER THE FACT, AND THE OUTCOME IS NOT CHANGED. The same re-audit that found AT1's maximum leg in the noise finds this one there too, in the other direction: re-run at twelve seeds the mean lands outside the registered band on FIVE and inside on SEVEN, so the recorded word FAILED was decided by the draw. The derivation says it had to be about half -- the true mean is the corrected chance of 30, the standard error is sqrt(28.06/2000) = 0.1185, and the registered line sits AT 30.0. AT3 STAYS FAILED for the same reason AT1 stays HELD. AND THIS IS THE BENIGN CASE, WHICH IS WHAT MAKES THE MALIGN ONE LEGIBLE: all twelve means lie within 0.271 of gapPairs - 1 + c(ZERO) = 30, so the criterion decided which word went in the outcome field and never touched the mechanism. A line in the noise corrupts a verdict; it does not automatically corrupt a finding, and telling those two apart is the whole of what a reader needs from this entry.",
    "measured": {
     "ledgers": 2000,
     "family_per_ledger": 20412,
@@ -6732,7 +6787,49 @@
     "deletion_preserving_the_total": 190,
     "deletion_preserving_both": 0,
     "deletion_ledgers_with_one": 0,
-    "deletion_chance_ledgers": 0.237
+    "deletion_chance_ledgers": 0.237,
+    "near_line_disclosure": {
+     "registered_band": 2,
+     "registered_centre": 28,
+     "corrected_chance": 30,
+     "seeds": [
+      20260829,
+      1,
+      7,
+      99,
+      424242,
+      20260830,
+      20260831,
+      12345,
+      6789,
+      555,
+      31337,
+      2718
+     ],
+     "mean_by_seed": [
+      30.012,
+      30.1515,
+      30.0465,
+      29.859,
+      29.947,
+      29.8785,
+      29.9625,
+      30.094,
+      30.0165,
+      29.8125,
+      29.967,
+      29.729
+     ],
+     "seeds_failing": 5,
+     "seeds_holding": 7,
+     "mean_span": [
+      29.729,
+      30.1515
+     ],
+     "furthest_from_corrected_chance": 0.271,
+     "standard_error": 0.1185,
+     "derived_probability_of_failing": 0.5
+    }
    },
    "tool": "tools/insert-audit.js",
    "asserted_in": "test/test-insert.js",
@@ -6770,7 +6867,44 @@
     "move_subfamily_distinct": 49903,
     "move_subfamily_accepts": 65,
     "move_subfamily_chance": 68.45,
-    "move_subfamily_ratio": 0.9495
+    "move_subfamily_ratio": 0.9495,
+    "near_line_disclosure": {
+     "registered_line": 10,
+     "seeds": [
+      20260829,
+      1,
+      7,
+      99,
+      424242,
+      20260830,
+      20260831,
+      12345,
+      6789,
+      555,
+      31337,
+      2718
+     ],
+     "max_by_seed": [
+      6,
+      6,
+      5,
+      6,
+      5,
+      5,
+      5,
+      6,
+      6,
+      6,
+      5,
+      7
+     ],
+     "seeds_crossing_the_line": 0,
+     "max_span": [
+      5,
+      7
+     ],
+     "note": "the control on the diagnosis: swept for the same defect and found clear, which is what makes the two legs that fired a finding rather than a blanket"
+    }
    },
    "tool": "tools/insert-audit.js",
    "asserted_in": "test/test-insert.js",
@@ -6889,7 +7023,7 @@
    "tool": "tools/width-audit.js",
    "asserted_in": "test/test-width.js",
    "registered_at": "4b74c7d",
-   "results_at": "PENDING",
+   "results_at": "af7d5d4",
    "links": []
   },
   {
@@ -6907,7 +7041,7 @@
    "routes_derived": true,
    "claim": "the collision law is the only square root in this thread and it has a floor: (a) the mean first-repeat index divided by the exact birthday null lies in [0.95, 1.06] at widths 4, 5 and 6 with no collision-free row at those widths, (b) the least-squares slope of log mean against log N over widths 2 to 6 lies in [0.45, 0.55] for the collision scan and in [0.95, 1.05] for the second-preimage scan, and (c) the shortfall at the narrow end is a multiplicity effect and not an ordering one -- at widths 1, 2 and 3 the measured mean divided by the mean over 200 random reshuffles of each row's own multiset of head values lies in [0.95, 1.05] at each of the three",
    "argument": null,
-   "note": "FAILED on leg (c) at width one alone, and the reason it fails is the mechanism it was asserting. At width one the measured scan finds no collision in any of 72 rows AND the reshuffled null finds none in any of 14,400 -- the row map is injective, so the multiset has no repeated value and no ordering can produce a collision. The ratio is 0/0. The registration named width one as degenerate in this very statistic's rationale and then included it in (c) anyway; that is the defect, and the sentence as written is not satisfied. (a) and (b) held. The first-repeat index tracks the exact finite-N birthday null to within 0.6% at widths four, five and six -- 1.0057, 1.0017 and 0.9938 -- with zero collision-free rows in 25,272 scanned, and the two slopes come out at 0.4642 and 1.0031 against registered bands at [0.45, 0.55] and [0.95, 1.05]. SO THE TWO ATTACK GOALS SEPARATE BY EXACTLY ONE SQUARE ROOT AND THE SEPARATION IS MEASURED. (c) held at widths two and three, 1.0208 and 1.0492, and the width-three value sits 0.0008 inside its line with a four-seed spread of 1.0492, 1.0034, 1.0320 and 0.9875, so that leg is thin too and is reported as such. The affine control settles the responsiveness: it is collision-free on every row at widths one and two and on one row in nine at widths three, five and six, where its mean first repeat at width six is 84.47 against a null of 34.51 -- 2.45x, so the statistic spans from undefined to well above its null before any subject value is read.",
+   "note": "FAILED on leg (c) at width one alone, and the reason it fails is the mechanism it was asserting. At width one the measured scan finds no collision in any of 72 rows AND the reshuffled null finds none in any of 14,400 -- the row map is injective, so the multiset has no repeated value and no ordering can produce a collision. The ratio is 0/0. The registration named width one as degenerate in this very statistic's rationale and then included it in (c) anyway; that is the defect, and the sentence as written is not satisfied. (a) and (b) held. The first-repeat index tracks the exact finite-N birthday null to within 0.6% at widths four, five and six -- 1.0057, 1.0017 and 0.9938 -- with zero collision-free rows in 25,272 scanned, and the two slopes come out at 0.4642 and 1.0031 against registered bands at [0.45, 0.55] and [0.95, 1.05]. SO THE TWO ATTACK GOALS SEPARATE BY EXACTLY ONE SQUARE ROOT AND THE SEPARATION IS MEASURED. (c) held at widths two and three, 1.0208 and 1.0492, and the width-three value sits 0.0008 inside its line with a four-seed spread of 1.0492, 1.0034, 1.0320 and 0.9875, so that leg is thin too and is reported as such. The affine control settles the responsiveness: it is collision-free on every row at widths one and two and on one row in nine at widths three, five and six, where its mean first repeat at width six is 84.47 against a null of 34.51 -- 2.45x, so the statistic spans from undefined to well above its null before any subject value is read. ONE CORRECTION, FOUND AFTER THE RUN BY TWO READERS AND REPRODUCED HERE BEFORE BEING ACCEPTED. Leg (b)'s band [0.45, 0.55] was drawn around the ASYMPTOTIC exponent of the birthday law, and the asymptote is not what six points spanning 2.4 decades measure. The exact finite-N expectation is about sqrt(pi N / 2) + 2/3 and the additive term lifts the small-N points hardest, so THE IDEAL OBJECT'S OWN log-log slope over the registered window 2..6 is 0.4665, not 0.5. The measured 0.4642 therefore sits 0.0023 BELOW the ideal null rather than 7% below the wrong one -- agreement to half a percent, and a better result than the leg claimed. THE VERDICT DOES NOT MOVE: 0.4642 is inside [0.45, 0.55] and leg (b) HELD as registered, scored against the null that was registered. What moves is what the number MEANS. And the defect is real and is recorded separately: on three of the seven windows this sweep could have used -- 1..5, 1..4 and 2..4 -- the IDEAL OBJECT ITSELF scores under 0.45 and would have failed my own band. A reader gave the figure for widths 1..6, which is 0.4537; the registered window is 2..6 and it is 0.4665, so the correction is taken and the number is not. F-A-BAND-DRAWN-ROUND-AN-ASYMPTOTE-THE-WINDOW-CANNOT-REACH.",
    "measured": {
     "first_repeat_index": [
      null,
@@ -6972,12 +7106,22 @@
      0.1111,
      0.1111
     ],
-    "birthday_null_at_531441": 914.3328
+    "birthday_null_at_531441": 914.3328,
+    "exact_null_own_slope_over_registered_window_two_to_six": 0.4665,
+    "exact_null_own_slope_over_widths_one_to_six": 0.4537,
+    "asymptotic_slope_the_band_was_drawn_around": 0.5,
+    "measured_minus_exact_null_slope": -0.0023,
+    "second_preimage_exact_null_own_slope": 1,
+    "windows_where_the_ideal_null_falls_below_the_registered_band": [
+     "1..5",
+     "1..4",
+     "2..4"
+    ]
    },
    "tool": "tools/width-audit.js",
    "asserted_in": "test/test-width.js",
    "registered_at": "4b74c7d",
-   "results_at": "PENDING",
+   "results_at": "af7d5d4",
    "links": []
   },
   {
@@ -7060,7 +7204,7 @@
    "tool": "tools/width-audit.js",
    "asserted_in": "test/test-width.js",
    "registered_at": "4b74c7d",
-   "results_at": "PENDING",
+   "results_at": "af7d5d4",
    "links": []
   },
   {
@@ -7136,7 +7280,7 @@
    "tool": "tools/width-audit.js",
    "asserted_in": "test/test-width.js",
    "registered_at": "4b74c7d",
-   "results_at": "PENDING",
+   "results_at": "af7d5d4",
    "links": []
   },
   {
@@ -8457,6 +8601,70 @@
    "routes_derived": true,
    "claim": "At width one, every one of 4,800 second-preimage scans over 24 heads and 200 drawn six-entry ledgers returns the SAME index: 3, without exception. There is no distribution. At three states the compensating family's first accepted forgery is always the third candidate in the scan order, so the measured mean of 3.000 against an exact null of 3.000 is an exact agreement that is not a statistical one.",
    "argument": "Width one is the point where arithmetic and tritwise addition are the same operation -- 0 of 9 pairs differ, against 380,178 of 531,441 at width six -- so the two-group mismatch every attack in this thread runs against is absent by construction. The narrow end of a width sweep is where a distributional statistic stops being distributional, and reporting the mean alone would have shown a perfect fit and hidden that there was nothing to fit. This is why the whole histogram is printed rather than the mean.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-width.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-THE-BITE-COUNT-IS-WHAT-FAILED-NOT-WHAT-HAPPENED",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "Set AT registered twelve legs across four predictions and TWO of them were criteria sitting in the noise. AT2's maximum leg failed and is recorded as a bite of T-CRITERION-IN-THE-NOISE. AT1's maximum leg has the same defect -- a bound on a maximum whose line sits one step above where the uniform null's own 2,000-draw maximum lands, crossed by the subject at two of twelve seeds -- and it landed INSIDE its band, so it was recorded as a clean HELD and counted toward the held column. The two sit FORTY LINES APART IN ONE REGISTRATION, same author, same day, same error. One is in the corpus and one was invisible until set AU supplied the rule that found it.",
+   "argument": "The corpus's count for this class is therefore not the number of times it happened; it is the number of times it happened AND produced a visible failure, because the noticing was done by the outcome rather than by anyone looking. Every criterion equally in the noise that landed inside its band was written down as HELD. That makes the recorded bite count a lower bound whose gap nobody can size from the record, and it points at the HELD column as the place to look rather than the failed one -- which inverts this project's own habit, since METHOD.md's argument rests on the failures being where the value is. AND THE REMEDY HAS THE SAME FLOOR ONE LEVEL UP. The first version of this disclosure put the null's exceedance probability at 3.9%, estimated from 50,000 draws containing exactly ONE exceedance; drawn at 500,000 it is 7.7% with a 95% interval of [0.044, 0.109] over 20 exceedances. A tail read off a single observation, written into the disclosure about reading tails badly, is the third instance of this shape in one thread and the cheapest to have avoided. The antibody is that tailNull now returns a confidence interval with every estimate, so an exceedance rate resting on a handful of draws announces itself rather than being quoted as a point.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-insert.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-A-BAND-DRAWN-ROUND-AN-ASYMPTOTE-THE-WINDOW-CANNOT-REACH",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "hashing",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "A registered band can be placed around a limit the measurement's range cannot reach, and then it is scoring the window rather than the subject. AU2(b) put the collision slope in [0.45, 0.55] around the birthday law's asymptotic 0.5. Fitted over the registered window of widths 2 to 6, the EXACT finite-N birthday expectation's own log-log slope is 0.4665; over widths 1 to 6 it is 0.4537; over 1..5, 1..4 and 2..4 it is 0.4439, 0.4315 and 0.4490, all three BELOW the band's own lower edge. So on three of the seven windows this sweep could have chosen, a perfectly ideal head would have failed the registered band. The measured 0.4642 sits 0.0023 below the ideal null on the window actually registered, not 7% below the asymptote.",
+   "argument": "The exact expectation is about sqrt(pi N / 2) + 2/3, and an additive constant lifts the small-N points hardest, so a log-log fit over a narrow window is biased downward and approaches the asymptotic exponent only as the window widens: 0.4665 at 2..6, 0.4770 at 2..8, 0.4877 at 2..12, 0.4950 at 2..20. Six points spanning 2.4 decades cannot see the asymptote and no widening this machine can afford would fix it -- 2..12 already needs 531,441 states. THE GENERAL SHAPE IS T-CRITERION-IN-THE-NOISE'S COUSIN AND IT IS NOT THE SAME DEFECT: a criterion in the noise is one the RUN can move, and this is one the run cannot move at all because the ideal object misses it too. The remedy is the one this repository already applies to null models -- compute the null at the width you are measuring rather than in the limit -- and it has to be applied to the CRITERION and not only to the comparison value.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-width.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-A-WIDENED-FAMILY-CAN-COLLAPSE-WHERE-INFLUENCE-STILL-REACHES",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "ternary-vs-binary"
+   ],
+   "routes_derived": true,
+   "claim": "Widening a construction can turn it into the IDENTITY at one width while leaving it healthy at the widths either side, and no distributional statistic computed on it will say so. D's split round widened to w/2-trit halves is a permutation at widths 2, 4 and 6 and has exactly one fixed point at 4 and 6 -- and at width TWO it has NINE fixed points on nine states, which is to say it is the identity map. Eight rounds of a one-trit Feistel over a three-entry S-box return every state to itself. Checked at every even width rather than at the endpoints, which is the only reason it was found.",
+   "argument": "THE DEFECT IS INVISIBLE TO THE OBVIOUS CHECK. Asking which input positions can influence which outputs -- a dependency-closure computation -- says nothing about whether the influences CANCEL, so a family can have complete closure at every width and still be a relabelling at one of them. Every distributional figure computed on that width would then be measuring the identity and reporting it as a mixer. The endpoints are exactly where this hides: widths 4 and 6 both behave, and a family checked only at the width it was ported from and the width it is aimed at would have passed. The general rule is that a structural invariant of a widened construction must be asserted at EVERY width in the family, and asserted as a separate thing from reachability.",
    "note": null,
    "measured": null,
    "tool": null,

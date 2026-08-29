@@ -436,6 +436,88 @@ console.log('\n=== 8b. WHAT THIS SET DID NOT ATTACK ===');
     })());
 }
 
+console.log('\n=== 8c. AU\'s ANTIBODY, TURNED ON THIS SET\'S OWN LEGS ===');
+{
+  // ADDED AFTER THE RESULTS COMMIT AND SCORING NOTHING. Set AU established that a
+  // criterion sitting in the noise leaves NO signal when it lands inside its band, so
+  // this corpus records the defect only where it happened to fail. Two of AT's twelve
+  // legs turn out to be in the noise and ONE OF THEM HELD. Neither outcome moves; what
+  // these checks own is what the two legs are worth as evidence, which is nothing.
+  const NL = M.nearLine, ML = M.maxLegNull;
+  check('the near-line re-audit runs at twelve seeds, the registered one first, and '
+    + 'reproduces the published run exactly before any other seed is read',
+    NL.length === 12 && NL[0].seed === A.SEED && NL[0].ledgers === 2000
+    && NL[0].at1Max === 10 && near(NL[0].at3Mean, 30.012, 1e-9) && NL[0].at4Max === 6);
+  // THE ONE THAT MATTERS: a HELD leg that a different seed would have failed.
+  check('AT1\'s MAXIMUM leg is in the noise — the subject\'s maximum spans [9, 13] and '
+    + 'crosses the registered line at 12 on TWO of the twelve seeds',
+    NL.filter(r => r.at1Fires).length === 2
+    && Math.min(...NL.map(r => r.at1Max)) === 9
+    && Math.max(...NL.map(r => r.at1Max)) === 13,
+    NL.map(r => r.at1Max).join(' '));
+  check('   and the null says why: over 500,000 draws at length six, P(a 2,000-draw '
+    + 'maximum exceeds 12) = 0.0769 with 20 exceedances behind it',
+    ML.draws === 500000 && ML.at[12].over === 20
+    && near(ML.at[12].probIn2000, 0.0769, 1e-4) && ML.max === 17);
+  check('   and the interval travels with it, because the first version of this '
+    + 'disclosure read the same tail off ONE exceedance and was low by a factor of two',
+    near(ML.at[12].ci95In2000[0], 0.0439, 1e-3)
+    && near(ML.at[12].ci95In2000[1], 0.1087, 1e-3)
+    && ML.at[12].ci95In2000[0] < ML.at[12].probIn2000
+    && ML.at[12].probIn2000 < ML.at[12].ci95In2000[1]);
+  check('   and the sharper statement: 10 is the null\'s MODAL 2,000-draw maximum at '
+    + '0.3248, and 10 is exactly what AT1 measured — the leg read chance',
+    near(ML.at[9].probIn2000 - ML.at[10].probIn2000, 0.3248, 1e-3)
+    && near(ML.at[10].probIn2000, 0.2939, 1e-4)
+    && near(ML.at[11].probIn2000, 0.1166, 1e-4)
+    && M.census.min.max === 10);
+  check('AT3\'s verdict is seed-dependent too — outside the band on five of twelve '
+    + 'seeds and inside on seven, which the standard error of 0.1185 predicts',
+    NL.filter(r => r.at3Fires).length === 5
+    && near(Math.sqrt(M.census.twoInsert.variance / 2000), 0.1185, 1e-4),
+    NL.map(r => r.at3Fires ? 'F' : 'h').join(''));
+  // AND THE DISCRIMINATION, which is what makes this a diagnosis rather than a blanket.
+  check('   but the MECHANISM is untouched: all twelve means lie within 0.271 of the '
+    + 'corrected chance of 30, so the criterion decided a word and not a finding',
+    NL.every(r => Math.abs(r.at3Mean - 30) <= 0.2711)
+    && A.correctedTwoInsertChance(6, M.sameGap.atIdentity) === 30);
+  check('AT4\'s maximum leg is the CONTROL on the diagnosis — swept the same way, it '
+    + 'crosses its line at none of the twelve and spans [5, 7] against a line at 10',
+    NL.filter(r => r.at4Fires).length === 0
+    && Math.min(...NL.map(r => r.at4Max)) === 5
+    && Math.max(...NL.map(r => r.at4Max)) === 7);
+  check('   and AT1\'s MEAN leg is 31.4 standard errors from its nearest band edge, so '
+    + 'ten of AT\'s twelve legs are clear',
+    near((M.census.min.mean - 4.0) / (Math.sqrt(M.census.min.variance) / Math.sqrt(2000)),
+      31.4, 0.1));
+  // T-TRANSCRIBED-TABLE and the coordinator's point: every number above rests on ONE
+  // statistic that had ONE implementation. It now has two, and they are compared.
+  check('the shortest run has a SECOND implementation sharing no code with the BFS, and '
+    + 'they agree on 4,000 random generator sets of one to fourteen generators',
+    (() => {
+      const r = F.rng(20260828);
+      for (let n = 0; n < 4000; n++) {
+        const m = 1 + F.randInt(r, 13);
+        const gens = Array.from({ length: m }, () => F.randInt(r, A.N));
+        if (A.minInsertions(gens).min !== A.minInsertionsByReach(gens)) return false;
+      }
+      return true;
+    })());
+  check('   and on the real ledgers the disclosure is computed over',
+    (() => {
+      const r = F.rng(A.SEED);
+      for (let n = 0; n < 400; n++) {
+        const e = A.drawLedgerOfLength(r, 6);
+        const gens = A.forcedAtGaps(A.chain(e), M.noOp).gens;
+        if (A.minInsertions(gens).min !== A.minInsertionsByReach(gens)) return false;
+      }
+      return true;
+    })());
+  check('   and the second implementation would catch a broken first one',
+    A.minInsertionsByReach([1]) === 729 && A.minInsertionsByReach([0]) === 1
+    && A.minInsertionsByReach([1, A.N - 1]) === 2 && A.minInsertionsByReach([243]) === 3);
+}
+
 console.log('\n=== 9. THE MANIFEST SAYS WHAT THIS FILE MEASURED ===');
 {
   const MAN = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'FINDINGS.json'), 'utf8'));
@@ -478,6 +560,45 @@ console.log('\n=== 9. THE MANIFEST SAYS WHAT THIS FILE MEASURED ===');
   // The RUNNING TOTAL belongs to the corpus and later sets bump it -- set AU took it to
   // five -- so this check owns AT2's evidence and not the tally. T-STALE-CONSTANT is the
   // most-recurring defect here and a literal 4 would have gone stale the moment it moved.
+  // THE DISCLOSURE IS PART OF THE RECORD, NOT A COMMIT MESSAGE. AT1 stays HELD and AT3
+  // stays FAILED; what the manifest now also carries is that two of the legs behind
+  // those words were criteria in the noise.
+  check('AT1 and AT3 still carry their registered outcomes, unmoved by the re-audit',
+    set.predictions.find(p => p.id === 'AT1').outcome === 'HELD'
+    && set.predictions.find(p => p.id === 'AT3').outcome === 'FAILED');
+  check('   and both carry the near-line disclosure, with AT4\'s clean sweep beside '
+    + 'them so the diagnosis is visibly discriminating',
+    m('AT1').near_line_disclosure.seeds_crossing_the_line === 2
+    && m('AT1').near_line_disclosure.null_prob_a_2000_draw_exceeds['12'] === 0.0769
+    && m('AT3').near_line_disclosure.seeds_failing === 5
+    && m('AT3').near_line_disclosure.seeds_holding === 7
+    && m('AT4').near_line_disclosure.seeds_crossing_the_line === 0);
+  check('   and the manifest\'s disclosure agrees with what this run recomputed, rather '
+    + 'than being a number typed beside one',
+    m('AT1').near_line_disclosure.max_by_seed.join()
+      === M.nearLine.map(r => r.at1Max).join()
+    && m('AT3').near_line_disclosure.mean_by_seed.join()
+      === M.nearLine.map(r => r.at3Mean).join()
+    && m('AT4').near_line_disclosure.max_by_seed.join()
+      === M.nearLine.map(r => r.at4Max).join());
+  const bite = MAN.unregistered_findings
+    .find(f => f.id === 'F-THE-BITE-COUNT-IS-WHAT-FAILED-NOT-WHAT-HAPPENED');
+  check('F-THE-BITE-COUNT-IS-WHAT-FAILED-NOT-WHAT-HAPPENED is recorded, and says the '
+    + 'thing rather than gesturing at it',
+    !!bite && bite.asserted_in === 'test/test-insert.js'
+    && /FORTY LINES APART IN ONE REGISTRATION/.test(bite.claim)
+    && /number of times it happened AND produced a visible failure/.test(bite.argument));
+  check('   and it names its own remedy\'s failure — the 3.9% read off one exceedance — '
+    + 'rather than correcting it away',
+    /3\.9%/.test(bite.argument) && /ONE exceedance/.test(bite.argument)
+    && /confidence interval/.test(bite.argument));
+  check('   and it says what it does NOT establish: the gap is shown non-zero, not sized',
+    /does NOT size the gap/.test(bite.scope)
+    && /has not been run/.test(bite.scope));
+  check('   and it credits the class to AU rather than claiming it',
+    /F-A-LINE-IN-THE-NOISE-THAT-PASSES-IS-THE-SAME-DEFECT/.test(bite.scope)
+    && !!MAN.unregistered_findings
+      .find(f => f.id === 'F-A-LINE-IN-THE-NOISE-THAT-PASSES-IS-THE-SAME-DEFECT'));
   const trap = MAN.traps_encountered.find(t => t.id === 'T-CRITERION-IN-THE-NOISE');
   check('AT2\'s failure is recorded as a bite of T-CRITERION-IN-THE-NOISE, with the '
     + 'remedy the class prescribes — this check owns the EVIDENCE, not the running '

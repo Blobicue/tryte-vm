@@ -1390,6 +1390,80 @@ alongside an insertion. The k ≥ 3 route is the one worth taking next — two i
 already yield 30 forgeries per ledger, and a third multiplies the parameter space by 729
 while adding one constraint.
 
+**A disclosure added after the fact, and neither outcome is changed.** Set `AU` established
+that a criterion sitting in the noise leaves *no signal at all* when it lands inside its
+band, so this corpus records the defect only when it happens to fail
+(`F-A-LINE-IN-THE-NOISE-THAT-PASSES-IS-THE-SAME-DEFECT`). Turned on `AT`'s own twelve legs,
+it fires on two — and one of the two is a leg that **held**.
+
+**`AT1`'s maximum leg was never measuring the subject.** It registered "no ledger of the
+2,000 needs more than 12" and measured **10**. The uniform null's *most likely* maximum over
+2,000 draws is **also 10**, at probability 0.32; P(a null maximum exceeds 10) = 0.29,
+exceeds 11 = 0.12, exceeds 12 = **0.077** with a 95% interval of [0.044, 0.109] over 500,000
+draws carrying 20 exceedances. Re-run at twelve seeds the subject's own maximum spans
+[9, 13] and **crosses the registered line at two of them**. The measured value is the null's
+modal outcome and the line sat one step above where chance lands anyway.
+
+**And `AT2`'s maximum leg — which failed, and became a counted bite of
+`T-CRITERION-IN-THE-NOISE` — sits forty lines above it in the same registration.** Same
+author, same day, same error: a bound on a maximum placed by reasoning about a mean. One is
+in the corpus and one was invisible until `AU` supplied the rule that found it. So the count
+for this class is **the number of times it produced a visible failure, not the number of
+times it happened** — the noticing was done by the outcome rather than by anyone looking,
+and every criterion equally in the noise that landed inside its band was written down as a
+clean HELD. That makes the recorded bite count a lower bound of unknown size, and it points
+at the **held** column as the place to look, which inverts this project's own habit, since
+[`METHOD.md`](../METHOD.md)'s argument rests on the failures being where the value is
+(`F-THE-BITE-COUNT-IS-WHAT-FAILED-NOT-WHAT-HAPPENED`).
+
+**`AT3` is the benign case, and it is what makes the malign one legible.** Its verdict is
+seed-dependent too — the mean lands outside the registered band on five of twelve seeds and
+inside on seven, and the derivation says it had to be about half, since the true mean is the
+corrected chance of 30 and the line sits at 30.0 with a standard error of 0.1185. But all
+twelve means lie within **0.271** of `gapPairs − 1 + c(ZERO) = 30`. The criterion decided
+which word went in the outcome field and **never touched the mechanism**. A line in the
+noise corrupts a verdict; it does not automatically corrupt a finding, and telling those two
+apart is what a reader needs.
+
+**Both outcomes stand: `AT1` HELD, `AT3` FAILED.** The registered run is the run, and an
+outcome fixed at the results commit is the only property of this record a later edit cannot
+fake. What changes is what those two legs are worth as evidence, which is nothing.
+
+**The diagnosis discriminates, and that is on the record beside the two that fired.**
+`AT4`'s maximum leg was swept the same way at the same twelve seeds and crosses its line at
+**none** of them, spanning [5, 7] against a line at 10; `AT1`'s *mean* leg sits 31.4 standard
+errors from its nearest band edge. Ten of the twelve legs are clear.
+
+**And the remedy has the same floor one level up, which is left in rather than corrected
+away.** The first version of this disclosure put the null's exceedance probability at
+**3.9%**, estimated from 50,000 draws containing exactly *one* exceedance — a tail read off a
+single observation, written into the disclosure about reading tails badly. Drawn at 500,000
+it is 7.7%. The antibody is that `tailNull` now returns a confidence interval with every
+estimate, so an exceedance rate resting on a handful of draws announces itself instead of
+being quoted as a point. The shortest-run statistic behind all of these numbers also has a
+**second implementation** now — iterated Minkowski sums over a 729-element reachability set,
+sharing no code with the breadth-first search — agreeing on 4,000 of 4,000 random generator
+sets and on every real ledger the disclosure is computed over.
+
+**And set `AU` found the same class from both sides, which is what makes it a class rather
+than an accident.** Three of its legs are criteria the run *can* move — `AU1`(a) at width
+two, `AU2`(c) at width three and `AU3`(c)'s slope gap, all within 0.005 of their band, all
+of which **held**, two of which straddle on reseed. That is `AT1`'s shape exactly, three
+more times. And one of its legs is a criterion the run *cannot* move: `AU2`(b)'s band was
+drawn round the birthday law's **asymptotic** exponent, and six points spanning 2.4 decades
+do not measure an asymptote — on three of the seven windows that sweep could have chosen,
+**the ideal object itself** scores under the band's lower edge
+(`F-A-BAND-DRAWN-ROUND-AN-ASYMPTOTE-THE-WINDOW-CANNOT-REACH`).
+
+**So the class has two halves and one consequence.** A criterion **in the noise** is one the
+draw decides; a criterion **round a limit** is one nothing can satisfy; and **the corpus
+records neither unless it happens to fail.** Underneath both is one mistake — a line placed
+by reasoning about a limit rather than about the thing being measured — and an asymptotic
+exponent, a tail integrated from an approximation fitted to its centre, and a chance value
+computed as though every gap were a random accumulator are three faces of it. The remedy
+this repository already applies to null models applies to criteria as well: **compute it at
+the width, the length and the seed you are actually measuring, and not in the limit.**
+
 ### `AU` — the remaining lever is WIDTH, and it buys one currency and not the other
 
 `AS` and `AT` between them measured the accumulator's **mixing** twice and found it worth
@@ -1398,6 +1472,15 @@ operations a forgery over adding the entries up, and a forger who may lengthen t
 gets a forgery for two entries and no search at all. Both results end in the same
 sentence — **this is a width question, not a mixing question** — and nobody had measured
 what width buys.
+
+**The answer in one line, and it is not the one the fitted laws give.** About **two heads
+in three at every width from 27 states to 729** admit a two-entry, zero-operation,
+zero-knowledge forgery, and width six is no rarer than width three. `AT` found one such
+head and called it a property of `D`'s permutation; over 400 drawn heads per width it is
+the **typical** case. That is the difference between a law with an exception and a law
+that describes the minority. The two cost laws below say what width buys where no such
+shortcut exists — the state count against a forger handed a ledger, its square root
+against one who may choose both — and they are the second finding here, not the first.
 
 **The family is a design decision and nothing about it is at risk.** `D`'s mixer is
 defined on 729 states and nothing narrower or wider exists, so the sweep needs a family:
@@ -1459,6 +1542,26 @@ the first colliding pair of equal-total length-two ledgers arrives at 4.394, 7.5
 with **zero collision-free rows in 25,272 scanned**. Fitted against the state count the
 two attacks give slopes of **0.4642** and **1.0031**.
 
+> **And the collision slope is better than the registered band made it look, which two
+> readers found and this file reproduced before accepting.** The band [0.45, 0.55] was
+> drawn round the birthday law's **asymptotic** exponent, and six points spanning 2.4
+> decades do not measure an asymptote: the exact expectation is about `√(πN/2) + 2/3`,
+> and an additive term lifts the small-N points hardest. Fitted over the registered window
+> of widths 2 to 6, **the ideal object's own slope is 0.4665** — so the measured 0.4642
+> sits **0.0023 below the ideal null**, agreement to half a percent, rather than 7% below
+> a limit nothing here can reach. The verdict does not move: 0.4642 is inside the
+> registered band and leg (b) HELD, scored against the null that was registered.
+> **The defect is that the band was drawn round that limit at all.** On three of the seven
+> windows this sweep could have used — 1..5, 1..4, 2..4 — the exact null's own slope is
+> 0.4439, 0.4315 and 0.4490, *under the band's own lower edge*, so a perfectly ideal head
+> would have failed. It is a property of the window and not of the family: 0.4770 out to
+> width 8, 0.4877 to 12, 0.4950 to 20. That is `T-CRITERION-IN-THE-NOISE`'s cousin rather
+> than another instance — a criterion the run *cannot* move, because the null misses it
+> too — and the remedy is the one this repository already applies to null models, pushed
+> one step out: compute it at the width you are measuring, not in the limit
+> (`F-A-BAND-DRAWN-ROUND-AN-ASYMPTOTE-THE-WINDOW-CANNOT-REACH`). The second-preimage null
+> needed no correction; its own slope is 1.000000 on every one of the seven windows.
+
 > **So the two attack goals separate by exactly one square root, and the separation is
 > measured rather than assumed** (`F-THE-TWO-ATTACK-GOALS-SEPARATE-BY-ONE-SQUARE-ROOT`).
 > The birthday law prices a collision. A ledger forger is handed a ledger and needs a
@@ -1511,6 +1614,25 @@ than by a reader.
 > one whatever N is — and a quantity whose mean does not depend on N cannot be driven down
 > by raising N. In the operations currency width is worth its own state count; against this
 > family it is worth nothing at all.
+
+### And one defect the sweep found in its own construction, which transfers
+
+**Widening a construction can turn it into the IDENTITY at one width while leaving it
+healthy at the widths either side.** `D`'s split round widened to w/2-trit halves is a
+permutation at widths 2, 4 and 6 with exactly one fixed point at 4 and 6 — and at width
+**two it has nine fixed points on nine states**, which is to say it is the identity. Eight
+rounds of a one-trit Feistel over a three-entry S-box return every state to itself. It was
+found only because the invariant was checked at *every* even width rather than at the
+endpoints, and the endpoints are exactly where it hides: 4 and 6 both behave.
+
+**No distributional statistic computed on such a family would say so**, and neither would
+the obvious structural check. Asking which input positions can influence which outputs
+says nothing about whether the influences *cancel*, so a family can have complete
+reachability at every width and still be a relabelling at one of them — and every
+distribution measured there would be measuring the identity and reporting it as a mixer.
+So the invariant has to be asserted at every width in the family, and asserted as a
+separate thing from reachability (`F-A-WIDENED-FAMILY-CAN-COLLAPSE-WHERE-INFLUENCE-STILL-REACHES`).
+Width two is a control in this set thereafter, never a subject.
 
 ### What a stated target implies, and how far that is an extrapolation
 
