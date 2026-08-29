@@ -477,6 +477,32 @@ console.log('\n=== 5. REFERENCES ===');
       scan(`if it holds, every one of the ${WORDS[M.traps_encountered.length - 1]} classes undercounts`).length === 1
       && scan('this file owns six sets, and AS and AT are two sets').length === 0
       && scan(`every one of the ${WORDS[M.traps_encountered.length]} classes`).length === 0);
+    // AND THE NEGATIVE CONTROL IS NOT THAT STRING -- IT IS ALREADY IN THE CORPUS. The
+    // topic files carry real sub-counts today ("six sets", "four sets", "two sets"), and
+    // a tripwire with real traffic under it that it correctly ignores is worth more than
+    // one with nothing under it. Pinned as the DISCRIMINATOR rather than as a tally,
+    // because how many sub-counts the corpus happens to contain is exactly the kind of
+    // number that rots: the naive noun-based sweep must fire on the swept files and the
+    // totality sweep must not. That also guards the narrowing itself. The comment above
+    // says this check cannot be the doctree sweep with a longer file list; this is what
+    // fails if someone widens it anyway and reintroduces the false positives.
+    const naive = (text) => {
+      const out = [];
+      for (const [, word, noun] of text.toLowerCase().replace(/\s+/g, ' ')
+        .matchAll(/([\w-]+?)[- ](classes|sets|occurrences|bites)\b/g)) {
+        if (!WORDSET.has(word)) continue;
+        const right = WORDS[COUNTED_ALL[noun]];
+        if (right && word !== right.toLowerCase()) out.push(`"${word} ${noun}"`);
+      }
+      return out;
+    };
+    const naiveHits = topics.flatMap(f =>
+      naive(fs.readFileSync(path.join(ROOT, 'results', f), 'utf8')).map(h => `${f}: ${h}`));
+    check('      and the corpus supplies the negative control the string cannot: the NAIVE '
+      + `noun-based sweep flags ${naiveHits.length} legitimate sub-count(s) in these same `
+      + 'files, every one correct, and the totality sweep flags none of them',
+      naiveHits.length > 0 && rotted.length === 0,
+      naiveHits.join('; '));
 
     // The sweep above needs the noun ("thirteen classes"). Run against pillar 11's
     // actual stale text it caught two of five: "about nine of the thirteen",
