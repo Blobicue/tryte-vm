@@ -410,6 +410,33 @@ To add a generated phrase: wrap it in a marker, add a template under the same ke
 never used, and refuses to spell a number it has no word for rather than writing
 `undefined` into the README.
 
+### Generate a fact. Never generate a number that is load-bearing inside an argument.
+
+The rule above is not unconditional, and the exception was found the hard way. A topic
+file carried the sentence *"whose 21 recorded bites are all about measuring
+instruments"*. The number and the claim go stale **together**: the day anyone records a
+reviewing-instrument bite, generating the count would keep the sentence looking current
+while its actual assertion became false. **A stale number is caught by a reader. A
+generated number under a rotted claim is caught by nobody, because everything looks
+maintained.** Generation keeps facts fresh and cannot keep inferences fresh, and wiring
+it to a number that an argument leans on converts a visible defect into an invisible
+one.
+
+The fix there was to delete the numeral — *"whose recorded bites are all about measuring
+instruments"* — which stays true until the thing it describes changes, and then is
+supposed to change. So: if a count is **reported**, generate it; if a count is a
+**premise**, write the claim without it and let the claim be falsifiable on its own
+terms.
+
+**And guard the totals in prose rather than generating them there.**
+`results/` topic files are deliberately outside `render-docs`'s targets, because almost
+every number in them is a *measurement*, and a measured value in prose cannot rot —
+`0.4642` is what the fit gave and always will be. A corpus tally rots by construction.
+`test-findings.js` therefore sweeps topic files for **totality claims only** — "every
+one of the N classes" — and not for every number before a corpus noun, because run that
+way it fires on "six sets" and "two sets", which are legitimate sub-counts, and a check
+that forbids a healthy state is its own defect.
+
 ### The published page is one of the targets
 
 `docs/tick-argument.html` is the essay page, source and output in one file — authored

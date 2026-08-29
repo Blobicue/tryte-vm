@@ -423,6 +423,61 @@ console.log('\n=== 5. REFERENCES ===');
     check('   and the doctree pillars that restate these counts agree as well',
       drifted.length === 0, drifted.join('; '));
 
+    // AND THE ONE FAMILY OF DOCUMENTS THIS SWEEP HAD NEVER REACHED: results/ topic
+    // files. Set `AU` put two corpus tallies into a topic file -- "the nineteen
+    // classes", "21 recorded bites" -- inside a paragraph arguing that the corpus's own
+    // counting is unreliable, and asserted in a commit message that this sweep guarded
+    // them. It did not: nothing in test/ or tools/ reads results/06-economics.md, and
+    // render-docs's TARGETS does not list it. The numbers were right and unguarded.
+    //
+    // THE DISTINCTION IS NOT GUARDED VERSUS UNGUARDED, IT IS FROZEN VERSUS ROTTING.
+    // Every number in every topic file is unguarded and almost all of them should be:
+    // a MEASURED value in prose cannot rot -- 0.4642 is what the fit gave and always
+    // will be. A CORPUS TALLY rots by construction, because the corpus grows.
+    //
+    // So this cannot be the sweep above with a longer file list. Run that way it fires
+    // on "six sets", "four sets" and "two sets" in three topic files, which are
+    // SUB-COUNTS -- a file owning six sets, a pair of sets being two -- and every one is
+    // correct. That is T-CHECK-FORBIDS-HEALTHY-STATE, and it is why this class had no
+    // check rather than an oversight: in a topic file a number before "sets" is usually
+    // a legitimate subset. The discriminator is not the noun, it is TOTALITY -- a claim
+    // about every member of a corpus collection is a restatement of its count and
+    // nothing else.
+    const TOTAL_RE =
+      /(?:every one of the|all of the|each of the|the whole)\s+([\w-]+)\s+(classes|sets|occurrences|bites|findings)\b/g;
+    const COUNTED_ALL = Object.assign({ findings: M.unregistered_findings.length }, COUNTED);
+    const topics = fs.readdirSync(path.join(ROOT, 'results'))
+      .filter(f => f.endsWith('.md'))
+      .filter(f => /kind: results-topic/.test(
+        fs.readFileSync(path.join(ROOT, 'results', f), 'utf8')));
+    const scan = (text) => {
+      const out = [];
+      for (const [, word, noun] of text.toLowerCase().replace(/\s+/g, ' ').matchAll(TOTAL_RE)) {
+        if (!WORDSET.has(word)) continue;
+        const right = WORDS[COUNTED_ALL[noun]];
+        if (right && word !== right.toLowerCase()) out.push(`"${word} ${noun}" -> "${right}"`);
+      }
+      return out;
+    };
+    const rotted = [];
+    for (const f of topics) {
+      for (const bad of scan(fs.readFileSync(path.join(ROOT, 'results', f), 'utf8'))) {
+        rotted.push(`${f}: ${bad}`);
+      }
+    }
+    check(`   and no results/ topic file states a corpus TOTAL that has gone stale `
+      + `(${topics.length} topic files swept)`,
+      rotted.length === 0 && topics.length >= 9, rotted.join('; '));
+    // A TRIPWIRE WITH NOTHING CURRENTLY UNDER IT IS STILL A TRIPWIRE, but only if it is
+    // shown to fire -- "a test that cannot fail is worse than no test, because it reads
+    // as coverage". The offending sentence was removed at 3529655, so the positive
+    // control carries it instead, with the count one short.
+    check('      and that sweep FIRES on the sentence AU removed, with a stale count, '
+      + 'while leaving legitimate sub-counts alone',
+      scan(`if it holds, every one of the ${WORDS[M.traps_encountered.length - 1]} classes undercounts`).length === 1
+      && scan('this file owns six sets, and AS and AT are two sets').length === 0
+      && scan(`every one of the ${WORDS[M.traps_encountered.length]} classes`).length === 0);
+
     // The sweep above needs the noun ("thirteen classes"). Run against pillar 11's
     // actual stale text it caught two of five: "about nine of the thirteen",
     // "whether the thirteen really are one" and "the nine-of-thirteen reduction"
