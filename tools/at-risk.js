@@ -121,8 +121,36 @@ function tally(preds) {
  * The text runs from the `AT RISK` line to the next all-capitals label in the same
  * paragraph -- `CANNOT SHOW:` in `AQ`'s and `AR`'s blocks -- or to the paragraph's end.
  */
+/**
+ * Every spelling this block's header has EVER had. Not a style list -- a vocabulary,
+ * and the UNION OVER HISTORY rather than whatever the working tree says today.
+ *
+ * `AQ` registered under the second spelling. The criteria audit's extractor searched
+ * for the first only, matched nothing, fell back to the manifest's one-line summary,
+ * and `AQ` became the one set in the corpus whose registered criteria were never read
+ * -- then the set whose classification was found wrong on all three of its predictions.
+ * The header was normalised at some later commit, so a grep of `tools/` reports all 47
+ * fine and always fine, and the evidence of the fault is edited out of the only place
+ * anyone would look.
+ *
+ * `test-findings.js` section 10 guards that class with its own search over both
+ * spellings. This list exists because that guard was the ONLY thing that knew, while
+ * every caller of the function below still carried the narrow vocabulary -- so the next
+ * one would have fallen into the same hole, silently, and no check reads a caller's
+ * assumptions. A workaround in the checker is not a fix in the instrument.
+ *
+ * Append, never replace. Removing a spelling silently unreads a registration.
+ */
+const REGISTRATION_HEADERS = ['PREDICTED OUTCOMES', 'REGISTERED PREDICTIONS'];
+
 function registrationRisk(src, py = false) {
-  const from = src.indexOf('PREDICTED OUTCOMES');
+  // Earliest match over the whole vocabulary, not first-listed: a tool that names the
+  // older spelling in a comment must not out-rank the block it actually uses.
+  let from = -1;
+  for (const h of REGISTRATION_HEADERS) {
+    const at = src.indexOf(h);
+    if (at !== -1 && (from === -1 || at < from)) from = at;
+  }
   if (from === -1) return null;
   const to = py ? src.indexOf('"""', from) : src.indexOf(' */', from);
   const lines = src.slice(from, to === -1 ? undefined : to).split('\n');
@@ -170,5 +198,5 @@ function vacuous(text) {
 
 module.exports = {
   AT_RISK, NOT_AT_RISK, UNCALLED, classify, reason, label, tally, registrationRisk,
-  vacuous,
+  vacuous, REGISTRATION_HEADERS,
 };

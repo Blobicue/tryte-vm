@@ -1127,6 +1127,40 @@ console.log('\n=== 10. AN INSTRUMENT THAT READS HISTORY ===');
   check('   and that same narrow check reports NOTHING against the working tree, which is '
     + 'the whole class: the fault is in what the tree used to say',
     atTree.length === 0, atTree.join(' '));
+
+  // THE GUARD ABOVE WAS THE ONLY THING THAT KNEW. It searches both spellings itself,
+  // while `tools/at-risk.js` -- the parser every other caller reaches for, including the
+  // convention check further up this file -- carried the current spelling alone. So the
+  // class was guarded in one place and open everywhere else, and the next caller would
+  // have fallen into it silently, because no check reads a caller's assumptions. A
+  // workaround in the checker is not a fix in the instrument. These three assert the
+  // instrument, not this section's private copy of the knowledge.
+  // `R` is block-scoped where the vocabulary is first used, so it is required here
+  // rather than reached for -- the module is memoised, and a second binding of the same
+  // module is not a second parser.
+  const AR = require('../tools/at-risk.js');
+  check(`   and the SHARED parser recovers a block at registered_at for all `
+    + `${M.prediction_sets.length} sets, so a caller outside this file cannot fall in`,
+    rows.every(([, src]) => src && AR.registrationRisk(src, false) !== null),
+    rows.filter(([, src]) => !src || AR.registrationRisk(src, false) === null)
+      .map(([id]) => id).join(' '));
+  check(`   and its vocabulary is the UNION over history, ${AR.REGISTRATION_HEADERS.length} `
+    + 'spellings, not the one the tree happens to use',
+    Array.isArray(AR.REGISTRATION_HEADERS)
+    && AR.REGISTRATION_HEADERS.length >= 2
+    && AR.REGISTRATION_HEADERS[0] === HEADERS[0],
+    JSON.stringify(AR.REGISTRATION_HEADERS));
+  // The older spelling is load-bearing rather than decorative: exactly the set the audit
+  // lost is the set that needs it, and it needs it because its registered tool never had
+  // the other one. Delete the entry and this fails, which is why it is asserted.
+  {
+    const aq = (rows.find(([id]) => id === 'AQ') || [])[1];
+    check('   and the older spelling is LOAD-BEARING — AQ parses only because of it, its '
+      + 'registered tool contains no other, and all four of its ids come back',
+      !!aq && !aq.includes(HEADERS[0]) && aq.includes(HEADERS[1])
+      && Object.keys(AR.registrationRisk(aq, false) || {}).length === 4,
+      aq ? 'AQ source recovered' : 'AQ source missing');
+  }
 }
 
 console.log('\n' + '='.repeat(64));
