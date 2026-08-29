@@ -14,7 +14,7 @@ for *this* repository. What follows is the part that is not about ternary.
 ## What it produced
 
 <!--g:method-tally-->Forty-seven prediction sets, **197 registered predictions, 160 held, 37 failed.** Nineteen
-distinct failure classes, which bit **61 times** between them. Sixty-four findings
+distinct failure classes, which bit **62 times** between them. Sixty-four findings
 measured but never registered<!--/g-->, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this

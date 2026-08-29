@@ -471,6 +471,47 @@ console.log('\n=== 7. AU4 FAILED — ON THE FAMILY THIS SET CHOSE, NOT ON WIDTH 
     && M.widths[5].control.split.row.pair.atIdentity.c === 3);
 }
 
+console.log('\n=== 7b. THE CORRECTION TWO READERS FOUND, REPRODUCED BEFORE IT WAS ACCEPTED ===');
+{
+  // AU2(b)'s band [0.45, 0.55] was drawn round the birthday law's ASYMPTOTIC exponent,
+  // and six points spanning 2.4 decades do not measure an asymptote. The exact
+  // expectation is about sqrt(pi N / 2) + 2/3 and the additive term lifts the small-N
+  // points hardest, so THE IDEAL OBJECT'S OWN log-log slope over a narrow window is
+  // under 0.5. Fitted here from the same exactBirthday() the verdict is scored against.
+  const NS = M.nullSlopes;
+  const at = (a, b) => NS.rows.find(r => r.from === a && r.to === b).birthday;
+  check('the exact null\'s OWN slope over the registered window 2..6 is 0.4665, not the '
+    + '0.5 the band was drawn around \u2014 and 0.4537 over 1..6, which is the figure a '
+    + 'reader offered for a window this set did not register',
+    near(at(2, 6), 0.4665, 5e-4) && near(at(1, 6), 0.4537, 5e-4)
+    && near(at(3, 6), 0.4758, 5e-4),
+    NS.rows.map(r => `${r.from}..${r.to}:${r.birthday.toFixed(4)}`).join(' '));
+  check('   so the measured 0.4642 sits 0.0023 BELOW the ideal null on its own window, '
+    + 'not 7% below the asymptote \u2014 agreement to half a percent',
+    near(Math.abs(M.fits.collision.slope - at(2, 6)), 0.0023, 5e-4)
+    && M.fits.collision.slope < at(2, 6));
+  // THE DEFECT, AND IT IS NOT THAT THE BAND WAS MISSED. It was not missed. It was drawn
+  // round a limit the range cannot reach, and on three of the seven windows this sweep
+  // could have used the IDEAL OBJECT scores under the band's own lower edge.
+  check('and on three of the seven candidate windows \u2014 1..5, 1..4 and 2..4 \u2014 the IDEAL '
+    + 'object itself scores 0.4439, 0.4315 and 0.4490, under the registered 0.45',
+    NS.belowBand.join() === '1..5,1..4,2..4'
+    && near(at(1, 5), 0.4439, 5e-4) && near(at(1, 4), 0.4315, 5e-4)
+    && near(at(2, 4), 0.449, 5e-4));
+  check('   and it is a property of the WINDOW, not of the family: 0.4770, 0.4877 and '
+    + '0.4950 as the fit runs out to widths 8, 12 and 20',
+    seq(NS.wide.map(w => w.birthday), [0.477, 0.4877, 0.495], 5e-4)
+    && NS.wide.every((w, i) => i === 0 || w.birthday > NS.wide[i - 1].birthday));
+  check('   while the SECOND-PREIMAGE null has no such bias \u2014 its own slope is 1.000000 '
+    + 'on every one of the seven windows, so AU2(b)\'s other half needed no correction',
+    NS.rows.every(r => near(r.sp, 1.0, 1e-5)),
+    NS.rows.map(r => r.sp.toFixed(6)).join(' '));
+  check('AU2(b)\'s VERDICT does not move: 0.4642 is inside [0.45, 0.55] and the leg HELD '
+    + 'as registered, scored against the null that was registered',
+    M.fits.collision.slope >= NS.registeredBand[0]
+    && M.fits.collision.slope <= NS.registeredBand[1]);
+}
+
 console.log('\n=== 8. THE MANIFEST SAYS WHAT THIS FILE MEASURED ===');
 {
   const MAN = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'FINDINGS.json'), 'utf8'));
@@ -497,7 +538,9 @@ console.log('\n=== 8. THE MANIFEST SAYS WHAT THIS FILE MEASURED ===');
     'F-WIDTH-BUYS-THE-FORGERS-MEMORY-NOT-HIS-TIME',
     'F-WIDTH-DOES-NOT-KILL-THE-ZERO-OP-FORGERY',
     'F-A-LINE-IN-THE-NOISE-THAT-PASSES-IS-THE-SAME-DEFECT',
-    'F-AT-WIDTH-ONE-THE-SECOND-PREIMAGE-IS-DETERMINISTIC']) {
+    'F-AT-WIDTH-ONE-THE-SECOND-PREIMAGE-IS-DETERMINISTIC',
+    'F-A-BAND-DRAWN-ROUND-AN-ASYMPTOTE-THE-WINDOW-CANNOT-REACH',
+    'F-A-WIDENED-FAMILY-CAN-COLLAPSE-WHERE-INFLUENCE-STILL-REACHES']) {
     const f = Fd(id);
     check(`${id} is recorded, and points at this file`,
       !!f && f.asserted_in === 'test/test-width.js'
@@ -509,12 +552,27 @@ console.log('\n=== 8. THE MANIFEST SAYS WHAT THIS FILE MEASURED ===');
       && /4,414/.test(Fd('F-WIDTH-BUYS-THE-FORGERS-MEMORY-NOT-HIS-TIME').argument
         + Fd('F-THE-TWO-ATTACK-GOALS-SEPARATE-BY-ONE-SQUARE-ROOT').argument))
       (Fd('F-THE-TWO-ATTACK-GOALS-SEPARATE-BY-ONE-SQUARE-ROOT')));
-  // The fifth bite of T-CRITERION-IN-THE-NOISE, and the first on a line that PASSED.
+  // AU's bite of T-CRITERION-IN-THE-NOISE, and the first on a line that PASSED.
+  // THE RUNNING TOTAL IS NOT THIS SET'S TO PIN, and asserting it as a literal is the
+  // same T-STALE-CONSTANT this set removed from test-insert.js an hour earlier. AT's
+  // own re-audit, prompted by the finding below, took the count from five to six while
+  // this file was being written. The check owns AU's EVIDENCE and not the tally.
   const trap = MAN.traps_encountered.find(t => t.id === 'T-CRITERION-IN-THE-NOISE');
-  check('the fifth bite of T-CRITERION-IN-THE-NOISE is recorded, and says the new thing: '
+  check('AU\'s bite of T-CRITERION-IN-THE-NOISE is recorded, and says the new thing: '
     + 'the line PASSED, so nothing made anybody look',
-    trap.count === 5 && /THE LINE PASSED/.test(trap.description)
+    trap.count >= 5 && /THE LINE PASSED/.test(trap.description)
     && /0\.9302/.test(trap.description));
+  check('AU2\'s note carries the correction and says the verdict did NOT move',
+    /0\.4665/.test(m('AU2').exact_null_own_slope_over_registered_window_two_to_six ? 'ok0.4665' : '')
+    && m('AU2').exact_null_own_slope_over_registered_window_two_to_six === 0.4665
+    && m('AU2').exact_null_own_slope_over_widths_one_to_six === 0.4537
+    && m('AU2').windows_where_the_ideal_null_falls_below_the_registered_band.length === 3
+    && /THE VERDICT DOES NOT MOVE/.test(set.predictions.find(p => p.id === 'AU2').note));
+  check('   and the width-two identity collapse is a finding in its own right, not a '
+    + 'footnote to the sweep',
+    (f => /NINE fixed points on nine states/.test(f.claim)
+      && /cancel/i.test(f.argument) && /EVERY width/.test(f.argument))
+      (Fd('F-A-WIDENED-FAMILY-CAN-COLLAPSE-WHERE-INFLUENCE-STILL-REACHES')));
   const t2 = MAN.traps_encountered.find(t => t.id === 'T-CLAIM-NARROWED-BY-A-DESIGN');
   check('and AU4\'s failure is recorded as a bite of T-CLAIM-NARROWED-BY-A-DESIGN, '
     + 'caught by the control rather than by a reader',

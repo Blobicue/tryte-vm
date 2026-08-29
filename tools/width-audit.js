@@ -1016,6 +1016,7 @@ function measure() {
   M.thinMargins = thinMargins([SEED, 1, 424242, 20260831]);
   M.slopeSpread = slopeSpread([SEED ^ 0x5f3759df, 7, 99]);
   M.widthOne = widthOneScanProfile();
+  M.nullSlopes = nullSlopes();
   CACHE = M;
   return CACHE;
 }
@@ -1054,6 +1055,39 @@ function thinMargins(seeds) {
   }
   return out;
 }
+/**
+ * NOT REGISTERED, AND FOUND AFTER THE RUN BY TWO READERS RATHER THAN BY ME.
+ *
+ * `AU2`(b) registered the collision slope inside [0.45, 0.55], a band drawn around the
+ * ASYMPTOTIC exponent of the birthday law. The asymptote is not what this window
+ * measures. The exact finite-N expectation is about sqrt(pi N / 2) + 2/3, and the
+ * additive term lifts the small-N points hardest, so a log-log fit of THE IDEAL OBJECT
+ * ITSELF over a narrow window comes out BELOW 0.5. This computes that, over every window
+ * the sweep could have used, from the same `exactBirthday` the verdict is scored against.
+ *
+ * The point is not that the registered band was missed -- it was not -- but that it was
+ * drawn round a limit the measurement's range cannot reach, and on three of the seven
+ * windows below the ideal object scores UNDER the band's own lower edge.
+ */
+function nullSlopes() {
+  const N = WIDTHS.map(w => 3 ** w);
+  const windows = [[1, 6], [2, 6], [3, 6], [1, 5], [2, 5], [1, 4], [2, 4]];
+  const rows = windows.map(([lo, hi]) => {
+    const ns = N.slice(lo - 1, hi);
+    return { from: lo, to: hi,
+      birthday: logFit(ns, ns.map(exactBirthday)).slope,
+      sp: logFit(ns, ns.map(n => spNull(n))).slope,
+      asymptotic: logFit(ns, ns.map(n => Math.sqrt(Math.PI * n / 2))).slope };
+  });
+  // and outward, to show it is a property of the WINDOW and not of the family
+  const wide = [8, 12, 20].map(k => {
+    const ns = []; for (let i = 2; i <= k; i++) ns.push(3 ** i);
+    return { to: k, birthday: logFit(ns, ns.map(exactBirthday)).slope };
+  });
+  return { rows, wide, registeredBand: [0.45, 0.55],
+    belowBand: rows.filter(r => r.birthday < 0.45).map(r => `${r.from}..${r.to}`) };
+}
+
 /**
  * NOT REGISTERED. The width-one first-accept index came back as one number on every
  * ledger of every head, which a mean cannot show, so the whole distribution is printed.
@@ -1258,6 +1292,29 @@ function report() {
         + `   gap ${fx(row.gap)}`);
     }
   }
+  log('\n--- NOT REGISTERED: THE BAND WAS DRAWN ROUND AN ASYMPTOTE THIS WINDOW CANNOT REACH ---');
+  {
+    const NS = M.nullSlopes;
+    log('      AU2(b) put the collision slope in [0.45, 0.55], around the ASYMPTOTIC 0.5.');
+    log('      The exact finite-N expectation is about sqrt(pi N / 2) + 2/3 and the additive');
+    log('      term lifts the small-N points hardest, so THE IDEAL OBJECT\'S OWN log-log slope');
+    log('      over a narrow window is below 0.5. Fitted from the same exactBirthday the');
+    log('      verdict is scored against:');
+    log('      window     exact null   asymptotic   second-preimage null');
+    for (const r of NS.rows) {
+      log(`      ${r.from}..${r.to}      ${fx(r.birthday).padStart(10)}   ${fx(r.asymptotic).padStart(10)}`
+        + `   ${fx(r.sp, 6).padStart(20)}`
+        + `${r.birthday < 0.45 ? '   <-- the IDEAL object fails my own band' : ''}`);
+    }
+    log(`      and outward, so it is a property of the WINDOW and not of the family:`
+      + NS.wide.map(w => ` 2..${w.to} -> ${fx(w.birthday)}`).join(','));
+    log(`      the registered window is 2..6, where the ideal null is`
+      + ` ${fx(NS.rows[1].birthday)} and the measurement is ${fx(M.fits.collision.slope)}`
+      + ` -- ${fx(Math.abs(M.fits.collision.slope - NS.rows[1].birthday))} apart`);
+    log(`      and the second-preimage null's own slope is ${fx(NS.rows[1].sp, 6)} against a`
+      + ` measured ${fx(M.fits.sp.slope)}`);
+  }
+
   log('\n--- NOT REGISTERED: the width-one first-accept index, whole distribution ---');
   {
     const wp = M.widthOne;
@@ -1287,5 +1344,5 @@ module.exports = {
   spScan, collisionScan, shuffleNull, mitm, mitmForgery, degenerateJoinRatio,
   noOpTable, minInsertions, orderIn, cAt, pairProfile,
   logFit, stat, drawLedger, measureHead, anchor, bfsControls, negationAgrees, carryCells,
-  slopeSpread, thinMargins, widthOneScanProfile, measure, report,
+  slopeSpread, thinMargins, widthOneScanProfile, nullSlopes, measure, report,
 };
