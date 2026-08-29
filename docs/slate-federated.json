@@ -7,25 +7,25 @@
   "null": "ladderlang: no outcome, because its statuses are not this repository's outcomes"
  },
  "counts": {
-  "entries": 386,
+  "entries": 398,
   "by_repo": {
    "bitblock": 81,
-   "ladderlang": 305
+   "ladderlang": 317
   },
   "by_kind": {
    "schema": 81,
-   "claim": 106,
+   "claim": 111,
    "ledger-row": 64,
-   "worklog": 135
+   "worklog": 142
   },
-  "routes_derived": 386
+  "routes_derived": 398
  },
  "repos": {
   "ladderlang": {
    "root": "C:\\Users\\Owen\\ladderlang",
-   "claims": 106,
+   "claims": 111,
    "ledger": 64,
-   "worklog": 135
+   "worklog": 142
   },
   "bitblock": {
    "root": "C:\\Users\\Owen\\bitblock",
@@ -43,6 +43,7 @@
  "routes": {
   "algebra": [
    "LL-claim:braid-inverses",
+   "LL-worklog:10504-result-the-landau-number-had-no-control-and-the-",
    "LL-worklog:9733-result-null-re-registered-on-ski-one-envelope-se"
   ],
   "cost-model": [
@@ -52,6 +53,7 @@
    "LL-claim:adder-encoding",
    "LL-claim:addressing-flat",
    "LL-claim:addressing-linear",
+   "LL-claim:alias-price",
    "LL-claim:arity-coverage",
    "LL-claim:binary-features",
    "LL-claim:binary-ops-lift-at-twice-the-rate",
@@ -165,6 +167,13 @@
    "LL-worklog:10096-result-325-is-a-release-not-a-transfer-i-did-not",
    "LL-worklog:10119-result-ch-maj-banked-both-pre-registrations-hit",
    "LL-worklog:10175-settlement-stage-5-combinator-sha-256-is-closed",
+   "LL-worklog:10229-result-search-null-n-stays-20-the-drop-that-was-",
+   "LL-worklog:10284-result-the-eight-blank-atoms-closed-four-derived",
+   "LL-worklog:10343-result-two-harness-defects-found-by-running-the-",
+   "LL-worklog:10381-register-can-this-substrate-hold-a-vector-commit",
+   "LL-worklog:10400-result-the-vector-commitment-gate-and-what-it-me",
+   "LL-worklog:10504-result-the-landau-number-had-no-control-and-the-",
+   "LL-worklog:10548-result-the-27-tryte-digest-exists-now-and-the-co",
    "LL-worklog:1110-the-results-worth-your-attention",
    "LL-worklog:1137-what-is-now-proved-rather-than-checked",
    "LL-worklog:1144-the-three-failures-worth-reading",
@@ -300,6 +309,8 @@
   ],
   "hashing": [
    "LL-worklog:10175-settlement-stage-5-combinator-sha-256-is-closed",
+   "LL-worklog:10400-result-the-vector-commitment-gate-and-what-it-me",
+   "LL-worklog:10548-result-the-27-tryte-digest-exists-now-and-the-co",
    "LL-worklog:8595-pre-register-hash-operator-horizon-stage-0-packi",
    "LL-worklog:8658-pre-register-hash-operator-horizon-stage-1-add4",
    "LL-worklog:8721-pre-register-stages-2-4-toy-hash-operator",
@@ -310,6 +321,7 @@
   "method": [
    "LL-claim:adder-is-one-dimensional",
    "LL-claim:arity-coverage",
+   "LL-claim:atoms-window-closed",
    "LL-claim:binary-features",
    "LL-claim:binary-ops-lift-at-twice-the-rate",
    "LL-claim:bounded-influence-radius",
@@ -321,6 +333,8 @@
    "LL-claim:savings-absolute-not-rank",
    "LL-claim:tick-law",
    "LL-claim:xor-costs-more",
+   "LL-worklog:10229-result-search-null-n-stays-20-the-drop-that-was-",
+   "LL-worklog:10381-register-can-this-substrate-hold-a-vector-commit",
    "LL-worklog:1110-the-results-worth-your-attention",
    "LL-worklog:1214-item-7-automatic-expansion-prediction-registered",
    "LL-worklog:1306-item-7b-minting-what-the-algorithm-proposed-pred",
@@ -515,10 +529,13 @@
    "BB-schema:bitblock/wrong-display-artifact/v1",
    "LL-claim:adder-rounds-constant",
    "LL-claim:arith-edge-sweep",
+   "LL-claim:bank-record-was-unread",
+   "LL-claim:banked-atoms-split",
    "LL-claim:battery-coverage",
    "LL-claim:battery-signal",
    "LL-claim:behaviour-beats-occurrence",
    "LL-claim:beta-eq-subst",
+   "LL-claim:church-atom-law",
    "LL-claim:church-mult",
    "LL-claim:church-plus",
    "LL-claim:church-pow",
@@ -2970,6 +2987,32 @@
    "source_status": "measured"
   },
   {
+   "id": "LL-claim:alias-price",
+   "kind": "claim",
+   "set": null,
+   "subject": "alias-price",
+   "outcome": null,
+   "basis": "proven",
+   "routes": [
+    "cost-model"
+   ],
+   "routes_derived": true,
+   "claim": "terms that abstract to the same SKI cost the same in BOTH currencies, so an alias INHERITS a published price instead of being measured a second time",
+   "argument": "Lean theorem Ladderlang.cost_of_toSKI",
+   "note": "evidence: Atoms.lean, under the byte-identities gate 3 already checks",
+   "measured": {
+    "theorem": 1
+   },
+   "tool": null,
+   "asserted_in": null,
+   "registered_at": null,
+   "results_at": null,
+   "links": [],
+   "repo": "ladderlang",
+   "source": "claims.json",
+   "source_status": "proved"
+  },
+  {
    "id": "LL-claim:arith-edge-sweep",
    "kind": "claim",
    "set": null,
@@ -3021,6 +3064,84 @@
    "repo": "ladderlang",
    "source": "claims.json",
    "source_status": "refuted"
+  },
+  {
+   "id": "LL-claim:atoms-window-closed",
+   "kind": "claim",
+   "set": null,
+   "subject": "atoms-window-closed",
+   "outcome": null,
+   "basis": "measured",
+   "routes": [
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "EQ_bool, POW, CH and MAJ can never carry a PRE-registered atom count: lake exe export had already put their atoms_upper into a committed ledger.json before they were banked, so any number recorded now was read off a file rather than predicted",
+   "argument": null,
+   "note": "evidence: Atoms.lean frozenAtoms, each row carrying its own reason",
+   "measured": {
+    "theorem": 0
+   },
+   "tool": null,
+   "asserted_in": null,
+   "registered_at": null,
+   "results_at": null,
+   "links": [],
+   "repo": "ladderlang",
+   "source": "claims.json",
+   "source_status": "measured"
+  },
+  {
+   "id": "LL-claim:bank-record-was-unread",
+   "kind": "claim",
+   "set": null,
+   "subject": "bank-record-was-unread",
+   "outcome": null,
+   "basis": "measured",
+   "routes": [
+    "unrouted"
+   ],
+   "routes_derived": true,
+   "claim": "Minted.node's layerRec and atomsRec were writable and read by NOTHING until bankMisplaced -- Export prices the Entries node, so all 24 banked placements went unchecked and 4 of them were blank",
+   "argument": null,
+   "note": "evidence: Atoms.lean bankMisplaced, with bankControlMisplaced as the control",
+   "measured": {
+    "theorem": 0
+   },
+   "tool": null,
+   "asserted_in": null,
+   "registered_at": null,
+   "results_at": null,
+   "links": [],
+   "repo": "ladderlang",
+   "source": "claims.json",
+   "source_status": "measured"
+  },
+  {
+   "id": "LL-claim:banked-atoms-split",
+   "kind": "claim",
+   "set": null,
+   "subject": "banked-atoms-split",
+   "outcome": null,
+   "basis": "measured",
+   "routes": [
+    "unrouted"
+   ],
+   "routes_derived": true,
+   "claim": "of the 8 banked rows the ladder never published an atom count for, 4 are DERIVED -- ONE and TWO from church_atoms, NIL and HEAD by alias from FALSE and OR -- and 4 are FROZEN measurements",
+   "argument": null,
+   "note": "evidence: Atoms.lean, with frozenControlMisses and two alias controls",
+   "measured": {
+    "theorem": 0
+   },
+   "tool": null,
+   "asserted_in": null,
+   "registered_at": null,
+   "results_at": null,
+   "links": [],
+   "repo": "ladderlang",
+   "source": "claims.json",
+   "source_status": "measured"
   },
   {
    "id": "LL-claim:battery-coverage",
@@ -3222,6 +3343,32 @@
    "claim": "unitarity gives inverses free: U^-1 = U-dagger, so braid words form a group",
    "argument": "Lean theorem Ladderlang.u0_inv",
    "note": "evidence: Unitary.lean",
+   "measured": {
+    "theorem": 1
+   },
+   "tool": null,
+   "asserted_in": null,
+   "registered_at": null,
+   "results_at": null,
+   "links": [],
+   "repo": "ladderlang",
+   "source": "claims.json",
+   "source_status": "proved"
+  },
+  {
+   "id": "LL-claim:church-atom-law",
+   "kind": "claim",
+   "set": null,
+   "subject": "church-atom-law",
+   "outcome": null,
+   "basis": "proven",
+   "routes": [
+    "unrouted"
+   ],
+   "routes_derived": true,
+   "claim": "naive bracket abstraction prices church n at exactly 8n+2 atoms, for every n -- eight per application of f, on top of the two of church 0",
+   "argument": "Lean theorem Ladderlang.church_atoms",
+   "note": "evidence: Atoms.lean",
    "measured": {
     "theorem": 1
    },
@@ -7773,6 +7920,193 @@
    "links": [],
    "repo": "ladderlang",
    "source": "WORKLOG.md:10175",
+   "source_status": null
+  },
+  {
+   "id": "LL-worklog:10229-result-search-null-n-stays-20-the-drop-that-was-",
+   "kind": "worklog",
+   "set": null,
+   "subject": "RESULT — SEARCH_NULL_N stays 20; the drop that was measured cannot decide it",
+   "outcome": null,
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "RESULT — SEARCH_NULL_N stays 20; the drop that was measured cannot decide it",
+   "argument": null,
+   "note": "**Re-registered at N=24.** CH and MAJ were banked at 3b78d04, so unique banked ski went 22 -> 24 and the seal `61ecd511...` was stale by construction. New seal `130f230709f0b0441f187c54c686e442f5e0b18e68393357132aa1a61dd9c7fb`, SPACE 24*24 = 576. `desk/space_fp.py` prints AGREES. `SEARCH_SPACE` is now `#guard`ed against `banked.length * banked.length`, so the literal cannot go stale again -- proven fallible, restoring `22 * 22` fails the build. That literal not moving when the bank did is the whole reason this item existed.",
+   "measured": {
+    "line": 10229
+   },
+   "tool": null,
+   "asserted_in": null,
+   "registered_at": null,
+   "results_at": null,
+   "links": [],
+   "repo": "ladderlang",
+   "source": "WORKLOG.md:10229",
+   "source_status": null
+  },
+  {
+   "id": "LL-worklog:10284-result-the-eight-blank-atoms-closed-four-derived",
+   "kind": "worklog",
+   "set": null,
+   "subject": "RESULT — the eight blank atoms closed: four DERIVED, four FROZEN, and the bank's record was never read",
+   "outcome": null,
+   "basis": "measured",
+   "routes": [
+    "cost-model"
+   ],
+   "routes_derived": true,
+   "claim": "RESULT — the eight blank atoms closed: four DERIVED, four FROZEN, and the bank's record was never read",
+   "argument": null,
+   "note": "**The eight, found by the flag rather than by hand.** Of 29 banked ledger rows, exactly eight carry `atoms_recorded` 0: ONE, TWO, EQ_bool, POW, NIL, HEAD, CH, MAJ. The 0 is not a measurement. `atomsRec` defaults to 0 on `Node`, `derived` rows never set it, and `recorded` holds only the ladder's 24 published placements. A blank read as \"not done\".",
+   "measured": {
+    "line": 10284
+   },
+   "tool": null,
+   "asserted_in": null,
+   "registered_at": null,
+   "results_at": null,
+   "links": [],
+   "repo": "ladderlang",
+   "source": "WORKLOG.md:10284",
+   "source_status": null
+  },
+  {
+   "id": "LL-worklog:10343-result-two-harness-defects-found-by-running-the-",
+   "kind": "worklog",
+   "set": null,
+   "subject": "RESULT — two harness defects found by running the harness",
+   "outcome": null,
+   "basis": "measured",
+   "routes": [
+    "cost-model"
+   ],
+   "routes_derived": true,
+   "claim": "RESULT — two harness defects found by running the harness",
+   "argument": null,
+   "note": "**THE CORPUS GATE READ ITS FILE FROM THE WRONG DIRECTORY.** `Set-Location` moves PowerShell's PWD and leaves the .NET PROCESS directory where the shell started, so `Test-Path \"corpus.jsonl\"` found the repo's file while `[System.IO.File]::ReadAllLines(\"corpus.jsonl\")` two lines later did not. Thirteen `[System.IO.File]` calls exist across check.ps1 and variance_test.ps1; eleven already wrapped the name in `Join-Path (Get-Location)`, one used `.FullName`, and line 1110 did neither. The mode that matters is not the crash: a `corpus.jsonl` in the launching directory would have been READ AND VALIDATED INSTEAD, green, against a file from outside the repo -- item 76's defect arriving through...",
+   "measured": {
+    "line": 10343
+   },
+   "tool": null,
+   "asserted_in": null,
+   "registered_at": null,
+   "results_at": null,
+   "links": [],
+   "repo": "ladderlang",
+   "source": "WORKLOG.md:10343",
+   "source_status": null
+  },
+  {
+   "id": "LL-worklog:10381-register-can-this-substrate-hold-a-vector-commit",
+   "kind": "worklog",
+   "set": null,
+   "subject": "REGISTER — can this substrate hold a vector commitment? Criteria before `desk/vc_gate.py`",
+   "outcome": null,
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "REGISTER — can this substrate hold a vector commitment? Criteria before `desk/vc_gate.py`",
+   "argument": null,
+   "note": "R1 is the proposal to build a vector commitment with a machine-checked opening-cost floor. This commit is the gate that comes before it, and it is allowed to close. `VECTOR_COMMITMENT.md` registers ten measurements with their predicted values and their refutation conditions, in its own commit, before the runner exists.",
+   "measured": {
+    "line": 10381
+   },
+   "tool": null,
+   "asserted_in": null,
+   "registered_at": null,
+   "results_at": null,
+   "links": [],
+   "repo": "ladderlang",
+   "source": "WORKLOG.md:10381",
+   "source_status": null
+  },
+  {
+   "id": "LL-worklog:10400-result-the-vector-commitment-gate-and-what-it-me",
+   "kind": "worklog",
+   "set": null,
+   "subject": "RESULT — the vector commitment gate, and what it measured rather than argued",
+   "outcome": null,
+   "basis": "measured",
+   "routes": [
+    "hashing",
+    "cost-model"
+   ],
+   "routes_derived": true,
+   "claim": "RESULT — the vector commitment gate, and what it measured rather than argued",
+   "argument": null,
+   "note": "`VECTOR_COMMITMENT.md` is the gate before route R1, and it was allowed to close. It did not, quite: **the hash-based families survive and every family needing a hard discrete logarithm dies.** What matters is that the deaths are measurements. `desk/vc_gate.py` produces every figure in the document and `check.ps1` gate 7 refuses to let the two disagree.",
+   "measured": {
+    "line": 10400
+   },
+   "tool": null,
+   "asserted_in": null,
+   "registered_at": null,
+   "results_at": null,
+   "links": [],
+   "repo": "ladderlang",
+   "source": "WORKLOG.md:10400",
+   "source_status": null
+  },
+  {
+   "id": "LL-worklog:10504-result-the-landau-number-had-no-control-and-the-",
+   "kind": "worklog",
+   "set": null,
+   "subject": "RESULT — the Landau number had no control, and the thing that nearly checked it was a memory",
+   "outcome": null,
+   "basis": "measured",
+   "routes": [
+    "algebra",
+    "cost-model"
+   ],
+   "routes_derived": true,
+   "claim": "RESULT — the Landau number had no control, and the thing that nearly checked it was a memory",
+   "argument": null,
+   "note": "`g(729)` is the load-bearing figure in `VECTOR_COMMITMENT.md`: it is what makes the finding *large group order IS expressible here, hard discrete logarithm is not* rather than the much weaker *729 is small*. It is produced by a dynamic program over prime powers, and that program rests on a theorem -- that a maximal permutation's cycle lengths are powers of DISTINCT primes -- which the program itself does not check.",
+   "measured": {
+    "line": 10504
+   },
+   "tool": null,
+   "asserted_in": null,
+   "registered_at": null,
+   "results_at": null,
+   "links": [],
+   "repo": "ladderlang",
+   "source": "WORKLOG.md:10504",
+   "source_status": null
+  },
+  {
+   "id": "LL-worklog:10548-result-the-27-tryte-digest-exists-now-and-the-co",
+   "kind": "worklog",
+   "set": null,
+   "subject": "RESULT -- the 27-tryte digest exists now, and the control that carries it is a mutant of itself",
+   "outcome": null,
+   "basis": "measured",
+   "routes": [
+    "hashing",
+    "cost-model"
+   ],
+   "routes_derived": true,
+   "claim": "RESULT -- the 27-tryte digest exists now, and the control that carries it is a mutant of itself",
+   "argument": null,
+   "note": "`VECTOR_COMMITMENT.md` closed the vector-commitment design space onto a hash-based construction and then priced the hash the project actually had: binding broken in 48 compression evaluations at native width, a usable digest needing 27 trytes, and that digest \"a program this substrate can express and which nobody has written\". `HASH27.md` writes it. Criteria first, in their own commit, before `desk/hash27.py` existed.",
+   "measured": {
+    "line": 10548
+   },
+   "tool": null,
+   "asserted_in": null,
+   "registered_at": null,
+   "results_at": null,
+   "links": [],
+   "repo": "ladderlang",
+   "source": "WORKLOG.md:10548",
    "source_status": null
   },
   {

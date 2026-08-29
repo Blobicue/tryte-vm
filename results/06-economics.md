@@ -1390,6 +1390,170 @@ alongside an insertion. The k ≥ 3 route is the one worth taking next — two i
 already yield 30 forgeries per ledger, and a third multiplies the parameter space by 729
 while adding one constraint.
 
+### `AU` — the remaining lever is WIDTH, and it buys one currency and not the other
+
+`AS` and `AT` between them measured the accumulator's **mixing** twice and found it worth
+approximately nothing: priced rather than counted, the split round is worth seven
+operations a forgery over adding the entries up, and a forger who may lengthen the ledger
+gets a forgery for two entries and no search at all. Both results end in the same
+sentence — **this is a width question, not a mixing question** — and nobody had measured
+what width buys.
+
+**The family is a design decision and nothing about it is at risk.** `D`'s mixer is
+defined on 729 states and nothing narrower or wider exists, so the sweep needs a family:
+widths **1 to 6 trits**, 3 to 729 states, all exhaustively enumerable. The step is `AS`'s
+D1 at every width — `a' = perm(a + e) − e`, tritwise over GF(3)^w — with the summed head
+arithmetic over Z_(3^w), and the ledger's entries, its total and its head all narrow
+together. The subject family is a **random permutation conditioned on exactly one fixed
+point**, because an entry is a no-op at an accumulator exactly when their tritwise sum is
+a fixed point of the head, so a head with none has no insertion family at all and `D`'s
+`P` has exactly one. That is not a lucky draw and the corpus already knew it: `D`'s own
+`F-ALWAYS-ONE-FIXED-POINT` establishes the split-state construction has **exactly one fixed
+point for every round table**, structurally — the state with L = R and round(R) = 0 is fixed,
+and the round table being a permutation sends exactly one R to zero — where an unconditioned
+random permutation would have none about 37% of the time. So the conditioning is what makes
+the null family comparable to the subject, and `AU4` is where it turns out to cost something.
+
+`AS` and `AT` had already measured the split round as indistinguishable from a random permutation on five separate statistics at 729 states, so
+a family of random heads isolates width as the only varying parameter — and the widened
+split round is run at widths 4 and 6 as the anchor that says the law is not a law about
+the generator.
+
+**The anchor, because this tool is a second implementation of a chain that already
+exists.** At width six the widened split round reproduces `D`'s 729-entry table with zero
+mismatches, the width-parametric `STEP` equals `ledger-audit.js`'s **cell by cell over all
+531,441**, `AS3`'s join returns **532,485** matches at ratio **1.0020** and 3,720,087
+operations through the new code path, and `AT`'s **c(ZERO) = 3** comes back with witnesses
+136, 295 and 362, profile total 741, 256 accumulators admitting none, canonical run 4 and
+prepend run 243. The same exact-birthday routine returns **34.5100** at 729 digests and
+**914.3328** at 531,441 — the two figures `ladderlang`'s `HASH27.md` registered its two
+widths against, so two documents cannot disagree about one object.
+
+**`AU1` HELD. The ops currency is linear in the state count, and width buys the forger's
+MEMORY rather than his time.** The first accepted compensating forgery arrives at index
+3.000, 8.372, 27.854, 82.058, 241.540 and 702.564 against exact finite-family nulls of 3,
+9, 27, 81, 243 and 729 — **the state count itself, at every width** — and none of the 5,760
+scans exhausted its family. `AS`'s meet-in-the-middle join returns between **0.9933 and
+1.0105** of ideal at widths two to six, so its amortised cost is **6.94 to 7.17 operations
+per forgery at every width**: the 6.99 `AS` measured is not a fact about 729 states. What
+grows is the table, `4N^2` slots, **36 at width one against 2,125,764 at width six** — a
+factor of 59,049 across five trits while the cost per forgery does not move
+(`F-WIDTH-BUYS-THE-FORGERS-MEMORY-NOT-HIS-TIME`). All **20,199** rebuilt joined keys
+reproduce both heads. The split-round head sits inside the random family's range on both
+statistics at widths four and six.
+
+> **And one leg of it is not evidence, which is the set's own antibody.** `AU1`(a) held at
+> width two by **0.0002** — 0.9302 against a line at 0.93 — and redrawn at four seeds the
+> same statistic gives 0.9684, **0.9243**, 1.0275 and 0.9693, one of them below the line.
+> `T-CRITERION-IN-THE-NOISE`, **fifth bite, and the first on a line that PASSED.** The four
+> earlier bites were every one of them found because a criterion *failed*; a criterion in
+> the noise that passes leaves a green check, a `HELD` in the manifest and no signal at
+> all. The remedy has to run on passes too, and now does
+> (`F-A-LINE-IN-THE-NOISE-THAT-PASSES-IS-THE-SAME-DEFECT`).
+
+**`AU2` FAILED, on a statistic that does not exist — and the two legs that held are the
+set's sharpest result.** The forger who may choose *both* ledgers pays the birthday price:
+the first colliding pair of equal-total length-two ledgers arrives at 4.394, 7.523, 12.026,
+20.244 and 34.296 against exact finite-N birthday expectations of 4.4583, 7.1981, 11.9577,
+20.2105 and 34.5100 — ratios of **1.0057, 1.0017 and 0.9938** at widths four, five and six,
+with **zero collision-free rows in 25,272 scanned**. Fitted against the state count the
+two attacks give slopes of **0.4642** and **1.0031**.
+
+> **So the two attack goals separate by exactly one square root, and the separation is
+> measured rather than assumed** (`F-THE-TWO-ATTACK-GOALS-SEPARATE-BY-ONE-SQUARE-ROOT`).
+> The birthday law prices a collision. A ledger forger is handed a ledger and needs a
+> second preimage. Read as a design rule the birthday number demands **twice the width**
+> the second-preimage forger actually costs.
+
+Leg (c) failed at width one, and it fails *because of* the mechanism it was asserting: the
+row map there is injective, so the measured scan finds no collision in any of 72 rows
+**and the reshuffled null finds none in any of 14,400**. The ratio is 0/0. The registration
+named width one as degenerate in this very statistic's rationale and then included it in
+the leg anyway. At widths two and three the leg held — 1.0208 and 1.0492 — so the
+narrow-end shortfall really is a *multiplicity* effect and not an ordering one; the
+width-three value sits 0.0008 inside its line and is reported as thin.
+
+**`AU3` HELD. Growth is nearly free of width, and length beats width.** The shortest
+insertion-only forgery costs 1.0640, 1.4951, 2.0714, 2.7989, 3.8172 and 4.9607 entries,
+tracking `AT`'s counting heuristic to within **0.0887 at every width** against a registered
+0.30 — so a heuristic checked at one width predicts the whole sweep, at both ledger
+lengths. `AT2`'s registered failure route runs here where it must be largest and still
+does not fire: at width one a seven-gap chain visits only **2.822** distinct accumulators
+of seven, so five of the seven forced generators are duplicates, **and the duplication
+costs the forger nothing** — 1.064 against a null of 1.097. The fitted slope is **0.2812**
+against 0.5 for the birthday law and the measured 1.0031 for the ops law:
+
+> **Five more trits multiply the state count by 243 and the growth cost by 4.66.**
+
+And at ledger length twelve the slope falls to 0.2266, a gap of 0.0545 — adding gaps
+defeats width faster than width defends against gaps. That last leg is also a line in the
+noise: three further seeds give gaps of 0.0494, 0.0441 and 0.0597, two of them under the
+registered 0.05. The *direction* is stable at every seed and the size of the gap is not.
+
+**`AU4` FAILED at width two — on the head family this set chose, not on width, and the
+control run beside it is what says so.** `AT` found three universal pairs at 729 states and
+said in its own results that the universal pair "is a property of `D`'s permutation, not of
+narrow iterated heads in general", on a control sample of one. Over 400 random heads at
+each width, the fraction admitting at least one is 1.0000, **0.5275**, 0.6075, 0.6625,
+0.6000 and 0.6450; the registered band was [0.56, 0.70] and width two is outside it, as is
+its accumulator fraction of 0.45833 against [0.335, 0.395]. **The unconditioned family at
+the same nine states reads 0.6450 and a mean c(ZERO) of 0.9650**, comfortably where the
+closed form says. So the failure is the *conditioning* — the design choice that makes a
+head comparable to `D`'s `P` at all — and at nine states one constraint is a ninth of the
+object. `T-CLAIM-NARROWED-BY-A-DESIGN`, and for the first time caught by a control rather
+than by a reader.
+
+> **The answer survives its own failure.** From 27 states up, **about two heads in three
+> at every width admit a two-entry, zero-operation, zero-knowledge forgery**, and width six
+> is not rarer than width three (`F-WIDTH-DOES-NOT-KILL-THE-ZERO-OP-FORGERY`). The
+> quantity's mean does not depend on the state count — `a → STEP[STEP[a][x]][−x]` is a
+> permutation for every `x`, so the count of `x` fixing the identity accumulator has mean
+> one whatever N is — and a quantity whose mean does not depend on N cannot be driven down
+> by raising N. In the operations currency width is worth its own state count; against this
+> family it is worth nothing at all.
+
+### What a stated target implies, and how far that is an extrapolation
+
+Fitted on widths 1 to 6 and tested on the split-round head at widths 4 and 6. The unit is
+CANDIDATE FORGERIES TRIED, each costing two to six table reads, so the operation count
+under `AS`'s unit is a small constant times the figure and the WIDTH the target implies
+moves by at most one trit either way:
+
+| the forger | measured law | 2^80 operations needs | 2^128 needs |
+|---|---|---|---|
+| handed a ledger, must edit it | tries ≈ **N** = 3^w, slope 1.0031 | **51 trits** | **81 trits** |
+| chooses both ledgers | tries ≈ **√(πN/2)**, slope 0.4642 | **101 trits** | **162 trits** |
+| may lengthen the ledger | entries ≈ **N^0.28** at L = 6 | no width suffices | no width suffices |
+| holds the universal pair | **0 operations, +2 entries** | no width suffices | no width suffices |
+
+The 162 in the last cell of the second row is the same number `ladderlang`'s
+`VECTOR_COMMITMENT.md` R10 arrived at from the other side, and it agrees for the same
+reason: 3^162 ≥ 2^256, and a collision costs the square root.
+
+**And the extrapolation is named rather than implied.** `ladderlang`'s H27 is 162 trits.
+This sweep tops out at 6, so applying the fitted law to H27 spans **156 trits, a factor of
+3^156 ≈ 10^74 in state count** — and a law fitted over TWO AND A HALF decades of state count
+(3 to 729) and applied over seventy-seven is an extrapolation whatever its residuals
+look like. Two further gaps are
+load-bearing and neither is closed here. **H27 is a different object**: it is a Davies-Meyer
+compression in which the message keys the permutation, chosen precisely so there is no
+backward pass, while the head measured here is `a' = P(a + e) − e` with the entry entering
+through two bijections. And **a structural shortcut makes cost independent of width
+entirely**: `HASH27.md` measures `h_old(a, b) = P(a + b) − b` — this head's shape read
+one-headed — inverting in one backward pass, 531,441 of 531,441 openings recovered at 6
+trits and 512 of 512 at 162, so a collision costs two backward passes at *both* widths.
+Every law in the table above is conditional on no such shortcut existing, and `AU4` is an
+example of one that does: two entries, zero operations, at every width in the sweep.
+
+**What this does not show.** Six widths of one head family, conditioned on one fixed point,
+with entries and both heads narrowing together — so **nothing here measures a COMPRESSING
+head**, which is what a real digest is, and that is the single largest gap between this
+sweep and H27. One join split. Ledger lengths six and twelve. Collisions in the cheapest
+form only, length-two ledgers at a fixed total. No multi-round differential across width —
+`AS2` read one table at one width and this set does not widen it. And no claim anywhere
+that anything is secure: every figure here is one attack family's cost, and a family that
+survives at 729 states has merely not yet been killed.
+
 ## Owned sets
 
 | set | subject | outcome |
@@ -1408,5 +1572,6 @@ while adding one constraint.
 | `AR` | does a tree want the same arity at every depth, and what does varying buy | 3 held, `AR4` failed — inverted, and the inversion overturned `AQ`'s headline |
 | `AS` | does the mixer's residual algebra help a ledger forger, and what does one cost | all four held — and the attack that prices the head at 7 ops uses nothing about the mixer |
 | `AT` | what does an INSERTION cost, once the forger may lengthen the ledger | 2 held, `AT2` and `AT3` failed — and `AT3`'s failure found a universal forgery costing two entries and no search |
+| `AU` | what does the WIDTH of the head buy, once mixing has been measured twice and found worth nothing | 2 held, `AU2` and `AU4` failed — and the two laws it fitted separate a second preimage from a collision by exactly one square root |
 
 Full text in [`99-ledger.md`](99-ledger.md).

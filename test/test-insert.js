@@ -475,10 +475,14 @@ console.log('\n=== 9. THE MANIFEST SAYS WHAT THIS FILE MEASURED ===');
     (F2 => F2.claim.includes('4,414') && F2.claim.includes('6.99')
       && F2.claim.includes('2,125,764'))(Fd('F-INSERTION-IS-PRICED-IN-LENGTH-NOT-IN-SEARCH')));
   // The fourth bite of T-CRITERION-IN-THE-NOISE, which AT2 is.
+  // The RUNNING TOTAL belongs to the corpus and later sets bump it -- set AU took it to
+  // five -- so this check owns AT2's evidence and not the tally. T-STALE-CONSTANT is the
+  // most-recurring defect here and a literal 4 would have gone stale the moment it moved.
   const trap = MAN.traps_encountered.find(t => t.id === 'T-CRITERION-IN-THE-NOISE');
-  check('AT2\'s failure is recorded as the fourth bite of T-CRITERION-IN-THE-NOISE, '
-    + 'with the remedy the class prescribes',
-    trap.count === 4 && /DRAW THE NULL'S TAIL/.test(trap.description)
+  check('AT2\'s failure is recorded as a bite of T-CRITERION-IN-THE-NOISE, with the '
+    + 'remedy the class prescribes — this check owns the EVIDENCE, not the running '
+    + 'tally, which later sets bump',
+    trap.count >= 4 && /DRAW THE NULL'S TAIL/.test(trap.description)
     && /58%/.test(trap.description));
 }
 

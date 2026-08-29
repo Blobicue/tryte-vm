@@ -218,39 +218,46 @@ console.log('\n=== 1. KNOWN ANSWERS ===');
 }
 
 {
-  // THIS ANSWER HAS NOW MOVED TWICE, and both moves are the check working rather than
-  // breaking. Until set AS the only entry about forging this ledger was
-  // F-FINDABILITY-NOT-COUNT, so it ranked first by default; AS swept 2,000 ledgers and
-  // priced four attacks and took the head with AS1. Set AT then added eight more entries
-  // about forging the same ledger and the head moved again, to AT3.
-  // A known-answer check pinned to the best answer AT THE TIME is a stale constant in
-  // waiting -- so the second check is derived: whatever entries the corpus has about
-  // forging must all be reachable, rather than a hand-listed pair.
-  // Twenty-two rather than fifteen, and the widening is itself the finding: the corpus
-  // about forging this one ledger has grown from two entries to nineteen in two sets,
-  // and the ones that used to BE the answer are now outranked by results that supersede
-  // them. F-MIXER-HEAD-IS-NOT-FLAT has gone from 13 to 22.
+  // THIS ANSWER HAS NOW MOVED TWICE AND THE WINDOW THREE TIMES, and the third move is
+  // what finally fixed the check. Until set AS the only entry about forging this ledger
+  // was F-FINDABILITY-NOT-COUNT, so it ranked first by default; AS swept 2,000 ledgers
+  // and took the head with AS1; AT added eight more entries and the head moved to AT3.
+  // Each time, the WINDOW was re-typed -- fifteen, then twenty-two -- and set AU broke it
+  // again by adding one more prediction set and five more findings about forging. A
+  // hand-typed window is a stale constant in waiting and this one went stale on schedule
+  // three sets running, which is T-STALE-CONSTANT, the most-recurring defect here.
+  //
+  // SO THE WINDOW IS NOW DERIVED, the same way the Landauer check above derives its
+  // targets: whatever entries mention forging are the ones this question must reach, and
+  // the window is that count. It follows the corpus instead of being re-typed. The count
+  // itself is the finding the old comment was making by hand -- the corpus about forging
+  // this one ledger has grown from two entries to thirty-three across three sets, and the
+  // ones that used to BE the answer are now outranked by results that supersede them.
   //
   // AND THE HEAD IS WORTH READING RATHER THAN ONLY PINNING. AT3 is the two-insertion
   // census, which is a fine answer; but the entry that answers the literal question best
-  // -- F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY, three value pairs that forge ANY
-  // ledger for two entries and no search at all -- ranks EIGHTH, behind three
-  // predictions and a cost finding. The retriever ranks by term overlap and "forge" is
-  // in all of them. That is a real limit of this index, recorded here rather than hidden
-  // by a check that only ever asks about position one.
-  const top = ids('can the ledger be forged', 22);
-  check('"can the ledger be forged" puts AT3 first, and the head has now moved twice as '
-    + 'the corpus about forging grew',
-    top[0] === 'AT3', top.join(' '));
-  check('   and every earlier answer it supersedes is still reachable — AS1, the '
-    + 'finding, its note, and the flatness result',
+  // -- F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY, three value pairs that forge ANY ledger
+  // for two entries and no search at all -- is NOT first and never has been. It ranked
+  // eighth after AT and ninth after AU. The retriever ranks by term overlap and "forge"
+  // is in all of them. That is a real limit of this index, recorded here rather than
+  // hidden by a check that only ever asks about position one -- and the assertion is a
+  // BAND rather than a literal, because the literal is exactly what kept going stale:
+  // what matters is that it is neither first nor buried, not which single integer it is.
+  const forging = corpus.entries
+    .filter((e) => /forg/i.test(JSON.stringify(e))).map((e) => e.id);
+  const top = ids('can the ledger be forged', forging.length);
+  check(`"can the ledger be forged" puts AT3 first, over a window of ${forging.length} `
+    + 'DERIVED from the entries that mention forging rather than typed',
+    top[0] === 'AT3' && forging.length > 22, top.slice(0, 5).join(' '));
+  check('   and every earlier answer it supersedes is still reachable inside that '
+    + '\u2014 AS1, the finding, its note, and the flatness result',
     ['AS1', 'F-FINDABILITY-NOT-COUNT', 'N-findability-not-count', 'F-MIXER-HEAD-IS-NOT-FLAT']
       .every((id) => top.includes(id)),
     top.join(' '));
-  check('   and the entry that answers the question best ranks EIGHTH rather than '
-    + 'first — a limit of the index, on the record rather than hidden',
-    top.indexOf('F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY') === 7,
-    String(top.indexOf('F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY') + 1));
+  const best = top.indexOf('F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY') + 1;
+  check(`   and the entry that answers the question best ranks ${best}th rather than `
+    + 'first \u2014 a limit of the index, on the record rather than hidden',
+    best >= 5 && best <= 15, String(best));
 }
 
 {

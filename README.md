@@ -9,11 +9,11 @@ its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
 before it was measured, in its own commit, and every failed prediction was kept.
-<!--g:readme-lede-tally-->193 predictions, 158 held, 35 failed — and of those
-successes only 126 were ever at risk<!--/g-->. That loop is written up separately in
+<!--g:readme-lede-tally-->197 predictions, 160 held, 37 failed — and of those
+successes only 128 were ever at risk<!--/g-->. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**2,001 checks**, all passing. Every number below is recomputed by one of them,
+**2,073 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -64,14 +64,14 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-<!--g:readme-tally-->Forty-six prediction sets, registered before their runs. **158 held, 35 failed**<!--/g--> — the
+<!--g:readme-tally-->Forty-seven prediction sets, registered before their runs. **160 held, 37 failed**<!--/g--> — the
 failures are kept, and four of them produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
 [`FINDINGS.json`](FINDINGS.json).
 
 **And the successes are worth less than that line says.**
-<!--g:readme-at-risk-->Twenty-five of those predictions were never at risk — computable from the registration's own text before the run — and seven cannot be called either way. Against the 161 that were genuinely at risk the failure rate is **21.7%**, not the 18.1% the raw counts give. Both numbers are true and they answer different questions<!--/g-->.
+<!--g:readme-at-risk-->Twenty-five of those predictions were never at risk — computable from the registration's own text before the run — and seven cannot be called either way. Against the 165 that were genuinely at risk the failure rate is **22.4%**, not the 18.8% the raw counts give. Both numbers are true and they answer different questions<!--/g-->.
 Every prediction carries an `at_risk` verdict in the manifest, and a check now fails
 on a set registered without one.
 
@@ -123,6 +123,7 @@ on a set registered without one.
 | **AR1–AR4** | does a tree want the same arity at every depth? | 3 held, **AR4 failed — inverted, and the inversion overturned AQ's headline** |
 | **AS1–AS4** | does the mixer's residual algebra help a ledger forger? | all four held — **and the attack that prices the head at seven ops uses nothing about the mixer** |
 | **AT1–AT4** | what does an *insertion* cost a ledger forger? | 2 held, **AT2 and AT3 failed — and AT3's failure found a universal forgery costing two entries and no search at all** |
+| **AU1–AU4** | what does the *width* of the head buy, once mixing has been measured twice and found worth nothing? | 2 held, **AU2 and AU4 failed — and the two laws it fitted separate a second preimage from a collision by exactly one square root** |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:

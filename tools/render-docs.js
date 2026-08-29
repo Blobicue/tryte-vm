@@ -55,7 +55,12 @@ const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'e
   'thirty-nine', 'forty', 'forty-one', 'forty-two', 'forty-three', 'forty-four',
   'forty-five', 'forty-six', 'forty-seven', 'forty-eight', 'forty-nine', 'fifty',
   'fifty-one', 'fifty-two', 'fifty-three', 'fifty-four', 'fifty-five', 'fifty-six',
-  'fifty-seven', 'fifty-eight', 'fifty-nine', 'sixty'];
+  'fifty-seven', 'fifty-eight', 'fifty-nine', 'sixty',
+  'sixty-one', 'sixty-two', 'sixty-three', 'sixty-four', 'sixty-five', 'sixty-six',
+  'sixty-seven', 'sixty-eight', 'sixty-nine', 'seventy', 'seventy-one', 'seventy-two',
+  'seventy-three', 'seventy-four', 'seventy-five', 'seventy-six', 'seventy-seven', 'seventy-eight',
+  'seventy-nine', 'eighty', 'eighty-one', 'eighty-two', 'eighty-three', 'eighty-four',
+  'eighty-five', 'eighty-six', 'eighty-seven', 'eighty-eight', 'eighty-nine', 'ninety'];
 
 /**
  * A number this tool cannot spell is a number it must not write. Silently emitting

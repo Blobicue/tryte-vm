@@ -2,13 +2,13 @@
  "schema": "tryte-vm/slate@1",
  "purpose": "A retrieval-shaped projection of FINDINGS.json plus authored marginalia. Flat, addressable entries with stable ids, topic routes and validated cross-links. The manifest remains the authority; this is a view of it and never a second copy of the truth.",
  "counts": {
-  "entries": 281,
-  "predictions": 193,
-  "findings": 56,
+  "entries": 290,
+  "predictions": 197,
+  "findings": 61,
   "traps": 19,
   "notes": 13,
   "proven": 17,
-  "failed": 35
+  "failed": 37
  },
  "routes": {
   "algebra": [
@@ -32,6 +32,7 @@
    "AS1",
    "AS2",
    "AT2",
+   "AU2",
    "F-ORTHOMORPHISM-GATE",
    "F-BORN-NONLINEAR",
    "F-REVERSIBLE-FRAGMENT-CLOSED-FORM",
@@ -73,6 +74,7 @@
    "AR2",
    "AR4",
    "AS3",
+   "AU3",
    "F-FOLD-BUYS-DEPTH",
    "F-RADIX-ECONOMY",
    "F-GATES-FROM-SWITCHES",
@@ -90,6 +92,9 @@
    "F-THE-ARITY-OPTIMUM-IS-FLAT",
    "F-A-UNIVERSAL-TWO-ENTRY-INSERTION-FORGERY",
    "F-INSERTION-IS-PRICED-IN-LENGTH-NOT-IN-SEARCH",
+   "F-THE-TWO-ATTACK-GOALS-SEPARATE-BY-ONE-SQUARE-ROOT",
+   "F-WIDTH-BUYS-THE-FORGERS-MEMORY-NOT-HIS-TIME",
+   "F-WIDTH-DOES-NOT-KILL-THE-ZERO-OP-FORGERY",
    "N-program-relative",
    "N-depth-is-blind-to-algebra"
   ],
@@ -174,11 +179,14 @@
    "AO4",
    "AP4",
    "AS1",
+   "AU2",
    "F-STATE-BOUNDARY-DECIDES-THE-READING",
    "F-SELF-REFERENCE-IS-NOT-THE-PROPERTY",
    "F-REVERSIBILITY-IS-A-PROPERTY-OF-THE-ALPHABET",
    "F-MESSAGE-COMMUTES-OUT-OF-A-GROUP-FEEDFORWARD",
    "F-REVERSIBLE-CANNOT-DESTROY",
+   "F-THE-TWO-ATTACK-GOALS-SEPARATE-BY-ONE-SQUARE-ROOT",
+   "F-AT-WIDTH-ONE-THE-SECOND-PREIMAGE-IS-DETERMINISTIC",
    "N-reversibility-inverts",
    "N-erasure-is-price-and-security",
    "N-disqualifying-is-qualifying"
@@ -195,6 +203,7 @@
    "AT2",
    "AT3",
    "AT4",
+   "AU1",
    "F-SPLIT-ROUND-MIXES",
    "F-UNIFORMITY-IS-NOT-MIXING",
    "F-TIMES-THREE-CANNOT-MIX",
@@ -285,6 +294,9 @@
    "AT1",
    "AT2",
    "AT4",
+   "AU1",
+   "AU3",
+   "AU4",
    "F-COST-INVARIANCE-IS-THE-NORM",
    "F-TERNARY-RICHER-IN-VARIETY-POORER-IN-STRUCTURE",
    "F-27-EDO-BEATS-12-EDO-ON-CONSONANCE",
@@ -295,6 +307,7 @@
    "F-TREE-BRANCHES-IN-ITS-OWN-BASE",
    "F-CONTROL-CANNOT-DISCRIMINATE",
    "F-REGISTRATION-IS-NOT-RISK",
+   "F-A-LINE-IN-THE-NOISE-THAT-PASSES-IS-THE-SAME-DEFECT",
    "T-ONE-POINT",
    "T-STALE-CONSTANT",
    "T-SILENT-NAN",
@@ -384,6 +397,8 @@
    "AN2",
    "AR4",
    "AT3",
+   "AU1",
+   "AU2",
    "F-GATES-FROM-SWITCHES",
    "F-FOUR-SWITCH-NEG-NOT-UNIQUE",
    "F-ORTHOMORPHISM-GATE",
@@ -430,6 +445,7 @@
    "AQ4",
    "AS2",
    "AT3",
+   "AU3",
    "F-BRANCH-BENEFIT",
    "F-531441-COINCIDENCE",
    "F-GATES-FROM-SWITCHES",
@@ -448,6 +464,7 @@
    "F-LAMPORT-BASE-ADVANTAGE-IS-NOT-PER-SIZE",
    "F-TREE-BRANCHES-IN-ITS-OWN-BASE",
    "F-MERKLE-WANTS-BINARY-AT-EVERY-LEVEL",
+   "F-WIDTH-BUYS-THE-FORGERS-MEMORY-NOT-HIS-TIME",
    "N-asymptotic-does-not-settle-a-width"
   ],
   "tree": [
@@ -6762,6 +6779,367 @@
    "links": []
   },
   {
+   "id": "AU1",
+   "kind": "prediction",
+   "set": "AU",
+   "subject": "What does the WIDTH of a ledger head buy a forger, and what does it not? A family of permutation-based heads at widths 1 through 6 trits -- 3 to 729 states, all exhaustively enumerable -- with AS's meet-in-the-middle join and second-preimage scan and AT's insertion and universal-pair attacks re-priced at every width, against exact finite-N nulls computed before the run",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "reversibility",
+    "hashing",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "the ops currency is linear in the state count and width buys the forger's memory, not his time: over six widths with 24 random heads each, (a) the mean index of the first accepted compensating forgery divided by the exact finite-family null lies in [0.93, 1.07] at every width from 1 to 6 including width one where no carry exists, (b) the meet-in-the-middle join's yield ratio has a mean within 0.03 of 1.0 at widths 2 to 6 so AS's 6.99 operations per forgery is seven at every width while the table grows as 4N^2, and (c) the split-round head at widths 4 and 6 lies inside the random family's min-to-max range on both statistics",
+   "argument": null,
+   "note": "Held on all three legs, and one of them is not evidence and is reported as such. (b) and (c) held with room: the join returns between 0.9933 and 1.0105 of ideal at every width from 2 to 6 and 1.0000 at width one where the left key map is a bijection, so AS's seven operations per forgery is seven operations per forgery at EVERY width and what width actually buys is the 4N^2 table -- 36 slots at width one against 2,125,764 at width six. All 20,199 rebuilt joined forgeries reproduce both heads. The split-round head sits inside the random family's range on both statistics at widths four and six, so the law is about width and not about D's mixer. (a) HELD AT WIDTH TWO BY 0.0002, at 0.9302 against a line at 0.93, and a redraw of the same population at four seeds gives 0.9684, 0.9243, 1.0275 and 0.9693 -- one of the four below the line. THE LEG IS NOT EVIDENCE. T-CRITERION-IN-THE-NOISE, fifth bite, and the first time on a line that PASSED: the four earlier bites were all found because a criterion failed, and a criterion in the noise that happens to pass is the same defect with nothing to make anybody look. The other five widths held with room -- 1.0000, 1.0316, 1.0131, 0.9940 and 0.9637 -- and width one held exactly, for a structural reason no prediction claimed: 4,800 of 4,800 scans at width one return index 3, every time.",
+   "measured": {
+    "heads_per_width": 24,
+    "widths": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6
+    ],
+    "states": [
+     3,
+     9,
+     27,
+     81,
+     243,
+     729
+    ],
+    "first_accept_index": [
+     3,
+     8.372,
+     27.854,
+     82.058,
+     241.54,
+     702.564
+    ],
+    "first_accept_null": [
+     3,
+     9,
+     27,
+     81,
+     243,
+     729
+    ],
+    "first_accept_ratio": [
+     1,
+     0.9302,
+     1.0316,
+     1.0131,
+     0.994,
+     0.9637
+    ],
+    "first_accept_ratio_band": [
+     0.93,
+     1.07
+    ],
+    "scans_that_exhausted_the_family": 0,
+    "join_yield_ratio": [
+     1,
+     0.9933,
+     1.0105,
+     1.0005,
+     0.9998,
+     1.0004
+    ],
+    "join_ops_per_forgery": [
+     7,
+     7.173,
+     6.936,
+     6.997,
+     7.001,
+     6.997
+    ],
+    "join_memory_slots": [
+     36,
+     324,
+     2916,
+     26244,
+     236196,
+     2125764
+    ],
+    "join_rebuilt_forgeries_verified": "20199 of 20199",
+    "split_head_w4_sp_ratio": 1.1448,
+    "split_head_w4_join_ratio": 1.0034,
+    "split_head_w6_sp_ratio": 1.009,
+    "split_head_w6_join_ratio": 0.9987,
+    "random_family_w6_sp_range": [
+     0.7497,
+     1.2357
+    ],
+    "random_family_w6_join_range": [
+     0.9971,
+     1.0036
+    ],
+    "width_two_leg_margin": 0.0002,
+    "width_two_ratio_over_four_seeds": [
+     0.9684,
+     0.9243,
+     1.0275,
+     0.9693
+    ]
+   },
+   "tool": "tools/width-audit.js",
+   "asserted_in": "test/test-width.js",
+   "registered_at": "4b74c7d",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AU2",
+   "kind": "prediction",
+   "set": "AU",
+   "subject": "What does the WIDTH of a ledger head buy a forger, and what does it not? A family of permutation-based heads at widths 1 through 6 trits -- 3 to 729 states, all exhaustively enumerable -- with AS's meet-in-the-middle join and second-preimage scan and AT's insertion and universal-pair attacks re-priced at every width, against exact finite-N nulls computed before the run",
+   "outcome": "FAILED",
+   "basis": "measured",
+   "routes": [
+    "erasure",
+    "reversibility",
+    "algebra"
+   ],
+   "routes_derived": true,
+   "claim": "the collision law is the only square root in this thread and it has a floor: (a) the mean first-repeat index divided by the exact birthday null lies in [0.95, 1.06] at widths 4, 5 and 6 with no collision-free row at those widths, (b) the least-squares slope of log mean against log N over widths 2 to 6 lies in [0.45, 0.55] for the collision scan and in [0.95, 1.05] for the second-preimage scan, and (c) the shortfall at the narrow end is a multiplicity effect and not an ordering one -- at widths 1, 2 and 3 the measured mean divided by the mean over 200 random reshuffles of each row's own multiset of head values lies in [0.95, 1.05] at each of the three",
+   "argument": null,
+   "note": "FAILED on leg (c) at width one alone, and the reason it fails is the mechanism it was asserting. At width one the measured scan finds no collision in any of 72 rows AND the reshuffled null finds none in any of 14,400 -- the row map is injective, so the multiset has no repeated value and no ordering can produce a collision. The ratio is 0/0. The registration named width one as degenerate in this very statistic's rationale and then included it in (c) anyway; that is the defect, and the sentence as written is not satisfied. (a) and (b) held. The first-repeat index tracks the exact finite-N birthday null to within 0.6% at widths four, five and six -- 1.0057, 1.0017 and 0.9938 -- with zero collision-free rows in 25,272 scanned, and the two slopes come out at 0.4642 and 1.0031 against registered bands at [0.45, 0.55] and [0.95, 1.05]. SO THE TWO ATTACK GOALS SEPARATE BY EXACTLY ONE SQUARE ROOT AND THE SEPARATION IS MEASURED. (c) held at widths two and three, 1.0208 and 1.0492, and the width-three value sits 0.0008 inside its line with a four-seed spread of 1.0492, 1.0034, 1.0320 and 0.9875, so that leg is thin too and is reported as such. The affine control settles the responsiveness: it is collision-free on every row at widths one and two and on one row in nine at widths three, five and six, where its mean first repeat at width six is 84.47 against a null of 34.51 -- 2.45x, so the statistic spans from undefined to well above its null before any subject value is read.",
+   "measured": {
+    "first_repeat_index": [
+     null,
+     4.394,
+     7.523,
+     12.026,
+     20.244,
+     34.296
+    ],
+    "exact_birthday_null": [
+     2.8889,
+     4.4583,
+     7.1981,
+     11.9577,
+     20.2105,
+     34.51
+    ],
+    "first_repeat_ratio": [
+     null,
+     0.9855,
+     1.0452,
+     1.0057,
+     1.0017,
+     0.9938
+    ],
+    "collision_free_rows": [
+     72,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "rows_scanned": [
+     72,
+     216,
+     648,
+     1944,
+     5832,
+     17496
+    ],
+    "collision_slope_widths_two_to_six": 0.4642,
+    "second_preimage_slope_widths_two_to_six": 1.0031,
+    "reshuffled_order_ratio": [
+     null,
+     1.0208,
+     1.0492
+    ],
+    "reshuffled_rows_with_no_repeat_at_width_one": "14400 of 14400",
+    "width_three_reshuffle_ratio_over_four_seeds": [
+     1.0492,
+     1.0034,
+     1.032,
+     0.9875
+    ],
+    "affine_control_first_repeat_at_width_six": 84.472,
+    "affine_control_collision_free_row_fraction": [
+     1,
+     1,
+     0.1111,
+     null,
+     0.1111,
+     0.1111
+    ],
+    "birthday_null_at_531441": 914.3328
+   },
+   "tool": "tools/width-audit.js",
+   "asserted_in": "test/test-width.js",
+   "registered_at": "4b74c7d",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AU3",
+   "kind": "prediction",
+   "set": "AU",
+   "subject": "What does the WIDTH of a ledger head buy a forger, and what does it not? A family of permutation-based heads at widths 1 through 6 trits -- 3 to 729 states, all exhaustively enumerable -- with AS's meet-in-the-middle join and second-preimage scan and AT's insertion and universal-pair attacks re-priced at every width, against exact finite-N nulls computed before the run",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "ternary-vs-binary",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "growth is nearly free of width and length beats width: (a) the mean shortest insertion-only forgery tracks AT's counting null to within 0.30 at every width from 1 to 6, (b) the least-squares slope of log mean against log N over widths 1 to 6 is under 0.32 against 0.5 for the birthday law and 1.0 for AU1's ops law, and (c) the same slope measured at ledger length twelve is at least 0.05 smaller than at length six",
+   "argument": null,
+   "note": "Held on all three legs. (a) held with room everywhere: the largest gap from AT's counting null over the six widths is 0.0887, at width six, against a registered 0.30 -- so a heuristic that was checked at one width predicts the shortest insertion-only forgery at every width in this sweep, at both ledger lengths. AT2's registered failure route did not fire even where it must be largest: at width one a seven-gap chain visits only 2.822 distinct accumulators of seven, so five of the seven forced generators are duplicates, AND THE DUPLICATION COSTS THE FORGER NOTHING -- 1.064 against a null of 1.097. (b) held at 0.2812. THAT IS THE ANSWER TO THE SET'S OWN QUESTION IN THE GROWTH CURRENCY: five more trits of head multiply the state count by 243 and the growth cost by 4.66. (c) held at a gap of 0.0545 against a line at 0.05, and three further seeds at a quarter of the heads and a quarter of the ledgers give 0.0494, 0.0441 and 0.0597 -- two of the three below the line. That leg is a criterion in the noise and is reported as one; the DIRECTION is stable at every seed (0.2266 against 0.2812 here, and lower at length twelve at all three further seeds) and only the size of the gap is not.",
+   "measured": {
+    "ledgers_per_head": 400,
+    "min_insertions_length_six": [
+     1.064,
+     1.4951,
+     2.0714,
+     2.7989,
+     3.8172,
+     4.9607
+    ],
+    "counting_null_length_six": [
+     1.097,
+     1.4799,
+     2.0574,
+     2.8138,
+     3.7479,
+     4.872
+    ],
+    "largest_gap_from_null": 0.0887,
+    "min_insertions_length_twelve": [
+     1.006,
+     1.2308,
+     1.6296,
+     2.1413,
+     2.7419,
+     3.3663
+    ],
+    "counting_null_length_twelve": [
+     1.0131,
+     1.2359,
+     1.6391,
+     2.1297,
+     2.7,
+     3.3521
+    ],
+    "slope_length_six": 0.2812,
+    "slope_length_twelve": 0.2266,
+    "slope_gap": 0.0545,
+    "slope_gap_line": 0.05,
+    "slope_gap_over_three_further_seeds": [
+     0.0494,
+     0.0441,
+     0.0597
+    ],
+    "distinct_generators_of_seven": [
+     2.822,
+     5.079,
+     6.268,
+     6.748,
+     6.91,
+     6.969
+    ],
+    "universal_prepend_run_by_width": [
+     2.4,
+     6.8,
+     18.3,
+     57.7,
+     186,
+     463.5
+    ]
+   },
+   "tool": "tools/width-audit.js",
+   "asserted_in": "test/test-width.js",
+   "registered_at": "4b74c7d",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AU4",
+   "kind": "prediction",
+   "set": "AU",
+   "subject": "What does the WIDTH of a ledger head buy a forger, and what does it not? A family of permutation-based heads at widths 1 through 6 trits -- 3 to 729 states, all exhaustively enumerable -- with AS's meet-in-the-middle join and second-preimage scan and AT's insertion and universal-pair attacks re-priced at every width, against exact finite-N nulls computed before the run",
+   "outcome": "FAILED",
+   "basis": "measured",
+   "routes": [
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "no width in this sweep extinguishes the zero-operation forgery: over 400 random heads at each of six widths, (a) the measured fraction of heads admitting at least one universal pair lies in [0.56, 0.70] at every width from 2 to 6, (b) that fraction at width 6 is not the smallest of those five, and (c) pooled over heads the measured fraction of accumulators admitting no pair lies in [0.335, 0.395] at every width from 2 to 6 -- a band placed around AT's own measured 0.35117 rather than around the Poisson closed form 0.36788",
+   "argument": null,
+   "note": "FAILED at width two, on legs (a) and (c) together, and the failure is a property of the head family I chose rather than of width -- which the set can say only because it ran the unconditioned family beside the conditioned one. At width two the conditioned family reads 0.5275 against a band at [0.56, 0.70] and 0.45833 of accumulators admitting none against [0.335, 0.395]; the UNCONDITIONED family at the same width reads 0.6450 and a mean c(ZERO) of 0.965, comfortably where the closed form says. CONDITIONING ON EXACTLY ONE FIXED POINT -- which is what makes a head comparable to D's P and what gives it an insertion family at all -- is what pushes width two out of band, at nine states where one constraint is a ninth of the object. T-CLAIM-NARROWED-BY-A-DESIGN, sixth bite, caught by the control rather than by a reader. (b) held: width six's 0.6450 is not the smallest, width two's 0.5275 is. Widths 3, 4, 5 and 6 all held on both legs -- 0.6075, 0.6625, 0.6000, 0.6450 and 0.35185, 0.37397, 0.35340, 0.35900 -- so from 27 states up the answer is stable and it is the one that matters: ABOUT TWO THIRDS OF HEADS AT EVERY WIDTH ADMIT A TWO-ENTRY, ZERO-OPERATION, ZERO-KNOWLEDGE FORGERY, and width six is not rarer than width three. Width one is the other end of the same degeneracy and is reported rather than registered: every head has exactly one universal pair at every accumulator, so the fraction is 1.0000 and no accumulator admits none. The split-round head has 2 at width four and 3 at width six, so the anchor family has them too.",
+   "measured": {
+    "heads_per_width": 400,
+    "fraction_of_heads_with_a_universal_pair": [
+     1,
+     0.5275,
+     0.6075,
+     0.6625,
+     0.6,
+     0.645
+    ],
+    "registered_band": [
+     0.56,
+     0.7
+    ],
+    "mean_c_of_zero": [
+     1,
+     0.83,
+     0.9175,
+     0.97,
+     0.93,
+     1.0225
+    ],
+    "fraction_of_accumulators_with_none": [
+     0,
+     0.45833,
+     0.35185,
+     0.37397,
+     0.3534,
+     0.359
+    ],
+    "registered_accumulator_band": [
+     0.335,
+     0.395
+    ],
+    "poisson_closed_form_any": 0.63212,
+    "poisson_closed_form_none": 0.36788,
+    "at_measured_none_at_width_six": 0.35117,
+    "unconditioned_family_fraction_with_a_pair": [
+     0.7025,
+     0.645,
+     0.6425,
+     0.61,
+     0.6625,
+     0.655
+    ],
+    "unconditioned_family_mean_c_of_zero": [
+     1.0325,
+     0.965,
+     1.0625,
+     1.0075,
+     1.04,
+     1.025
+    ],
+    "split_head_c_of_zero_at_width_four": 2,
+    "split_head_c_of_zero_at_width_six": 3
+   },
+   "tool": "tools/width-audit.js",
+   "asserted_in": "test/test-width.js",
+   "registered_at": "4b74c7d",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
    "id": "F-ADD-IS-A-TABLE",
    "kind": "finding",
    "set": null,
@@ -7981,6 +8359,113 @@
    "links": []
   },
   {
+   "id": "F-THE-TWO-ATTACK-GOALS-SEPARATE-BY-ONE-SQUARE-ROOT",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "erasure",
+    "cost-model"
+   ],
+   "routes_derived": true,
+   "claim": "A ledger forger handed a ledger pays the STATE COUNT and a forger who may choose both ledgers pays its SQUARE ROOT, and the two laws are measured across six widths rather than assumed. Over widths 1 to 6 with 24 random heads each, the first accepted compensating forgery arrives at index 3.0, 8.4, 27.9, 82.1, 241.5 and 702.6 against exact nulls of 3, 9, 27, 81, 243 and 729, fitting a slope of 1.0031 against log N; the first colliding pair of equal-total length-two ledgers arrives at 4.39, 7.52, 12.03, 20.24 and 34.30 against exact finite-N birthday expectations of 4.4583, 7.1981, 11.9577, 20.2105 and 34.5100, fitting a slope of 0.4642. So the birthday law is the wrong law for a ledger and it is wrong by a factor of two in the EXPONENT -- read as a design rule it demands twice the width a second-preimage forger actually costs.",
+   "argument": "The ledger publishes two heads and a forgery must reproduce both, but one of them can always be solved rather than searched: a compensating pair preserves the arithmetic total by construction, so the mixer head is the only constraint and hitting it is a 1-in-N event, giving a geometric first hit at N. A collision is a birthday problem in the same N because the forger fixes the total once and varies within it. The separation is therefore not a property of the mixer at all -- it is a property of which question is being asked, and a design that reads the birthday number off a table and calls it the required width has priced the wrong attack. Both figures are ops in AS's unit, so they are comparable to AS's 4,414 and 6.99 without conversion.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-width.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-WIDTH-BUYS-THE-FORGERS-MEMORY-NOT-HIS-TIME",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "ternary-vs-binary"
+   ],
+   "routes_derived": true,
+   "claim": "AS's meet-in-the-middle join returns between 0.9933 and 1.0105 of its ideal yield at every width from 2 to 9 states through 729, and exactly 1.0000 at width one, so its amortised cost is 6.94 to 7.17 operations per forgery AT EVERY WIDTH. The 6.99 AS measured at 729 states is not a fact about 729 states. What grows with width is the table: 4N^2 slots, 36 at width one against 2,125,764 at width six, a factor of 59,049 across five trits while the cost per forgery does not move.",
+   "argument": "The join enumerates N^2 rows on each side into an N^2 keyspace at 7N^2 operations, so seven operations per forgery is arithmetic once the YIELD is ideal, and the yield being ideal at every width is the measurement. AS3 registered the failure route -- two half-tables whose key sets coincide return the sum of squared counts, 2.0 times ideal -- and it did not fire at any width. So the honest statement of what width buys against this attack is a memory requirement rather than a work factor, and a forger who can hold the state space squared pays the same seven operations however wide the head is.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-width.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-WIDTH-DOES-NOT-KILL-THE-ZERO-OP-FORGERY",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "cost-model"
+   ],
+   "routes_derived": true,
+   "claim": "AT's universal pair -- two prepended entries, zero operations, no knowledge of the ledger -- is not a property of 729 states. Over 400 random heads at each of six widths, the fraction of heads admitting at least one is 1.0000, 0.5275, 0.6075, 0.6625, 0.6000 and 0.6450, and width six is not the rarest. Unconditioned by fixed-point count the same fractions are 0.7025, 0.6450, 0.6425, 0.6100, 0.6625 and 0.6550. About two heads in three admit a zero-cost forgery at every width in the sweep, and widening the head 243-fold does not reduce that.",
+   "argument": "The zero-op forgery lives at ONE distinguished accumulator -- the tritwise identity, which every ledger stands on before its first entry -- and the number of entry values fixing it is a draw whose mean is one whatever the state count is, because a -> STEP[STEP[a][x]][-x] is a permutation for every x. A quantity whose mean does not depend on N cannot be driven down by raising N. This is the sharpest thing the set has to say about the design question: in the operations currency width is worth its own state count, and against this family it is worth nothing at all.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-width.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-A-LINE-IN-THE-NOISE-THAT-PASSES-IS-THE-SAME-DEFECT",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "Three of this set's twelve registered legs landed within 0.005 of their band and all three HELD: AU1(a) at width two at 0.9302 against a line at 0.93, AU2(c) at width three at 1.0492 against 1.05, and AU3(c) at 0.0545 against 0.05. Redrawn, the first straddles its line -- 0.9684, 0.9243, 1.0275, 0.9693 over four seeds -- and so does the third, 0.0494, 0.0441 and 0.0597 over three. The four earlier bites of T-CRITERION-IN-THE-NOISE were all found because a criterion FAILED. A criterion in the noise that passes is the same defect with nothing to make anybody look.",
+   "argument": "The class's own remedy is to widen the line until it cannot flip or to report the quantity without a bound, and neither remedy is triggered by a passing check -- the suite goes green, the manifest records HELD, and the reader has no signal at all. The only thing that surfaced these three was measuring the seed-to-seed spread of every leg that landed close to its band, whether it passed or failed, which is now what the tool does. THE ASYMMETRY IS THE FINDING: a failing criterion audits itself and a passing one does not, so the corpus's four recorded bites are a lower bound on how often the defect has occurred and say nothing about how often it has been benign.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-width.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-AT-WIDTH-ONE-THE-SECOND-PREIMAGE-IS-DETERMINISTIC",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "erasure"
+   ],
+   "routes_derived": true,
+   "claim": "At width one, every one of 4,800 second-preimage scans over 24 heads and 200 drawn six-entry ledgers returns the SAME index: 3, without exception. There is no distribution. At three states the compensating family's first accepted forgery is always the third candidate in the scan order, so the measured mean of 3.000 against an exact null of 3.000 is an exact agreement that is not a statistical one.",
+   "argument": "Width one is the point where arithmetic and tritwise addition are the same operation -- 0 of 9 pairs differ, against 380,178 of 531,441 at width six -- so the two-group mismatch every attack in this thread runs against is absent by construction. The narrow end of a width sweep is where a distributional statistic stops being distributional, and reporting the mean alone would have shown a perfect fit and hidden that there was nothing to fit. This is why the whole histogram is printed rather than the mean.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-width.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
    "id": "T-ONE-POINT",
    "kind": "trap",
    "set": null,
@@ -8256,11 +8741,11 @@
     "method"
    ],
    "routes_derived": false,
-   "claim": "A measured result stated as a property of the SUBJECT when it was a property of the DESIGN measured. Z2 swept buffer placements in one family of trees and concluded a depth floor for ternary at any price; a different selector beat it. E4, and Y2 and Z5 before it, measured raw-select circuits and concluded settling time is never data-dependent; a decoded selector made it data-dependent. Both times the numbers were right and the noun was too big. Before writing ternary, or this model, ask whether the sweep visited more than one design. Third bite, and the first scored against this project's own prose rather than against a sweep. AE2 and AE4 measured exactly one musical affordance -- the availability of transpositionally symmetric chords -- and the write-up headed the section \"and here ternary is genuinely worse\", generalising from one affordance to an entire art form. Consonance, rhythm, contour and timbre were untouched, and so was the distinction between ternary as a TUNING and ternary as an ADDRESSING scheme, which is the layer a 3x3 pad grid actually uses. The tell is the same every time: the sweep visited one thing and the sentence named a category. Ask what the sweep did NOT visit before choosing the noun.",
+   "claim": "A measured result stated as a property of the SUBJECT when it was a property of the DESIGN measured. Z2 swept buffer placements in one family of trees and concluded a depth floor for ternary at any price; a different selector beat it. E4, and Y2 and Z5 before it, measured raw-select circuits and concluded settling time is never data-dependent; a decoded selector made it data-dependent. Both times the numbers were right and the noun was too big. Before writing ternary, or this model, ask whether the sweep visited more than one design. Third bite, and the first scored against this project's own prose rather than against a sweep. AE2 and AE4 measured exactly one musical affordance -- the availability of transpositionally symmetric chords -- and the write-up headed the section \"and here ternary is genuinely worse\", generalising from one affordance to an entire art form. Consonance, rhythm, contour and timbre were untouched, and so was the distinction between ternary as a TUNING and ternary as an ADDRESSING scheme, which is the layer a 3x3 pad grid actually uses. The tell is the same every time: the sweep visited one thing and the sentence named a category. Ask what the sweep did NOT visit before choosing the noun. Sixth bite, in AU4, and this time the control caught it rather than a reader. The set's random-head family is CONDITIONED on having exactly one fixed point, because an entry is a no-op at an accumulator exactly when their tritwise sum is a fixed point of the head, so a head with none has no insertion family at all -- the conditioning is what makes the family comparable to D's P. AU4 registered a band on the fraction of heads admitting a zero-operation universal pair and it failed at width two, at 0.5275 against [0.56, 0.70]. The UNCONDITIONED family at the same width reads 0.6450, comfortably inside. So the failure is a property of the design decision and not of width, and it was visible only because both families were run. At nine states one constraint is a ninth of the object; the same conditioning is invisible at 729.",
    "argument": null,
    "note": null,
    "measured": {
-    "bites": 5
+    "bites": 6
    },
    "tool": null,
    "asserted_in": null,
@@ -8304,11 +8789,11 @@
     "method"
    ],
    "routes_derived": false,
-   "claim": "A registered criterion whose verdict depends on run-to-run variation. H1 predicted a spread under 3x and measured 3.72 on one run and 2.89 on the next, either side of its own line, so the same world produced both a pass and a fail. The attempt to salvage a more robust shape from it flipped too. A threshold placed near the noise floor is a defect in the prediction rather than a fact about the subject; either widen it until it cannot flip, or measure the quantity and report it without asserting a bound. Second bite, and it was sitting inside the suite that records the first. test-headroom section 5 checked \"the six-trit adder is sweepable inside an hour\" against a LIVE timing. It passed on an idle machine and failed at 1.84 h inside a full suite run on a loaded one -- the same world returning both verdicts. Section 4 of the same file already refuses to assert durations and enforces that refusal by grepping itself; section 5 was quietly doing what section 4 forbids, four sections below the comment explaining why not to. The repair is the one the class prescribes: assert the RATIO, which survives any host -- a 50,000-device sweep costs about 80x a 624-device one -- and report the hour figures without checking them. On the loaded host the measured sweep budget is 335 devices against H2 recorded 4,806, so the figure was never a constant of nature and is now labelled as a measurement taken on a stated machine. Third bite, in AO1: a 5% band was registered around a null that 400 draws confirm exactly, but scored against ONE fixed pseudorandom map -- which turned out to sit 2.09 sigma out, while 336 of 400 draws would have passed. The criterion did not depend on run-to-run variation this time; it depended on WHICH SAMPLE WAS FROZEN AS THE CONTROL, which is the same defect seen from the other side. A single fixed pseudorandom object is one draw and a null model is a distribution; comparing them directly scores the seed rather than the claim. The remedy is to register the band against the control own empirical spread, or to sweep. Fourth bite, in AT2, and it is the form that does not need run-to-run variation at all: a bound on a MAXIMUM placed by arithmetic about a MEAN. The exponential counting heuristic that predicted the mean minimum insertion count to within 0.03 at length six put the chance of a length-two ledger needing more than 100 insertions at essentially zero; drawn directly, the uniform null exceeds 100 in 22, 25 and 33 of 50,000 draws at three seeds, so 2,000 draws expect about one and the registered line had roughly a 58% chance of firing on the null alone. The measured 146 is not evidence that the subject's tail is heavier than chance -- the null's own maximum is 243 at every seed. The remedy is the class's own: before registering a bound, DRAW THE NULL'S TAIL rather than integrating an approximation that was fitted to its centre.",
+   "claim": "A registered criterion whose verdict depends on run-to-run variation. H1 predicted a spread under 3x and measured 3.72 on one run and 2.89 on the next, either side of its own line, so the same world produced both a pass and a fail. The attempt to salvage a more robust shape from it flipped too. A threshold placed near the noise floor is a defect in the prediction rather than a fact about the subject; either widen it until it cannot flip, or measure the quantity and report it without asserting a bound. Second bite, and it was sitting inside the suite that records the first. test-headroom section 5 checked \"the six-trit adder is sweepable inside an hour\" against a LIVE timing. It passed on an idle machine and failed at 1.84 h inside a full suite run on a loaded one -- the same world returning both verdicts. Section 4 of the same file already refuses to assert durations and enforces that refusal by grepping itself; section 5 was quietly doing what section 4 forbids, four sections below the comment explaining why not to. The repair is the one the class prescribes: assert the RATIO, which survives any host -- a 50,000-device sweep costs about 80x a 624-device one -- and report the hour figures without checking them. On the loaded host the measured sweep budget is 335 devices against H2 recorded 4,806, so the figure was never a constant of nature and is now labelled as a measurement taken on a stated machine. Third bite, in AO1: a 5% band was registered around a null that 400 draws confirm exactly, but scored against ONE fixed pseudorandom map -- which turned out to sit 2.09 sigma out, while 336 of 400 draws would have passed. The criterion did not depend on run-to-run variation this time; it depended on WHICH SAMPLE WAS FROZEN AS THE CONTROL, which is the same defect seen from the other side. A single fixed pseudorandom object is one draw and a null model is a distribution; comparing them directly scores the seed rather than the claim. The remedy is to register the band against the control own empirical spread, or to sweep. Fourth bite, in AT2, and it is the form that does not need run-to-run variation at all: a bound on a MAXIMUM placed by arithmetic about a MEAN. The exponential counting heuristic that predicted the mean minimum insertion count to within 0.03 at length six put the chance of a length-two ledger needing more than 100 insertions at essentially zero; drawn directly, the uniform null exceeds 100 in 22, 25 and 33 of 50,000 draws at three seeds, so 2,000 draws expect about one and the registered line had roughly a 58% chance of firing on the null alone. The measured 146 is not evidence that the subject's tail is heavier than chance -- the null's own maximum is 243 at every seed. The remedy is the class's own: before registering a bound, DRAW THE NULL'S TAIL rather than integrating an approximation that was fitted to its centre. Fifth bite, in AU, and it is the form nothing makes you look at: THE LINE PASSED. Three of set AU's twelve registered legs landed within 0.005 of their band and all three held -- AU1(a) at width two at 0.9302 against a line at 0.93, AU2(c) at width three at 1.0492 against 1.05, and AU3(c) at a slope gap of 0.0545 against 0.05. Redrawn at further seeds the first straddles its line (0.9684, 0.9243, 1.0275, 0.9693) and so does the third (0.0494, 0.0441, 0.0597). The four earlier bites were every one of them found because a criterion FAILED; a criterion in the noise that passes leaves a green check, a HELD in the manifest and no signal at all. So the remedy has to run on passes too: measure the seed-to-seed spread of every leg that lands near its band, whatever its verdict, and say on the record that the leg is not evidence. F-A-LINE-IN-THE-NOISE-THAT-PASSES-IS-THE-SAME-DEFECT.",
    "argument": null,
    "note": null,
    "measured": {
-    "bites": 4
+    "bites": 5
    },
    "tool": null,
    "asserted_in": null,

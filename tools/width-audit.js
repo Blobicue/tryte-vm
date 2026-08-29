@@ -1009,10 +1009,68 @@ function measure() {
     growth12: logFit(pick(WIDTHS, x => x.N), pick(WIDTHS, x => x.growth12.mean)),
   };
   M.fits.growthGap = M.fits.growth6.slope - M.fits.growth12.slope;
+
+  // POST HOC, DECLARED, SCORING NOTHING -- but computed HERE rather than in `report()`,
+  // because a spread the suite cannot read is a spread only the printout has, and
+  // `T-TOOL-CHECKED-ONLY-BY-IMPORT` is the standing reminder that a tool has two paths.
+  M.thinMargins = thinMargins([SEED, 1, 424242, 20260831]);
+  M.slopeSpread = slopeSpread([SEED ^ 0x5f3759df, 7, 99]);
+  M.widthOne = widthOneScanProfile();
   CACHE = M;
   return CACHE;
 }
 
+/**
+ * POST HOC, DECLARED, AND SCORING NOTHING. Three of the twelve registered legs landed
+ * within 0.005 of their band, and `T-CRITERION-IN-THE-NOISE` has fired four times on
+ * exactly that shape -- most recently on `AT2`, where the same world returned a pass and
+ * a fail. So each of the three is re-measured at further seeds and the spread is printed
+ * beside the verdict. A registered magnitude with no null beside it reads as evidence and
+ * is none, and that applies to a line that HELD by 0.0002 as much as to one that failed.
+ */
+function thinMargins(seeds) {
+  const out = [];
+  for (const s of seeds) {
+    // AU1(a) at width two: the first-accept ratio, whose line sat at 0.93
+    const A2 = arenaOf(2);
+    const r2 = rng((s ^ (2 * 0x9e3779b9)) >>> 0);
+    const sp2 = [];
+    for (let h = 0; h < HEADS; h++) {
+      const { step } = stepTable(A2, drawHead(r2, A2.N).perm);
+      const idxs = [];
+      for (let n = 0; n < SCAN_LEDGERS; n++) idxs.push(spScan(A2, step, drawLedger(r2, A2.N, L6)).index);
+      sp2.push(stat(idxs).mean / spNull(A2.N));
+    }
+    // AU2(c) at width three: measured over reshuffled, whose line sat at 1.05
+    const A3 = arenaOf(3);
+    const r3 = rng((s ^ (3 * 0x9e3779b9)) >>> 0), rs = rng((s ^ (3 * 0x27d4eb2f)) >>> 0);
+    let mTot = 0, sTot = 0, k = 0;
+    for (let h = 0; h < HEADS; h++) {
+      const { step } = stepTable(A3, drawHead(r3, A3.N).perm);
+      const cs = collisionScan(A3, step, false), sn = shuffleNull(A3, step, 200, rs);
+      if (cs.mean !== null && sn.mean !== null) { mTot += cs.mean; sTot += sn.mean; k++; }
+    }
+    out.push({ seed: s, spRatioW2: stat(sp2).mean, shuffleRatioW3: k ? mTot / sTot : null });
+  }
+  return out;
+}
+/**
+ * NOT REGISTERED. The width-one first-accept index came back as one number on every
+ * ledger of every head, which a mean cannot show, so the whole distribution is printed.
+ */
+function widthOneScanProfile(heads = 24, ledgers = 200, seed = SEED) {
+  const A = arenaOf(1), r = rng((seed ^ 0x1b873593) >>> 0);
+  const hist = new Map();
+  let tried = 0;
+  for (let h = 0; h < heads; h++) {
+    const { step } = stepTable(A, drawHead(r, A.N).perm);
+    for (let n = 0; n < ledgers; n++) {
+      const i = spScan(A, step, drawLedger(r, A.N, L6)).index;
+      hist.set(i, (hist.get(i) || 0) + 1); tried++;
+    }
+  }
+  return { tried, hist: [...hist.entries()].sort((a, b) => a[0] - b[0]) };
+}
 /**
  * POST HOC, DECLARED, AND SCORING NOTHING. `AR`'s control was one frozen object where the
  * claim needed a distribution. The two growth slopes are re-fitted at further seeds so a
@@ -1181,6 +1239,32 @@ function report() {
   log('      CITED, never re-run: AS 4,414 ops brute force and 6.99 for the join at width six');
   log('      (F-MITM-PRICES-THE-MIXER-AT-SEVEN-OPS); AT 4.934 entries for the shortest run.');
 
+  log('\n--- POST HOC, DECLARED, SCORING NOTHING: the three legs that landed near a line ---');
+  log('      T-CRITERION-IN-THE-NOISE has fired four times on a threshold whose verdict');
+  log('      depends on run-to-run variation. Three legs here landed within 0.005 of their');
+  log('      band, so each is re-measured at further seeds and the spread printed.');
+  {
+    const tm = M.thinMargins;
+    log('      seed            AU1(a) w=2 ratio (line 0.93)   AU2(c) w=3 ratio (line 1.05)');
+    for (const row of tm) {
+      log(`      ${String(row.seed).padStart(9)}   ${fx(row.spRatioW2).padStart(26)}`
+        + `   ${fx(row.shuffleRatioW3).padStart(28)}`);
+    }
+    const ss = M.slopeSpread;
+    log('      and AU3(c), the slope gap, whose line sat at 0.05 -- at a quarter of the');
+    log('      heads and a quarter of the ledgers, so this is noisier than the run itself');
+    for (const row of ss) {
+      log(`      ${String(row.seed).padStart(9)}   L=6 ${fx(row.growth6)}   L=12 ${fx(row.growth12)}`
+        + `   gap ${fx(row.gap)}`);
+    }
+  }
+  log('\n--- NOT REGISTERED: the width-one first-accept index, whole distribution ---');
+  {
+    const wp = M.widthOne;
+    log(`      ${wp.tried.toLocaleString('en-US')} scans over 24 heads: `
+      + wp.hist.map(([i, n]) => `index ${i} x ${n}`).join(', '));
+  }
+
   log('\n--- WHAT THIS SET DID NOT ATTACK, named rather than left as silence ---');
   log('      A WIDE-ENTRY, NARROW-HEAD family. Everything here narrows the entries, the');
   log('      arithmetic total and the mixer head together, so nothing here is a measurement');
@@ -1203,5 +1287,5 @@ module.exports = {
   spScan, collisionScan, shuffleNull, mitm, mitmForgery, degenerateJoinRatio,
   noOpTable, minInsertions, orderIn, cAt, pairProfile,
   logFit, stat, drawLedger, measureHead, anchor, bfsControls, negationAgrees, carryCells,
-  slopeSpread, measure, report,
+  slopeSpread, thinMargins, widthOneScanProfile, measure, report,
 };

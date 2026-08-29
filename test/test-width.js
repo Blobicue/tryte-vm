@@ -1,41 +1,71 @@
 'use strict';
-/* test-width.js — REGISTRATION ONLY. Set `AU`, four predictions, none measured yet.
+/* test-width.js — what does the WIDTH of a ledger head buy a forger, and what does it not?
  *
- * Every check in this file is an INSTRUMENT check or an ANCHOR, and not one of them is a
- * verdict. The random-head family `AU1` through `AU4` are scored on has not been swept:
- * nothing here calls `measure()`, and nothing here reads a first-accept index, a
- * first-repeat index, a join yield, a shortest insertion run or a c(ZERO) over the drawn
- * family at any width.
+ * Set `AU`. Four predictions, TWO HELD AND TWO FAILED, and the two failures are worth
+ * more than the two successes. `AU2` failed on a statistic that does not exist — at width
+ * one the collision scan's row map is injective, so 72 of 72 measured rows and 14,400 of
+ * 14,400 reshuffled rows have no repeat and the ratio is 0/0. `AU4` failed at width two
+ * on the head family this set CHOSE rather than on width, and the unconditioned control
+ * run beside it is what says so: 0.5275 conditioned against 0.6450 unconditioned, at the
+ * same nine states.
  *
- * WHAT IT DOES EXERCISE, END TO END, is the whole width-parametric pipeline — the arena,
- * the two groups and the one place they coincide, the step table and its inverse, the
- * widened split round, the affine control, the second-preimage scan, the collision scan,
- * the reshuffled-order null, the meet-in-the-middle join and its rebuild path, the
- * no-op table, the Cayley BFS, and the log-log fit — on CONTROLS whose answers are known
- * in advance, at every width from one to six.
+ * The headline is neither of those and no prediction claimed it. In the OPS currency
+ * width is worth exactly its own state count against a forger handed a ledger, and its
+ * square root against a forger who may choose both ledgers — two laws measured across six
+ * widths and separated by a fitted 1.0031 against 0.4642. In the GROWTH currency width is
+ * worth almost nothing: about two heads in three at EVERY width admit a two-entry,
+ * zero-operation, zero-knowledge forgery, and width six is not rarer than width three.
  *
- * AND THE ANCHOR, which is the reason this file can be trusted at all. `tools/width-audit.js`
- * is a SECOND IMPLEMENTATION of a chain that already exists in `tools/ledger-audit.js`, and
- * a second implementation that is never compared is just an unchecked claim. At width six
- * the two `STEP` tables are compared cell by cell over all 531,441, and `AS3`'s 532,485
- * matches and `AT`'s c(ZERO) = 3 with witnesses (136, 295, 362) are reproduced through the
- * new code path. Those are published numbers being reproduced, not new measurements.
+ * MUTATION-TESTED. Three deliberate breaks, each restored afterwards, and what each one
+ * ACTUALLY turned red — which in all three cases was NOT the registered band:
  *
- * The controls are asserted to MOVE here rather than after the run, because
- * `T-CONTROL-CANNOT-DISCRIMINATE` has bitten twice and the second bite was a control that
- * could only ever agree.
+ *   1. THE COLLISION SCAN OFF BY ONE — `hit = x` where `hit = x + 1` belongs, so every
+ *      first-repeat index is reported one early. SIX checks red, and the registered
+ *      criteria are almost blind to it. `AU2`(b)'s SLOPE moves 0.4642 -> 0.5142 and stays
+ *      INSIDE its registered [0.45, 0.55]; `AU2`(a)'s ratio band [0.95, 1.06] is left at
+ *      width four, 1.0057 -> 0.9221, and NOT at widths five or six, which go to 0.9522
+ *      and 0.9648 and stay inside. Subtracting one from a quantity that grows as sqrt(N)
+ *      is a shrinking relative error, so THE WIDE END CANNOT SEE THIS DEFECT AND THE
+ *      NARROW END CAN — the reverse of the usual intuition, and the reason the per-width
+ *      values are pinned rather than only banded. The two responsiveness controls fire
+ *      immediately: the identity head stops repeating at the second try and the affine
+ *      head's 84.472 moves. Nothing in `AU1`, `AU3` or `AU4` notices, and neither does
+ *      the anchor.
  *
- * `test/run-all.js` does NOT list this file yet, on purpose: a scaffolded test that passes
- * before the measurement reports success for work nobody did.
+ *   2. THE UNIVERSAL PAIR'S SECOND ENTRY NOT NEGATED — `cAt` looks for
+ *      `STEP[STEP[a][x]][x]` instead of `STEP[STEP[a][x]][-x]`, so it counts pairs that
+ *      restore the mixer head and MOVE the arithmetic total. NINE checks red, and the
+ *      broken instrument lands EXACTLY ON ITS OWN THEORETICAL VALUE: the profile total
+ *      goes 741 -> 729 and the mean 1.0165 -> 1.0000, which is the Poisson figure the
+ *      registration argues for. The set's headline inverts into a stronger and entirely
+ *      false one — the fraction of heads admitting a pair goes to 1.0000 at EVERY width
+ *      and the fraction of accumulators admitting none to 0.00000 at every width, so
+ *      `AU4`'s width-two failure disappears and the object looks universal. What fires is
+ *      the ANCHOR: c(ZERO) goes 3 -> 1 and the witnesses (136, 295, 362) become the
+ *      single value -336, which is val(u*), the fixed point itself. A STATISTIC THAT
+ *      MOVES ONTO ITS NULL WHEN BROKEN IS THE HARDEST SHAPE TO CATCH, which is `AT`'s
+ *      third mutation again and the reason the anchor reproduces published numbers rather
+ *      than checking internal consistency.
+ *
+ *   3. THE BACKWARD TABLE TRANSPOSED — `back[e * N + nx] = a` where `back[nx * N + e] = a`
+ *      belongs, so the join's right half pulls back through a relabelled table. FIVE
+ *      checks red and NOT the yield: the join ratios become 1.0000, 1.0015, 1.0011,
+ *      0.9989, 1.0003 and 1.0000, every one of them inside `AU1`(b)'s registered 0.03
+ *      band, and the anchor's match count moves only 532,485 -> 531,349, two parts in a
+ *      thousand. This is `AS`'s own mutation 3 reproduced at six widths — `D4`, a yield
+ *      count cannot tell a working attack from a relabelled broken one — and what fires
+ *      is the check that REBUILDS joined keys and recomputes both heads, which goes from
+ *      20,199 of 20,199 to 354 of 20,055.
+ *
+ * The exhaustive version is `npm run audit:width`.
  */
 
 const A = require('../tools/width-audit.js');
 const LED = require('../tools/ledger-audit.js');
-const F = require('../tools/forge-audit.js');
 const INS = require('../tools/insert-audit.js');
-const Q = require('../tools/puzzle-audit.js');
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 let pass = 0; const fails = [];
 const check = (name, cond, detail = '') => {
@@ -43,6 +73,8 @@ const check = (name, cond, detail = '') => {
   else { fails.push(name); console.log(`  [FAIL] ${name}  ${detail}`); }
 };
 const near = (a, b, eps) => Math.abs(a - b) <= eps;
+const seq = (got, want, eps) => got.length === want.length
+  && got.every((v, i) => (want[i] === null ? v === null : v !== null && near(v, want[i], eps)));
 
 console.log('\n=== 0. THE ARENA, AND THE TWO GROUPS THAT ARE NOT ONE GROUP ===');
 {
@@ -59,13 +91,12 @@ console.log('\n=== 0. THE ARENA, AND THE TWO GROUPS THAT ARE NOT ONE GROUP ===')
     }));
   // NEGATION is the one place the arithmetic and tritwise groups coincide, at every
   // width, because negating a balanced-ternary word trit by trit IS negating the number
-  // it denotes. The second inserted entry of a universal pair is written as a negation,
-  // so this is load-bearing rather than decorative.
+  // it denotes. The second entry of a universal pair is written as a negation, so this is
+  // load-bearing rather than decorative — mutation 2 is exactly this going wrong.
   check('negation coincides in both groups at every width from one to six',
     A.WIDTHS.every(w => A.negationAgrees(A.arenaOf(w))));
-  // AND ADDITION DOES NOT — except at width one, which is the design line AU1 names as
-  // its route. No carry exists on one trit, so the mismatch every attack in this thread
-  // runs against is absent there by construction.
+  // AND ADDITION DOES NOT — except at width one, which is the design line AU1 named as
+  // its route and which turned out to matter more than the registration expected.
   check('addition does NOT coincide above width one, and at width ONE it does — 0 of 9 '
     + 'pairs differ at w=1 and 380,178 of 531,441 at w=6',
     A.carryCells(A.arenaOf(1)) === 0
@@ -102,7 +133,7 @@ console.log('\n=== 0. THE ARENA, AND THE TWO GROUPS THAT ARE NOT ONE GROUP ===')
     }));
 }
 
-console.log('\n=== 1. THE NULLS, WHICH ARE ARITHMETIC AND WERE COMPUTED BEFORE REGISTRATION ===');
+console.log('\n=== 1. THE NULLS, WHICH ARE ARITHMETIC AND WERE COMPUTED BEFORE THE RUN ===');
 {
   check('the exact finite-N birthday expectation is 2.8889, 4.4583, 7.1981, 11.9577, '
     + '20.2105 and 34.5100 at widths one to six',
@@ -110,8 +141,8 @@ console.log('\n=== 1. THE NULLS, WHICH ARE ARITHMETIC AND WERE COMPUTED BEFORE R
     === '2.8889 4.4583 7.1981 11.9577 20.2105 34.5100',
     A.WIDTHS.map(w => A.exactBirthday(3 ** w).toFixed(4)).join(' '));
   // TWO FILES MAY NOT DISAGREE ABOUT ONE NUMBER. `ladderlang`'s HASH27.md registered
-  // against 34.51 for 729 digests and 914.3328 for 531,441; the same routine here must
-  // return both, or one of the two documents is wrong about the same object.
+  // against 34.51 for 729 digests and 914.3328 for 531,441; the same routine here returns
+  // both, or one of the two documents is wrong about the same object.
   check('   and the same routine returns 914.3328 at 531,441 digests, which is the '
     + 'figure ladderlang\'s HASH27.md registered its second width against',
     near(A.exactBirthday(531441), 914.3328, 5e-4) && near(A.exactBirthday(729), 34.51, 5e-3));
@@ -141,10 +172,6 @@ console.log('\n=== 1. THE NULLS, WHICH ARE ARITHMETIC AND WERE COMPUTED BEFORE R
 
 console.log('\n=== 2. THE CONTROLS, ASSERTED TO MOVE BEFORE ANY VERDICT IS READ ===');
 {
-  // THE STATISTIC MUST REACH BOTH ENDS OF ITS RANGE. The affine head is linear and its
-  // row map stays injective, so its collision scan finds NOTHING; the identity head
-  // gives every ledger the same head, so its scan repeats at the second try. If the
-  // collision statistic could not reach those two values it could not discriminate.
   const aff = {}, ide = {};
   for (const w of A.WIDTHS) {
     const X = A.arenaOf(w);
@@ -161,11 +188,7 @@ console.log('\n=== 2. THE CONTROLS, ASSERTED TO MOVE BEFORE ANY VERDICT IS READ 
       return p !== null && A.isPermutation(p, 3 ** w) && A.fixedPoints(p) === 1;
     }));
   // AND IT REACHES THE DEGENERATE END ONLY AT THE NARROW WIDTHS, which is worth pinning
-  // rather than asserting away: the linear head is collision-free on EVERY row at widths
-  // one and two and on exactly one row in nine at widths three, five and six, where its
-  // mean first repeat at width six is 84.47 against an exact null of 34.51. So the
-  // statistic is demonstrated to span from undefined to 2.45x its null before any subject
-  // value is read — but it reaches the fully degenerate value at two widths, not six.
+  // rather than asserting away.
   check('   and the affine head drives the collision statistic to its degenerate end at '
     + 'widths one and two, every row collision-free, and to one row in nine at widths '
     + 'three, five and six — where width six means 84.47 against a null of 34.51',
@@ -191,8 +214,7 @@ console.log('\n=== 2. THE CONTROLS, ASSERTED TO MOVE BEFORE ANY VERDICT IS READ 
     + '{N/3} -> 3, {1} -> N',
     A.WIDTHS.every(w => {
       const N = 3 ** w, b = A.bfsControls(N);
-      return b.zero === 1 && b.plusMinus === 2 && b.one === N
-        && (N < 9 || b.third === 3);
+      return b.zero === 1 && b.plusMinus === 2 && b.one === N && (N < 9 || b.third === 3);
     }), A.WIDTHS.map(w => JSON.stringify(A.bfsControls(3 ** w))).join(' '));
   check('   and one generator alone always closes in exactly its order, at every width',
     A.WIDTHS.every(w => {
@@ -200,11 +222,10 @@ console.log('\n=== 2. THE CONTROLS, ASSERTED TO MOVE BEFORE ANY VERDICT IS READ 
       return [1, 2, 3, N - 1].filter(g => g > 0 && g < N)
         .every(g => A.minInsertions([g], N).min === A.orderIn(g, N));
     }));
-  // THE RESPONSIVENESS CONTROL IS ITSELF WIDTH-DEPENDENT, and discovering that is why
-  // AU1(b) is registered at widths two to six. At width one the left key map is a
-  // BIJECTION — nine rows onto nine keys, occupancy exactly 1.0000 — so every key holds
-  // one row on each side, the yield is N^2 by construction, and a band on the ratio there
-  // could not fail. A check asserting 2.0 at every width would have hidden that.
+  // THE RESPONSIVENESS CONTROL IS ITSELF WIDTH-DEPENDENT, and discovering that BEFORE the
+  // run is why AU1(b) is registered at widths two to six. At width one the left key map is
+  // a BIJECTION — nine rows onto nine keys — so the yield is N^2 by construction and a
+  // band there could not fail. A check asserting 2.0 at every width would have hidden it.
   check('the join REBUILDS its degenerate control across width: 2.0 from width three up, '
     + 'about 1.8 at width two, and exactly 1.0 at width one, where the left key map is a '
     + 'BIJECTION so the yield ratio is forced and AU1(b) is not registered there',
@@ -233,150 +254,16 @@ console.log('\n=== 2. THE CONTROLS, ASSERTED TO MOVE BEFORE ANY VERDICT IS READ 
     }));
 }
 
-console.log('\n=== 3. THE PIPELINE, ON CONTROLS, AT EVERY WIDTH ===');
-{
-  check('the second-preimage scan reports EXHAUSTED separately from FOUND, and its '
-    + 'reported index really is the first accept — rechecked by recomputing the head',
-    A.WIDTHS.every(w => {
-      const X = A.arenaOf(w), r = A.rng(53 + w);
-      const { step } = A.stepTable(X, A.drawHead(r, X.N).perm);
-      for (let n = 0; n < 6; n++) {
-        const e = A.drawLedger(r, X.N, 6);
-        const s = A.spScan(X, step, e);
-        // walk the same order by hand and rebuild the forgery at that index
-        let t = 0, hit = null;
-        for (let i = 0; i < 6 && !hit; i++) for (let j = i + 1; j < 6 && !hit; j++) {
-          for (let d = 1; d < X.N; d++) {
-            t++;
-            const f = e.slice();
-            f[i] = (e[i] + d) % X.N; f[j] = (e[j] + X.N - d) % X.N;
-            if (A.headOf(X, step, f) === A.headOf(X, step, e)
-              && A.totalOf(X, f) === A.totalOf(X, e)) { hit = { t, f }; break; }
-          }
-        }
-        if (hit) { if (!s.found || s.index !== hit.t) return false; }
-        else if (s.found) return false;
-      }
-      return true;
-    }));
-  check('   and every compensating forgery preserves the arithmetic total by '
-    + 'construction, so the summed head is not what the scan is beating',
-    A.WIDTHS.every(w => {
-      const X = A.arenaOf(w), r = A.rng(59 + w);
-      const e = A.drawLedger(r, X.N, 6), t = A.totalOf(X, e);
-      for (let i = 0; i < 6; i++) for (let j = i + 1; j < 6; j++) for (let d = 1; d < X.N; d++) {
-        const f = e.slice();
-        f[i] = (e[i] + d) % X.N; f[j] = (e[j] + X.N - d) % X.N;
-        if (A.totalOf(X, f) !== t) return false;
-      }
-      return true;
-    }));
-  check('the collision scan really finds a COLLISION: at the index it reports, two '
-    + 'DISTINCT length-two ledgers share both heads — rebuilt, not counted',
-    A.WIDTHS.every(w => {
-      const X = A.arenaOf(w), r = A.rng(67 + w);
-      const { step } = A.stepTable(X, A.drawHead(r, X.N).perm);
-      const cs = A.collisionScan(X, step, true);
-      if (cs.mean === null) return true;                    // degenerate at this draw
-      // find one row with a repeat and rebuild both ledgers
-      for (let c = 0; c < X.N; c++) {
-        const seen = new Map();
-        for (let x = 0; x < X.N; x++) {
-          const y = X.asub(c, x), h = A.headOf(X, step, [x, y]);
-          if (seen.has(h)) {
-            const [x0, y0] = seen.get(h);
-            return (x0 !== x || y0 !== y)
-              && A.totalOf(X, [x0, y0]) === A.totalOf(X, [x, y])
-              && A.headOf(X, step, [x0, y0]) === A.headOf(X, step, [x, y]);
-          }
-          seen.set(h, [x, y]);
-        }
-      }
-      return true;
-    }));
-  check('   and the reshuffled-order null is the SAME multiset in a different order: it '
-    + 'never sees a value the measured scan did not see',
-    (() => {
-      const X = A.arenaOf(3), r = A.rng(71);
-      const { step } = A.stepTable(X, A.drawHead(r, X.N).perm);
-      const sn = A.shuffleNull(X, step, 20, A.rng(73));
-      return sn.mean !== null && sn.done + sn.none === 20 * X.N;
-    })());
-  check('the join yields FORGERIES and not merely matches — every rebuilt candidate '
-    + 'reproduces both heads, at every width (D4: a count cannot tell a working attack '
-    + 'from a relabelled broken one)',
-    A.WIDTHS.every(w => {
-      const X = A.arenaOf(w), r = A.rng(79 + w);
-      const { step, back } = A.stepTable(X, A.drawHead(r, X.N).perm);
-      const e = A.drawLedger(r, X.N, 6);
-      const m = A.mitm(X, step, back, e);
-      let tried = 0, ok = 0;
-      for (let k = 0; k < X.N * X.N && tried < 60; k++) {
-        if (!(m.Lc[k] && m.Rc[k])) continue;
-        const f = A.mitmForgery(X, e, m, k);
-        tried++;
-        if (A.headOf(X, step, f) === m.head && A.totalOf(X, f) === A.totalOf(X, e)) ok++;
-      }
-      return tried > 0 && ok === tried;
-    }));
-  check('   and it costs exactly 7N^2 operations and 4N^2 slots by construction, so the '
-    + 'seven operations per forgery is arithmetic and only the YIELD is a measurement',
-    A.WIDTHS.every(w => {
-      const X = A.arenaOf(w), r = A.rng(83 + w);
-      const { step, back } = A.stepTable(X, A.drawHead(r, X.N).perm);
-      const m = A.mitm(X, step, back, A.drawLedger(r, X.N, 6));
-      return m.ops === 7 * X.N * X.N && m.memory === 4 * X.N * X.N && m.ideal === X.N * X.N;
-    }));
-  check('the shortest insertion run is rebuildable: the multiset the BFS returns really '
-    + 'restores both heads when applied, at every width',
-    A.WIDTHS.every(w => {
-      const X = A.arenaOf(w), r = A.rng(89 + w);
-      const { step } = A.stepTable(X, A.drawHead(r, X.N).perm);
-      const noOp = A.noOpTable(X, step);
-      for (let n = 0; n < 6; n++) {
-        const e = A.drawLedger(r, X.N, 6);
-        const a = A.chainOf(X, step, e);
-        const gens = a.map(s => X.gen(noOp.first[s]));
-        const mi = A.minInsertions(gens, X.N);
-        if (!Number.isFinite(mi.min) || mi.min < 1) return false;
-        // a run of ord(g) no-ops at one gap always closes: I3, checked not argued
-        const p = 0, x = noOp.first[a[p]], ord = A.orderIn(X.gen(x), X.N);
-        const f = e.slice(0, p).concat(Array(ord).fill(x), e.slice(p));
-        if (A.headOf(X, step, f) !== a[6] || A.totalOf(X, f) !== A.totalOf(X, e)) return false;
-      }
-      return true;
-    }));
-  check('a universal pair, where the control head has one, really forges an arbitrary '
-    + 'ledger of an arbitrary length at zero operations — rebuilt at every width',
-    A.WIDTHS.every(w => {
-      const X = A.arenaOf(w), r = A.rng(97 + w);
-      for (let k = 0; k < 8; k++) {
-        const { step } = A.stepTable(X, A.drawHead(r, X.N).perm);
-        const { wit } = A.cAt(X, step, X.ZERO);
-        for (const v of wit) {
-          const x = X.idx(v), y = X.negEntry(x);
-          for (const L of [0, 1, 3, 6]) {
-            const e = A.drawLedger(r, X.N, L), f = [x, y].concat(e);
-            if (A.headOf(X, step, f) !== A.headOf(X, step, e)) return false;
-            if (A.totalOf(X, f) !== A.totalOf(X, e)) return false;
-          }
-        }
-      }
-      return true;
-    }));
-}
+const M = A.measure();
 
-console.log('\n=== 4. THE ANCHOR — A SECOND IMPLEMENTATION THAT IS COMPARED, NOT TRUSTED ===');
+console.log('\n=== 3. THE ANCHOR — A SECOND IMPLEMENTATION THAT IS COMPARED, NOT TRUSTED ===');
 {
-  const AN = A.anchor();
-  check('the tritwise group agrees with puzzle-audit\'s on all 531,441 pairs, both ways',
-    AN.taddMismatches === 0 && AN.tsubMismatches === 0);
-  check('the widened split round at width six IS D\'s mixer, all 729 entries',
-    AN.permMismatches === 0);
+  const AN = M.anchor;
+  check('the tritwise group agrees with puzzle-audit\'s on all 531,441 pairs, both ways, '
+    + 'and the widened split round at width six IS D\'s mixer, all 729 entries',
+    AN.taddMismatches === 0 && AN.tsubMismatches === 0 && AN.permMismatches === 0);
   check('and the width-parametric STEP equals ledger-audit\'s cell by cell, all 531,441',
-    AN.stepCells === 531441 && AN.stepMismatches === 0);
-  check('   so the canonical ledger\'s two heads reproduce ledger-audit\'s',
-    AN.headAgrees);
+    AN.stepCells === 531441 && AN.stepMismatches === 0 && AN.headAgrees);
   check('AS3 comes back out of the new code path: 532,485 matches, ratio 1.0020, '
     + '3,720,087 operations and 2,125,764 slots',
     AN.as3Matches === 532485 && near(AN.as3Ratio, 1.0020, 5e-5)
@@ -390,36 +277,273 @@ console.log('\n=== 4. THE ANCHOR — A SECOND IMPLEMENTATION THAT IS COMPARED, N
     JSON.stringify([AN.atPairCount, AN.atWitnesses, AN.atProfileTotal, AN.atZeroAt]));
   check('   and the order function agrees with insert-audit\'s at width six',
     AN.insertAgrees && A.orderIn(393, 729) === INS.orderIn729(393));
-  check('the manifest\'s cited AS figures are the ones this set builds on and does not '
-    + 're-run: 4,414 operations brute force and 6.99 for the join',
-    (() => {
-      const MAN = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'FINDINGS.json'), 'utf8'));
-      const f = MAN.unregistered_findings.find(x => x.id === 'F-MITM-PRICES-THE-MIXER-AT-SEVEN-OPS');
-      return !!f && /4,414/.test(f.claim) && /6\.99/.test(f.claim);
-    })());
+  check('T-FAKE-RANDOM — the draw reached every state at every width, and the '
+    + 'conditioning took 76, 61, 56, 61, 45 and 60 draws for 24 heads',
+    M.widths.every(r => r.coverage === r.N)
+    && M.widths.map(r => r.permDraws).join() === '76,61,56,61,45,60',
+    M.widths.map(r => `${r.coverage}/${r.N}`).join(' '));
+  // D4: A COUNT CANNOT TELL A WORKING ATTACK FROM A RELABELLED BROKEN ONE. Mutation 3
+  // transposes the backward table and the join's yield does not move; only this fires.
+  check('every joined key that was rebuilt reproduces BOTH heads — 20,199 of 20,199 '
+    + 'across the six widths, not merely matched',
+    M.widths.reduce((s, r) => s + r.joinRebuilt, 0) === 20199
+    && M.widths.reduce((s, r) => s + r.joinRebuiltTried, 0) === 20199);
 }
 
-console.log('\n=== 5. THE REGISTRATION ITSELF ===');
+console.log('\n=== 4. AU1 HELD — THE OPS CURRENCY IS LINEAR IN THE STATE COUNT ===');
 {
-  const src = fs.readFileSync(path.join(__dirname, '..', 'tools', 'width-audit.js'), 'utf8');
-  check('the tool carries a PREDICTED OUTCOMES block with four predictions',
-    src.includes('PREDICTED OUTCOMES')
-    && ['AU1', 'AU2', 'AU3', 'AU4'].every(id => src.includes(`   ${id}  `)));
-  check('   and every one of the four carries an AT RISK line',
-    (src.match(/^\s*\*\s+AT RISK:/gm) || []).length === 4,
-    String((src.match(/^\s*\*\s+AT RISK:/gm) || []).length));
-  check('   and a CANNOT SHOW line, so each says what it does not cover',
-    (src.match(/^\s*\*\s+CANNOT SHOW:/gm) || []).length === 4);
-  check('the NOT REGISTERED block records what was measured while building the '
-    + 'instrument, so the probe cannot be counted as a prediction',
-    src.includes('MEASURED WHILE BUILDING THE INSTRUMENT')
-    && src.includes('63 of 120 rows') && src.includes('DEGENERATES TO THE IDENTITY AT WIDTH TWO'));
-  check('this file is NOT in run-all.js yet — a scaffolded test that passes before the '
-    + 'measurement reports success for work nobody did',
-    !fs.readFileSync(path.join(__dirname, 'run-all.js'), 'utf8').includes('test-width.js'));
-  check('and AU is not in the manifest yet, because nothing has been measured',
-    !JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'FINDINGS.json'), 'utf8'))
-      .prediction_sets.some(s => s.id === 'AU'));
+  const spr = M.widths.map(r => r.spRatio.mean);
+  const jr = M.widths.map(r => r.join.mean);
+  check('24 heads at each of six widths, 3 to 729 states, and not one of the 5,760 '
+    + 'second-preimage scans exhausted its family',
+    M.widths.every(r => r.heads === 24) && M.widths.map(r => r.N).join() === '3,9,27,81,243,729'
+    && M.widths.reduce((s, r) => s + r.spExhausted, 0) === 0);
+  check('AU1 HELD (a) — the first-accept index is 3.000, 8.372, 27.854, 82.058, 241.540 '
+    + 'and 702.564 against nulls of 3, 9, 27, 81, 243 and 729',
+    seq(M.widths.map(r => r.sp.mean), [3.0, 8.372, 27.854, 82.058, 241.54, 702.564], 5e-3),
+    M.widths.map(r => r.sp.mean.toFixed(3)).join(' '));
+  check('   so the ratio is 1.0000, 0.9302, 1.0316, 1.0131, 0.9940 and 0.9637, every one '
+    + 'inside the registered [0.93, 1.07]',
+    seq(spr, [1.0, 0.9302, 1.0316, 1.0131, 0.994, 0.9637], 5e-4)
+    && spr.every(v => v >= 0.93 && v <= 1.07));
+  // THE DISCLOSURE. AU1(a) held at width two by 0.0002 and a redraw straddles the line.
+  // T-CRITERION-IN-THE-NOISE, fifth bite, and the first on a line that PASSED.
+  check('   AND THE WIDTH-TWO LEG HELD BY 0.0002 AND IS NOT EVIDENCE: redrawn at four '
+    + 'seeds the same statistic gives 0.9684, 0.9243, 1.0275 and 0.9693, one of them '
+    + 'below the line',
+    near(spr[1] - 0.93, 0.0002, 5e-5)
+    && seq(M.thinMargins.map(t => t.spRatioW2), [0.9684, 0.9243, 1.0275, 0.9693], 5e-4)
+    && M.thinMargins.some(t => t.spRatioW2 < 0.93),
+    M.thinMargins.map(t => t.spRatioW2.toFixed(4)).join(' '));
+  check('   and width one held for a structural reason no prediction claimed: 4,800 of '
+    + '4,800 scans return index 3, every time, so there is no distribution to fit',
+    M.widthOne.tried === 4800 && M.widthOne.hist.length === 1
+    && M.widthOne.hist[0][0] === 3 && M.widthOne.hist[0][1] === 4800,
+    JSON.stringify(M.widthOne.hist));
+  check('AU1 HELD (b) — the join returns 0.9933, 1.0105, 1.0005, 0.9998 and 1.0004 of '
+    + 'ideal at widths two to six, every one within 0.03 of 1.0',
+    seq(jr.slice(1), [0.9933, 1.0105, 1.0005, 0.9998, 1.0004], 5e-4)
+    && jr.slice(1).every(v => Math.abs(v - 1) <= 0.03)
+    && jr[0] === 1.0);
+  check('   so AS\'s 6.99 operations per forgery is 6.94 to 7.17 at EVERY width, while '
+    + 'the table it needs goes 36, 324, 2,916, 26,244, 236,196, 2,125,764',
+    M.widths.every(r => r.joinOpsPerForgery.mean > 6.9 && r.joinOpsPerForgery.mean < 7.2)
+    && M.widths.map(r => r.joinMemory).join() === '36,324,2916,26244,236196,2125764',
+    M.widths.map(r => r.joinOpsPerForgery.mean.toFixed(3)).join(' '));
+  check('AU1 HELD (c) — the split-round head lies inside the random family\'s range on '
+    + 'both statistics at widths four and six, so the law is about width and not about '
+    + 'D\'s mixer',
+    [3, 5].every(i => {
+      const r = M.widths[i], s = r.control.split && r.control.split.row;
+      if (!s) return false;
+      const sp = s.sp.mean / A.spNull(r.N);
+      return sp >= r.spRatio.min && sp <= r.spRatio.max
+        && s.join.ratio >= r.join.min && s.join.ratio <= r.join.max;
+    }),
+    [3, 5].map(i => {
+      const r = M.widths[i], s = r.control.split.row;
+      return `w${r.w}:${(s.sp.mean / A.spNull(r.N)).toFixed(4)}/${s.join.ratio.toFixed(4)}`;
+    }).join(' '));
+}
+
+console.log('\n=== 5. AU2 FAILED — ON A STATISTIC THAT DOES NOT EXIST ===');
+{
+  const cr = M.widths.map(r => r.collisionRatio.n ? r.collisionRatio.mean : null);
+  check('AU2 HELD (a) — the first-repeat index is 12.026, 20.244 and 34.296 at widths '
+    + 'four, five and six against exact nulls of 11.9577, 20.2105 and 34.5100, ratios '
+    + '1.0057, 1.0017 and 0.9938, all inside [0.95, 1.06]',
+    seq(cr.slice(3), [1.0057, 1.0017, 0.9938], 5e-4)
+    && cr.slice(3).every(v => v >= 0.95 && v <= 1.06));
+  check('   and no row is collision-free at those widths: 0 of 1,944, 0 of 5,832 and 0 '
+    + 'of 17,496',
+    [3, 4, 5].every(i => M.widths[i].collisionNoneRows === 0)
+    && M.widths.slice(3).map(r => r.collisionRows).join() === '1944,5832,17496');
+  check('AU2 HELD (b) — the two slopes over widths two to six are 0.4642 for the '
+    + 'collision and 1.0031 for the second preimage, inside [0.45, 0.55] and '
+    + '[0.95, 1.05]. THE TWO ATTACK GOALS SEPARATE BY EXACTLY ONE SQUARE ROOT',
+    near(M.fits.collision.slope, 0.4642, 5e-4) && near(M.fits.sp.slope, 1.0031, 5e-4)
+    && M.fits.collision.slope >= 0.45 && M.fits.collision.slope <= 0.55
+    && M.fits.sp.slope >= 0.95 && M.fits.sp.slope <= 1.05
+    && M.fits.collision.dropped === 0 && M.fits.sp.dropped === 0,
+    `${M.fits.collision.slope} ${M.fits.sp.slope}`);
+  // THE FAILURE. The registration named width one as degenerate in AU2(a)'s own
+  // rationale and then included it in leg (c) anyway. There is nothing to divide.
+  check('AU2 FAILED (c) — at width one the ratio is 0/0: the measured scan finds no '
+    + 'collision in any of 72 rows AND the reshuffled null finds none in any of 14,400, '
+    + 'because the row map is injective and no ordering can produce a repeat',
+    M.widths[0].collision.n === 0 && !Number.isFinite(M.widths[0].collision.mean)
+    && M.widths[0].collisionNoneRows === 72 && M.widths[0].collisionRows === 72
+    && M.widths[0].collisionRatio.n === 0
+    && M.widths[0].shuffle.ratio === null && M.widths[0].shuffle.measuredMean === null
+    && M.widths[0].shuffle.perHead.reduce((s, x) => s + x.shufNone, 0) === 14400,
+    JSON.stringify([M.widths[0].collisionNoneRows,
+      M.widths[0].shuffle.perHead.reduce((s, x) => s + x.shufNone, 0)]));
+  check('   and the leg held at widths two and three, 1.0208 and 1.0492, so the '
+    + 'narrow-end shortfall really is a MULTIPLICITY effect and not an ordering one',
+    near(M.widths[1].shuffle.ratio, 1.0208, 5e-4) && near(M.widths[2].shuffle.ratio, 1.0492, 5e-4)
+    && [1, 2].every(i => M.widths[i].shuffle.ratio >= 0.95 && M.widths[i].shuffle.ratio <= 1.05));
+  check('   and the width-three value is 0.0008 inside its line, with a four-seed spread '
+    + 'of 1.0492, 1.0034, 1.0320 and 0.9875 — thin, and reported as thin',
+    near(1.05 - M.widths[2].shuffle.ratio, 0.0008, 5e-5)
+    && seq(M.thinMargins.map(t => t.shuffleRatioW3), [1.0492, 1.0034, 1.032, 0.9875], 5e-4));
+}
+
+console.log('\n=== 6. AU3 HELD — GROWTH IS NEARLY FREE OF WIDTH, AND LENGTH BEATS WIDTH ===');
+{
+  const g6 = M.widths.map(r => r.growth6.mean), g12 = M.widths.map(r => r.growth12.mean);
+  check('AU3 HELD (a) — the shortest insertion-only forgery is 1.0640, 1.4951, 2.0714, '
+    + '2.7989, 3.8172 and 4.9607 entries, tracking AT\'s counting null to within 0.0887 '
+    + 'at every width against a registered 0.30',
+    seq(g6, [1.064, 1.4951, 2.0714, 2.7989, 3.8172, 4.9607], 5e-4)
+    && g6.every((v, i) => Math.abs(v - M.nulls.counting6[i]) <= 0.30)
+    && near(Math.max(...g6.map((v, i) => Math.abs(v - M.nulls.counting6[i]))), 0.0887, 5e-4),
+    g6.map((v, i) => (v - M.nulls.counting6[i]).toFixed(4)).join(' '));
+  check('   and at ledger length twelve too: 1.0060, 1.2308, 1.6296, 2.1413, 2.7419 and '
+    + '3.3663 against 1.0131 to 3.3521',
+    seq(g12, [1.006, 1.2308, 1.6296, 2.1413, 2.7419, 3.3663], 5e-4)
+    && g12.every((v, i) => Math.abs(v - M.nulls.counting12[i]) <= 0.30));
+  // AT2's registered failure route, run where it must be largest — and it does not fire.
+  check('   AT2\'s un-fired failure route runs here where it must be largest and STILL '
+    + 'does not fire: at width one a seven-gap chain visits 2.822 distinct accumulators '
+    + 'of seven, so five generators are duplicates, and it costs the forger nothing',
+    near(M.widths[0].distinctGens6.mean, 2.822, 5e-4)
+    && near(M.widths[5].distinctGens6.mean, 6.969, 5e-4)
+    && Math.abs(g6[0] - M.nulls.counting6[0]) < 0.05,
+    M.widths.map(r => r.distinctGens6.mean.toFixed(3)).join(' '));
+  check('AU3 HELD (b) — the slope of the growth cost against the state count is 0.2812, '
+    + 'under the registered 0.32, against 0.5 for the birthday law and 1.0031 measured '
+    + 'for the ops law. FIVE MORE TRITS MULTIPLY THE STATE COUNT BY 243 AND THE GROWTH '
+    + 'COST BY 4.66',
+    near(M.fits.growth6.slope, 0.2812, 5e-4) && M.fits.growth6.slope < 0.32
+    && near(g6[5] / g6[0], 4.662, 5e-3));
+  check('AU3 HELD (c) — the same slope at length twelve is 0.2266, a gap of 0.0545 past '
+    + 'the registered 0.05, so adding gaps defeats width faster than width defends',
+    near(M.fits.growth12.slope, 0.2266, 5e-4) && near(M.fits.growthGap, 0.0545, 5e-4)
+    && M.fits.growthGap >= 0.05);
+  check('   AND THAT LEG IS ALSO A LINE IN THE NOISE: three further seeds give gaps of '
+    + '0.0494, 0.0441 and 0.0597, two of them under the line. The DIRECTION is stable at '
+    + 'every seed and the size of the gap is not',
+    seq(M.slopeSpread.map(s => s.gap), [0.0494, 0.0441, 0.0597], 5e-4)
+    && M.slopeSpread.every(s => s.growth12 < s.growth6)
+    && M.slopeSpread.some(s => s.gap < 0.05),
+    M.slopeSpread.map(s => s.gap.toFixed(4)).join(' '));
+}
+
+console.log('\n=== 7. AU4 FAILED — ON THE FAMILY THIS SET CHOSE, NOT ON WIDTH ===');
+{
+  const any = M.widths.map(r => r.cZeroCondAny);
+  const none = M.widths.map(r => r.pairZeroFraction.mean);
+  const unc = M.widths.map(r => r.cZeroUncondAny);
+  check('400 heads at each width, conditioned and unconditioned, both run',
+    M.widths.every(r => r.cZeroCond.n === 400 && r.cZeroUncond.n === 400));
+  check('AU4 FAILED (a) — the fraction of heads admitting a universal pair is 1.0000, '
+    + '0.5275, 0.6075, 0.6625, 0.6000 and 0.6450, and 0.5275 at width two is outside '
+    + 'the registered [0.56, 0.70]',
+    seq(any, [1.0, 0.5275, 0.6075, 0.6625, 0.6, 0.645], 5e-5)
+    && any[1] < 0.56 && [2, 3, 4, 5].every(i => any[i] >= 0.56 && any[i] <= 0.70),
+    any.map(v => v.toFixed(4)).join(' '));
+  check('AU4 FAILED (c) — and the accumulator fraction with 0.45833 at width two, '
+    + 'outside [0.335, 0.395], while widths three to six read 0.35185, 0.37397, 0.35340 '
+    + 'and 0.35900, all inside',
+    seq(none, [0.0, 0.45833, 0.35185, 0.37397, 0.3534, 0.359], 5e-5)
+    && none[1] > 0.395 && [2, 3, 4, 5].every(i => none[i] >= 0.335 && none[i] <= 0.395));
+  // THE FAILURE IS A PROPERTY OF THE DESIGN AND THE CONTROL IS WHAT SAYS SO.
+  check('   AND THE FAILURE IS THE CONDITIONING, NOT THE WIDTH: the UNCONDITIONED family '
+    + 'at the same nine states reads 0.6450 with a mean c(ZERO) of 0.9650, comfortably '
+    + 'where the closed form says. T-CLAIM-NARROWED-BY-A-DESIGN, caught by a control',
+    near(unc[1], 0.645, 5e-5) && near(M.widths[1].cZeroUncond.mean, 0.965, 5e-4)
+    && unc[1] >= 0.56 && unc[1] <= 0.70
+    && unc.every((v, i) => i === 0 || (v >= 0.56 && v <= 0.70)),
+    unc.map(v => v.toFixed(4)).join(' '));
+  check('AU4 HELD (b) — width six is not the smallest of the five: 0.6450 against width '
+    + 'two\'s 0.5275, so there is no monotone width trend',
+    any[5] > Math.min(...any.slice(1)) && Math.min(...any.slice(1)) === any[1]);
+  check('SO THE ANSWER SURVIVES ITS OWN FAILURE — from 27 states up, about two heads in '
+    + 'three admit a two-entry, zero-operation, zero-knowledge forgery, and the mean '
+    + 'c(ZERO) is 0.9175, 0.9700, 0.9300 and 1.0225 against a Poisson one',
+    [2, 3, 4, 5].every(i => any[i] > 0.59 && any[i] < 0.67)
+    && seq(M.widths.slice(2).map(r => r.cZeroCond.mean), [0.9175, 0.97, 0.93, 1.0225], 5e-4));
+  check('   and width one is the other end of the same degeneracy, reported and not '
+    + 'registered: every head has exactly one pair at every accumulator',
+    any[0] === 1.0 && none[0] === 0 && M.widths[0].cZeroCond.mean === 1.0);
+  check('   and the split-round head has them too: 2 at width four and 3 at width six',
+    M.widths[3].control.split.row.pair.atIdentity.c === 2
+    && M.widths[5].control.split.row.pair.atIdentity.c === 3);
+}
+
+console.log('\n=== 8. THE MANIFEST SAYS WHAT THIS FILE MEASURED ===');
+{
+  const MAN = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'FINDINGS.json'), 'utf8'));
+  const set = MAN.prediction_sets.find(s => s.id === 'AU');
+  check('AU is in the manifest, names this tool and this test',
+    !!set && set.tool === 'tools/width-audit.js' && set.asserted_in === 'test/test-width.js');
+  check('   with four predictions: AU1 and AU3 HELD, AU2 and AU4 FAILED',
+    !!set && set.predictions.length === 4
+    && set.predictions.filter(p => p.outcome === 'HELD').map(p => p.id).join() === 'AU1,AU3'
+    && set.predictions.filter(p => p.outcome === 'FAILED').map(p => p.id).join() === 'AU2,AU4');
+  const m = id => (set.predictions.find(p => p.id === id) || {}).measured || {};
+  check('AU1\'s measured block carries the numbers this run produced',
+    m('AU1').first_accept_ratio[1] === 0.9302 && m('AU1').width_two_leg_margin === 0.0002
+    && m('AU1').join_ops_per_forgery.length === 6);
+  check('AU2\'s does', m('AU2').collision_slope_widths_two_to_six === 0.4642
+    && m('AU2').second_preimage_slope_widths_two_to_six === 1.0031
+    && m('AU2').reshuffled_rows_with_no_repeat_at_width_one === '14400 of 14400');
+  check('AU3\'s does', m('AU3').slope_length_six === 0.2812
+    && m('AU3').slope_gap === 0.0545 && m('AU3').largest_gap_from_null === 0.0887);
+  check('AU4\'s does', m('AU4').fraction_of_heads_with_a_universal_pair[1] === 0.5275
+    && m('AU4').unconditioned_family_fraction_with_a_pair[1] === 0.645);
+  const Fd = id => MAN.unregistered_findings.find(f => f.id === id);
+  for (const id of ['F-THE-TWO-ATTACK-GOALS-SEPARATE-BY-ONE-SQUARE-ROOT',
+    'F-WIDTH-BUYS-THE-FORGERS-MEMORY-NOT-HIS-TIME',
+    'F-WIDTH-DOES-NOT-KILL-THE-ZERO-OP-FORGERY',
+    'F-A-LINE-IN-THE-NOISE-THAT-PASSES-IS-THE-SAME-DEFECT',
+    'F-AT-WIDTH-ONE-THE-SECOND-PREIMAGE-IS-DETERMINISTIC']) {
+    const f = Fd(id);
+    check(`${id} is recorded, and points at this file`,
+      !!f && f.asserted_in === 'test/test-width.js'
+      && f.outcome === 'MEASURED_NOT_REGISTERED', id);
+  }
+  check('the two-goal finding quotes both fitted slopes and cites AS\'s figures rather '
+    + 'than re-running them',
+    (f => /0\.4642/.test(f.claim) && /1\.0031/.test(f.claim)
+      && /4,414/.test(Fd('F-WIDTH-BUYS-THE-FORGERS-MEMORY-NOT-HIS-TIME').argument
+        + Fd('F-THE-TWO-ATTACK-GOALS-SEPARATE-BY-ONE-SQUARE-ROOT').argument))
+      (Fd('F-THE-TWO-ATTACK-GOALS-SEPARATE-BY-ONE-SQUARE-ROOT')));
+  // The fifth bite of T-CRITERION-IN-THE-NOISE, and the first on a line that PASSED.
+  const trap = MAN.traps_encountered.find(t => t.id === 'T-CRITERION-IN-THE-NOISE');
+  check('the fifth bite of T-CRITERION-IN-THE-NOISE is recorded, and says the new thing: '
+    + 'the line PASSED, so nothing made anybody look',
+    trap.count === 5 && /THE LINE PASSED/.test(trap.description)
+    && /0\.9302/.test(trap.description));
+  const t2 = MAN.traps_encountered.find(t => t.id === 'T-CLAIM-NARROWED-BY-A-DESIGN');
+  check('and AU4\'s failure is recorded as a bite of T-CLAIM-NARROWED-BY-A-DESIGN, '
+    + 'caught by the control rather than by a reader',
+    t2.count >= 6 && /UNCONDITIONED family at the same width reads 0\.6450/.test(t2.description));
+}
+
+console.log('\n=== 9. THE TOOL AS IT IS ACTUALLY RUN — T-TOOL-CHECKED-ONLY-BY-IMPORT ===');
+{
+  // Importing sets the main-module flag false, so no print path ever executes. A tool
+  // once crashed on every run while its whole suite stayed green. Capped, so this costs
+  // seconds rather than the full sweep.
+  const out = execFileSync(process.execPath,
+    [path.join(__dirname, '..', 'tools', 'width-audit.js')],
+    { encoding: 'utf8', timeout: 600000,
+      env: { ...process.env, WIDTH_HEADS: '2', WIDTH_CZERO_HEADS: '5',
+        WIDTH_LEDGERS: '10', WIDTH_SCAN_LEDGERS: '3' } });
+  check('the audit runs as a program and prints its own report',
+    out.includes('WIDTH AUDIT') && ['AU1', 'AU2', 'AU3', 'AU4'].every(id => out.includes(id)));
+  check('   and reports the instrument before any verdict, the nulls, and the silences',
+    out.includes('THE INSTRUMENT, BEFORE ANY VERDICT')
+    && out.includes('THE EXACT NULLS, computed before the registration commit')
+    && out.includes('WHAT THIS SET DID NOT ATTACK'));
+  check('   and the cap really capped it: 2 heads a width, not 24',
+    /heads: 2\b|for 2 heads/.test(out) && !out.includes('for 24 heads'));
+  check('   while the quantities that do not depend on the cap are unchanged: the anchor, '
+    + 'the exact nulls, and the affine control\'s degenerate rows',
+    out.includes('0 mismatches') && out.includes('532,485 matches')
+    && out.includes('c(ZERO) = 3') && out.includes('34.5100')
+    && out.includes('914.3328'));
 }
 
 console.log(`\n${'='.repeat(64)}`);

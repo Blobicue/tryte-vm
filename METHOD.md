@@ -13,17 +13,17 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-<!--g:method-tally-->Forty-six prediction sets, **193 registered predictions, 158 held, 35 failed.** Nineteen
-distinct failure classes, which bit **59 times** between them. Fifty-six findings
+<!--g:method-tally-->Forty-seven prediction sets, **197 registered predictions, 160 held, 37 failed.** Nineteen
+distinct failure classes, which bit **61 times** between them. Sixty-one findings
 measured but never registered<!--/g-->, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
 document drifts from the manifest, the suite fails.
 
 **That last clause was not true of the registered set itself, and a read-only audit
-found it out.** <!--g:method-at-risk-->Twenty-five of those 193 were never at risk at all, and seven cannot be called either way. Corrected to what a run could
-actually have refuted, the record is **161 at risk, 126 held, 35 failed — a 21.7%
-failure rate** against 18.1% over everything registered<!--/g-->. The raw counts above are
+found it out.** <!--g:method-at-risk-->Twenty-five of those 197 were never at risk at all, and seven cannot be called either way. Corrected to what a run could
+actually have refuted, the record is **165 at risk, 128 held, 37 failed — a 22.4%
+failure rate** against 18.8% over everything registered<!--/g-->. The raw counts above are
 not lowered: every one of those predictions was registered before its run, and that is
 a fact about what happened. (This sentence used to carry the total as a literal, and it
 went stale by eight the moment two more sets landed — `T-STALE-CONSTANT` inside the
@@ -36,16 +36,18 @@ compulsory per-prediction field and the audit is `F-REGISTRATION-IS-NOT-RISK`.
 A prediction carries two independent labels, and running them together was costing
 something. `outcome` is the prediction against the run — held or failed. **`basis` is
 the scope of the claim**: swept at the width it was swept at, or argued at every width.
-<!--g:method-basis-->Ten of those 193 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
+<!--g:method-basis-->Ten of those 197 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
 each with its argument written out beside its measurement. The measurement is still
 required. A proof does not excuse running it — an argument is also a thing that can be
 wrong, and the run is what would say so.
 
-**<!--g:method-failures-lede-->The 35 failures produced more than the 126 successes that were genuinely at risk<!--/g-->.** Each one is
+**<!--g:method-failures-lede-->The 37 failures produced more than the 128 successes that were genuinely at risk<!--/g-->.** Each one is
 still in the manifest, marked `FAILED`, with the result it led to:
 
 | failed | what it claimed | what it produced |
 |---|---|---|
+| **AU2** | the collision cost tracks the exact birthday null at the wide widths, the two attack goals separate by one square root, and the narrow-end shortfall is a multiplicity effect measurable at widths one, two and three | two legs held and the third failed **on a statistic that does not exist**. The first-repeat index tracks the exact finite-N birthday expectation to within 0.6% at widths four to six with zero collision-free rows in 25,272, and the two fitted slopes come out at 0.4642 and 1.0031 — so a forger who may choose BOTH ledgers pays the square root of what a forger handed one pays, measured rather than assumed. The third leg included width one, where the row map is injective: 72 of 72 measured rows and 14,400 of 14,400 reshuffled rows have no repeat, so the ratio is 0/0. THE LEG FAILED BECAUSE OF THE MECHANISM IT WAS ASSERTING, and the registration had already named width one as degenerate in the same prediction's rationale |
+| **AU4** | a majority of heads at every width from two to six admit a two-entry, zero-operation universal forgery, in a band placed around AT's own measured 0.35117 | it failed at width TWO, at 0.5275 against [0.56, 0.70] — and the failure is a property of the head family the set CHOSE rather than of width. The random family is conditioned on having exactly one fixed point, because a head with none has no insertion family at all; the UNCONDITIONED family at the same nine states reads 0.6450. At nine states one constraint is a ninth of the object and the same conditioning is invisible at 729. **T-CLAIM-NARROWED-BY-A-DESIGN caught by a control rather than by a reader**, for the first time — and the answer survives: from 27 states up about two heads in three admit the zero-cost forgery and width six is not rarer than width three |
 | **AT2** | insertion-forgery length falls with ledger length, and no ledger anywhere needs more than 100 insertions | three legs held — the curve is strictly decreasing at all ten steps and tracks the uniform null to within 0.17 from length three on — and the bound on the MAXIMUM was placed by a heuristic that is only about a MEAN. The same exponential approximation that predicts 4.87 at length six, accurate to 0.03, puts the chance of exceeding 100 at length two at essentially zero; drawn directly, the null exceeds 100 in 22, 25 and 33 of 50,000 draws, so 2,000 draws expect about one and **the line had a 58% chance of firing on the null alone**. The measured 146 is not evidence about the subject: the null's own maximum is 243. DRAW THE NULL'S TAIL BEFORE REGISTERING A BOUND ON A MAXIMUM |
 | **AT3** | two free insertions accept at their chance value of 28 | 30.0120, missing by 0.012 — and it is seventeen standard errors, so the line was fine and the CHANCE VALUE was wrong. The fact that breaks it stood in the same set's own registration two hundred lines above: gap zero is the tritwise identity on every ledger, so one of the 28 gap pairs is never a random accumulator. The true expectation is 30, and the measured value sits 0.012 from it. Chasing that found **three pairs of entry values that forge any ledger of any length at zero cost in search**, which is worth more than the prediction was |
 | **P3** | a reach formula factored across digit positions | the corrected law, and Q3 explaining why the wrong one was plausible |
@@ -191,7 +193,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-six sets<!--/g--> and they form very nearly
+fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-seven sets<!--/g--> and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from
