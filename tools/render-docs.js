@@ -75,6 +75,62 @@ function word(n) {
 }
 const Word = n => { const w = word(n); return w[0].toUpperCase() + w.slice(1); };
 
+/**
+ * English for each defect class, for the doctree pillar's recurrence list. The manifest
+ * carries ids and a reader needs words, and the names here are the ones METHOD.md's
+ * catalogue already uses rather than a second vocabulary.
+ *
+ * A class with no name is FATAL rather than skipped. A generated list that quietly drops
+ * a class it does not recognise is worse than the stale hand-written one it replaces,
+ * because a short list looks complete and a stale number does not.
+ */
+const TRAP_NAMES = {
+  'T-ONE-POINT': ['one point is not a function'],
+  'T-STALE-CONSTANT': ['hardcoded counts go stale', 'including a document stating its own totals'],
+  'T-SILENT-NAN': ['writing through a name that does not exist'],
+  'T-ADJACENCY': ['reading past the end'],
+  'T-EXHAUSTED-NOT-CLOSED': ['out of budget is not finished',
+    'the second produced no wrong number, only an unverified one'],
+  'T-SOURCE-NOT-TERMINAL': ['paths through an ideal source'],
+  'T-INSTRUMENT-FALSE-VERDICT': ['the instrument, not the subject',
+    'a tool declaring a failure that was its own'],
+  'T-PREMISE-NOT-ANSWER': ['failing on a premise, not an answer'],
+  'T-FAKE-RANDOM': ['sampling that is not sampling'],
+  'T-CHECK-FORBIDS-HEALTHY-STATE': ['checks that forbid healthy states'],
+  'T-SEARCH-WHERE-A-CHECK-WOULD-DO': ['searching where a check would do'],
+  'T-CLAIM-NARROWED-BY-A-DESIGN': ['a claim narrowed by a design',
+    'the numbers right and the noun too big'],
+  'T-CENSUS-COUNTS-ITSELF': ['a census that counts itself'],
+  'T-CRITERION-IN-THE-NOISE': ['a criterion in the noise',
+    'a line the null clears about as readily as the subject does'],
+  'T-TRANSCRIBED-TABLE': ['a transcribed table'],
+  'T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE': ['computed control, unknown at pass one'],
+  'T-SCOPE-DECIDES-THE-VERDICT': ['the scope decides the verdict',
+    'a correct computation answering the adjacent question'],
+  'T-TOOL-CHECKED-ONLY-BY-IMPORT': ['a tool checked only by import'],
+  'T-CONTROL-CANNOT-DISCRIMINATE': ['a control that cannot fail'],
+};
+
+/** The pillar's recurrence bullets, ordered by the manifest and tailed by arithmetic. */
+function recurrence(traps) {
+  const named = traps.map(t => {
+    const n = TRAP_NAMES[t.id];
+    if (!n) {
+      throw new Error(`render-docs: no name for ${t.id}. Name it in TRAP_NAMES rather than `
+        + 'letting the generated list omit a class it does not recognise.');
+    }
+    return { count: t.count, name: n[0], gloss: n[1] };
+  });
+  const many = named.filter(t => t.count > 1)
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  const once = named.filter(t => t.count === 1).length;
+  return many
+    .map(t => `- **${t.name}** - ${t.count === 2 ? 'twice' : `${word(t.count)} times`}`
+      + (t.gloss ? `; ${t.gloss}` : ''))
+    .concat(`- and ${word(once)} others, each bitten once`)
+    .join('\n');
+}
+
 /** Everything derivable from the manifest and the tree, in one object. */
 function facts() {
   const built = SLATE.build().slate;
@@ -103,6 +159,7 @@ function facts() {
       rateRaw: r.rateRaw, rateCorrected: r.rateCorrected }))(RISK.tally(preds)),
     trapClasses: M.traps_encountered.length,
     bites: M.traps_encountered.reduce((a, t) => a + t.count, 0),
+    recurred: recurrence(M.traps_encountered),
     audits: inTools.length + elsewhere.length,
     // The published page counts this one class specifically, because its argument
     // rests on it: the instrument, not the subject, producing the verdict.
@@ -181,6 +238,14 @@ const TEMPLATES = {
 
   'doctree-desc': f => `${Word(f.trapClasses)} defect classes, ${word(f.bites)} bites`,
   'doctree-lede': f => `${Word(f.trapClasses)} classes, ${word(f.bites)} occurrences`,
+  // THE RECURRENCE LIST, WHICH WAS STALE IN FIVE OF ITS SIX LINES. It read "the
+  // instrument, not the subject - four times" while the manifest held twenty-one, and
+  // "a claim narrowed by a design - twice" against six, inside the pillar whose whole
+  // subject is defects that look right. The one line that was correct was the tail --
+  // "and ten others, each bitten once" -- and it is the only one nobody ever had to
+  // update, because it is arithmetic over the rest rather than a remembered number.
+  // Generated now, ordered by count, with the tail counted rather than typed.
+  'doctree-recurred': f => f.recurred,
 
   // The published page. Its masthead was the last surface here where a manifest
   // number was typed by hand and nothing checked it -- it had already drifted three

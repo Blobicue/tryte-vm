@@ -592,9 +592,19 @@ console.log('\n=== 9. THE MANIFEST SAYS WHAT THIS FILE MEASURED ===');
     + 'rather than correcting it away',
     /3\.9%/.test(bite.argument) && /ONE exceedance/.test(bite.argument)
     && /confidence interval/.test(bite.argument));
-  check('   and it says what it does NOT establish: the gap is shown non-zero, not sized',
+  // THIS CHECK PINNED A STATE OF THE WORLD RATHER THAN A PROPERTY OF THE ENTRY. It
+  // required the scope to still read "has not been run" -- true when written, and made
+  // false by the corpus-wide sweep this very entry asked for actually running. A guard
+  // whose premise is that nobody has done the work yet goes red the moment somebody
+  // does, which is T-CHECK-FORBIDS-HEALTHY-STATE with a longer fuse: the check was
+  // failing on the project working. What is durable is the pair of statements -- this
+  // set did not SIZE the gap, and the entry names whoever did -- so that is what is
+  // asserted now, and stripping the pointer turns it red again.
+  check('   and it says what it does NOT establish: the gap is shown non-zero, not sized '
+    + 'here — and it now names the sweep that sized it rather than still saying none ran',
     /does NOT size the gap/.test(bite.scope)
-    && /has not been run/.test(bite.scope));
+    && /THAT SWEEP HAS SINCE BEEN RUN/.test(bite.scope)
+    && /F-A-LINE-THE-NULL-CLEARS-IS-NOT-EVIDENCE/.test(bite.scope));
   check('   and it credits the class to AU rather than claiming it',
     /F-A-LINE-IN-THE-NOISE-THAT-PASSES-IS-THE-SAME-DEFECT/.test(bite.scope)
     && !!MAN.unregistered_findings

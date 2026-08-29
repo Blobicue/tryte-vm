@@ -102,8 +102,8 @@ anything.
 | of those, genuinely at risk | 165 — 128 held, 37 failed |
 | never at risk | 25 decorative, 7 uncalled |
 | failure rate | **22.4%** of what was at risk; 18.8% of all registered |
-| measured but never registered | 64 |
-| defect classes | 19, recurring 62 times |<!--/g-->
+| measured but never registered | 66 |
+| defect classes | 19, recurring 70 times |<!--/g-->
 
 The suite's check count is deliberately **not** repeated here — it lives in
 [`../README.md`](../README.md), where `run-all.js` verifies it, and a second copy

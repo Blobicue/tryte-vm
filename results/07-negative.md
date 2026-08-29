@@ -266,6 +266,144 @@ the *specification* was wrong:
 
 ---
 
+### Part four — the criteria that were not evidence
+
+The three parts above ask whether a claim was wrong. This one asks something narrower and
+worse: **was the criterion discriminating?** A line placed where the null clears it
+routinely is not evidence, whichever side it lands on — and unlike a wrong claim it leaves
+no mark, because a verdict is a verdict whether or not anything was at stake.
+
+**The unit is the leg, not the prediction.** A prediction with three legs can hold on the
+two that were evidence and fail on the one that was not, so scoring at prediction level
+averages away exactly what is being measured. Of the 165 predictions standing as at risk,
+50 place a magnitude line; 32 of those admit a null anyone can draw without inventing the
+chance model. **Thirty-one of the 32 were scored**, and they carry **55 legs — 43 held, 12
+failed**. The 32nd is `AQ4`, which arrived in this class after the sweep had run and has no
+scored leg: a line-bearing prediction whose null is drawable and which nobody has drawn. It
+is a gap, not a result, and it is not counted into the 55.
+
+**Sixteen of the 55 are not discriminating** — the null crosses the registered line
+between 5% and 95% of the time. Nine held and seven failed.
+
+| leg | verdict | the registered line | the null | how often the null clears it |
+|---|---|---|---|---|
+| `H1(a)` | FAILED | time per device-pass within a factor of 3 of constant | host load | 3.72 on one run, 2.89 on the next |
+| `H2(a)` | HELD | a 50,000-device solve under one second | host load | a duration line; margin 14.18x against a swing this corpus measured at 14.35x |
+| `D4` | FAILED | truncated collisions separate a mixer from a positionwise map | any permutation | always — 27 buckets of 27 by construction |
+| `AM2` | FAILED | the affine task groks soonest | one paired comparison | 50% |
+| `AO1(a)` | FAILED | erasure within 5% of the 0.8265 null | a random ceremony map | 16% — 64 of the tool's own 400 draws |
+| `AO4` | HELD | exposed secrets within 10% of both 268.4 and 264 | random map on 729 points, 8,000 draws | 6.54%, CI [6.02, 7.10]; measured 252 sits 1.27 sd inside |
+| `AR1` | HELD | the varying optimum costs at least 85% of the constant one at every cell | 300 matched redraws over [2, 8192] × 8 decades | 9.0%, CI [6.3, 12.8] |
+| `AR2` | HELD | the largest single-leaf jump less than half as large | 500 matched redraws | 87.5%, CI [71.9, 95.0] — but the recorded HELD is the null's *minority* outcome |
+| `AT1(b)` | HELD | no ledger of 2,000 needs more than 12 insertions | uniform | 7.7%, CI [4.4, 10.9]; 2 of 12 seeds |
+| `AT2(d)` | FAILED | no ledger anywhere needs more than 100 | uniform | about 58% |
+| `AT3(a)` | FAILED | two free insertions accept within 2.0 of 28.0 | the true chance value is 30 | 5 of 12 seeds fail, 7 hold |
+| `AU1(a)` | HELD | ops ratio in [0.93, 1.07] | the random head family | measured 0.9302; four further seeds straddle |
+| `AU1(c)` | HELD | the split head inside the random family's min-to-max range | exchangeability, **exact** | a 25th draw falls outside the min-max of 24 with probability 2/25 = 8% per statistic |
+| `AU2(b)` | HELD | collision slope in [0.45, 0.55] | the exact finite-N birthday law | the *ideal object* misses on 3 of 7 candidate windows |
+| `AU2(c)` | FAILED | reshuffle ratio in [0.95, 1.05] at widths 1–3 | — | failed at width one where the statistic is 0/0; 0.0008 inside its line at width three |
+| `AU3(c)` | HELD | slope gap at least 0.05 | the head family | measured 0.0545; 3 of 12 seeds cross |
+
+**Four more could not have gone the other way at all**, at P(recorded verdict | null) at or
+above 0.99. `AP2(a)`, `AP2(b)` and `AP2(c)` all held at P = 1: the base-3 digit map is a
+bijection onto (Z/3)⁶ and the positions are independent under a uniform pair, so the
+exhaustive mean over all 531,441 ordered pairs is *identically* (5/3)⁶ — 21.43347050754458
+against 21.433470507544587, a difference of −7.1e-15 — while the maximum 64 and the minimum
+1 have explicit witnesses. `AR4` failed at 500 of 500. **One is undetermined**: `AR3`
+crosses at 4.2%, CI [2.8, 6.3], an interval straddling the bar, so what is undecided is the
+classification and not the measurement.
+
+#### Seven recorded failures rest entirely on a criterion that was not evidence
+
+`AO1`, `AT2`, `AT3`, `AU2`, `AM2`, `D4` and `AR4`. Each says so in its own entry in
+[`99-ledger.md`](99-ledger.md), and each says the second thing too, because they are
+different things: **a line in the noise corrupts a verdict; it does not automatically
+corrupt a finding.** All seven findings survive. `AT3(a)` was decided by the draw and
+chasing it found c(ZERO) = 3 against a control's 0; `AT2(d)` produced the
+draw-the-null's-tail rule out of the null's own draws rather than out of the measured
+value; `AO1(a)` produced the distributional-null rule; `D4` produced `AN1`, and is the one
+case where the criterion's inability to discriminate *is* the finding. `AM2`'s criterion is
+a coin on a single paired comparison and its finding is four of four paired seeds —
+stronger than the criterion ever asked for.
+
+**Do not read these two sevens as one list.** The seven *failed non-discriminating legs*
+are `H1(a)`, `D4`, `AM2`, `AO1(a)`, `AT2(d)`, `AT3(a)` and `AU2(c)`. Membership differs by
+exactly one element on each side: `H1` also failed on leg (b), which is discriminating at
+some five standard deviations, so `H1`'s FAILED is carried by a leg the null could not have
+produced; `AR4` is not a noise line at all but a line the null clears with probability one,
+and its single leg is the whole of its verdict.
+
+#### The silence: eighteen lines with no null anyone can draw
+
+`AH1`, `AH2`, `AH4`, `AC3`, `AC4`, `AE3`, `AE4`, `AG2`, `AG3`, `AG4`, `AJ2`, `AL4`, `R3`,
+`G2`, `H4`, `N4`, `AD2`, `AM3`. Eighteen of the 50 line-bearing predictions carry a
+magnitude line over a statistic that is an exhaustive deterministic fact, with no chance
+model available that the auditor would not have had to invent — and inventing it would make
+the auditor the author of the thing being audited. **They are unmeasured, not clear.**
+
+**Nothing is claimed about how these eighteen came out, and the refusal is the result.** A
+failure rate for the class was computed and published during this integration, and it is
+retracted in full, including in any hedged form. Three reasons, and all three are properties
+of the class *definition* rather than caveats appended to a result.
+
+- **The classification was not outcome-blind in procedure.** The survey that assigned all
+  165 read dumps carrying each claim's outcome label beside it, so the boundary of this
+  class was drawn by someone who could see the answers, and no statistic over it can be
+  cleaned of that afterwards.
+- **The assignments the auditor was least sure of carried the whole result, and re-reading
+  them changed the class rather than annotating it.** `AQ1` and `AQ2` are corrected out
+  altogether — not disputed, *misclassified*: an exhaustive existence claim and two parity
+  censuses, never line-bearing at all. `AQ4` is corrected into the drawable class, because
+  "differ by no more than 15%" is a magnitude band whose null is drawable through
+  [`../tools/radix-audit.js`](../tools/radix-audit.js)'s control, which uses exactly `AQ`'s
+  constants. What remains disputed is smaller and stays unresolved: whether `AQ4` belonged
+  in the drawable class from the start, and `AM1` and `AM4`, which sit there with "no null
+  drawable" written beside them in the auditor's own leg table.
+- **The two classes are defined on different axes and do not partition anything** — drawable
+  is *stochastic, or names a chance value*, this one is *exhaustive and deterministic*.
+  Zero of the 50 straddle, which rules out the failure mode a reader will otherwise assume.
+
+The class sizes are published — 115 predictions with no line at all, 18 with a line and no
+drawable null, 32 with both, summing to the 165 at risk — and **the outcome breakdown of the
+middle class is withheld**, because that breakdown is the retracted statistic and a raw pair
+of counts is one step from it.
+
+One process flag is kept although it came out clean, which is the point of keeping it: `N4`
+was assigned without its registered text being read, volunteered as such by the auditor
+against its own interest, and has since been read and the assignment **confirmed**. A flag
+on process is worth less if only the ones that turn out wrong get reported.
+
+**And the reason `AQ` was misclassified is the most transferable thing in this section.**
+The sweep's extractor recovered each set's registration with `git show <registered_at>:<tool>`
+and searched it for the header `PREDICTED OUTCOMES`. `AQ`'s tool said `REGISTERED PREDICTIONS`
+at the time it was registered, so the extractor found no block, fell back silently to the
+manifest's one-line summary, and **`AQ` is the one set in the corpus whose registered criteria
+were never read at any point in the audit** — the set whose classification was then disputed
+and found wrong on all three predictions. The header was normalised at some later commit, so
+at HEAD every tool looks fine and always did: **an extractor that reads history can be broken
+by history in a way no check at HEAD can see.** Checked at each set's *own* `registered_at`,
+exactly one of the 47 lacks the header. `F-AN-EXTRACTOR-THAT-READS-HISTORY-IS-BROKEN-BY-HISTORY`.
+
+#### The boundary every count here stops at
+
+**Every count is a floor, and the gap between it and the truth is exactly the competence of
+whoever wrote the registrations.** A criterion that was in the noise, noticed by its
+registrant, and widened before the registration commit is invisible by construction — there
+is nothing in `git show <registered_at>:<tool>` to find. `AS1(c)` is the visible half: its
+registrant drew the null's tail before placing the line at 40 — an exact Binomial(10920,
+1/729) whose modal 2,000-draw maximum is 29 at p = 0.257 and whose P(max > 40) is 4.4e-5 —
+and wrote the computation into the `AT RISK` annotation. Everyone who did that silently left
+no trace.
+
+So a low rate can mean the criteria were good, or that the bad ones were fixed in the hour
+before they were committed. This sweep cannot separate those and does not try. **No estimate
+of what is behind that boundary is offered**, because an estimate of the unrecorded is
+exactly the kind of number this audit exists to catch.
+
+The full record is `F-A-LINE-THE-NULL-CLEARS-IS-NOT-EVIDENCE`.
+
+---
+
 ## How it was established
 
 Every failed prediction is recorded with its measured values in
@@ -295,10 +433,25 @@ working here are in [`../AGENTS.md`](../AGENTS.md).
 - **"Kept, not corrected away" is checked only in one direction.** The suite verifies
   no failure quietly becomes a success. It cannot verify that a failure was recorded
   in the first place.
+- **Part four's counts are floors on the held side and near-censuses on the failed side.**
+  A criterion that failed was found *because* it failed; a criterion that passed was found
+  only because one reader swept for it. The two columns are not comparable, and the
+  imbalance runs further toward the held side than the table suggests.
+- **Part four scored the criteria of one class and refused to score another.** Eighteen
+  line-bearing predictions have no null that does not have to be invented, and they are
+  unmeasured rather than clear. Nothing here says how they came out, and the section says
+  why that refusal is the honest answer rather than a gap.
+- **One set's registered criteria were never read.** `AQ`'s registration used a header the
+  sweep's extractor did not recognise, and the fallback was silent. Its three predictions
+  were classified from a one-line manifest summary and all three were wrong. Nothing rules
+  out a second silent fallback that happened to land on the right answer.
 
 ---
 
 ## Owned sets
 
 None. This file states no result of its own — it cross-references the failures inside
-`P`, `X`, `Z`, `E`, `H`, `J`, `A`, `D` and `N`, each of which is owned elsewhere.
+`P`, `X`, `Z`, `E`, `H`, `J`, `A`, `D` and `N`, each of which is owned elsewhere. Part four
+reaches further still, into every set the criterion sweep scored; those sets are owned by
+[`04-machine.md`](04-machine.md), [`05-algebra.md`](05-algebra.md) and
+[`06-economics.md`](06-economics.md), and nothing here restates their results.

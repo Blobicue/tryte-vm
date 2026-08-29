@@ -1717,6 +1717,62 @@ rather than about width, and neither this set nor `AT` is the place for it. It i
 down because this thread's silences have each become the next set, and because a
 generalisation that lives only in a review message is one nobody can find.
 
+### That sweep has since been run, and it answers half of the open question
+
+The question above was whether the catalogue's counts are a defect *rate* or a
+**publication rate**. A corpus-wide criterion sweep — Part four of
+[`07-negative.md`](07-negative.md), recorded as
+`F-A-LINE-THE-NULL-CLEARS-IS-NOT-EVIDENCE` — scored every registered leg carrying a
+magnitude line and a drawable null, whatever its verdict, and found sixteen where the null
+crosses the line routinely. Eight were new to the tally. **Several of the eight had already
+been described in their own sets' prose and counted nowhere.** `AT3` is the sharpest and
+the undisputed one: its own note says the recorded word was decided by the draw, written
+into the entry the defect corrupted, and the tally never moved. `D4` calls its own test
+disqualified; `AO4`'s tool printed that it held only because its band was twice `AO1`'s;
+`AR1`'s note records a null tail above the subject's worst cell. **The exact split is not
+published, because no membership rule for "disclosed" was fixed in advance** — two careful
+readers derive it differently and a third scan reached neither, having read the prediction
+entries while some of the disclosure lives in set-level prose. The claim does not need the
+count.
+
+So for the half this sweep can reach the answer is that **the tally is a publication rate,
+and disclosure and counting are separate acts.** Writing a defect down in the entry it
+belongs to moves no number a reader sees; only the tally does, and the tally had been moved
+almost only by failures. The other half is still out of reach: an error caught by its own
+author before anything was written leaves nothing to find, and no count here bounds it.
+
+### Five of this file's sets carry a criterion that was not evidence
+
+Each is disclosed in its own entry in [`99-ledger.md`](99-ledger.md); this is the index.
+
+- **`AO1`** — the failing leg's 5% band is crossed by the null about 16% of the time, 64
+  of the tool's own 400 draws, so the verdict is a draw. The finding is a direct count —
+  252 of 729 secrets recovered exactly while erasure reads a healthy 0.89 bits — and does
+  not depend on the band. `AO4`, scored on the same frozen map, is not discriminating
+  either, at a 6.54% crossing rate, and it was recorded as a clean HELD.
+- **`AT2`** — the bound on the maximum had roughly a 58% chance of firing on the null
+  alone. The draw-the-null's-tail rule it produced rests on the null's own draws rather
+  than on the measured 146, and the set's result is carried by its three discriminating
+  legs.
+- **`AT3`** — the failing leg lands outside its band on five of twelve seeds and inside on
+  seven. The criterion decided the word and never touched the mechanism: `c(ZERO) = 3`
+  against a random-permutation control's 0, with every seed mean within 0.271 of 30.
+- **`AU2`** — both remaining criteria are non-discriminating, one on each side of the
+  verdict. The failing leg fails at width one where the statistic is 0/0, which the
+  registration had itself named as degenerate; the held leg (b) is the band drawn round an
+  asymptote the window cannot reach. The finding rides on (a), which is discriminating.
+- **`AR4`** — the criterion cannot go the other way at all: a matched null fails it 500
+  times in 500. The finding does not rest on any null but on deterministic counts — 3,580
+  shallower against 2,176 deeper, the verify budget identical at 2,861 of 7,169 leaf
+  counts. The auditor flags its own null as contestable, 489 of the 500 draws being
+  degenerate, and that doubt is recorded rather than resolved.
+
+`AR1`, `AR2`, `AT1(b)`, `AU1(a)`, `AU1(c)` and `AU3(c)` are the held legs in this file the
+same sweep found non-discriminating, and `AR3`'s classification is undetermined. `AQ4` is
+line-bearing with a drawable null that **nobody has drawn** — a gap rather than a result.
+**None of these outcomes is re-scored.** What is recorded is what a criterion was worth,
+never what a verdict should have been.
+
 ## Owned sets
 
 | set | subject | outcome |

@@ -914,6 +914,221 @@ console.log('\n=== 8. AT RISK: COULD THE RUN HAVE REFUTED IT AT ALL? ===');
   }
 }
 
+// ===========================================================================
+console.log('\n=== 9. WAS THE CRITERION DISCRIMINATING? ===');
+// Section 8 asks whether the RUN could have refuted a prediction. This asks the
+// narrower and worse question: could the NULL have produced the verdict anyway? A line
+// placed where the null clears it routinely is not evidence, whichever side it lands
+// on, and unlike a wrong claim it leaves no mark -- a verdict is a verdict whether or
+// not anything was at stake.
+//
+// NOTHING HERE RE-SCORES ANYTHING. Every `outcome` and every `at_risk` value stands as
+// its results commit left it; that ordering is the only property of this record a later
+// edit cannot fake. What is frozen below is what a criterion was WORTH. The lists are
+// literals for the same reason the decoration audit's are: so they cannot be quietly
+// unmarked, and so the arithmetic over them is checked rather than asserted.
+{
+  // Leg -> the LEG'S OWN verdict, which is not always its prediction's: AU2 failed on
+  // (c) while (a) and (b) held, and bucketing legs by their prediction's outcome is the
+  // unit error that moved this sweep's own headline from 37.5% to 27.9% before it was
+  // caught.
+  const NOT_DISCRIMINATING = {
+    'H1(a)': 'FAILED', 'H2(a)': 'HELD', 'D4': 'FAILED', 'AM2': 'FAILED',
+    'AO1(a)': 'FAILED', 'AO4': 'HELD', 'AR1': 'HELD', 'AR2': 'HELD',
+    'AT1(b)': 'HELD', 'AT2(d)': 'FAILED', 'AT3(a)': 'FAILED', 'AU1(a)': 'HELD',
+    'AU1(c)': 'HELD', 'AU2(b)': 'HELD', 'AU2(c)': 'FAILED', 'AU3(c)': 'HELD',
+  };
+  const CANNOT_GO_OTHER_WAY = {
+    'AP2(a)': 'HELD', 'AP2(b)': 'HELD', 'AP2(c)': 'HELD', 'AR4': 'FAILED',
+  };
+  const UNDETERMINED = { 'AR3': 'HELD' };
+  // The seven recorded FAILURES that rest ENTIRELY on a criterion that was not evidence.
+  const AFFECTED_FAILURES = ['AO1', 'AT2', 'AT3', 'AU2', 'AM2', 'D4', 'AR4'];
+  // A line, and no null anyone could draw without inventing the chance model. Listed,
+  // and nothing is asserted about how they came out: the class boundary was drawn with
+  // the outcomes visible, so its outcome distribution is the statistic the finding
+  // retracts, and a check is a published number.
+  const NO_DRAWABLE_NULL = ['AH1', 'AH2', 'AH4', 'AC3', 'AC4', 'AE3', 'AE4', 'AG2',
+    'AG3', 'AG4', 'AJ2', 'AL4', 'R3', 'G2', 'H4', 'N4', 'AD2', 'AM3'];
+  const SCORED_PARENTS = ['H1', 'H2', 'D1', 'D3', 'D4', 'AM1', 'AM2', 'AM4', 'AN1',
+    'AN2', 'AN3', 'AN4', 'AO1', 'AO4', 'AP2', 'AR1', 'AR2', 'AR3', 'AR4', 'AS1', 'AS2',
+    'AS3', 'AS4', 'AT1', 'AT2', 'AT3', 'AT4', 'AU1', 'AU2', 'AU3', 'AU4'];
+  // Line-bearing, null drawable, NOBODY HAS DRAWN IT. A gap, not a result, and it must
+  // not be counted into the 55 legs as though it had been scored.
+  const UNSCORED_LINE_BEARING = ['AQ4'];
+  const TOTAL_LEGS = 55;
+
+  // The vocabulary has exactly one owner, here as everywhere: a second parser is a
+  // second thing to disagree.
+  const R = require('../tools/at-risk.js');
+  const byId = new Map();
+  for (const s of M.prediction_sets) for (const p of s.predictions) byId.set(p.id, p);
+  const parentOf = leg => leg.replace(/\(.\)$/, '');
+
+  const nd = Object.entries(NOT_DISCRIMINATING);
+  const ndHeld = nd.filter(([, v]) => v === 'HELD');
+  const ndFailed = nd.filter(([, v]) => v === 'FAILED');
+  check(`${nd.length} legs are recorded NOT DISCRIMINATING — the null crosses the `
+    + `registered line between 5% and 95% of the time — ${ndHeld.length} held and `
+    + `${ndFailed.length} failed`,
+    nd.length === 16 && ndHeld.length === 9 && ndFailed.length === 7,
+    `${nd.length} / ${ndHeld.length} held / ${ndFailed.length} failed`);
+
+  const all = [...nd, ...Object.entries(CANNOT_GO_OTHER_WAY), ...Object.entries(UNDETERMINED)];
+  const unknown = all.map(([leg]) => parentOf(leg)).filter(id => !byId.has(id));
+  check('   and every scored leg names a prediction that exists', unknown.length === 0,
+    unknown.join(' '));
+
+  const cg = Object.entries(CANNOT_GO_OTHER_WAY);
+  check(`   and ${cg.length} more could not have gone the other way at all, at `
+    + `P(recorded verdict | null) at or above 0.99, with ${Object.keys(UNDETERMINED).length} undetermined`,
+    cg.length === 4 && cg.filter(([, v]) => v === 'HELD').length === 3
+    && Object.keys(UNDETERMINED).length === 1);
+
+  // What would catch a verdict being moved underneath the audit: a failed leg forces
+  // its prediction failed, and the seven affected are all still FAILED.
+  const inconsistent = all.filter(([leg, v]) =>
+    v === 'FAILED' && (byId.get(parentOf(leg)) || {}).outcome !== 'FAILED').map(([leg]) => leg);
+  const notFailed = AFFECTED_FAILURES.filter(id => (byId.get(id) || {}).outcome !== 'FAILED');
+  check('   and no outcome moved: every prediction carrying a failed non-evidence leg is '
+    + 'still recorded FAILED, all seven affected included',
+    inconsistent.length === 0 && notFailed.length === 0 && AFFECTED_FAILURES.length === 7,
+    `${inconsistent.join(' ')} ${notFailed.join(' ')}`);
+
+  // THE TWO SEVENS ARE DIFFERENT SETS OF THE SAME SIZE, and a reader who takes them for
+  // one list gets both wrong. H1 also failed on leg (b), which is discriminating at some
+  // five standard deviations, so H1's FAILED is carried by a leg the null could not have
+  // produced. AR4 is not a noise line at all -- the null clears it with probability one
+  // -- so it is not a failed ND leg, but its single leg is the whole of its verdict.
+  const failedNDparents = [...new Set(ndFailed.map(([leg]) => parentOf(leg)))];
+  const onlyLegs = failedNDparents.filter(id => !AFFECTED_FAILURES.includes(id));
+  const onlyAffected = AFFECTED_FAILURES.filter(id => !failedNDparents.includes(id));
+  check('the seven failed NON-DISCRIMINATING LEGS and the seven AFFECTED FAILURES are '
+    + 'different sets of equal size, differing by exactly {H1} and {AR4}',
+    failedNDparents.length === 7 && onlyLegs.length === 1 && onlyLegs[0] === 'H1'
+    && onlyAffected.length === 1 && onlyAffected[0] === 'AR4',
+    `only among legs: ${onlyLegs.join(' ')}; only among failures: ${onlyAffected.join(' ')}`);
+
+  // A reader of one entry must not have to find a summary to learn what its criterion
+  // was worth. Disclosure in the finding alone is the defect this audit is about.
+  const undisclosed = AFFECTED_FAILURES.filter(id =>
+    !/CRITERION AUDIT/.test((byId.get(id) || {}).note || ''));
+  check('   and each of the seven discloses it in its OWN entry, not only in the finding',
+    undisclosed.length === 0, undisclosed.join(' '));
+
+  const missing = NO_DRAWABLE_NULL.filter(id => !byId.has(id));
+  const notAtRisk = NO_DRAWABLE_NULL.filter(id =>
+    byId.has(id) && R.classify(byId.get(id).at_risk) !== 'at-risk');
+  const straddle = NO_DRAWABLE_NULL.filter(id =>
+    SCORED_PARENTS.includes(id) || UNSCORED_LINE_BEARING.includes(id));
+  check(`${NO_DRAWABLE_NULL.length} line-bearing predictions have NO null anyone could `
+    + 'draw without inventing the chance model — unmeasured, not clear — and none of them '
+    + 'straddles the drawable class',
+    NO_DRAWABLE_NULL.length === 18 && missing.length === 0 && notAtRisk.length === 0
+    && straddle.length === 0,
+    `absent: ${missing.join(' ')}  not at risk: ${notAtRisk.join(' ')}  straddling: ${straddle.join(' ')}`);
+
+  // SIZES ONLY. The outcome breakdown of the middle class is deliberately not asserted
+  // anywhere, because the boundary was drawn with the outcomes visible.
+  const atRiskNow = M.prediction_sets.flatMap(s => s.predictions)
+    .filter(p => R.classify(p.at_risk) === 'at-risk');
+  const lineBearing = NO_DRAWABLE_NULL.length + SCORED_PARENTS.length + UNSCORED_LINE_BEARING.length;
+  check(`the three classes reconcile to the at-risk total: ${atRiskNow.length - lineBearing} `
+    + `carry no line, ${NO_DRAWABLE_NULL.length} a line and no drawable null, `
+    + `${SCORED_PARENTS.length + UNSCORED_LINE_BEARING.length} both — summing to ${atRiskNow.length}`,
+    atRiskNow.length === 165 && lineBearing === 50 && atRiskNow.length - lineBearing === 115);
+
+  check(`   and the ${TOTAL_LEGS} legs come from the ${SCORED_PARENTS.length} SCORED `
+    + 'predictions only — AQ4 is line-bearing with a drawable null nobody has drawn, and '
+    + 'is counted as a gap rather than as a leg',
+    SCORED_PARENTS.length === 31 && UNSCORED_LINE_BEARING.length === 1
+    && !SCORED_PARENTS.includes('AQ4') && TOTAL_LEGS === 55);
+
+  // A test that cannot fail is worse than no test. Broken deliberately: a leg pointing at
+  // a prediction that does not exist, a held leg relabelled failed, and a silence id
+  // smuggled into the scored class -- each is the shape of a real edit somebody could make.
+  const plus = (o, k, v) => Object.assign({}, o, { [k]: v });
+  check('   and all three of those would be caught — a leg naming a prediction that does '
+    + 'not exist, a held leg relabelled FAILED, and a silence id also listed as scored',
+    Object.keys(plus(NOT_DISCRIMINATING, 'ZZ9(a)', 'HELD')).map(parentOf)
+      .filter(id => !byId.has(id)).length === 1
+    && Object.values(plus(NOT_DISCRIMINATING, 'AO4', 'FAILED'))
+      .filter(v => v === 'FAILED').length === ndFailed.length + 1
+    && [...NO_DRAWABLE_NULL, 'AT1'].filter(id => SCORED_PARENTS.includes(id)).length === 1);
+}
+
+// ===========================================================================
+console.log('\n=== 10. AN INSTRUMENT THAT READS HISTORY ===');
+// AN INSTRUMENT THAT READS HISTORY CAN BE BROKEN BY HISTORY IN A WAY NO CHECK AT HEAD
+// CAN SEE, and that is a class this corpus did not have until a sweep fell into it.
+//
+// The criterion audit located each set's registered predictions by recovering
+// `git show <registered_at>:<tool>` and searching it for `PREDICTED OUTCOMES`. Set AQ's
+// tool said `REGISTERED PREDICTIONS` when it was registered. No match, a silent fallback
+// to the manifest's one-line summary, and AQ became the one set in the corpus whose
+// REGISTERED CRITERIA WERE NEVER READ -- and the set whose classification was then found
+// wrong on all three of its predictions.
+//
+// THE HEADER WAS NORMALISED AT SOME LATER COMMIT, so at HEAD every tool carries the
+// current spelling and a grep over `tools/` reports all 47 fine and always fine. The
+// evidence of the fault has been edited out of the only place anyone would look. The
+// antibody is the general rule: A GUARD OVER REGISTRATION TEXT MUST READ EACH SET'S OWN
+// registered_at, NEVER THE WORKING TREE, and its recognised vocabulary must be the union
+// over history rather than the spelling that happens to be current.
+//
+// And per the sibling defect in the same thread -- a harness that compared a classifier's
+// return value against a constant it can never equal, filtered its population to empty,
+// and printed four rows of plausible p-values off no data -- THE RECOVERY IS ASSERTED TO
+// HAVE MATCHED, set by set, rather than reporting over whatever it happened to find.
+{
+  const HEADERS = ['PREDICTED OUTCOMES', 'REGISTERED PREDICTIONS'];
+  // ONE SPAWN, NOT FORTY-SEVEN. `git show` costs about three quarters of a second per
+  // call on this host, so the obvious loop puts half a minute into a check that answers
+  // in two seconds through `cat-file --batch`. T-SEARCH-WHERE-A-CHECK-WOULD-DO, and the
+  // suite's own rule that the most expensive sweep gets a cap. Validated against the
+  // slow path before it replaced it: byte-identical on a five-set sample.
+  const specs = M.prediction_sets.map(s => `${s.registered_at}:${s.tool}`);
+  const srcs = new Map();
+  {
+    const out = execFileSync('git', ['cat-file', '--batch'],
+      { cwd: ROOT, input: specs.join('\n') + '\n', maxBuffer: 1 << 28 });
+    let i = 0;
+    for (const spec of specs) {
+      const nl = out.indexOf(10, i);
+      if (nl === -1) { srcs.set(spec, null); continue; }
+      const parts = out.slice(i, nl).toString('utf8').split(' ');
+      if (parts.length < 3 || parts[1] === 'missing') { srcs.set(spec, null); i = nl + 1; continue; }
+      const size = Number(parts[2]);
+      srcs.set(spec, out.slice(nl + 1, nl + 1 + size).toString('utf8'));
+      i = nl + 1 + size + 1;                    // contents, then the trailing newline
+    }
+  }
+  const rows = M.prediction_sets.map(s => [s.id, srcs.get(`${s.registered_at}:${s.tool}`)]);
+  const matched = rows.filter(([, src]) => src && HEADERS.some(h => src.includes(h)));
+  const legacy = matched.filter(([, src]) => !src.includes(HEADERS[0])).map(([id]) => id);
+  const noHeader = rows.filter(([, src]) => !src || !HEADERS.some(h => src.includes(h)))
+    .map(([id]) => id);
+  check(`all ${matched.length} of ${M.prediction_sets.length} registrations were RECOVERED `
+    + `AND MATCHED at their own registered_at, over ${HEADERS.length} header spellings `
+    + `— ${legacy.length} using the older one (${legacy.join(', ') || 'none'})`,
+    M.prediction_sets.length > 0 && matched.length === M.prediction_sets.length
+    && noHeader.length === 0,
+    `no recognised header: ${noHeader.join(' ')}`);
+
+  const narrowed = rows.filter(([, src]) => !src || !src.includes(HEADERS[0])).map(([id]) => id);
+  check('   and it FIRES when the vocabulary is narrowed to the spelling the tree now '
+    + 'uses: exactly one set drops out, and it is AQ — which is how the audit missed it',
+    narrowed.length === 1 && narrowed[0] === 'AQ', narrowed.join(' '));
+
+  const atTree = M.prediction_sets.filter(s => {
+    const f = path.join(ROOT, s.tool);
+    return !fs.existsSync(f) || !fs.readFileSync(f, 'utf8').includes(HEADERS[0]);
+  }).map(s => s.id);
+  check('   and that same narrow check reports NOTHING against the working tree, which is '
+    + 'the whole class: the fault is in what the tree used to say',
+    atTree.length === 0, atTree.join(' '));
+}
+
 console.log('\n' + '='.repeat(64));
 console.log(fails.length ? `FAILED (${fails.length}): ${fails.join(', ')}` : `ALL ${pass} CHECKS PASSED`);
 console.log('='.repeat(64));

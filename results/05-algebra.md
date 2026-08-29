@@ -541,7 +541,23 @@ order comparison could not tell `A₂₇` from a group one element smaller.
 - **A collision count cannot detect mixing.** Truncating any permutation to three
   trits gives 27 buckets of 27, uniform by construction — so a map proved to repeat
   every six calls scores 0.96× the ideal, identical to everything else (`D4`,
-  failed). **The most obvious test of a hash is disqualified.**
+  failed). **The most obvious test of a hash is disqualified.** And read `D4`'s FAILED
+  for what it is: the criterion could not have come out any other way, at P(the recorded
+  outcome | any permutation-based candidate) = 1. This is the one place in the corpus
+  where "the criterion was not evidence" and "the failure was valuable" are the same
+  sentence — the non-discrimination *is* the finding, and it produced `AN1`. Part four of
+  [`07-negative.md`](07-negative.md) has the sweep.
+- **`AM2`'s verdict was a coin, and its finding was not.** As registered, "the affine task
+  groks soonest" is a single paired comparison with everything but the algebra held fixed,
+  so the null crosses the line 50% of the time and the recorded FAILED could as easily
+  have been a HELD. What survives is stronger than the criterion ever asked for: the run's
+  own five seeds put the non-affine task faster in **four of four paired seeds**, medians
+  10,800 against 6,200 steps, with the affine task failing to generalise inside 40,000
+  steps on one seed of five and the non-affine on none of five. **A line in the noise
+  corrupts a verdict; it does not automatically corrupt a finding**, and `AM2`'s own entry
+  records the two apart.
+- **`AM3`'s line has no null anyone can draw**, and it is one of the eighteen the sweep
+  refused to score rather than scoring badly. Unmeasured, not clear.
 - **`M2`'s universality is about gate width in group theory**, not cost. What it
   costs is `O3`, and the answer is 1.2× resting on a free rail.
 - **`O1` is about one-control conditionals only.** Binary nonlinearity is not

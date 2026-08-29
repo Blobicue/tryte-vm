@@ -14,7 +14,7 @@ for *this* repository. What follows is the part that is not about ternary.
 ## What it produced
 
 <!--g:method-tally-->Forty-seven prediction sets, **197 registered predictions, 160 held, 37 failed.** Nineteen
-distinct failure classes, which bit **62 times** between them. Sixty-four findings
+distinct failure classes, which bit **70 times** between them. Sixty-six findings
 measured but never registered<!--/g-->, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
@@ -32,6 +32,38 @@ The failures were never the problem — every one of them is real, and not one i
 the decorative, which is the rule validating itself, because a fact that was never at
 risk cannot fail. What is not evidence is a sixth of the successes. `at_risk` is now a
 compulsory per-prediction field and the audit is `F-REGISTRATION-IS-NOT-RISK`.
+
+**And that correction was itself only half a correction.** A second read-only sweep asked,
+of the predictions still standing as at risk, whether their criteria *discriminated* —
+whether the null crosses the registered line often enough that the recorded verdict is a
+draw rather than a finding. The arithmetic above cannot answer that. It weights every
+prediction equally, and neither its numerator nor its denominator knows whether a
+criterion could have come out the other way. Scored at the level a criterion actually
+lives at — the **leg**, because a prediction with three legs can hold on the two that
+were evidence and fail on the one that was not — 55 legs carry a magnitude line and a
+null that can be drawn without inventing the chance model, and **16 of them are not
+discriminating**: nine held, seven failed. Four more could not have gone the other way at
+all, and one is undecided at the draw count run.
+
+**The correction is asymmetric, and the asymmetry runs the wrong way.** The failed column
+is close to a census — those legs were found *because* they failed, and somebody went
+looking. The held column is one auditor's sweep of a corpus nobody had swept. So the held
+figure is a floor and the failed figure is nearly complete, and the true imbalance runs
+further toward the held side than the recorded split suggests. The corrective sentence
+two paragraphs up moved only the held column: it subtracted the decorative from the
+successes and left the failures untouched. **It needed fixing on both sides, and this is
+the other side.** Neither figure is a rate, and
+`F-A-LINE-THE-NULL-CLEARS-IS-NOT-EVIDENCE` states the boundary that keeps it from being
+one — a criterion noticed by its own registrant and widened before the registration
+commit leaves nothing behind to find, so every count here is a floor whose distance from
+the truth is the competence of whoever wrote the registrations. No estimate of what is
+behind that boundary is offered, because an estimate of the unrecorded is exactly the
+kind of number the audit exists to catch.
+
+**One consequence for the occurrence count in the paragraph above.** That sweep added
+eight instances of a single defect class at once, from one reader looking rather than
+from anything going wrong, so the total is a census of attention and not a running rate.
+A rise in it does not mean the project got worse; here it means somebody swept.
 
 A prediction carries two independent labels, and running them together was costing
 something. `outcome` is the prediction against the run — held or failed. **`basis` is
@@ -87,6 +119,27 @@ still in the manifest, marked `FAILED`, with the result it led to:
 That is the single most important observation here. A method that only records
 what it got right produces a scrapbook. The value is concentrated in the moments
 where a registered claim met a measurement and lost.
+
+**Seven of the failures in that table rest entirely on a criterion that was not
+evidence** — `AO1`, `AT2`, `AT3`, `AU2`, `AM2`, `D4` and `AR4` — **and the observation
+survives all seven.** Every one of them still produced a finding. `AT3`'s criterion was
+decided by the draw and chasing it found three entry pairs that forge any ledger at zero
+cost in search. `AT2`'s bound had roughly an even chance of firing on the null alone, and
+the rule it produced — draw the null's tail before registering a bound on a maximum —
+rests on the null's own draws rather than on the measured value. `AO1` produced the rule
+that a null is a distribution and a frozen sample is one draw. `D4` is the sharpest case
+of all, because there the criterion's inability to discriminate **is** the finding:
+truncating any permutation is uniform by construction, which disqualifies the most
+obvious test anyone would reach for, and that disqualification produced `AN1`.
+
+So the productivity claim stands and the arithmetic under it does not, and the two must
+be disclosed apart. **A line in the noise corrupts a verdict; it does not automatically
+corrupt what chasing that verdict found.** `AM2` is the cleanest illustration: as
+registered it is one paired comparison, which is a coin, and the run's own five seeds put
+the non-affine task faster in four of four paired seeds — evidence considerably stronger
+than the criterion ever asked for. Each of the seven carries that distinction in its own
+entry rather than only here, because a reader who arrives at one prediction should not
+have to find a summary to learn what its criterion was worth.
 
 ---
 
