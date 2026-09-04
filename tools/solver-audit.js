@@ -141,6 +141,7 @@ const line = '='.repeat(78);
 
 const D = require('../src/device.js');
 const NP = require('../src/netpack.js');
+const SW = require('../src/solver-wasm.js');
 const T = require('../src/ternary.js');
 
 /* ============================================================== R0, ABLATED
@@ -266,6 +267,21 @@ const R0 = (net, inputNames, inputs, cap, init) => net.solve(inputs, cap, init);
 const R0ABL = (net, inputNames, inputs, cap, init) => solveAblated(net, inputs, cap, init);
 const R1 = (net, inputNames, inputs, cap, init) =>
   NP.solveNamed(packedFor(net, inputNames), inputs, cap, init);
+
+/**
+ * R2 needs a module instantiated before it can answer anything, and
+ * `WebAssembly.instantiate` is a promise -- so ONE instance is built here and the
+ * adapter over it is synchronous, which keeps every timed path free of an `await`
+ * it would otherwise be measuring. One instance, not one per network: the module
+ * has nothing network-specific in it.
+ */
+let R2INSTANCE = null;
+async function makeR2() {
+  if (!R2INSTANCE) R2INSTANCE = await SW.makeR2();
+  return R2INSTANCE;
+}
+const R2 = (net, inputNames, inputs, cap, init) =>
+  R2INSTANCE.solveNamed(packedFor(net, inputNames), inputs, cap, init);
 
 /* ======================================================= THE GATE'S CORPUS
  *
@@ -715,22 +731,45 @@ function sweepObject(solve, net, inputNames, pairs) {
   return sum;
 }
 
-/** R1's sweep: operand integers to state codes to answers, all inside the clock. */
-function sweepPackedR1(P, pairs) {
+/**
+ * Operand integers to the state codes the packed form is seeded from. Shared, so
+ * R1 and R2 are handed byte-identical work and neither gets a cheaper input path
+ * than the other by accident.
+ */
+function pairCodes(P, pairs) {
   const k = P.inputId.length;
-  const codes = new Uint8Array(pairs.length * k);
   const width = (k - 1) / 2;
+  const codes = new Uint8Array(pairs.length * k);
   for (let i = 0; i < pairs.length; i++) {
     const ta = T.toTrits(pairs[i][0], width), tb = T.toTrits(pairs[i][1], width);
     for (let j = 0; j < width; j++) { codes[i * k + j] = ta[j] + 3; codes[i * k + width + j] = tb[j] + 3; }
     codes[i * k + 2 * width] = 3;                                  // cin at MID
   }
-  const outIds = Int32Array.from(OUTS.map(nm => NP.nodeId(P, nm)));
-  const out = new Uint8Array(pairs.length * OUTS.length);
-  NP.sweepPacked(P, codes, pairs.length, outIds, out, 64);
+  return codes;
+}
+
+const checksum = out => {
   let sum = 0;
   for (let i = 0; i < out.length; i++) sum = (sum * 31 + out[i]) | 0;
   return sum;
+};
+
+/** R1's sweep: operand integers to state codes to answers, all inside the clock. */
+function sweepPackedR1(P, pairs) {
+  const codes = pairCodes(P, pairs);
+  const outIds = Int32Array.from(OUTS.map(nm => NP.nodeId(P, nm)));
+  const out = new Uint8Array(pairs.length * OUTS.length);
+  NP.sweepPacked(P, codes, pairs.length, outIds, out, 64);
+  return checksum(out);
+}
+
+/** R2's sweep: the same, with the driver inside the module. One boundary crossing. */
+function sweepWasmR2(inst, P, pairs) {
+  const codes = pairCodes(P, pairs);
+  const outIds = Int32Array.from(OUTS.map(nm => NP.nodeId(P, nm)));
+  const out = new Uint8Array(pairs.length * OUTS.length);
+  inst.sweep(P, codes, pairs.length, outIds, out, 64);
+  return checksum(out);
 }
 
 /**
@@ -767,7 +806,7 @@ function interleaved(subjects, reps) {
 const ADDER_IN = rippleInputs(6);
 
 /** The four measurements, in one process, on one machine, interleaved. */
-function measure(pairCount, reps) {
+function measure(pairCount, reps, inst) {
   const pairs = benchPairs(pairCount);
 
   const plain = new D.Net(); D.tRippleAdder(plain, 6, false);
@@ -779,10 +818,14 @@ function measure(pairCount, reps) {
     { name: 'R0', run: () => sweepObject(R0, plain, ADDER_IN, pairs) },
     { name: 'R0abl', run: () => sweepObject(R0ABL, plain, ADDER_IN, pairs) },
     { name: 'R1', run: () => sweepPackedR1(Pplain, pairs) },
+    { name: 'R2', run: () => sweepWasmR2(inst, Pplain, pairs) },
   ], reps);
 
+  // AV4 is a ratio against a ratio, so only the two solvers that ratio is over
+  // run here. R0 on `leafmid` is not registered and would cost most of an hour.
   const big = interleaved([
     { name: 'R1', run: () => sweepPackedR1(Pleaf, pairs) },
+    { name: 'R2', run: () => sweepWasmR2(inst, Pleaf, pairs) },
   ], reps);
 
   return { pairs: pairs.length, reps, small, big, plain, leaf, Pplain, Pleaf };
@@ -790,7 +833,72 @@ function measure(pairCount, reps) {
 
 // ---------------------------------------------------------------- the measurement
 
-function report(argv = []) {
+/* ======================================================== THE BANDS, AS REGISTERED
+ *
+ * Read out of the registration block above rather than typed again here. A
+ * threshold transcribed by hand is a threshold that can be transcribed wrongly,
+ * and this repository has a trap on the record for exactly that -- a truth table
+ * copied out of a comment came back inverted and read as a clean headline finding.
+ * If a regex below stops matching, this throws rather than scoring against a
+ * default, because a verdict computed from a band nobody supplied is worse than
+ * no verdict.
+ */
+function registeredBands() {
+  const src = require('fs').readFileSync(__filename, 'utf8');
+  const flat = src.slice(0, src.indexOf('Run:  npm run audit:solver'))
+    .replace(/^ \* ?/gm, '').replace(/\s+/g, ' ');
+  const grab = (re, what) => {
+    const m = re.exec(flat);
+    if (!m) throw new Error(`the registration no longer states ${what}`);
+    return m.slice(1).map(Number);
+  };
+  const [lo2, hi2] = grab(/R1-over-R0 median wall-clock ratio on the benchmark lands in \[([\d.]+), ([\d.]+)\]/, "AV2's band");
+  const [lo3, hi3] = grab(/R2-over-R1 median ratio on the same benchmark lands in \[([\d.]+), ([\d.]+)\]/, "AV3's band");
+  const [sep] = grab(/differs from the same ratio on the unrestored adder \(624 switches, seven passes\) by less than ([\d.]+)/, "AV4's separation");
+  if (!/recovers more than half the gap between R0 and R1/.test(flat)) {
+    throw new Error("the registration no longer states AV1's threshold");
+  }
+  return { av1: 0.5, av2: [lo2, hi2], av3: [lo3, hi3], av4: sep };
+}
+
+/* ---------------------------------------------------------------- the measurement */
+
+/**
+ * The gate, then the benchmark, then the four verdicts. Returns them rather than
+ * only printing them, so the record and the report are the same computation and
+ * a number can be lifted into `FINDINGS.json` without being retyped.
+ */
+async function runAudit({ pairs = BENCH_PAIRS, reps = BENCH_REPS } = {}) {
+  const inst = await makeR2();
+  const gate = {};
+  for (const [name, solve] of [['R0abl', R0ABL], ['R1', R1], ['R2', R2]]) {
+    const g = runGate(solve);
+    const p = passAgreement(solve);
+    gate[name] = { g, p, divergences: g.diffs.length + p.bad.length };
+  }
+  const M = measure(pairs, reps, inst);
+  const band = registeredBands();
+
+  const gap = M.small.R0.median - M.small.R1.median;
+  const av1 = (M.small.R0.median - M.small.R0abl.median) / gap;
+  const av2 = M.small.R0.median / M.small.R1.median;
+  const av3 = M.small.R1.median / M.small.R2.median;
+  const av3big = M.big.R1.median / M.big.R2.median;
+  const av4 = Math.abs(av3big - av3);
+
+  return {
+    gate, M, band, pairs: M.pairs, reps: M.reps,
+    av1, av2, av3, av3big, av4,
+    verdict: {
+      AV1: av1 > band.av1 ? 'HELD' : 'FAILED',
+      AV2: av2 >= band.av2[0] && av2 <= band.av2[1] ? 'HELD' : 'FAILED',
+      AV3: av3 >= band.av3[0] && av3 <= band.av3[1] ? 'HELD' : 'FAILED',
+      AV4: av4 < band.av4 ? 'HELD' : 'FAILED',
+    },
+  };
+}
+
+async function report(argv = []) {
   const quick = argv.includes('--quick');
   log('SOLVER AUDIT — what the packed representation buys, and what WebAssembly buys on top.');
   log(line);
@@ -799,57 +907,64 @@ function report(argv = []) {
     log('one, and NOTHING BELOW IS A MEASUREMENT. `npm run audit:solver` is the audit.');
   }
 
+  const A = await runAudit(quick ? { pairs: 200, reps: 2 } : {});
+
   log('\n--- 0. THE INSTRUMENT, BEFORE ANY VERDICT ---');
   // R1 and R2 are held against R0 here, exhaustively on every small builder and on
   // all 27 input triples of both adder cells, BEFORE any timing is reported. A
   // ratio between two solvers that disagree is a fact about neither.
   // AD2 memoised only terminating values and reported the attacker as 300x WORSE --
   // in the flattering direction, which is the direction nothing catches by surprise.
-  const gates = [['R0abl  (the AV1 ablation)', R0ABL], ['R1     (the packed solver)', R1]];
-  for (const [name, solve] of gates) {
-    const g = runGate(solve);
-    const p = passAgreement(solve);
-    log(`      ${name}`);
+  const WHO = { R0abl: 'R0abl  (the AV1 ablation)', R1: 'R1     (the packed solver)',
+    R2: 'R2     (the emitted module)' };
+  for (const name of ['R0abl', 'R1', 'R2']) {
+    const { g, p, divergences } = A.gate[name];
+    log(`      ${WHO[name]}`);
     log(`        ${g.rows.toLocaleString()} rows over ${g.groups} networks,`
       + ` ${g.values.toLocaleString()} node values compared, ${g.threwBoth} refusals matched`);
-    log(`        states R0 produced: ${[...g.coverage].map(s => JSON.stringify(s)).sort().join(' ')}`);
+    log(`        states R0 produced: ${[...g.coverage].map(x => JSON.stringify(x)).sort().join(' ')}`);
     log(`        pass counts: ${p.settles} of ${p.checked} cases settle and are checked`
       + ` at k and at k-1; ${p.never} never settle and are checked at the cap`);
-    log(`        DIVERGENCES: ${g.diffs.length + p.bad.length}`);
+    log(`        DIVERGENCES: ${divergences}`);
     for (const d of g.diffs.slice(0, 5)) log(`          ${d}`);
     for (const d of p.bad.slice(0, 5)) log(`          ${d}`);
   }
 
-  const M = measure(quick ? 200 : BENCH_PAIRS, quick ? 2 : BENCH_REPS);
+  const M = A.M;
   const sec = x => `${x.toFixed(3)}s`;
   log(`\n      benchmark: the first ${M.pairs.toLocaleString()} operand pairs of the`
     + ` carry-in-0 sweep, ${M.reps} repetitions, first discarded`);
-  log(`      checksums: ${['R0', 'R0abl', 'R1'].map(n => `${n} ${M.small[n].checksum}`).join('   ')}`);
+  log(`      checksums: ${['R0', 'R0abl', 'R1', 'R2'].map(n => `${n} ${M.small[n].checksum}`).join('   ')}`
+    + `   leafmid: R1 ${M.big.R1.checksum}  R2 ${M.big.R2.checksum}`);
 
   log('\n--- AV1  where R0 spends its time: the ablation ---');
-  const gap = M.small.R0.median - M.small.R1.median;
-  const recovered = (M.small.R0.median - M.small.R0abl.median) / gap;
   log(`      R0 ${sec(M.small.R0.median)}   R0 ablated ${sec(M.small.R0abl.median)}`
     + `   R1 ${sec(M.small.R1.median)}`);
-  log(`      the ablation recovers ${(recovered * 100).toFixed(1)}% of the R0-to-R1 gap`);
+  log(`      the ablation recovers ${(A.av1 * 100).toFixed(1)}% of the R0-to-R1 gap`
+    + `   (more than half was registered)   ${A.verdict.AV1}`);
 
   log('\n--- AV2  R1 over R0: what the representation buys ---');
-  log(`      R1 is ${(M.small.R0.median / M.small.R1.median).toFixed(2)}x R0 on the benchmark`);
+  log(`      R1 is ${A.av2.toFixed(2)}x R0 on the benchmark`
+    + `   (registered band [${A.band.av2.join(', ')}])   ${A.verdict.AV2}`);
 
   log('\n--- AV3  R2 over R1: what WebAssembly buys ---');
-  log('      R2 IS NOT BUILT YET. Nothing to report, and nothing is reported.');
+  log(`      R2 ${sec(M.small.R2.median)}   R2 is ${A.av3.toFixed(2)}x R1 on the benchmark`
+    + `   (registered band [${A.band.av3.join(', ')}])   ${A.verdict.AV3}`);
 
   log('\n--- AV4  the same ratio at 2.8x the size ---');
-  log(`      R1 on leafmid: ${sec(M.big.R1.median)} for the same ${M.pairs.toLocaleString()} pairs`);
-  log('      the ratio this prediction is about needs R2.');
+  log(`      leafmid: R1 ${sec(M.big.R1.median)}   R2 ${sec(M.big.R2.median)}`
+    + `   R2 is ${A.av3big.toFixed(2)}x R1`);
+  log(`      the two ratios separate by ${A.av4.toFixed(2)}`
+    + `   (refuted at ${A.band.av4} or more)   ${A.verdict.AV4}`);
   log('\n' + line);
+  return A;
 }
 
-if (MAIN) report(process.argv.slice(2));
+if (MAIN) report(process.argv.slice(2)).catch(e => { console.error(e); process.exit(1); });
 
 module.exports = {
-  report, solveAblated, packedFor, R0, R0ABL, R1,
+  report, runAudit, registeredBands, makeR2, solveAblated, packedFor, R0, R0ABL, R1, R2,
   gateGroups, refusalCases, runGate, passAgreement, seedPatterns,
   tableFamily, binaryTableFamily, benchPairs, sweepObject, sweepPackedR1,
-  interleaved, measure, BENCH_PAIRS, BENCH_REPS, OUTS, ADDER_IN,
+  interleaved, measure, pairCodes, sweepWasmR2, BENCH_PAIRS, BENCH_REPS, OUTS, ADDER_IN,
 };

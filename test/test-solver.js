@@ -18,6 +18,8 @@
 const A = require('../tools/solver-audit.js');
 const D = require('../src/device.js');
 const NP = require('../src/netpack.js');
+const W = require('../src/wasm-emit.js');
+const SW = require('../src/solver-wasm.js');
 const T = require('../src/ternary.js');
 const fs = require('fs');
 const { execFileSync } = require('child_process');
@@ -28,6 +30,13 @@ const check = (name, cond, detail = '') => {
   if (cond) { pass++; console.log(`  [PASS] ${name}`); }
   else { fails.push(name); console.log(`  [FAIL] ${name}  ${detail}`); }
 };
+
+// R2 is a WebAssembly module and `WebAssembly.instantiate` is a promise, so the
+// suite is one async function rather than a script. Nothing below awaits anything
+// per solve: the instance is built once, up here, and every adapter over it is
+// synchronous.
+async function main() {
+await A.makeR2();
 
 console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
 {
@@ -49,13 +58,33 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
   check('   and the benchmark network is the one the registration named',
     /tRippleAdder\(net, 6, false\)/.test(registered)
     && A.ADDER_IN.join(',') === 'a0,a1,a2,a3,a4,a5,b0,b1,b2,b3,b4,b5,cin');
-  // The registration promises three implementations. Two of them exist at this
-  // commit; naming the third here is what makes its absence visible rather than
-  // something a reader has to notice.
-  check('   R0 is src/device.js untouched, R1 is src/netpack.js, and R2 is not built yet',
-    typeof D.Net.prototype.solve === 'function'
-    && typeof NP.solvePacked === 'function'
-    && !fs.existsSync(path.join(__dirname, '..', 'src', 'solver-wasm.js')));
+  // The registration promises three implementations and all three now exist.
+  check('   R1 is src/netpack.js and R2 is src/solver-wasm.js, both present',
+    typeof NP.solvePacked === 'function' && typeof SW.makeR2 === 'function'
+    && typeof A.R2 === 'function');
+  // AND R0 IS UNTOUCHED, which is a claim about the DIFF and not about the file
+  // existing. `design/13-instrument.md` says the oracle is never optimised: a
+  // faster solver that edits the thing it is checked against has removed its own
+  // check. Asked of git rather than asserted, and fail-closed -- a git error is a
+  // failure here, not a pass, because an unanswerable question is not a yes.
+  {
+    let verdict = 'git did not answer';
+    try {
+      const base = execFileSync('git', ['merge-base', 'main', 'HEAD'],
+        { cwd: path.join(__dirname, '..'), encoding: 'utf8' }).trim();
+      const changed = execFileSync('git', ['diff', '--name-only', base, '--', 'src/device.js'],
+        { cwd: path.join(__dirname, '..'), encoding: 'utf8' }).trim();
+      verdict = changed === '' ? true : `this branch edited ${changed}`;
+    } catch (e) { verdict = `git: ${e.message.split(String.fromCharCode(10))[0]}`; }
+    check('   and R0 is src/device.js UNCHANGED by this branch, asked of git',
+      verdict === true, String(verdict));
+  }
+  // The oracle also does not depend on what it certifies. A device.js that
+  // imported the packed solver would be checking one implementation against
+  // itself, and nothing about the file's mtime would show it.
+  check('   and the oracle imports neither of the solvers it certifies',
+    !/require\(['"]\.\/(netpack|solver-wasm)/.test(
+      fs.readFileSync(path.join(__dirname, '..', 'src', 'device.js'), 'utf8')));
 
   // 0b. THE TOOL AS IT IS ACTUALLY RUN. T-TOOL-CHECKED-ONLY-BY-IMPORT: importing a
   // tool sets MAIN false, so every log line is skipped and a fault in the report path
@@ -162,13 +191,76 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
     }
   }
 
-  // 0e. THE GATE ITSELF. R1 against R0 over every network the corpus builds, and
-  // the AV1 ablation against R0 over the same corpus — an ablation nobody held
-  // against the oracle would put AV1's number on a solver that computes something
-  // else.
+  // 0d2. THE EMITTER, BEFORE THE SOLVER IT EMITS. A validation error inside a
+  // four-hundred-line function says nothing about where the fault is, so the
+  // encoder is checked against hand-computed bytes and a two-line module first.
+  //
+  // THE TRAP THIS IS WATCHING: sizes, indices and local counts are UNSIGNED
+  // LEB128 and `i32.const` is SIGNED. The two agree from 0 to 63 and diverge at
+  // 64, so a module correct on every small constant fails on the first one past
+  // 63 — and fails as a validation error far from the constant that caused it.
+  {
+    const hex = a => a.map(b => b.toString(16).padStart(2, '0')).join(' ');
+    const U = { 0: '00', 63: '3f', 64: '40', 127: '7f', 128: '80 01', 300: 'ac 02' };
+    const S = { 0: '00', 63: '3f', 64: 'c0 00', 127: 'ff 00', '-1': '7f', '-64': '40', '-65': 'bf 7f' };
+    check('unsigned LEB128 matches hand-computed bytes either side of every boundary',
+      Object.entries(U).every(([n, want]) => hex(W.uleb(Number(n))) === want),
+      Object.keys(U).map(n => `${n}=${hex(W.uleb(Number(n)))}`).join(' '));
+    check('   and signed LEB128 does too, including the negatives that only it can spell',
+      Object.entries(S).every(([n, want]) => hex(W.sleb(Number(n))) === want),
+      Object.keys(S).map(n => `${n}=${hex(W.sleb(Number(n)))}`).join(' '));
+    check('   and the two AGREE below 64 and DIVERGE at it, which is the whole trap',
+      [0, 1, 62, 63].every(n => hex(W.uleb(n)) === hex(W.sleb(n)))
+      && hex(W.uleb(64)) !== hex(W.sleb(64)) && hex(W.uleb(127)) !== hex(W.sleb(127)));
+    const demo = W.demoAddModule();
+    check('the emitter produces a module that validates and computes a known answer',
+      WebAssembly.validate(demo));
+    const inst = new WebAssembly.Instance(new WebAssembly.Module(demo), {});
+    check('   add(2, 3) is 5, and a constant either side of the LEB boundary survives',
+      inst.exports.add(2, 3) === 5 && inst.exports.boundaries(0) === 136
+      && inst.exports.boundaries(-136) === 0);
+    check('the solver module validates before anything is asked of it',
+      WebAssembly.validate(SW.moduleBytes()));
+    // No committed binary, no base64, no toolchain: the bytes are built here.
+    check('   and its bytes are emitted at run time rather than read from disk',
+      SW.moduleBytes().length > 0 && !fs.existsSync(path.join(__dirname, '..', 'src', 'solver.wasm')));
+    check('   and R2 answers through WebAssembly rather than through a fallback',
+      (await A.makeR2()).exports.solve instanceof Function
+      && WebAssembly.Module.exports(new WebAssembly.Module(SW.moduleBytes()))
+        .map(e => `${e.name}:${e.kind}`).sort().join(' ')
+        === 'memory:memory seedCodes:function solve:function sweep:function');
+  }
+
+  // 0d3. AND A MUTANT MODULE, so the gate's power over R2 is demonstrated on the
+  // MODULE and not only on the JavaScript adapter over it. The substitution is one
+  // function of the four: a `solve` that always answers "settled". That is the
+  // exact port `design/13-instrument.md` warns about — one that returns a
+  // half-settled state instead of reporting the bound, and that "agrees with it on
+  // the easy cases". Every level in the corpus still matches; the bound does not.
+  {
+    const fns = SW.FUNCS.map(f => (f.name === 'solve'
+      ? W.fn('solve', { params: ['maxIter'], results: ['i32'], body: [W.ret(W.konst(1))] })
+      : f));
+    const broken = await SW.makeR2({ fns });
+    const solve = (net, ins, inputs, cap, init) =>
+      broken.solveNamed(A.packedFor(net, ins), inputs, cap, init);
+    const g = A.runGate(solve, { stopAfterDiffs: 1 });
+    check('   the gate catches a MODULE that never reports the cap',
+      g.diffs.length > 0, 'the mutant module passed');
+    const p = A.passAgreement(solve);
+    check('   and the pass-count comparison catches it too, independently',
+      p.bad.length > 0, 'the mutant module matched every pass count');
+  }
+
+  // 0e. THE GATE ITSELF. R1 and R2 against R0 over every network the corpus
+  // builds, and the AV1 ablation against R0 over the same corpus — an ablation
+  // nobody held against the oracle would put AV1's number on a solver that
+  // computes something else.
   const gates = {};
-  for (const [name, solve] of [['R0abl', A.R0ABL], ['R1', A.R1]]) gates[name] = A.runGate(solve);
-  for (const name of ['R0abl', 'R1']) {
+  for (const [name, solve] of [['R0abl', A.R0ABL], ['R1', A.R1], ['R2', A.R2]]) {
+    gates[name] = A.runGate(solve);
+  }
+  for (const name of ['R0abl', 'R1', 'R2']) {
     const g = gates[name];
     check(`${name} agrees with R0 on every node value in the corpus`,
       g.diffs.length === 0, g.diffs.slice(0, 3).join(' | '));
@@ -193,13 +285,69 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
   // at k, solving again at k-1 and catching the throw, so "did not settle within k"
   // is a measurement this instrument has to reproduce exactly. R0 finds each k ONCE;
   // the subject is then checked at k and at k-1 (T-SEARCH-WHERE-A-CHECK-WOULD-DO).
-  for (const [name, solve] of [['R0abl', A.R0ABL], ['R1', A.R1]]) {
+  for (const [name, solve] of [['R0abl', A.R0ABL], ['R1', A.R1], ['R2', A.R2]]) {
     const p = A.passAgreement(solve);
     check(`${name} stops on exactly the pass R0 stops on, and not one earlier`,
       p.bad.length === 0, p.bad.slice(0, 3).join(' | '));
-    if (name === 'R1') {
+    if (name === 'R2') {
       check('   including networks that NEVER settle, compared at the cap rather than by level',
         p.never >= 2 && p.settles > 100, `${p.never} never-settling, ${p.settles} settling`);
+    }
+  }
+
+  // 0f2. AND THE SWEEP, WHICH IS A SECOND ENTRY INTO THE SAME LOOP. R2's gate
+  // above seeds through `netpack.js` and copies the state in, so it never touches
+  // the module's own `seedCodes` — and `seedCodes` is what every timed pair goes
+  // through. An entry point the gate does not reach is an entry point nobody
+  // checked, and it is the one the benchmark measures.
+  {
+    const nets = [
+      ['tRippleAdder n=6', () => D.tRippleAdder(new D.Net(), 6, false), 6],
+      ['tRippleAdder n=6 leafmid', () => D.tRippleAdder(new D.Net(), 6, { restore: 'leafmid' }), 6],
+      ['tRippleAdder n=2', () => D.tRippleAdder(new D.Net(), 2), 2],
+    ];
+    const inst = await A.makeR2();
+    const bad = [];
+    for (const [label, make, width] of nets) {
+      const names = [...Array.from({ length: width }, (_, i) => `a${i}`),
+        ...Array.from({ length: width }, (_, i) => `b${i}`), 'cin'];
+      const P = NP.pack(make(), names);
+      const lim = Math.pow(3, width) >> 1;
+      const pairs = [];
+      for (let a = -lim; a <= lim; a += 37) for (let b = -lim; b <= lim; b += 53) pairs.push([a, b]);
+      const codes = A.pairCodes(P, pairs);
+      const outIds = Int32Array.from(A.OUTS.slice(0, width).concat([`c${width}`])
+        .map(nm => NP.nodeId(P, nm)));
+      const o1 = new Uint8Array(pairs.length * outIds.length);
+      const o2 = new Uint8Array(pairs.length * outIds.length);
+      const u1 = NP.sweepPacked(P, codes, pairs.length, outIds, o1, 64);
+      const u2 = inst.sweep(P, codes, pairs.length, outIds, o2, 64);
+      if (u1 !== 0 || u2 !== 0) bad.push(`${label}: ${u1}/${u2} pairs did not settle`);
+      for (let i = 0; i < o1.length; i++) if (o1[i] !== o2[i]) { bad.push(`${label}: byte ${i}`); break; }
+      // and one solve against R0 on the same block, so neither sweep is being
+      // compared only against the other
+      const r0 = make().solve(Object.fromEntries(names.map((nm, j) =>
+        [nm, codes[j] - 3])), 64);
+      for (let j = 0; j < outIds.length; j++) {
+        const want = r0[P.names[outIds[j]]];
+        if (o1[j] !== (want === 'Z' ? 0 : want === 'X' ? 1 : want + 3)) bad.push(`${label}: R0 disagrees at out ${j}`);
+      }
+    }
+    check('R2\'s in-module sweep agrees with R1\'s, and both with R0, on three networks',
+      bad.length === 0, bad.slice(0, 3).join(' | '));
+    // the mutation control: a sweep whose codes are shifted must NOT agree
+    {
+      const P = NP.pack(D.tRippleAdder(new D.Net(), 2), A.ADDER_IN.slice(0, 2)
+        .concat(A.ADDER_IN.slice(6, 8), ['cin']));
+      const pairs = [[-4, 3], [0, 0], [4, -2]];
+      const codes = A.pairCodes(P, pairs);
+      const outIds = Int32Array.from(['s0', 's1', 'c2'].map(nm => NP.nodeId(P, nm)));
+      const o1 = new Uint8Array(pairs.length * 3), o2 = new Uint8Array(pairs.length * 3);
+      NP.sweepPacked(P, codes, pairs.length, outIds, o1, 64);
+      const shifted = Uint8Array.from(codes); shifted[0] = shifted[0] === 4 ? 2 : shifted[0] + 1;
+      inst.sweep(P, shifted, pairs.length, outIds, o2, 64);
+      check('   and the comparison notices when one operand trit is moved',
+        o1.some((v, i) => v !== o2[i]));
     }
   }
 
@@ -230,6 +378,18 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
     check('   and it refuses a seed on a rail and a seed on a name no device mentions',
       /^init names a driven node: vss$/.test(refuse({ vss: 1 }))
       && /^init names a node no device mentions: nope$/.test(refuse({ nope: 0 })));
+    // R2 answers the same three, through its own path. It inherits the seeding and
+    // the refusals from `netpack.js` deliberately -- a second implementation of
+    // them would be a second thing to disagree -- and that inheritance is the
+    // claim being checked, not assumed.
+    const inst = await A.makeR2();
+    const wasm = seed => {
+      try { return inst.solveNamed(P, {}, 64, seed).o; } catch (e) { return 'REFUSED'; }
+    };
+    check('   and R2 gives the same three answers to the same three seeds',
+      wasm({}) === 'X' && wasm({ o: 0, 'o$mid': 'Z' }) === 0
+      && wasm({ o: -1, 'o$mid': 'Z' }) === 'REFUSED'
+      && wasm({ o: 1, 'o$mid': 'Z' }) === 'REFUSED');
   }
 
   // 0h. The packed form is stricter than R0 in exactly one way, and it says so
@@ -324,3 +484,8 @@ console.log('\n=== 4. AV4  the same ratio at 2.8x the size ===');
 console.log(`\n${'='.repeat(64)}`);
 console.log(fails.length ? `${fails.length} CHECK(S) FAILED:\n  ${fails.join('\n  ')}` : `ALL ${pass} CHECKS PASSED`);
 process.exit(fails.length ? 1 : 0);
+}
+
+// A rejected promise in a test that exits 0 is a suite reporting success for
+// checks that never ran, which is the same defect as a placeholder that passes.
+main().catch(e => { console.error(e); process.exit(1); });
