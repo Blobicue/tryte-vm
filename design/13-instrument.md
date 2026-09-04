@@ -124,14 +124,16 @@ is a different instrument that agrees with it on the easy cases.
    instrument is *for*, but they are not in `AV` and must not be: an instrument
    that has not been held against the oracle produces facts about the instrument,
    and this repository has been bitten by that sixteen times. Register them once
-   R1 and R2 have passed step 2, and **read `results/99-ledger.md` lines 388, 472,
-   492 and 542 before writing a single prediction.** Between them they record what
-   `Y1`, `Z3`, `E1` and `F` already settled: the carry-in-0 sweeps are exhaustive
-   and clean, the pass counts for all three restore variants were *derived by hand*
-   from gate-dependency depth and then measured, and `pairs_differing_by_data` is
+   R1 and R2 have passed step 2, and **read the `Y1`, `Y2`, `Z3`, `E1` and `F`
+   entries in `results/99-ledger.md` before writing a single prediction** — find
+   them by id, not by line number, because that file is generated from
+   `FINDINGS.json` and every entry below a new one moves when the manifest grows.
+   Between them they record: the carry-in-0 sweeps are exhaustive and clean, the
+   pass counts for all three restore variants were *derived by hand* from
+   gate-dependency depth before being measured, and `pairs_differing_by_data` is
    already zero. Three separate candidate predictions were drafted for this file
-   and discarded on exactly those lines. What remains genuinely open is the
-   carry-in ±1 space at stride 1, and nothing else in that neighbourhood is.
+   and discarded against those five entries. What remains genuinely open in this
+   neighbourhood is the carry-in ±1 space at stride 1, and nothing else.
 6. **A page.** A new one, with its own template and its own test; `test-page.js`
    pins the existing page's markup in detail and the two are different documents.
    `build/bundle.js` has a hardcoded file list that has never included
