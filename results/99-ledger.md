@@ -2243,7 +2243,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/solver-audit.js` |
 | asserted in | `test/test-solver.js` |
 | registered | `05ccd13` |
-| results | `PENDING` |
+| results | `6965c05` |
 
 ### `AV1` — FAILED
 

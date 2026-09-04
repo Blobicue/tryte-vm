@@ -4832,7 +4832,7 @@
       "subject": "What does the packed representation buy a switch-level solver, and what does WebAssembly buy on top of it? Three implementations of one algorithm -- src/device.js untouched as the oracle, the same fixed-point loop over dense integer ids and CSR adjacency, and the same loop again as WebAssembly emitted at run time by JavaScript in src/ -- held against each other on an anti-divergence gate first and then timed interleaved in one process on the first 20,000 operand pairs of the carry-in-0 sweep",
       "tool": "tools/solver-audit.js",
       "registered_at": "05ccd13",
-      "results_at": "PENDING",
+      "results_at": "6965c05",
       "asserted_in": "test/test-solver.js",
       "predictions": [
         {
