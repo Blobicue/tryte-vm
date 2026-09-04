@@ -65,7 +65,8 @@
     "audit:radix": "node tools/radix-audit.js",
     "audit:forge": "node tools/forge-audit.js",
     "audit:insert": "node tools/insert-audit.js",
-    "audit:width": "node tools/width-audit.js"
+    "audit:width": "node tools/width-audit.js",
+    "audit:solver": "node tools/solver-audit.js"
   },
   "license": "MIT",
   "private": true

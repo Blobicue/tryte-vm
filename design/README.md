@@ -53,6 +53,7 @@ decoding the select"* — which is the catch that eventually happened by luck.
 | [`10-integration.md`](10-integration.md) | the whole-machine budget under each combination |
 | [`11-open.md`](11-open.md) | what this phase does not settle |
 | [`12-roadmap.md`](12-roadmap.md) | **the order to build the rest in, and which machine is worth building** |
+| [`13-instrument.md`](13-instrument.md) | the solver that bounds what the corpus may claim, and the plan to replace it |
 
 Read `00` and `02` first. `02` is the short one and it is the one that constrains
 everything else: storage turned out to be blocked by an axiom nobody had ever

@@ -13,17 +13,17 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-<!--g:method-tally-->Forty-seven prediction sets, **197 registered predictions, 160 held, 37 failed.** Nineteen
-distinct failure classes, which bit **70 times** between them. Sixty-six findings
+<!--g:method-tally-->Forty-eight prediction sets, **201 registered predictions, 161 held, 40 failed.** Nineteen
+distinct failure classes, which bit **71 times** between them. Sixty-eight findings
 measured but never registered<!--/g-->, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
 document drifts from the manifest, the suite fails.
 
 **That last clause was not true of the registered set itself, and a read-only audit
-found it out.** <!--g:method-at-risk-->Twenty-five of those 197 were never at risk at all, and seven cannot be called either way. Corrected to what a run could
-actually have refuted, the record is **165 at risk, 128 held, 37 failed — a 22.4%
-failure rate** against 18.8% over everything registered<!--/g-->. The raw counts above are
+found it out.** <!--g:method-at-risk-->Twenty-five of those 201 were never at risk at all, and seven cannot be called either way. Corrected to what a run could
+actually have refuted, the record is **169 at risk, 129 held, 40 failed — a 23.7%
+failure rate** against 19.9% over everything registered<!--/g-->. The raw counts above are
 not lowered: every one of those predictions was registered before its run, and that is
 a fact about what happened. (This sentence used to carry the total as a literal, and it
 went stale by eight the moment two more sets landed — `T-STALE-CONSTANT` inside the
@@ -68,16 +68,19 @@ A rise in it does not mean the project got worse; here it means somebody swept.
 A prediction carries two independent labels, and running them together was costing
 something. `outcome` is the prediction against the run — held or failed. **`basis` is
 the scope of the claim**: swept at the width it was swept at, or argued at every width.
-<!--g:method-basis-->Ten of those 197 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
+<!--g:method-basis-->Ten of those 201 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
 each with its argument written out beside its measurement. The measurement is still
 required. A proof does not excuse running it — an argument is also a thing that can be
 wrong, and the run is what would say so.
 
-**<!--g:method-failures-lede-->The 37 failures produced more than the 128 successes that were genuinely at risk<!--/g-->.** Each one is
+**<!--g:method-failures-lede-->The 40 failures produced more than the 129 successes that were genuinely at risk<!--/g-->.** Each one is
 still in the manifest, marked `FAILED`, with the result it led to:
 
 | failed | what it claimed | what it produced |
 |---|---|---|
+| **AV1** | more than half of the switch-level oracle's per-solve time is spent in the per-node update loop rather than in the six reachability walks | 11.1%, and a second identical run agreed at 10.2%. The registration wrote its AT RISK line against its own arithmetic — edge visits outnumber update operations five to one, so traversal is the larger term BY COUNT — and predicted that allocation would be dear enough per operation to invert that. It is not. So the count was right and the claim built on it was wrong, which localises the cost: what actually separates the oracle from the packed solver is the per-solve `Map` of arrays of objects, the fresh `Set` per rail per mode per pass, and the string-keyed value object — the three things the ablation was deliberately forbidden to touch, because the next prediction's upper route was about exactly those |
+| **AV2** | the packed representation is worth between 15 and 40 times the oracle | 10.37, and the derivation was on the record before the run so the miss is attributable rather than explicable. The band was one quotient: an anchor of 75 nanoseconds per edge visit over a target in the low single digits. The oracle measures 55.7 and the packed solver 5.37, so the anchor was too slow AND the target too fast, and the product of those two errors is the whole of it. **AV1 and AV2 were registered in tension on purpose** — the registration argued about which of them would give if allocation dominated — and both failed instead, consistently, because the premise they SHARED was the wrong one. A tension registered between two predictions still rests on everything they agree about |
+| **AV3** | WebAssembly buys between 1.0 and 2.0 times on top of the rewrite | 2.14 — it failed HIGH, by the bounds-check route the registration itself named, and the outcome the registrant said they would least like, a hand-rolled emitter losing outright to TurboFan, did not happen. It is the only one of the four that landed near its line, so a second identical run was made BEFORE the verdict was written down: 2.21, no flip, both recorded. That is `T-CRITERION-IN-THE-NOISE` checked in the forward direction and coming out clean, rather than discovered afterwards by a threshold that returned a pass and a fail from the same world |
 | **AU2** | the collision cost tracks the exact birthday null at the wide widths, the two attack goals separate by one square root, and the narrow-end shortfall is a multiplicity effect measurable at widths one, two and three | two legs held and the third failed **on a statistic that does not exist**. The first-repeat index tracks the exact finite-N birthday expectation to within 0.6% at widths four to six with zero collision-free rows in 25,272, and the two fitted slopes come out at 0.4642 and 1.0031 — so a forger who may choose BOTH ledgers pays the square root of what a forger handed one pays, measured rather than assumed. The third leg included width one, where the row map is injective: 72 of 72 measured rows and 14,400 of 14,400 reshuffled rows have no repeat, so the ratio is 0/0. THE LEG FAILED BECAUSE OF THE MECHANISM IT WAS ASSERTING, and the registration had already named width one as degenerate in the same prediction's rationale |
 | **AU4** | a majority of heads at every width from two to six admit a two-entry, zero-operation universal forgery, in a band placed around AT's own measured 0.35117 | it failed at width TWO, at 0.5275 against [0.56, 0.70] — and the failure is a property of the head family the set CHOSE rather than of width. The random family is conditioned on having exactly one fixed point, because a head with none has no insertion family at all; the UNCONDITIONED family at the same nine states reads 0.6450. At nine states one constraint is a ninth of the object and the same conditioning is invisible at 729. **T-CLAIM-NARROWED-BY-A-DESIGN caught by a control rather than by a reader**, for the first time — and the answer survives: from 27 states up about two heads in three admit the zero-cost forgery and width six is not rarer than width three |
 | **AT2** | insertion-forgery length falls with ledger length, and no ledger anywhere needs more than 100 insertions | three legs held — the curve is strictly decreasing at all ten steps and tracks the uniform null to within 0.17 from length three on — and the bound on the MAXIMUM was placed by a heuristic that is only about a MEAN. The same exponential approximation that predicts 4.87 at length six, accurate to 0.03, puts the chance of exceeding 100 at length two at essentially zero; drawn directly, the null exceeds 100 in 22, 25 and 33 of 50,000 draws, so 2,000 draws expect about one and **the line had a 58% chance of firing on the null alone**. The measured 146 is not evidence about the subject: the null's own maximum is 243. DRAW THE NULL'S TAIL BEFORE REGISTERING A BOUND ON A MAXIMUM |
@@ -246,7 +249,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-seven sets<!--/g--> and they form very nearly
+fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-eight sets<!--/g--> and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from

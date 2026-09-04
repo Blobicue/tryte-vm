@@ -4826,6 +4826,208 @@
           "note": "FAILED at width two, on legs (a) and (c) together, and the failure is a property of the head family I chose rather than of width -- which the set can say only because it ran the unconditioned family beside the conditioned one. At width two the conditioned family reads 0.5275 against a band at [0.56, 0.70] and 0.45833 of accumulators admitting none against [0.335, 0.395]; the UNCONDITIONED family at the same width reads 0.6450 and a mean c(ZERO) of 0.965, comfortably where the closed form says. CONDITIONING ON EXACTLY ONE FIXED POINT -- which is what makes a head comparable to D's P and what gives it an insertion family at all -- is what pushes width two out of band, at nine states where one constraint is a ninth of the object. T-CLAIM-NARROWED-BY-A-DESIGN, sixth bite, caught by the control rather than by a reader. (b) held: width six's 0.6450 is not the smallest, width two's 0.5275 is. Widths 3, 4, 5 and 6 all held on both legs -- 0.6075, 0.6625, 0.6000, 0.6450 and 0.35185, 0.37397, 0.35340, 0.35900 -- so from 27 states up the answer is stable and it is the one that matters: ABOUT TWO THIRDS OF HEADS AT EVERY WIDTH ADMIT A TWO-ENTRY, ZERO-OPERATION, ZERO-KNOWLEDGE FORGERY, and width six is not rarer than width three. Width one is the other end of the same degeneracy and is reported rather than registered: every head has exactly one universal pair at every accumulator, so the fraction is 1.0000 and no accumulator admits none. The split-round head has 2 at width four and 3 at width six, so the anchor family has them too."
         }
       ]
+    },
+    {
+      "id": "AV",
+      "subject": "What does the packed representation buy a switch-level solver, and what does WebAssembly buy on top of it? Three implementations of one algorithm -- src/device.js untouched as the oracle, the same fixed-point loop over dense integer ids and CSR adjacency, and the same loop again as WebAssembly emitted at run time by JavaScript in src/ -- held against each other on an anti-divergence gate first and then timed interleaved in one process on the first 20,000 operand pairs of the carry-in-0 sweep",
+      "tool": "tools/solver-audit.js",
+      "registered_at": "05ccd13",
+      "results_at": "6965c05",
+      "asserted_in": "test/test-solver.js",
+      "predictions": [
+        {
+          "id": "AV1",
+          "claim": "more than half of R0 per-solve wall-clock is spent in the per-node update that closes each pass rather than in the six reachability walks, measured by ablation: a copy of R0 with only the update loop two per-node array allocations removed recovers more than half the gap between R0 and R1",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "at_risk": "AT RISK: my own count points the OTHER WAY and I am registering against it. One solve on this network is about 26,000 edge visits (seven passes, six walks, 624 edges) against about 4,600 array allocations and 13,800 `Set` lookups in the update loop (328 nodes, seven passes, two filters each). Edge visits outnumber update operations five to one, so the traversal is the larger term BY COUNT. The prediction is that allocation is expensive enough per operation to invert that, and if allocation is cheap under a generational nursery it will not, and this fails.",
+          "measured": {
+            "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+            "node_version": "v22.22.3",
+            "pairs": 20000,
+            "repetitions": 6,
+            "repetitions_kept": 5,
+            "gate_networks": 128,
+            "gate_node_values_compared": 313697,
+            "gate_divergences_r0abl_r1_r2": [
+              0,
+              0,
+              0
+            ],
+            "sweeps_agreeing_on_one_checksum": 6,
+            "r0_median_seconds": 29.2169,
+            "r0_ablated_median_seconds": 26.2925,
+            "r1_median_seconds": 2.8173,
+            "r0_all_seconds": [
+              29.6735,
+              29.2169,
+              31.0893,
+              28.9183,
+              30.5988,
+              29.2028
+            ],
+            "r0_ablated_all_seconds": [
+              26.585,
+              25.5926,
+              26.8602,
+              26.6478,
+              26.2925,
+              25.5788
+            ],
+            "r1_all_seconds": [
+              2.8029,
+              2.8173,
+              2.9773,
+              2.9156,
+              2.7065,
+              2.8098
+            ],
+            "fraction_of_gap_recovered": 0.1108,
+            "registered_threshold": 0.5,
+            "second_run_fraction_of_gap_recovered": 0.1016,
+            "nominal_edge_visits_per_solve": 26208,
+            "r0_ns_per_edge_visit": 55.74,
+            "r0_ablated_ns_per_edge_visit": 50.16,
+            "r1_ns_per_edge_visit": 5.37
+          },
+          "note": "FAILED, and not at the line: the ablation recovers about a fifth of what was registered, and a second identical run agrees. The registration wrote its AT RISK line against its own arithmetic -- edge visits outnumber update operations five to one, so traversal is the larger term BY COUNT -- and predicted that allocation would be dear enough per operation to invert that. It is not. Removing every array and every Object.keys call from the update loop, about 4,600 allocations and 13,800 Set lookups per solve, moves R0 by a fraction of the gap it has to R1. So the count was right and the prediction built on top of it was wrong, which is the useful shape: what remains between the ablation and R1 is the per-solve Map of arrays of objects, the fresh Set per rail per mode per pass, and the string-keyed value object -- the three things the ablation was deliberately forbidden to touch, because AV2 upper route is about exactly those and one instrument cannot measure two predictions."
+        },
+        {
+          "id": "AV2",
+          "claim": "the packed representation is worth more than an order of magnitude: the R1-over-R0 median wall-clock ratio on the benchmark lands in [15, 40]",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "at_risk": "AT RISK: both bounds have a route, and the band is deliberately narrow enough to be reachable from either side. The anchor is R0 at roughly 75 nanoseconds per edge visit, measured while planning this set; a packed walk that gets an edge visit into the low single-digit nanoseconds lands near the middle of the band, and that is the whole of the derivation. BELOW 15 -- R0's `Set`-based `seen` can abandon a traversal early where a bitset walk still has to finish the frontier, so R1 may do strictly MORE work per pass than R0 does, and V8's inline caches handle a monomorphic `Map`-to-array walk better than the object-churn description suggests. ABOVE 40 -- this is where AV1 and AV2 are IN TENSION BY CONSTRUCTION, which is registered here rather than reconciled later. If AV1 holds and allocation is the dominant term, then removing every allocation from the update loop AND the six fresh `Set`s per pass should compound past 40 and break this. Both cannot comfortably hold at the top of their ranges, and I am registering both rather than hedging one against the other.",
+          "measured": {
+            "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+            "node_version": "v22.22.3",
+            "pairs": 20000,
+            "repetitions": 6,
+            "repetitions_kept": 5,
+            "gate_networks": 128,
+            "gate_node_values_compared": 313697,
+            "gate_divergences_r0abl_r1_r2": [
+              0,
+              0,
+              0
+            ],
+            "sweeps_agreeing_on_one_checksum": 6,
+            "r1_over_r0": 10.371,
+            "registered_band": [
+              15,
+              40
+            ],
+            "second_run_r1_over_r0": 10.167,
+            "r0_median_seconds": 29.2169,
+            "r1_median_seconds": 2.8173,
+            "registered_anchor_ns_per_edge_visit": 75,
+            "r0_ns_per_edge_visit": 55.74,
+            "r1_ns_per_edge_visit": 5.37,
+            "registered_target_ns_per_edge_visit_implied": 2.73
+          },
+          "note": "FAILED LOW, and the whole derivation is on the record so the miss can be attributed. The band came from one anchor and one target: R0 at roughly 75 nanoseconds per edge visit, and a packed walk reaching the low single-digit nanoseconds, whose quotient is the middle of [15, 40]. Both moved. R0 measures 55.7 nanoseconds per edge visit on this machine, so the anchor was a quarter too slow; R1 measures 5.37 rather than the 2.7 the middle of the band implies, so the target was twice too fast. The product of those two errors is the entire miss and neither is a fact about the representation. AND IT FAILED TOGETHER WITH AV1, in the case the registered tension did not enumerate. That paragraph reasoned about which of the two would give if allocation dominated; both failed instead, consistently, because the premise they SHARED -- that allocation in the update loop is where R0 time goes -- is the thing that was wrong. A tension registered between two predictions still rests on whatever they agree about."
+        },
+        {
+          "id": "AV3",
+          "claim": "WebAssembly buys less than the rewrite did and less than a factor of two: the R2-over-R1 median ratio on the same benchmark lands in [1.0, 2.0]",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "at_risk": "AT RISK: BELOW 1.0 refutes it, and that is the outcome I would least like and cannot rule out -- a hand-rolled emitter does no register allocation and no strength reduction, TurboFan does both, and wasm losing outright to optimised typed-array JavaScript on a pointer-chasing loop is a real result rather than a formality. ABOVE 2.0 refutes it the other way, and the route is bounds-checking: every `Uint32Array` index in R1 is checked and every `i32.load` into R2's single linear memory is not. I am registering the answer that makes step 4 of `design/13-instrument.md` dead weight.",
+          "measured": {
+            "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+            "node_version": "v22.22.3",
+            "pairs": 20000,
+            "repetitions": 6,
+            "repetitions_kept": 5,
+            "gate_networks": 128,
+            "gate_node_values_compared": 313697,
+            "gate_divergences_r0abl_r1_r2": [
+              0,
+              0,
+              0
+            ],
+            "sweeps_agreeing_on_one_checksum": 6,
+            "r2_over_r1": 2.143,
+            "registered_band": [
+              1,
+              2
+            ],
+            "second_run_r2_over_r1": 2.208,
+            "r1_median_seconds": 2.8173,
+            "r2_median_seconds": 1.3147,
+            "r1_all_seconds": [
+              2.8029,
+              2.8173,
+              2.9773,
+              2.9156,
+              2.7065,
+              2.8098
+            ],
+            "r2_all_seconds": [
+              1.2471,
+              1.2223,
+              1.423,
+              1.3382,
+              1.2601,
+              1.3147
+            ],
+            "r2_ns_per_edge_visit": 2.51,
+            "ratio_from_the_extreme_repetitions": [
+              1.902,
+              2.436
+            ],
+            "independent_runs_giving_this_verdict": 2,
+            "module_bytes": 1386
+          },
+          "note": "FAILED HIGH, by the route the registration named: every Uint32Array index in R1 is checked and every i32.load into R2 single linear memory is not. The outcome the registrant said they would least like -- a hand-rolled emitter losing outright to TurboFan on a pointer-chasing loop -- did not happen; WebAssembly won by more than was registered, and step 4 of design/13-instrument.md is not dead weight. THE VERDICT WAS CHECKED FOR BEING A LINE IN THE NOISE BEFORE IT WAS WRITTEN DOWN, because it is the only one of the four near its boundary: a ratio formed from the extreme repetitions of the two subjects spans 1.90 to 2.44 and straddles 2.0, so a second identical run was made solely to see whether the median flips. It did not -- 2.143 and 2.208, both above -- and both runs are recorded. The verdict stands on the first; the second is a stability probe and not a draw to choose from. T-CRITERION-IN-THE-NOISE is on the record for a threshold that returned a pass and a fail from the same world, and this is what checking for it looks like when it comes out clean."
+        },
+        {
+          "id": "AV4",
+          "claim": "and the advantage is a constant rather than a function of size: the R2-over-R1 ratio on the leafmid adder differs from the same ratio on the unrestored adder by less than 0.5 in absolute terms",
+          "outcome": "HELD",
+          "basis": "measured",
+          "at_risk": "AT RISK: and WEAK BY CONSTRUCTION, which is registered here rather than discovered in the write-up. `leafmid` is 2.85x the switches of the unrestored adder and its node count grows by close to the same factor, so the traversal term and the update term grow at nearly the same rate between these two and this pair cannot separate them. What it can still catch is a working set falling out of cache on one side and not the other -- both reachability bitsets are small enough to sit in L1 on both networks, so I predict no separation, and any separation at all refutes it. A pair chosen to vary switches and nodes independently would be the better instrument and this set does not build one. NOT REGISTERED — computable before the run, or already on the record, and listed here so the registered set is not inflated with facts that were never at risk: - Switch and pass counts for every network above. All `Z3`, already measured, and the pass counts were derived by hand from gate-dependency depth before that run. This set does not re-measure them. - NODE counts, which are NOT on the record: 328 for the unrestored tree adder, 904 for `leafmid`, 208 for the decoded adder. Counted while planning this set by walking `net.devices` and collecting `a`, `b` and `gate`. They are structure, they are arithmetic over a network nobody chose for this purpose, and they were known before any prediction here was written -- so they are recorded as measured-not-registered rather than counted as findings. - That pass counts are independent of the operand data. `Y2` derived it and `Z3` measured `pairs_differing_by_data: 0`. - That R1 and R2 agree with R0. That is the anti-divergence GATE, not a prediction: if it fails there is no instrument and nothing to report. - The 26,000 / 4,600 / 13,800 operation counts quoted in AV1's risk line, which are arithmetic over structure this set stipulated. ------------------------------------------------------------------------------ Run: npm run audit:solver",
+          "measured": {
+            "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+            "node_version": "v22.22.3",
+            "pairs": 20000,
+            "repetitions": 6,
+            "repetitions_kept": 5,
+            "gate_networks": 128,
+            "gate_node_values_compared": 313697,
+            "gate_divergences_r0abl_r1_r2": [
+              0,
+              0,
+              0
+            ],
+            "sweeps_agreeing_on_one_checksum": 6,
+            "r2_over_r1_unrestored": 2.143,
+            "r2_over_r1_leafmid": 2.13,
+            "separation": 0.013,
+            "refuted_at": 0.5,
+            "second_run_separation": 0.018,
+            "leafmid_r1_median_seconds": 39.0533,
+            "leafmid_r2_median_seconds": 18.3332,
+            "leafmid_r1_all_seconds": [
+              36.9244,
+              37.7912,
+              38.4389,
+              39.0601,
+              39.0533,
+              39.1356
+            ],
+            "leafmid_r2_all_seconds": [
+              16.7628,
+              17.7355,
+              18.3698,
+              17.5417,
+              18.3332,
+              18.8096
+            ]
+          },
+          "note": "HELD, and WEAK, and the registration said which before the run rather than after it. The two ratios separate by 0.013 against a 0.5 line, and the second run gives 0.018 -- so the effect is not merely inside the band, it is two orders of magnitude inside it. What that buys is narrow and was registered as narrow: leafmid grows switches and nodes by close to the same factor, so the traversal term and the update term grow together between these two networks and this pair cannot separate them. The one thing it could still have caught is a working set falling out of cache on one side and not the other, and nothing did. A pair chosen to vary switches and nodes INDEPENDENTLY would be the better instrument and this set did not build one."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -5368,6 +5570,26 @@
       "evidence": "`test/test-findings.js` recovers every set's tool at its own `registered_at` and asserts a registration header was actually FOUND -- never that a search returned nothing quietly -- over a recognised vocabulary that includes both spellings, and reports which sets use the older one rather than assuming none do. Shown to fire by mutation: narrowing the vocabulary to the current spelling turns the check red and names AQ.",
       "asserted_in": "test/test-findings.js",
       "scope": "One extractor, one missed set, one header spelling. What is measured is that exactly one of the 47 sets fails a HEAD-derived assumption about its own registration text; what is argued -- that a history-reading tool is generally unguardable from the working tree -- is an argument about where the evidence lives and not a sweep over other tools. The downstream cost is recorded rather than estimated: AQ's three predictions were misclassified, two of them into a class they were never eligible for, and the correction is in F-A-LINE-THE-NULL-CLEARS-IS-NOT-EVIDENCE rather than here."
+    },
+    {
+      "id": "F-THE-GATE-IS-THE-RESULT-NOT-THE-RATIOS",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "THREE INDEPENDENT SOLVERS AGREE ON EVERY NODE VALUE, EVERY REFUSAL AND EVERY PASS COUNT IN THE CORPUS. R1 and R2 were held against src/device.js on 4,518 rows over 128 networks -- every small builder exhaustively, both selector families wired with their arms on rails and again on inputs, all 27 input triples of both adder cells in every share and restore variant, both table builders swept over a family of tables, ripple adders narrow ones exhaustively and six trits at a stride, and the self-inverter at all five seed states and six caps -- comparing 313,697 node values with zero divergences. All five node states appear in the oracle output, both of its init refusals are reproduced, and the pass count is compared at k and at k-1 on 642 cases including 3 that never settle. All six timed sweeps returned one checksum.",
+      "argument": "This is the enabling result and the registration says outright that it is not a prediction: if it fails there is no instrument and nothing to report. It is recorded because the LATER set -- the exhaustive carry-in plus and minus one sweeps and the restored variants at stride 1, which are what the instrument is for -- has to cite something, and an instrument that has not been held against the oracle produces facts about the instrument. T-INSTRUMENT-FALSE-VERDICT has sixteen bites and every one of them is that sentence.",
+      "evidence": "tools/solver-audit.js runGate and passAgreement, run over the same corpus for R0-ablated, R1 and R2. The comparator is shown to fail on eight mutants: five in JavaScript (one node value, a solver that never refuses, one that ignores init, one that accepts an illegal init, and a circuit with one threshold moved) and three in the module (unknown conduction treated as off, reachability expanded through driven nodes, and a solve that never reports the cap).",
+      "asserted_in": "test/test-solver.js",
+      "scope": "Agreement on this corpus, which is exhaustive on the small builders and a stride sample on the six-trit and ten-bit ripples. It is not agreement on the 531,441-pair sweep, which nothing here runs."
+    },
+    {
+      "id": "F-NODE-COUNTS-OF-THE-BENCHMARK-NETWORKS",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "The unrestored six-trit tree ripple adder has 328 nodes, the same adder at restore leafmid has 904, and the decoded six-trit ripple has 208, counting every name a device mentions as a terminal or as a gate.",
+      "argument": "Counted while planning set AV and known before any of its predictions were written, so they are structure rather than findings and the registration lists them under NOT REGISTERED for that reason. They are recorded here because AV4 is a claim about two networks of different SIZE and a reader has to be able to see what changed between them, and because nothing else in the repository records a node count at all -- the switch counts are Z3 and the pass counts are Y2 and Z5, but the node count is the quantity the update loop is linear in and it was invisible.",
+      "evidence": "Walking net.devices and collecting a, b and gate, recomputed from the builders rather than transcribed.",
+      "asserted_in": "test/test-solver.js",
+      "scope": "These three networks. Not a law about how node count scales with switch count."
     }
   ],
   "reaudits": [],
@@ -5419,8 +5641,8 @@
     },
     {
       "id": "T-CHECK-FORBIDS-HEALTHY-STATE",
-      "count": 2,
-      "description": "A consistency check that treated a legitimate intermediate state as a defect. It demanded that tools/ and the manifest prediction sets be equal in number; they are equal only between phases, because registering a tool predictions and recording its results are deliberately separate commits. During a registration there is one more tool than there are sets, and that is the protocol working. The check now names the pending tool instead of failing on it. Second bite: the design-folder status-marker check scanned for bare vocabulary words with a word boundary, and a new trap id -- T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE -- contains UNKNOWN between hyphens. The check failed a document whose vocabulary was entirely correct, because an identifier is not a marker."
+      "count": 3,
+      "description": "A consistency check that treated a legitimate intermediate state as a defect. It demanded that tools/ and the manifest prediction sets be equal in number; they are equal only between phases, because registering a tool predictions and recording its results are deliberately separate commits. During a registration there is one more tool than there are sets, and that is the protocol working. The check now names the pending tool instead of failing on it. Second bite: the design-folder status-marker check scanned for bare vocabulary words with a word boundary, and a new trap id -- T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE -- contains UNKNOWN between hyphens. The check failed a document whose vocabulary was entirely correct, because an identifier is not a marker. Third bite, and it is the same shape as the first: the criterion audit's reconciliation pinned the at-risk TOTAL as a literal, so the check went red the moment a set was registered -- for the corpus growing, which is the corpus working. The audit's own classification is still pinned, because that cannot move without someone editing the frozen lists; what replaced the total is the partition itself, asserted as disjointness and membership. Pin the discriminator, never the tally."
     },
     {
       "id": "T-SEARCH-WHERE-A-CHECK-WOULD-DO",

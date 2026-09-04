@@ -120,14 +120,62 @@ inside one family of trees. A **decoded** selector reaches depth 3 at 90 switche
 cell against 104. That failure created the decoded family, the 540-switch adder, and
 sets `E`, `F` and `I` — the argument is made in [`07-negative.md`](07-negative.md).
 
+### 6. The instrument, priced — and three of its four predictions wrong
+
+Everything above was produced by `src/device.js` resolving a switch network by fixed
+point, and several of those results are **samples because of that solver rather than
+because of the question**: `Y1` swept every operand pair at carry-in 0 and then took
+carry-in ±1 at one pair in 121, `E1` did the same, and every restored variant in `Z`
+is sampled at that stride.
+
+`AV` prices the solver itself. Three implementations of **one algorithm** —
+`src/device.js` untouched as the oracle, the same fixed-point loop over dense integer
+ids and CSR adjacency, and that loop a third time as WebAssembly emitted at run time
+by JavaScript in `src/` — held against each other first, timed afterwards.
+
+**The gate came first, and it is the part that will be cited.** The three agree on
+313,697 node values across 128 networks with zero divergences, reproduce both of the
+oracle's refusals about a seeded initial state, and stop on the same pass — checked at
+*k* and at *k−1*, including networks that never settle at all, because "did not settle
+within *k*" is how every pass count in this folder was measured
+(`F-THE-GATE-IS-THE-RESULT-NOT-THE-RATIOS`).
+
+Then the timings, over the first 20,000 operand pairs, interleaved in one process:
+
+| | registered | measured |
+|---|---|---|
+| `AV1` the update loop is where the oracle's time goes | more than half the gap | 11.1% |
+| `AV2` the representation is worth an order of magnitude | 15 to 40 times | 10.37 |
+| `AV3` WebAssembly buys less than double on top | 1.0 to 2.0 times | 2.14 |
+| `AV4` and that advantage does not depend on size | separation under 0.5 | 0.013 |
+
+`AV1` and `AV2` were registered **in tension**: the registration argued that if
+allocation dominated, the second would break high. Both failed instead, and what they
+shared is what was wrong — allocation in the update loop is not where the oracle's
+time goes. Stripping every array and every `Object.keys` call out of that loop moves
+it 11.1% of the way to the packed solver (`AV1`).
+
+`AV2` failed low, and its derivation was written down before the run so the miss can
+be attributed rather than explained. The band came from an anchor of 75 nanoseconds
+per edge visit and a target in the low single digits; the oracle measures 55.7 and the
+packed solver 5.37 (`AV2`). The anchor was too slow and the target too fast, and the
+product of those two errors is the whole of it.
+
+`AV3` failed **high** — WebAssembly reached 2.14 times the packed JavaScript where at
+most 2.0 was registered, by the route the registration itself named: a bounds check on
+every typed-array index that a load into linear memory does not pay. It is the only
+one of the four that landed near its boundary, so a second identical run was made
+before the verdict was written down; the ratio came back 2.21 and did not flip
+(`AV3`).
+
 ---
 
 ## How it was established
 
 | | |
 |---|---|
-| tools | [`device-audit.js`](../tools/device-audit.js), [`axiom-audit.js`](../tools/axiom-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js) |
-| tests | `test-device.js`, `test-axioms.js`, `test-midrail.js` |
+| tools | [`device-audit.js`](../tools/device-audit.js), [`axiom-audit.js`](../tools/axiom-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`solver-audit.js`](../tools/solver-audit.js) |
+| tests | `test-device.js`, `test-axioms.js`, `test-midrail.js`, `test-solver.js` |
 | method | axioms are checked by **breaking them** and observing what stops working, not by restating them |
 
 `test-device.js` also carries a deliberately naive second solver and holds the two
@@ -155,6 +203,14 @@ Beyond those:
 - **Minimality results are over a stated 42-device space**, not over all physics.
 - **`W3`'s 0.80 should not be believed as a general claim**, and its own registration
   said so before `Z1` priced it.
+- **`AV` prices the instrument on one machine and says so.** The seconds behind its
+  ratios are this machine's; the seconds recorded in `Y1` and `E1` are other hardware,
+  and no ratio here is taken against them. What transfers is the shape — where the
+  oracle's time is not, and that the two rewrites agree with it — not the figures.
+- **And `AV` did not run the sweeps the instrument was built for.** The exhaustive
+  carry-in ±1 sweeps and the restored variants at stride 1 belong to a later set,
+  registered after this gate went green, because an instrument that has not been held
+  against the oracle produces facts about the instrument.
 
 ---
 
@@ -165,5 +221,6 @@ Beyond those:
 | `W` | the switch-level device layer beneath the arithmetic | all held |
 | `X` | the axioms the device model rests on | 4 held, `X2` failed |
 | `Z` | the two limits every switch count is quoted under | 4 held, `Z2` failed |
+| `AV` | what the packed representation buys the solver, and what WebAssembly buys on top | 1 held, `AV1`, `AV2` and `AV3` failed |
 
 Full text in [`99-ledger.md`](99-ledger.md).

@@ -40,6 +40,18 @@ a third rail. Owner: `src/device.js`.
   model would become one where `Z` retains, which is a real change to what the
   model *is*, and that is a person's call rather than a measurement. `H3`, `H4`.
 
+- **There are now three solvers, and the two new ones are not allowed to be
+  cleverer.** `AV` built the same fixed-point loop twice more — once over dense
+  integer ids and CSR adjacency, once as WebAssembly emitted at run time by
+  JavaScript in `src/` — with the algorithm held fixed on purpose, so that the
+  WebAssembly layer is measured against a JavaScript baseline that has already had
+  the data-structure win taken out of it. All three agree on 313,697 node values
+  across 128 networks with zero divergences, reproduce both `init` refusals, and
+  stop on the same pass including where nothing settles at all. The representation
+  is worth 10.37x and WebAssembly another 2.14x on top — and three of the four
+  predictions about those numbers were wrong. `AV1`–`AV4`,
+  `F-THE-GATE-IS-THE-RESULT-NOT-THE-RATIOS`.
+
 ## Sub-topics (the rabbit hole)
 
 - Why `Z` and `X` are conflated at the device level, and what that costs
@@ -52,7 +64,14 @@ a third rail. Owner: `src/device.js`.
 - ~~Can a 50,000-device network be solved at all?~~ **Settled by the H set**: yes,
   and the solver is linear rather than superlinear. 50,000 devices solve in ~70ms.
   The live question is now that sweeping, not simulation, is the binding limit — a
-  full 531,441-pair sweep fits in an hour only to ~4,800 devices.
+  full 531,441-pair sweep fits in an hour only to ~4,800 devices. `AV` bought two
+  faster solvers against that limit and proved them against the oracle; **it did not
+  spend them.** The exhaustive carry-in ±1 sweeps and the restored variants at
+  stride 1 are a separate set, registered only once that gate went green.
+- Where does the oracle's time actually go? `AV1` ruled out the update loop's
+  allocation and localised the rest to three things it was forbidden to touch — the
+  per-solve adjacency map, the fresh `Set` per rail per mode per pass, and the
+  string-keyed value object — but nothing has separated those three.
 - Does the model need strength? It is the only change that makes the middle rail
   expressible, and it demolishes three axioms.
 - Nothing represents wire. Every area number is a lower bound of a lower bound.
