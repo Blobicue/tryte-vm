@@ -2,8 +2,23 @@
 /* test-solver.js — what does the packed representation buy a switch-level solver,
  * and what does WebAssembly buy on top of it?
  *
- * Set `AV`. Say which check here is the one worth keeping, and why — usually the
- * prediction that failed, because that is where this corpus has learned most.
+ * Set `AV`. THE CHECK HERE WORTH KEEPING IS THE STATE-COVERAGE ONE — that R0
+ * produced all five of `-1`, `0`, `+1`, `Z` and `X` somewhere in the gate's corpus.
+ * Everything else in section 0 rests on it. "Zero divergences over 313,697 node
+ * values" sounds like a strong result and is worth nothing if every one of those
+ * values was a level: unknown conduction poisoning what it reaches (D6) and
+ * isolation reading `Z` (N5) are the two rules a port drops silently, and a corpus
+ * of well-behaved gates whose nodes all settle would exercise neither. A gate that
+ * never saw an `X` cannot have checked how `X` is handled, and it reports clean
+ * either way. That is the check that makes the other checks mean something.
+ *
+ * The LESSON worth keeping is `AV1` and `AV2`, which were registered in tension and
+ * failed together. The registration reasoned carefully about which of the two would
+ * give if allocation dominated, and never asked what happened if the thing they both
+ * assumed — that allocation in the update loop is where the oracle's time goes — was
+ * simply false. It was. A tension between two predictions constrains which of them
+ * can hold; it says nothing at all about what they agree on, and that is where the
+ * error was.
  *
  * SECTION 0 IS NOT OPTIONAL HERE. This set times three solvers against each other,
  * and a ratio between two solvers that disagree is a fact about neither. R1 and R2
