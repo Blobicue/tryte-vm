@@ -60,7 +60,7 @@ cross-reference names a set that does not exist.
 
 | file | owns | depth |
 |---|---|---|
-| [`00-model.md`](00-model.md) — the device model and its axioms | `W` `X` `Z` | **rich** |
+| [`00-model.md`](00-model.md) — the device model, its axioms, and the solver that resolves it | `W` `X` `Z` `AV` | **rich** |
 | [`01-vocabulary.md`](01-vocabulary.md) — what an instruction vocabulary generates | `P` `Q` `R` `S` `U` `V` | **rich** |
 | [`02-arithmetic.md`](02-arithmetic.md) — gates, adders, the detector | `Y` `E` `F` `G` `I` | **rich** |
 | [`03-sequential.md`](03-sequential.md) — storage, registers, an accumulator | `J` `K` `L` | **rich** |
@@ -97,13 +97,13 @@ anything.
 
 | | |
 |---|---|
-<!--g:results-table-->| prediction sets | 47 |
-| registered predictions | 197 — **160 held, 37 failed** |
-| of those, genuinely at risk | 165 — 128 held, 37 failed |
+<!--g:results-table-->| prediction sets | 48 |
+| registered predictions | 201 — **161 held, 40 failed** |
+| of those, genuinely at risk | 169 — 129 held, 40 failed |
 | never at risk | 25 decorative, 7 uncalled |
-| failure rate | **22.4%** of what was at risk; 18.8% of all registered |
-| measured but never registered | 66 |
-| defect classes | 19, recurring 70 times |<!--/g-->
+| failure rate | **23.7%** of what was at risk; 19.9% of all registered |
+| measured but never registered | 68 |
+| defect classes | 19, recurring 71 times |<!--/g-->
 
 The suite's check count is deliberately **not** repeated here — it lives in
 [`../README.md`](../README.md), where `run-all.js` verifies it, and a second copy

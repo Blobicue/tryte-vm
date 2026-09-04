@@ -1030,13 +1030,39 @@ console.log('\n=== 9. WAS THE CRITERION DISCRIMINATING? ===');
 
   // SIZES ONLY. The outcome breakdown of the middle class is deliberately not asserted
   // anywhere, because the boundary was drawn with the outcomes visible.
+  //
+  // THE CLASSIFIED COUNT IS PINNED; THE CORPUS TOTAL IS NOT, and the difference is the
+  // point. The three lists above are a criterion audit's own classification, frozen, and
+  // 50 is how many predictions it reached — that number cannot move without someone
+  // editing the lists, and pinning it is what makes them a record rather than a
+  // suggestion. The AT-RISK TOTAL is a different kind of number: it grows every time a
+  // set is registered, which is the corpus working. Pinned at 165 it went red on the
+  // next set for doing nothing wrong, which is T-CHECK-FORBIDS-HEALTHY-STATE — the same
+  // shape as the check that demanded the tool count and the set count be equal and so
+  // failed during every registration. So the residual is DERIVED and what is asserted
+  // instead is the partition: the audit's classes are disjoint, every member is still
+  // at risk, and none has slipped out of the at-risk population it was drawn from.
+  // Pin the discriminator, never the tally.
   const atRiskNow = M.prediction_sets.flatMap(s => s.predictions)
     .filter(p => R.classify(p.at_risk) === 'at-risk');
+  const atRiskIds = new Set(atRiskNow.map(p => p.id));
+  const classified = [...NO_DRAWABLE_NULL, ...SCORED_PARENTS, ...UNSCORED_LINE_BEARING];
   const lineBearing = NO_DRAWABLE_NULL.length + SCORED_PARENTS.length + UNSCORED_LINE_BEARING.length;
+  const escaped = classified.filter(id => !atRiskIds.has(id));
   check(`the three classes reconcile to the at-risk total: ${atRiskNow.length - lineBearing} `
     + `carry no line, ${NO_DRAWABLE_NULL.length} a line and no drawable null, `
     + `${SCORED_PARENTS.length + UNSCORED_LINE_BEARING.length} both — summing to ${atRiskNow.length}`,
-    atRiskNow.length === 165 && lineBearing === 50 && atRiskNow.length - lineBearing === 115);
+    lineBearing === 50 && new Set(classified).size === 50
+    && escaped.length === 0 && atRiskNow.length >= lineBearing,
+    `no longer at risk: ${escaped.join(' ')}`);
+  check('   and that reconciliation still fires when a classified prediction leaves the '
+    + 'at-risk population, or when the audit\'s own classes start overlapping',
+    (() => {
+      const ids = new Set([...atRiskIds].filter(id => id !== classified[0]));
+      const wouldFail = classified.filter(id => !ids.has(id)).length !== 0;
+      const overlap = new Set([...classified, SCORED_PARENTS[0]]).size !== 51;
+      return wouldFail && overlap;
+    })());
 
   check(`   and the ${TOTAL_LEGS} legs come from the ${SCORED_PARENTS.length} SCORED `
     + 'predictions only — AQ4 is line-bearing with a drawable null nobody has drawn, and '

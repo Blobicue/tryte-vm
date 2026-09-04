@@ -2,13 +2,13 @@
  "schema": "tryte-vm/slate@1",
  "purpose": "A retrieval-shaped projection of FINDINGS.json plus authored marginalia. Flat, addressable entries with stable ids, topic routes and validated cross-links. The manifest remains the authority; this is a view of it and never a second copy of the truth.",
  "counts": {
-  "entries": 295,
-  "predictions": 197,
-  "findings": 66,
+  "entries": 301,
+  "predictions": 201,
+  "findings": 68,
   "traps": 19,
   "notes": 13,
   "proven": 17,
-  "failed": 37
+  "failed": 40
  },
  "routes": {
   "algebra": [
@@ -79,6 +79,7 @@
    "AS3",
    "AT3",
    "AU3",
+   "AV4",
    "F-FOLD-BUYS-DEPTH",
    "F-RADIX-ECONOMY",
    "F-GATES-FROM-SWITCHES",
@@ -101,6 +102,8 @@
    "F-WIDTH-DOES-NOT-KILL-THE-ZERO-OP-FORGERY",
    "F-A-LINE-THE-NULL-CLEARS-IS-NOT-EVIDENCE",
    "F-AN-EXTRACTOR-THAT-READS-HISTORY-IS-BROKEN-BY-HISTORY",
+   "F-THE-GATE-IS-THE-RESULT-NOT-THE-RATIOS",
+   "F-NODE-COUNTS-OF-THE-BENCHMARK-NETWORKS",
    "N-program-relative",
    "N-depth-is-blind-to-algebra"
   ],
@@ -227,6 +230,9 @@
    "AN1",
    "AO1",
    "AS3",
+   "AV1",
+   "AV3",
+   "AV4",
    "F-CONTROL-CANNOT-DISCRIMINATE",
    "F-AN-EXTRACTOR-THAT-READS-HISTORY-IS-BROKEN-BY-HISTORY",
    "T-ONE-POINT",
@@ -307,6 +313,10 @@
    "AU1",
    "AU3",
    "AU4",
+   "AV1",
+   "AV2",
+   "AV3",
+   "AV4",
    "F-COST-INVARIANCE-IS-THE-NORM",
    "F-TERNARY-RICHER-IN-VARIETY-POORER-IN-STRUCTURE",
    "F-27-EDO-BEATS-12-EDO-ON-CONSONANCE",
@@ -412,6 +422,7 @@
    "AT3",
    "AU1",
    "AU2",
+   "AV1",
    "F-GATES-FROM-SWITCHES",
    "F-FOUR-SWITCH-NEG-NOT-UNIQUE",
    "F-ORTHOMORPHISM-GATE",
@@ -426,6 +437,7 @@
    "F-AFFINE-HIDES-ITS-SOLUTIONS-FROM-A-SCAN",
    "F-REVERSIBLE-CANNOT-DESTROY",
    "F-LEDGER-CHAIN-IS-A-SUM-IN-U",
+   "F-THE-GATE-IS-THE-RESULT-NOT-THE-RATIOS",
    "N-reversibility-inverts",
    "N-detection-not-inversion"
   ],
@@ -478,6 +490,8 @@
    "F-MERKLE-WANTS-BINARY-AT-EVERY-LEVEL",
    "F-WIDTH-BUYS-THE-FORGERS-MEMORY-NOT-HIS-TIME",
    "F-A-WIDENED-FAMILY-CAN-COLLAPSE-WHERE-INFLUENCE-STILL-REACHES",
+   "F-THE-GATE-IS-THE-RESULT-NOT-THE-RATIOS",
+   "F-NODE-COUNTS-OF-THE-BENCHMARK-NETWORKS",
    "N-asymptotic-does-not-settle-a-width"
   ],
   "tree": [
@@ -7294,6 +7308,251 @@
    "links": []
   },
   {
+   "id": "AV1",
+   "kind": "prediction",
+   "set": "AV",
+   "subject": "What does the packed representation buy a switch-level solver, and what does WebAssembly buy on top of it? Three implementations of one algorithm -- src/device.js untouched as the oracle, the same fixed-point loop over dense integer ids and CSR adjacency, and the same loop again as WebAssembly emitted at run time by JavaScript in src/ -- held against each other on an anti-divergence gate first and then timed interleaved in one process on the first 20,000 operand pairs of the carry-in-0 sweep",
+   "outcome": "FAILED",
+   "basis": "measured",
+   "routes": [
+    "reversibility",
+    "instrument",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "more than half of R0 per-solve wall-clock is spent in the per-node update that closes each pass rather than in the six reachability walks, measured by ablation: a copy of R0 with only the update loop two per-node array allocations removed recovers more than half the gap between R0 and R1",
+   "argument": null,
+   "note": "FAILED, and not at the line: the ablation recovers about a fifth of what was registered, and a second identical run agrees. The registration wrote its AT RISK line against its own arithmetic -- edge visits outnumber update operations five to one, so traversal is the larger term BY COUNT -- and predicted that allocation would be dear enough per operation to invert that. It is not. Removing every array and every Object.keys call from the update loop, about 4,600 allocations and 13,800 Set lookups per solve, moves R0 by a fraction of the gap it has to R1. So the count was right and the prediction built on top of it was wrong, which is the useful shape: what remains between the ablation and R1 is the per-solve Map of arrays of objects, the fresh Set per rail per mode per pass, and the string-keyed value object -- the three things the ablation was deliberately forbidden to touch, because AV2 upper route is about exactly those and one instrument cannot measure two predictions.",
+   "measured": {
+    "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+    "node_version": "v22.22.3",
+    "pairs": 20000,
+    "repetitions": 6,
+    "repetitions_kept": 5,
+    "gate_networks": 128,
+    "gate_node_values_compared": 313697,
+    "gate_divergences_r0abl_r1_r2": [
+     0,
+     0,
+     0
+    ],
+    "sweeps_agreeing_on_one_checksum": 6,
+    "r0_median_seconds": 29.2169,
+    "r0_ablated_median_seconds": 26.2925,
+    "r1_median_seconds": 2.8173,
+    "r0_all_seconds": [
+     29.6735,
+     29.2169,
+     31.0893,
+     28.9183,
+     30.5988,
+     29.2028
+    ],
+    "r0_ablated_all_seconds": [
+     26.585,
+     25.5926,
+     26.8602,
+     26.6478,
+     26.2925,
+     25.5788
+    ],
+    "r1_all_seconds": [
+     2.8029,
+     2.8173,
+     2.9773,
+     2.9156,
+     2.7065,
+     2.8098
+    ],
+    "fraction_of_gap_recovered": 0.1108,
+    "registered_threshold": 0.5,
+    "second_run_fraction_of_gap_recovered": 0.1016,
+    "nominal_edge_visits_per_solve": 26208,
+    "r0_ns_per_edge_visit": 55.74,
+    "r0_ablated_ns_per_edge_visit": 50.16,
+    "r1_ns_per_edge_visit": 5.37
+   },
+   "tool": "tools/solver-audit.js",
+   "asserted_in": "test/test-solver.js",
+   "registered_at": "05ccd13",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AV2",
+   "kind": "prediction",
+   "set": "AV",
+   "subject": "What does the packed representation buy a switch-level solver, and what does WebAssembly buy on top of it? Three implementations of one algorithm -- src/device.js untouched as the oracle, the same fixed-point loop over dense integer ids and CSR adjacency, and the same loop again as WebAssembly emitted at run time by JavaScript in src/ -- held against each other on an anti-divergence gate first and then timed interleaved in one process on the first 20,000 operand pairs of the carry-in-0 sweep",
+   "outcome": "FAILED",
+   "basis": "measured",
+   "routes": [
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "the packed representation is worth more than an order of magnitude: the R1-over-R0 median wall-clock ratio on the benchmark lands in [15, 40]",
+   "argument": null,
+   "note": "FAILED LOW, and the whole derivation is on the record so the miss can be attributed. The band came from one anchor and one target: R0 at roughly 75 nanoseconds per edge visit, and a packed walk reaching the low single-digit nanoseconds, whose quotient is the middle of [15, 40]. Both moved. R0 measures 55.7 nanoseconds per edge visit on this machine, so the anchor was a quarter too slow; R1 measures 5.37 rather than the 2.7 the middle of the band implies, so the target was twice too fast. The product of those two errors is the entire miss and neither is a fact about the representation. AND IT FAILED TOGETHER WITH AV1, in the case the registered tension did not enumerate. That paragraph reasoned about which of the two would give if allocation dominated; both failed instead, consistently, because the premise they SHARED -- that allocation in the update loop is where R0 time goes -- is the thing that was wrong. A tension registered between two predictions still rests on whatever they agree about.",
+   "measured": {
+    "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+    "node_version": "v22.22.3",
+    "pairs": 20000,
+    "repetitions": 6,
+    "repetitions_kept": 5,
+    "gate_networks": 128,
+    "gate_node_values_compared": 313697,
+    "gate_divergences_r0abl_r1_r2": [
+     0,
+     0,
+     0
+    ],
+    "sweeps_agreeing_on_one_checksum": 6,
+    "r1_over_r0": 10.371,
+    "registered_band": [
+     15,
+     40
+    ],
+    "second_run_r1_over_r0": 10.167,
+    "r0_median_seconds": 29.2169,
+    "r1_median_seconds": 2.8173,
+    "registered_anchor_ns_per_edge_visit": 75,
+    "r0_ns_per_edge_visit": 55.74,
+    "r1_ns_per_edge_visit": 5.37,
+    "registered_target_ns_per_edge_visit_implied": 2.73
+   },
+   "tool": "tools/solver-audit.js",
+   "asserted_in": "test/test-solver.js",
+   "registered_at": "05ccd13",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AV3",
+   "kind": "prediction",
+   "set": "AV",
+   "subject": "What does the packed representation buy a switch-level solver, and what does WebAssembly buy on top of it? Three implementations of one algorithm -- src/device.js untouched as the oracle, the same fixed-point loop over dense integer ids and CSR adjacency, and the same loop again as WebAssembly emitted at run time by JavaScript in src/ -- held against each other on an anti-divergence gate first and then timed interleaved in one process on the first 20,000 operand pairs of the carry-in-0 sweep",
+   "outcome": "FAILED",
+   "basis": "measured",
+   "routes": [
+    "instrument",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "WebAssembly buys less than the rewrite did and less than a factor of two: the R2-over-R1 median ratio on the same benchmark lands in [1.0, 2.0]",
+   "argument": null,
+   "note": "FAILED HIGH, by the route the registration named: every Uint32Array index in R1 is checked and every i32.load into R2 single linear memory is not. The outcome the registrant said they would least like -- a hand-rolled emitter losing outright to TurboFan on a pointer-chasing loop -- did not happen; WebAssembly won by more than was registered, and step 4 of design/13-instrument.md is not dead weight. THE VERDICT WAS CHECKED FOR BEING A LINE IN THE NOISE BEFORE IT WAS WRITTEN DOWN, because it is the only one of the four near its boundary: a ratio formed from the extreme repetitions of the two subjects spans 1.90 to 2.44 and straddles 2.0, so a second identical run was made solely to see whether the median flips. It did not -- 2.143 and 2.208, both above -- and both runs are recorded. The verdict stands on the first; the second is a stability probe and not a draw to choose from. T-CRITERION-IN-THE-NOISE is on the record for a threshold that returned a pass and a fail from the same world, and this is what checking for it looks like when it comes out clean.",
+   "measured": {
+    "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+    "node_version": "v22.22.3",
+    "pairs": 20000,
+    "repetitions": 6,
+    "repetitions_kept": 5,
+    "gate_networks": 128,
+    "gate_node_values_compared": 313697,
+    "gate_divergences_r0abl_r1_r2": [
+     0,
+     0,
+     0
+    ],
+    "sweeps_agreeing_on_one_checksum": 6,
+    "r2_over_r1": 2.143,
+    "registered_band": [
+     1,
+     2
+    ],
+    "second_run_r2_over_r1": 2.208,
+    "r1_median_seconds": 2.8173,
+    "r2_median_seconds": 1.3147,
+    "r1_all_seconds": [
+     2.8029,
+     2.8173,
+     2.9773,
+     2.9156,
+     2.7065,
+     2.8098
+    ],
+    "r2_all_seconds": [
+     1.2471,
+     1.2223,
+     1.423,
+     1.3382,
+     1.2601,
+     1.3147
+    ],
+    "r2_ns_per_edge_visit": 2.51,
+    "ratio_from_the_extreme_repetitions": [
+     1.902,
+     2.436
+    ],
+    "independent_runs_giving_this_verdict": 2,
+    "module_bytes": 1386
+   },
+   "tool": "tools/solver-audit.js",
+   "asserted_in": "test/test-solver.js",
+   "registered_at": "05ccd13",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AV4",
+   "kind": "prediction",
+   "set": "AV",
+   "subject": "What does the packed representation buy a switch-level solver, and what does WebAssembly buy on top of it? Three implementations of one algorithm -- src/device.js untouched as the oracle, the same fixed-point loop over dense integer ids and CSR adjacency, and the same loop again as WebAssembly emitted at run time by JavaScript in src/ -- held against each other on an anti-divergence gate first and then timed interleaved in one process on the first 20,000 operand pairs of the carry-in-0 sweep",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "instrument",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "and the advantage is a constant rather than a function of size: the R2-over-R1 ratio on the leafmid adder differs from the same ratio on the unrestored adder by less than 0.5 in absolute terms",
+   "argument": null,
+   "note": "HELD, and WEAK, and the registration said which before the run rather than after it. The two ratios separate by 0.013 against a 0.5 line, and the second run gives 0.018 -- so the effect is not merely inside the band, it is two orders of magnitude inside it. What that buys is narrow and was registered as narrow: leafmid grows switches and nodes by close to the same factor, so the traversal term and the update term grow together between these two networks and this pair cannot separate them. The one thing it could still have caught is a working set falling out of cache on one side and not the other, and nothing did. A pair chosen to vary switches and nodes INDEPENDENTLY would be the better instrument and this set did not build one.",
+   "measured": {
+    "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+    "node_version": "v22.22.3",
+    "pairs": 20000,
+    "repetitions": 6,
+    "repetitions_kept": 5,
+    "gate_networks": 128,
+    "gate_node_values_compared": 313697,
+    "gate_divergences_r0abl_r1_r2": [
+     0,
+     0,
+     0
+    ],
+    "sweeps_agreeing_on_one_checksum": 6,
+    "r2_over_r1_unrestored": 2.143,
+    "r2_over_r1_leafmid": 2.13,
+    "separation": 0.013,
+    "refuted_at": 0.5,
+    "second_run_separation": 0.018,
+    "leafmid_r1_median_seconds": 39.0533,
+    "leafmid_r2_median_seconds": 18.3332,
+    "leafmid_r1_all_seconds": [
+     36.9244,
+     37.7912,
+     38.4389,
+     39.0601,
+     39.0533,
+     39.1356
+    ],
+    "leafmid_r2_all_seconds": [
+     16.7628,
+     17.7355,
+     18.3698,
+     17.5417,
+     18.3332,
+     18.8096
+    ]
+   },
+   "tool": "tools/solver-audit.js",
+   "asserted_in": "test/test-solver.js",
+   "registered_at": "05ccd13",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
    "id": "F-ADD-IS-A-TABLE",
    "kind": "finding",
    "set": null,
@@ -8732,6 +8991,51 @@
    "links": []
   },
   {
+   "id": "F-THE-GATE-IS-THE-RESULT-NOT-THE-RATIOS",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "reversibility",
+    "cost-model",
+    "ternary-vs-binary"
+   ],
+   "routes_derived": true,
+   "claim": "THREE INDEPENDENT SOLVERS AGREE ON EVERY NODE VALUE, EVERY REFUSAL AND EVERY PASS COUNT IN THE CORPUS. R1 and R2 were held against src/device.js on 4,518 rows over 128 networks -- every small builder exhaustively, both selector families wired with their arms on rails and again on inputs, all 27 input triples of both adder cells in every share and restore variant, both table builders swept over a family of tables, ripple adders narrow ones exhaustively and six trits at a stride, and the self-inverter at all five seed states and six caps -- comparing 313,697 node values with zero divergences. All five node states appear in the oracle output, both of its init refusals are reproduced, and the pass count is compared at k and at k-1 on 642 cases including 3 that never settle. All six timed sweeps returned one checksum.",
+   "argument": "This is the enabling result and the registration says outright that it is not a prediction: if it fails there is no instrument and nothing to report. It is recorded because the LATER set -- the exhaustive carry-in plus and minus one sweeps and the restored variants at stride 1, which are what the instrument is for -- has to cite something, and an instrument that has not been held against the oracle produces facts about the instrument. T-INSTRUMENT-FALSE-VERDICT has sixteen bites and every one of them is that sentence.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-solver.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-NODE-COUNTS-OF-THE-BENCHMARK-NETWORKS",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "ternary-vs-binary"
+   ],
+   "routes_derived": true,
+   "claim": "The unrestored six-trit tree ripple adder has 328 nodes, the same adder at restore leafmid has 904, and the decoded six-trit ripple has 208, counting every name a device mentions as a terminal or as a gate.",
+   "argument": "Counted while planning set AV and known before any of its predictions were written, so they are structure rather than findings and the registration lists them under NOT REGISTERED for that reason. They are recorded here because AV4 is a claim about two networks of different SIZE and a reader has to be able to see what changed between them, and because nothing else in the repository records a node count at all -- the switch counts are Z3 and the pass counts are Y2 and Z5, but the node count is the quantity the update loop is linear in and it was invisible.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-solver.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
    "id": "T-ONE-POINT",
    "kind": "trap",
    "set": null,
@@ -8959,11 +9263,11 @@
     "method"
    ],
    "routes_derived": false,
-   "claim": "A consistency check that treated a legitimate intermediate state as a defect. It demanded that tools/ and the manifest prediction sets be equal in number; they are equal only between phases, because registering a tool predictions and recording its results are deliberately separate commits. During a registration there is one more tool than there are sets, and that is the protocol working. The check now names the pending tool instead of failing on it. Second bite: the design-folder status-marker check scanned for bare vocabulary words with a word boundary, and a new trap id -- T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE -- contains UNKNOWN between hyphens. The check failed a document whose vocabulary was entirely correct, because an identifier is not a marker.",
+   "claim": "A consistency check that treated a legitimate intermediate state as a defect. It demanded that tools/ and the manifest prediction sets be equal in number; they are equal only between phases, because registering a tool predictions and recording its results are deliberately separate commits. During a registration there is one more tool than there are sets, and that is the protocol working. The check now names the pending tool instead of failing on it. Second bite: the design-folder status-marker check scanned for bare vocabulary words with a word boundary, and a new trap id -- T-COMPUTED-CONTROL-UNKNOWN-AT-PASS-ONE -- contains UNKNOWN between hyphens. The check failed a document whose vocabulary was entirely correct, because an identifier is not a marker. Third bite, and it is the same shape as the first: the criterion audit's reconciliation pinned the at-risk TOTAL as a literal, so the check went red the moment a set was registered -- for the corpus growing, which is the corpus working. The audit's own classification is still pinned, because that cannot move without someone editing the frozen lists; what replaced the total is the partition itself, asserted as disjointness and membership. Pin the discriminator, never the tally.",
    "argument": null,
    "note": null,
    "measured": {
-    "bites": 2
+    "bites": 3
    },
    "tool": null,
    "asserted_in": null,

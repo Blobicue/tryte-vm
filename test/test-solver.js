@@ -35,6 +35,12 @@ const check = (name, cond, detail = '') => {
 // suite is one async function rather than a script. Nothing below awaits anything
 // per solve: the instance is built once, up here, and every adapter over it is
 // synchronous.
+// The gate's own numbers are read again in section 5, where the manifest entry that
+// records them is checked against them. Declared out here rather than recomputed,
+// because running the corpus twice to compare it with itself is not a second opinion.
+const gates = {};
+let passR1 = null;
+
 async function main() {
 await A.makeR2();
 
@@ -256,7 +262,6 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
   // builds, and the AV1 ablation against R0 over the same corpus — an ablation
   // nobody held against the oracle would put AV1's number on a solver that
   // computes something else.
-  const gates = {};
   for (const [name, solve] of [['R0abl', A.R0ABL], ['R1', A.R1], ['R2', A.R2]]) {
     gates[name] = A.runGate(solve);
   }
@@ -287,6 +292,7 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
   // the subject is then checked at k and at k-1 (T-SEARCH-WHERE-A-CHECK-WOULD-DO).
   for (const [name, solve] of [['R0abl', A.R0ABL], ['R1', A.R1], ['R2', A.R2]]) {
     const p = A.passAgreement(solve);
+    if (name === 'R1') passR1 = p;
     check(`${name} stops on exactly the pass R0 stops on, and not one earlier`,
       p.bad.length === 0, p.bad.slice(0, 3).join(' | '));
     if (name === 'R2') {
@@ -461,24 +467,210 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
   }
 }
 
+/* THE FOUR VERDICTS ARE READ, NOT RE-RUN.
+ *
+ * Nothing below times anything. The measurement is `npm run audit:solver`, once, on
+ * one machine, and what it produced is in `FINDINGS.json`; a suite that re-timed
+ * would draw a fresh sample every time it ran, and a threshold near the noise floor
+ * would return a pass on one run and a fail on the next. T-CRITERION-IN-THE-NOISE is
+ * on the record for exactly that, and AV3 is the prediction it would bite.
+ *
+ * So what is checked here is the RECORD: that the recorded ratio, scored against the
+ * band the frozen registration states, gives the recorded outcome; that the band in
+ * the manifest is the band in the docstring; and that every ratio follows from the
+ * medians beside it and every median from the six repetitions beside THAT. A manifest
+ * entry disagreeing with its own numbers, or with the registration it is scored
+ * against, is what this can catch and a re-run is not.
+ */
+const MANIFEST = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'FINDINGS.json'), 'utf8'));
+const AV = MANIFEST.prediction_sets.find(s => s.id === 'AV');
+const of = id => (AV ? AV.predictions.find(p => p.id === id) : null);
+const BAND = A.registeredBands();
+const near = (a, b, tol) => Math.abs(a - b) <= tol;
+/** The median of the five kept repetitions, recomputed from the six recorded ones. */
+const medianOfKept = all => {
+  const kept = all.slice(1).sort((x, y) => x - y);
+  return kept[Math.floor(kept.length / 2)];
+};
+const nodesOf = net => {
+  const s = new Set();
+  for (const d of net.devices) { s.add(d.a); s.add(d.b); s.add(d.gate); }
+  return s.size;
+};
+
 console.log('\n=== 1. AV1  where R0 spends its time ===');
 {
-  check('AV1 ...', false, 'not yet measured');
+  const p = of('AV1'), m = p && p.measured;
+  check('AV1 is in the manifest, scored, and carries what it measured',
+    !!m && p.basis === 'measured' && typeof m.fraction_of_gap_recovered === 'number');
+  if (m) {
+    const pct = (m.fraction_of_gap_recovered * 100).toFixed(1);
+    check(`AV1 FAILED: the ablation recovers ${pct}% of the R0-to-R1 gap, where more `
+      + `than ${BAND.av1 * 100}% was registered`,
+      p.outcome === (m.fraction_of_gap_recovered > BAND.av1 ? 'HELD' : 'FAILED')
+      && p.outcome === 'FAILED', `outcome ${p.outcome} at ${m.fraction_of_gap_recovered}`);
+    check('   and the threshold it was scored against is the one the registration states',
+      m.registered_threshold === BAND.av1);
+    // The fraction is arithmetic over three medians and all three are recorded, so it
+    // is recomputed rather than trusted. A recorded ratio that does not follow from
+    // its own recorded inputs is the risk any second copy of a number carries.
+    check('   and the fraction follows from the three recorded medians',
+      near((m.r0_median_seconds - m.r0_ablated_median_seconds)
+        / (m.r0_median_seconds - m.r1_median_seconds), m.fraction_of_gap_recovered, 0.001));
+    check('   and each median is the median of the five kept repetitions of six',
+      m.r0_all_seconds.length === 6 && m.repetitions_kept === 5
+      && near(medianOfKept(m.r0_all_seconds), m.r0_median_seconds, 1e-9)
+      && near(medianOfKept(m.r0_ablated_all_seconds), m.r0_ablated_median_seconds, 1e-9)
+      && near(medianOfKept(m.r1_all_seconds), m.r1_median_seconds, 1e-9));
+    check('   and a second identical run failed it too, so this is not one draw',
+      m.second_run_fraction_of_gap_recovered <= BAND.av1,
+      String(m.second_run_fraction_of_gap_recovered));
+  }
 }
 
 console.log('\n=== 2. AV2  R1 over R0: what the representation buys ===');
 {
-  check('AV2 ...', false, 'not yet measured');
+  const p = of('AV2'), m = p && p.measured;
+  check('AV2 is in the manifest and carries the band it was scored against',
+    !!m && Array.isArray(m.registered_band));
+  if (m) {
+    const held = m.r1_over_r0 >= BAND.av2[0] && m.r1_over_r0 <= BAND.av2[1];
+    check(`AV2 FAILED LOW: R1 is ${m.r1_over_r0}x R0, against a registered `
+      + `[${BAND.av2.join(', ')}]`,
+      p.outcome === (held ? 'HELD' : 'FAILED') && p.outcome === 'FAILED'
+      && m.r1_over_r0 < BAND.av2[0], `outcome ${p.outcome} at ${m.r1_over_r0}`);
+    check('   and the band in the manifest is the band in the frozen registration',
+      m.registered_band[0] === BAND.av2[0] && m.registered_band[1] === BAND.av2[1]);
+    check('   and the ratio follows from the two recorded medians',
+      near(m.r0_median_seconds / m.r1_median_seconds, m.r1_over_r0, 0.005));
+    // WHY it missed, recomputed. The band was one quotient — an anchor over a target
+    // — and both terms are recorded, so the attribution in the note is checkable
+    // rather than a story told after the fact.
+    check(`   and both terms of the band's derivation moved: R0 measures `
+      + `${m.r0_ns_per_edge_visit} ns per edge visit against a registered `
+      + `${m.registered_anchor_ns_per_edge_visit}, and R1 ${m.r1_ns_per_edge_visit} `
+      + `against an implied ${m.registered_target_ns_per_edge_visit_implied}`,
+      m.r0_ns_per_edge_visit < m.registered_anchor_ns_per_edge_visit
+      && m.r1_ns_per_edge_visit > m.registered_target_ns_per_edge_visit_implied
+      && near(m.r0_ns_per_edge_visit / m.r1_ns_per_edge_visit, m.r1_over_r0, 0.05));
+    check('   and a second identical run failed it on the same side',
+      m.second_run_r1_over_r0 < BAND.av2[0], String(m.second_run_r1_over_r0));
+    // AV1 AND AV2 WERE REGISTERED IN TENSION and both failed, which is the case that
+    // paragraph did not enumerate. Asserted rather than only narrated, because a note
+    // is not a check.
+    check('   and AV1 failed with it, which is the case the registered tension between '
+      + 'them did not enumerate: they failed on the premise they SHARED',
+      of('AV1').outcome === 'FAILED' && p.outcome === 'FAILED');
+  }
 }
 
 console.log('\n=== 3. AV3  R2 over R1: what WebAssembly buys ===');
 {
-  check('AV3 ...', false, 'not yet measured');
+  const p = of('AV3'), m = p && p.measured;
+  check('AV3 is in the manifest and carries both runs behind it',
+    !!m && typeof m.second_run_r2_over_r1 === 'number');
+  if (m) {
+    const held = m.r2_over_r1 >= BAND.av3[0] && m.r2_over_r1 <= BAND.av3[1];
+    check(`AV3 FAILED HIGH: R2 is ${m.r2_over_r1}x R1, against a registered `
+      + `[${BAND.av3.join(', ')}] — WebAssembly bought MORE than was registered, not less`,
+      p.outcome === (held ? 'HELD' : 'FAILED') && p.outcome === 'FAILED'
+      && m.r2_over_r1 > BAND.av3[1], `outcome ${p.outcome} at ${m.r2_over_r1}`);
+    check('   and the band in the manifest is the band in the frozen registration',
+      m.registered_band[0] === BAND.av3[0] && m.registered_band[1] === BAND.av3[1]);
+    check('   and the ratio follows from the two recorded medians',
+      near(m.r1_median_seconds / m.r2_median_seconds, m.r2_over_r1, 0.005));
+    // THE ONE VERDICT THAT NEEDED A STABILITY CHECK, and the record has to show it got
+    // one BEFORE it was written down. A ratio formed from the extreme repetitions
+    // straddles the line; the medians of two independent runs do not.
+    check('   and the extreme repetitions DO straddle the line, which is why a second '
+      + 'run was made rather than assumed unnecessary',
+      m.ratio_from_the_extreme_repetitions[0] < BAND.av3[1]
+      && m.ratio_from_the_extreme_repetitions[1] > BAND.av3[1]);
+    check(`   and the verdict did not flip: two independent runs at ${m.r2_over_r1} and `
+      + `${m.second_run_r2_over_r1}, both above ${BAND.av3[1]}`,
+      m.second_run_r2_over_r1 > BAND.av3[1] && m.independent_runs_giving_this_verdict === 2);
+    // And R2 is the module this tree emits, at the size it emits it.
+    check('   and the module it timed is the one this tree emits, byte for byte',
+      m.module_bytes === SW.moduleBytes().length,
+      `${m.module_bytes} recorded, ${SW.moduleBytes().length} now`);
+  }
 }
 
 console.log('\n=== 4. AV4  the same ratio at 2.8x the size ===');
 {
-  check('AV4 ...', false, 'not yet measured');
+  const p = of('AV4'), m = p && p.measured;
+  check('AV4 is in the manifest and carries both ratios it compares',
+    !!m && typeof m.r2_over_r1_leafmid === 'number');
+  if (m) {
+    const held = m.separation < BAND.av4;
+    check(`AV4 HELD: ${m.r2_over_r1_unrestored} on the unrestored adder against `
+      + `${m.r2_over_r1_leafmid} on leafmid, separating by ${m.separation} where `
+      + `${BAND.av4} refutes`,
+      p.outcome === (held ? 'HELD' : 'FAILED') && p.outcome === 'HELD',
+      `outcome ${p.outcome} at ${m.separation}`);
+    check('   and the separation follows from the two recorded ratios',
+      near(Math.abs(m.r2_over_r1_leafmid - m.r2_over_r1_unrestored), m.separation, 0.002));
+    check('   and the leafmid ratio follows from its own two recorded medians',
+      near(m.leafmid_r1_median_seconds / m.leafmid_r2_median_seconds,
+        m.r2_over_r1_leafmid, 0.005));
+    check('   and the unrestored ratio it is compared against is AV3\'s, not a second '
+      + 'measurement of the same thing',
+      m.r2_over_r1_unrestored === of('AV3').measured.r2_over_r1);
+    check('   and a second identical run held it too, an order of magnitude inside the line',
+      m.second_run_separation < BAND.av4 / 10, String(m.second_run_separation));
+    // HELD AND WEAK, and the weakness was registered rather than discovered. The
+    // registration says this pair cannot separate the traversal term from the update
+    // term because both grow together between these two networks. That is a fact about
+    // the CONSTRUCTION, and it is checkable from the builders rather than taken on
+    // trust — a control whose parameter cancels out of it shows nothing, and this one
+    // says so on the record instead of standing as evidence.
+    check('   and the pair really cannot discriminate, as registered: switches and '
+      + 'nodes grow by nearly the same factor between the two networks',
+      (() => {
+        const plain = D.tRippleAdder(new D.Net(), 6, false);
+        const leaf = D.tRippleAdder(new D.Net(), 6, { restore: 'leafmid' });
+        const sw = leaf.cost().switches / plain.cost().switches;
+        const nd = nodesOf(leaf) / nodesOf(plain);
+        return Math.abs(sw - nd) < 0.15;
+      })());
+  }
+}
+
+console.log('\n=== 5. WHAT WAS MEASURED AND NOT REGISTERED ===');
+{
+  // The registration lists both of these under NOT REGISTERED, so they are recorded as
+  // findings rather than counted as predictions — and a finding still has to be
+  // recomputed by something.
+  const F = id => MANIFEST.unregistered_findings.find(f => f.id === id);
+  const gate = F('F-THE-GATE-IS-THE-RESULT-NOT-THE-RATIOS');
+  check('the gate is on the record as measured-not-registered, since the later sweep '
+    + 'set has to cite something', !!gate && gate.outcome === 'MEASURED_NOT_REGISTERED');
+  if (gate) {
+    // Every count in that claim, recomputed against the gate this file just ran.
+    const n = re => Number((re.exec(gate.claim) || [, '-1'])[1].replace(/,/g, ''));
+    const got = [gates.R1.rows, gates.R1.groups, gates.R1.values, passR1.checked, passR1.never];
+    const said = [n(/on ([\d,]+) rows/), n(/over (\d+) networks/),
+      n(/comparing ([\d,]+) node values/), n(/at k and at k-1 on (\d+) cases/),
+      n(/including (\d+) that never settle/)];
+    check('   and every count in its claim is what the gate reports here',
+      said.every((v, i) => v === got[i]), `manifest ${said.join(',')} vs gate ${got.join(',')}`);
+    check('   and it records zero divergences, which is what every timing rests on',
+      /zero divergences/.test(gate.claim)
+      && ['R0abl', 'R1', 'R2'].every(k => gates[k].diffs.length === 0));
+  }
+  const nodes = F('F-NODE-COUNTS-OF-THE-BENCHMARK-NETWORKS');
+  check('the three node counts are recorded as measured-not-registered, as the '
+    + 'registration says they are', !!nodes && nodes.outcome === 'MEASURED_NOT_REGISTERED');
+  if (nodes) {
+    const want = [
+      [nodesOf(D.tRippleAdder(new D.Net(), 6, false)), /has (\d+) nodes/],
+      [nodesOf(D.tRippleAdder(new D.Net(), 6, { restore: 'leafmid' })), /restore leafmid has (\d+)/],
+      [nodesOf(D.dRippleAdder(new D.Net(), 6)), /decoded six-trit ripple has (\d+)/],
+    ];
+    check('   and each one is recomputed from the builder rather than transcribed',
+      want.every(([g, re]) => Number((re.exec(nodes.claim) || [, '-1'])[1]) === g),
+      want.map(([g, re]) => `${(re.exec(nodes.claim) || [, '?'])[1]} vs ${g}`).join(' '));
+  }
 }
 
 console.log(`\n${'='.repeat(64)}`);

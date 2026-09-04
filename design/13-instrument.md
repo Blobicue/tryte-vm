@@ -109,16 +109,30 @@ is a different instrument that agrees with it on the easy cases.
    band be fitted to the answer.
 1. **`src/netpack.js`** — lower a `Net` to dense integer ids, parallel typed
    arrays for the device table, CSR adjacency, and rail and driven masks computed
-   once per network rather than once per solve. R1 lives here.
+   once per network rather than once per solve. R1 lives here. **Done.**
 2. **The R0-against-R1 gate, green before any timing is reported.** Exhaustive on
    every small builder, on all twenty-seven input triples of both adder cells, and
    on a network that does not settle, so the bound is compared and not just the
    levels. A ratio between two solvers that disagree is a fact about neither.
+   **Done**, in `test/test-solver.js` section 0 and runnable from the tool; it
+   grew two things this file did not ask for and should have. Both selector
+   families are wired with their arms on RAILS and again on INPUTS, because `T5`
+   says an input gates and terminates a path but does not source, and a packed
+   form that quietly sourced from inputs would pass every rail-armed case. And the
+   corpus is checked for producing all five node states, because a gate that never
+   saw an `X` cannot have checked how `X` is handled.
 3. **`src/wasm-emit.js`**, then **`src/solver-wasm.js`**. R2 passes the same gate
    R1 passed, and the sweep driver loops over operand pairs *inside* the module —
-   crossing the boundary once per chunk, not once per pair.
+   crossing the boundary once per chunk, not once per pair. **Done.** One generic
+   module rather than one per network: a header at address zero carries the counts
+   and a base pointer per array, so loading a network is a copy and the module is
+   instantiated once per process rather than once per solve.
 4. **Run `AV` and record it.** Results commit separate from the registration
    commit, then the manifest entry and the assertions in `test/test-solver.js`.
+   **Done: `AV4` held and `AV1`, `AV2` and `AV3` failed.** The instrument works and
+   three of the four predictions about what it would cost were wrong — see
+   [`../results/00-model.md`](../results/00-model.md) and
+   [`../results/07-negative.md`](../results/07-negative.md).
 5. **Then, and only then, a second set for the sweeps.** The carry-in ±1 sweeps
    on both six-trit adders and the restored variants exhaustively are what the
    instrument is *for*, but they are not in `AV` and must not be: an instrument
@@ -141,22 +155,32 @@ is a different instrument that agrees with it on the easy cases.
 
 ## What would stop it
 
-- **R2 lands on R1.** JavaScript engines are good at typed-array word loops. If
-  WebAssembly buys a factor near one, step 4 is dead weight and the right move is
-  to ship R1 alone and say so. This is the single most likely failure and `AV`
-  registers it as a prediction rather than discovering it afterwards.
-- **R1 lands on R0.** If the per-edge cost is already dominated by something the
-  representation does not touch, the premise of the whole file is wrong.
-- **The packed form cannot express the model.** `init` seeds non-driven nodes and
-  `N8` makes the starting state part of the semantics; a representation that
-  cannot seed an arbitrary node has quietly dropped an axiom.
+- ~~**R2 lands on R1.**~~ **It did not.** WebAssembly bought more than `AV3`
+  registered, not less, so step 4 is not dead weight. The route that broke the
+  prediction was the one its own registration named: a bounds check on every
+  typed-array index that a load into linear memory does not pay.
+- ~~**R1 lands on R0.**~~ **It did not, but the premise of this file was weaker
+  than it looks.** The representation is worth an order of magnitude and `AV2`
+  still failed, because it failed LOW — the band was drawn around an anchor that
+  was too slow and a target that was too fast. What this file predicted about
+  *where* the cost is was also wrong: `AV1` ruled out the update loop's allocation,
+  which is the thing the "What is missing" section above names first.
+- ~~**The packed form cannot express the model.**~~ **It can, and that is checked
+  rather than assumed.** `init` seeds any of the five node states onto any
+  non-driven node, the self-inverter gives its three different answers to its three
+  seeds, and both of `solve()`'s refusals are reproduced. A solver that dropped the
+  seed is one of the mutants the gate is shown to catch.
 - **The exhaustive sweeps disagree with the samples.** This would not stop the
   plan — it would be the best thing it produced — but it retires results in `Y`,
   `E` and `Z` and that consequence should be accepted before the run, not
   negotiated after it.
-- **A number in this file rots.** The switch and node counts above are
-  recomputable and nothing currently recomputes them. Step 1 should pin them the
-  way `test-budget.js` pins `12-roadmap.md`.
+- ~~**A number in this file rots.**~~ **Pinned.** `test/test-solver.js` reads the
+  five switch counts and four pass counts out of the table above and recomputes
+  them, the way `test-budget.js` pins `12-roadmap.md`. The pass counts are checked
+  rather than searched: the table supplies *k*, and each network is solved twice —
+  at *k*, where it must settle, and at *k−1*, where it must not. Node counts are
+  still absent from that table on purpose and are recorded as
+  measured-not-registered instead.
 
 ## What this plan does not decide
 

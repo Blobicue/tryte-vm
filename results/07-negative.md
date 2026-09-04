@@ -138,6 +138,32 @@ measured 3.72 on one run and 2.89 on the next, either side of its own line. **Th
 world produced both a pass and a fail.** That is a defect in the prediction, not a
 fact about the subject, and it is the origin of `T-CRITERION-IN-THE-NOISE`.
 
+**`AV1` / `AV2` — a tension registered between two predictions, and both arms of it
+failed.** The registration set them against each other on purpose: if allocation in
+the solver's update loop dominated, then `AV1` would hold *and* removing that
+allocation would compound past `AV2`'s ceiling and break it. Neither happened.
+Stripping every array and every `Object.keys` call out of that loop recovers 11.1% of
+the gap to the packed solver (`AV1`), and the packed solver lands at 10.37 times the
+oracle against a floor of 15 (`AV2`). **They failed on the premise they shared** —
+that allocation in the update loop is where the time goes — which the tension itself
+could not see, because a tension is a statement about which of two things gives and
+says nothing about what they agree on. And `AV2` can be *attributed* rather than
+merely explained, because its band was one quotient of an anchor over a target and
+both were written down before the run: the oracle measured 55.7 nanoseconds per edge
+visit against the anchor's 75, while the packed walk measured 5.37 against an implied
+2.7. Two errors, opposite directions, and their product is the whole of it.
+
+**`AV3` — `T-CRITERION-IN-THE-NOISE` checked in the forward direction rather than
+discovered afterwards.** `H1` above is where that trap came from: a threshold near
+the noise floor returning a pass on one run and a fail on the next. `AV3` landed at
+2.14 against a registered ceiling of 2.0, and a ratio formed from the extreme
+repetitions of its two subjects spans 1.90 to 2.44 — straddling the line. So a
+second identical run was made **before the verdict was written down**, rather than
+after somebody noticed. It came back 2.21 and the verdict did not move, and both
+runs are on the record. The failure itself is the good direction: WebAssembly bought
+*more* than was registered, by the bounds-checking route the registration had already
+named as the way it could break high.
+
 **`D3` / `D4` — the hashing pair.** `D3` predicted that fixing injectivity would give
 mixing; it does not, because a positionwise 3-cycle *is* addition of a constant and
 the sum stays affine. `D4` predicted collision counts would separate a mixing map

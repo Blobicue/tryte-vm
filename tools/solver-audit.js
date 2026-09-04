@@ -773,17 +773,36 @@ function sweepWasmR2(inst, P, pairs) {
 }
 
 /**
- * Wall-clock over interleaved repetitions. Not back to back: the subject order
- * ROTATES every repetition, so a thermal or a JIT drift over the run cannot land
- * entirely on one of them. The first repetition of each subject is discarded as
- * warm-up and the median of the remaining five is reported.
+ * Wall-clock over interleaved repetitions, and three things about HOW rather than
+ * how many, because each of them can move a ratio on its own.
+ *
+ * ROTATION IS NOT ENOUGH, so the order is rotated AND reversed on alternate
+ * repetitions. Under a plain rotation every subject has the same predecessor
+ * every time -- with four subjects and `(i + r) % 4`, R1 always follows R0abl --
+ * so a collection that the previous sweep provoked lands on the same subject at
+ * every repetition and reads as that subject being slow. Reversing on odd
+ * repetitions gives each subject more than one predecessor.
+ *
+ * ONE UNTIMED ROUND FIRST, of every subject. The registration says the first
+ * repetition is discarded as warm-up; discarding it PER SUBJECT still leaves the
+ * subject that runs first genuinely cold while the one that runs last has three
+ * full sweeps of tier-up behind it. The untimed round removes that asymmetry, and
+ * the first timed repetition is still discarded on top of it.
+ *
+ * AND A CHECKSUM THAT MOVED BETWEEN REPETITIONS IS NOT A TIMING. If a subject
+ * returned two different answers across its repetitions, the median is over runs
+ * that did different things, so this raises rather than reporting it.
  */
 function interleaved(subjects, reps) {
+  const order = r => {
+    const rot = subjects.map((_, i) => subjects[(i + r) % subjects.length]);
+    return r % 2 ? rot.reverse() : rot;
+  };
+  for (const s of order(0)) s.run();                       // untimed, and every subject
   const times = new Map(subjects.map(s => [s.name, []]));
   const sums = new Map();
   for (let r = 0; r < reps; r++) {
-    for (let i = 0; i < subjects.length; i++) {
-      const s = subjects[(i + r) % subjects.length];
+    for (const s of order(r)) {
       const t0 = process.hrtime.bigint();
       const sum = s.run();
       times.get(s.name).push(Number(process.hrtime.bigint() - t0) / 1e9);
@@ -793,9 +812,13 @@ function interleaved(subjects, reps) {
   }
   const out = {};
   for (const s of subjects) {
+    if (Number.isNaN(sums.get(s.name))) {
+      throw new Error(`${s.name} returned different answers across repetitions`);
+    }
     const kept = times.get(s.name).slice(1).sort((a, b) => a - b);
     out[s.name] = {
       median: kept[Math.floor(kept.length / 2)],
+      kept: kept.length,
       all: times.get(s.name),
       checksum: sums.get(s.name),
     };
@@ -960,10 +983,67 @@ async function report(argv = []) {
   return A;
 }
 
-if (MAIN) report(process.argv.slice(2)).catch(e => { console.error(e); process.exit(1); });
+/**
+ * Everything the record needs, and nothing that cannot be written down: the
+ * medians, every raw repetition behind them, the ratios, the bands they are
+ * scored against, the checksums, what the gate compared, and WHICH MACHINE. The
+ * registration says the seconds in `Y1` and `E1` are other hardware and are not a
+ * baseline for anything here, which cuts both ways -- these seconds are this
+ * machine's and the manifest has to say so.
+ */
+function summary(A) {
+  const os = require('os');
+  const t = x => ({ median_seconds: Number(x.median.toFixed(4)),
+    repetitions_kept: x.kept, all_seconds: x.all.map(v => Number(v.toFixed(4))),
+    checksum: x.checksum });
+  const g = name => {
+    const { g: gate, p, divergences } = A.gate[name];
+    return { divergences, rows: gate.rows, node_values: gate.values,
+      refusals_matched: gate.threwBoth, pass_cases: p.checked,
+      pass_never_settling: p.never };
+  };
+  return {
+    machine: { node: process.version, platform: process.platform,
+      cpu: (os.cpus()[0] || {}).model },
+    pairs: A.pairs,
+    repetitions: A.reps,
+    gate: {
+      networks: A.gate.R1.g.groups,
+      states_seen: [...A.gate.R1.g.coverage].map(x => (typeof x === 'string' ? x : String(x))).sort(),
+      R0abl: g('R0abl'), R1: g('R1'), R2: g('R2'),
+    },
+    seconds: {
+      R0: t(A.M.small.R0), R0_ablated: t(A.M.small.R0abl),
+      R1: t(A.M.small.R1), R2: t(A.M.small.R2),
+      leafmid_R1: t(A.M.big.R1), leafmid_R2: t(A.M.big.R2),
+    },
+    av1_fraction_of_gap_recovered: Number(A.av1.toFixed(4)),
+    av1_threshold: A.band.av1,
+    av2_r1_over_r0: Number(A.av2.toFixed(3)),
+    av2_band: A.band.av2,
+    av3_r2_over_r1: Number(A.av3.toFixed(3)),
+    av3_band: A.band.av3,
+    av4_r2_over_r1_leafmid: Number(A.av3big.toFixed(3)),
+    av4_separation: Number(A.av4.toFixed(3)),
+    av4_refuted_at: A.band.av4,
+    verdict: A.verdict,
+  };
+}
+
+if (MAIN) {
+  report(process.argv.slice(2)).then(A => {
+    // `--json` prints the record IN THE SAME PROCESS that produced the report, so
+    // a number in the manifest is the number that was printed and not one retyped
+    // from a terminal.
+    if (process.argv.includes('--json')) {
+      console.log('\n----- RECORD -----');
+      console.log(JSON.stringify(summary(A), null, 2));
+    }
+  }).catch(e => { console.error(e); process.exit(1); });
+}
 
 module.exports = {
-  report, runAudit, registeredBands, makeR2, solveAblated, packedFor, R0, R0ABL, R1, R2,
+  report, runAudit, summary, registeredBands, makeR2, solveAblated, packedFor, R0, R0ABL, R1, R2,
   gateGroups, refusalCases, runGate, passAgreement, seedPatterns,
   tableFamily, binaryTableFamily, benchPairs, sweepObject, sweepPackedR1,
   interleaved, measure, pairCodes, sweepWasmR2, BENCH_PAIRS, BENCH_REPS, OUTS, ADDER_IN,

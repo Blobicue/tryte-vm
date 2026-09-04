@@ -1,6 +1,6 @@
 ---
 name: failure-catalogue
-description: <!--g:doctree-desc-->Nineteen defect classes, seventy bites<!--/g-->, each now a permanent check. Substrate - the classes are not about ternary.
+description: <!--g:doctree-desc-->Nineteen defect classes, seventy-one bites<!--/g-->, each now a permanent check. Substrate - the classes are not about ternary.
 type: reference
 last_updated: 2026-08-25
 ---
@@ -12,7 +12,7 @@ last_updated: 2026-08-25
 
 ## What is established
 
-<!--g:doctree-lede-->Nineteen classes, seventy occurrences<!--/g-->. The ones that recurred after being
+<!--g:doctree-lede-->Nineteen classes, seventy-one occurrences<!--/g-->. The ones that recurred after being
 named are the interesting ones, because naming a thing is supposed to prevent it:
 
 <!--g:doctree-recurred-->- **the instrument, not the subject** - twenty-one times; a tool declaring a failure that was its own
@@ -20,10 +20,10 @@ named are the interesting ones, because naming a thing is supposed to prevent it
 - **a claim narrowed by a design** - six times; the numbers right and the noun too big
 - **hardcoded counts go stale** - five times; including a document stating its own totals
 - **the scope decides the verdict** - four times; a correct computation answering the adjacent question
+- **checks that forbid healthy states** - three times
 - **one point is not a function** - three times
 - **out of budget is not finished** - three times; the second produced no wrong number, only an unverified one
 - **a control that cannot fail** - twice
-- **checks that forbid healthy states** - twice
 - and ten others, each bitten once<!--/g-->
 
 **Most of them are arguably one class.** About ten of the nineteen reduce to *the
