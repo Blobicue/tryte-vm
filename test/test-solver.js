@@ -88,16 +88,30 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
   // faster solver that edits the thing it is checked against has removed its own
   // check. Asked of git rather than asserted, and fail-closed -- a git error is a
   // failure here, not a pass, because an unanswerable question is not a yes.
+  //
+  // ANCHORED ON THE REGISTRATION COMMIT, NOT ON `main`. This asked
+  // `git merge-base main HEAD` first, which reads the right answer off the wrong
+  // question: `main` is a LOCAL BRANCH NAME that need not exist. A worktree, a
+  // clone made with `--branch`, or a CI job that fetched only this ref has no
+  // `main`, git errors, and a fail-closed check turns red on a tree where nothing
+  // is wrong -- T-CHECK-FORBIDS-HEALTHY-STATE again, and the same shape as the
+  // at-risk tally in section 9 of test-findings.js. The set's own `registered_at`
+  // is a commit sha, is in the manifest, and states the claim exactly: device.js
+  // has not moved since AV was registered. It is also stricter, because it does
+  // not care where this branch was cut from.
   {
     let verdict = 'git did not answer';
     try {
-      const base = execFileSync('git', ['merge-base', 'main', 'HEAD'],
-        { cwd: path.join(__dirname, '..'), encoding: 'utf8' }).trim();
+      const M = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'FINDINGS.json'), 'utf8'));
+      const base = Object.values(M.prediction_sets).find(s => s.id === 'AV').registered_at;
+      // `base` against the WORKING TREE, not against HEAD. Naming HEAD here would
+      // compare two commits and let an uncommitted edit to the oracle through --
+      // which is the state a solver is most likely to be optimised in.
       const changed = execFileSync('git', ['diff', '--name-only', base, '--', 'src/device.js'],
         { cwd: path.join(__dirname, '..'), encoding: 'utf8' }).trim();
-      verdict = changed === '' ? true : `this branch edited ${changed}`;
+      verdict = changed === '' ? true : `edited since ${base}: ${changed}`;
     } catch (e) { verdict = `git: ${e.message.split(String.fromCharCode(10))[0]}`; }
-    check('   and R0 is src/device.js UNCHANGED by this branch, asked of git',
+    check('   and R0 is src/device.js UNCHANGED since AV was registered, asked of git',
       verdict === true, String(verdict));
   }
   // The oracle also does not depend on what it certifies. A device.js that
