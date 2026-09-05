@@ -60,7 +60,7 @@ cross-reference names a set that does not exist.
 
 | file | owns | depth |
 |---|---|---|
-| [`00-model.md`](00-model.md) — the device model, its axioms, and the solver that resolves it | `W` `X` `Z` `AV` | **rich** |
+| [`00-model.md`](00-model.md) — the device model, its axioms, and the solver that resolves it | `W` `X` `Z` `AV` `AW` | **rich** |
 | [`01-vocabulary.md`](01-vocabulary.md) — what an instruction vocabulary generates | `P` `Q` `R` `S` `U` `V` | **rich** |
 | [`02-arithmetic.md`](02-arithmetic.md) — gates, adders, the detector | `Y` `E` `F` `G` `I` | **rich** |
 | [`03-sequential.md`](03-sequential.md) — storage, registers, an accumulator | `J` `K` `L` | **rich** |

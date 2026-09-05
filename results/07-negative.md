@@ -164,6 +164,37 @@ runs are on the record. The failure itself is the good direction: WebAssembly bo
 *more* than was registered, by the bounds-checking route the registration had already
 named as the way it could break high.
 
+**`AW1`–`AW4` — a set that crossed another set's disclosed scope line and found the
+disclosure right and the guess wrong.** `F1` had scoped itself honestly: *"carry-in 0
+throughout; with a non-zero carry-in the bottom position can save as well (six of its
+nine digit-pairs qualify) and the walk is a different one."* `AW` registered four
+predictions about what changes past that line, all of them turning on the one thing
+`F` had named, and **all four failed**, because the rule did not need to change. The
+six digit-pairs do satisfy the condition and the bottom position still never saves,
+so `F`'s rule is exact at all three carry-ins and `AW1`'s amendment is wrong on
+exactly two thirds of every pair. `AW2` and `AW3`'s numbers are consequences of
+`AW1`, and `AW4` predicted the floor would fall from nine to eight and it did not.
+
+The useful part is that **`AW1`'s risk line named the observation that refuted it** —
+"the condition can hold while the saving does not happen" — and the audit could tell
+that apart from the alternative, which the pass count alone cannot. Watching the
+nodes rather than the totals separates *a saving that never happens* from *a saving
+that happens and costs nothing*, which is what `F2` found at the top position. It is
+the first: position 0's carry is a primary input, its MID detector resolves on the
+same pass as the operand detectors gating the selectors above it, and the early leaf
+has nowhere to go. One position up that gap is two passes and the saving is real.
+**The exclusion is about the boundary, not about the zero** — and a sweep that fixes
+the carry-in at 0, which is every earlier sweep, cannot distinguish those two reasons
+even in principle, because at carry-in 0 both are true at once. `F` picked the
+visible one. Crossing the scope line is what made them separable.
+
+A note on how `AW3` is scored, because it is a judgement and not a measurement. Its
+headline — the two carry-ins mirror exactly — **held**, bin for bin, and that is what
+its own AT RISK line named as refuting it. The sentence also names two specific
+vectors, inherited from `AW2`, and those are wrong. It is recorded `FAILED` on the
+whole sentence, following `X2` and `E5`: a prediction with a refuted half is not
+trimmed to the half that survived. Both readings are in the manifest.
+
 **`D3` / `D4` — the hashing pair.** `D3` predicted that fixing injectivity would give
 mixing; it does not, because a positionwise 3-cycle *is* addition of a constant and
 the sum stays affine. `D4` predicted collision counts would separate a mixing map

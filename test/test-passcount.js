@@ -5,10 +5,13 @@
  * before its thirteenth pass, and left the number unexplained. This is the
  * account, and it is exact.
  *
- * SCOPE: carry-in 0, which is what every sweep here fixes. With a non-zero
- * carry-in the bottom position can save as well -- six of its nine digit-pairs
- * qualify -- and the count below is a different walk. The rule is stated for the
- * case measured, not for the circuit in general.
+ * SCOPE: carry-in 0, which is what every sweep here fixes. The count below is a
+ * different walk at a non-zero carry-in, and set `AW` has since swept both of them
+ * exhaustively. THE RULE ITSELF NEEDED NO AMENDMENT. What this docstring guessed
+ * about the ground past its own scope line -- that the bottom position can save as
+ * well, because six of its nine digit-pairs satisfy the condition -- is the half
+ * that was wrong: the six do satisfy it, and the saving still does not happen.
+ * See `F-POSITION-ZERO-NEVER-SAVES`.
  *
  * THE RULE. With s = a_i + b_i, cell i saves a pass exactly when
  *
@@ -16,9 +19,19 @@
  *
  * because then the arm conducting on the raw select and the arm still waiting on
  * the MID detector lead to the SAME rail, and N3 settles the node without the
- * detector. Two positions are excluded: position 0, whose carry-in is zero, and
- * the TOP position, whose saving is invisible because the solver stops when
- * nothing changes and the top sum output always needs both passes.
+ * detector. Two positions are excluded: position 0, and the TOP position, whose
+ * saving is invisible because the solver stops when nothing changes and the top sum
+ * output always needs both passes.
+ *
+ * POSITION 0's EXCLUSION IS NOT THE REASON THIS FILE ONCE GAVE. At carry-in 0 the
+ * condition fails there anyway, because it needs a non-zero carry -- so the sweeps
+ * here cannot tell that reason apart from the real one, and the registration picked
+ * the one that was visible. `AW` seeded a non-zero carry-in, the condition holds on
+ * twelve of the eighteen combinations, and position 0 still never saves: its carry
+ * is a primary input, so the detector that would let the early leaf through resolves
+ * on the SAME pass as the operand detectors gating the selectors above it, and the
+ * saving has nowhere to go. One position up that gap is two passes and the saving is
+ * real. Position 0 is excluded because it is the BOUNDARY cell, not because c_0 = 0.
  *
  * That last exclusion is the whole reason an earlier count over-predicted, always
  * by exactly one: the sum tree can never settle early, because its condition is

@@ -443,8 +443,10 @@ positionwise logic plus one carrying `ADD` reaches at width two.
 
 E4 measured that the decoded adder settles early on 279,936 of its 531,441
 operand pairs and could not say why. This says why, and the account is exact —
-**at carry-in 0**, which is what every sweep here fixed. With a non-zero carry-in
-the bottom position can save too, and the walk below is a different walk.
+**at carry-in 0**, which is what every sweep here fixed. At a non-zero carry-in the
+walk below is a different walk, and `AW` has since run both of them over every pair.
+The rule needed no change: what `F` guessed about the far side of its own scope line
+— that the bottom position can save too — is the part that was wrong.
 
 **Each digit asks a question that takes an extra beat.** Its selectors are gated
 partly on the raw carry coming in and partly on a detector answering *"is that
