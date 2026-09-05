@@ -445,8 +445,32 @@ const clock = () => (typeof performance !== 'undefined' ? performance.now() : Da
  */
 async function runSweep(spec, opts) {
   opts = opts || {};
-  const yieldNow = opts.yieldNow
-    || (() => new Promise(resolve => requestAnimationFrame(resolve)));
+  // A HIDDEN TAB STOPS `requestAnimationFrame` DEAD, and this was measured rather
+  // than assumed: a stride-1 sweep left in a background tab sat at chunk 1 of 130
+  // with the page's own timer reading 0.3s. rAF is still the right pump while the
+  // page is visible -- it paces the run to what the progress line can actually show,
+  // and there is no reason to render to a tab nobody is looking at. But a sweep is
+  // compute, not animation, and a user who starts one and switches away should come
+  // back to a finished run rather than a frozen bar. So: rAF when visible, a message
+  // pump when hidden. `setTimeout` is the wrong fallback -- background tabs clamp it
+  // to one second a tick, which would be slower than the stall it replaces.
+  //
+  // Both pumps are built ON DEMAND. The gate in `build/build-lab.js` runs this same
+  // function in a `vm` realm with no DOM at all, and a `new MessageChannel()` at the
+  // top of the function threw there before it could reach the `opts.yieldNow` the
+  // gate supplies -- so the fallback for a case the gate never takes broke the gate.
+  let pump = null;
+  const macrotask = () => {
+    if (!pump) { pump = new MessageChannel(); pump.port1.start(); }
+    return new Promise(resolve => {
+      pump.port1.onmessage = () => resolve();
+      pump.port2.postMessage(0);
+    });
+  };
+  const yieldNow = opts.yieldNow || (() =>
+    (typeof document !== 'undefined' && document.hidden && typeof MessageChannel === 'function')
+      ? macrotask()
+      : new Promise(resolve => requestAnimationFrame(resolve)));
   const onProgress = opts.onProgress || (() => {});
   const shouldStop = opts.shouldStop || (() => false);
   const cap = opts.cap || CAP;
