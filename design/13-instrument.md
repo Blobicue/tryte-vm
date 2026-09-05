@@ -42,14 +42,23 @@ Exhaustive today, over all 3^12 operand pairs:
   directions and only the second solve can refute the lower bound.
 - `E1` — the decoded adder at carry-in 0.
 
-Sampled, and said so:
+Sampled when this file was written — and swept since, by `AW`, which is step 5
+below. The strides are left here because they are what the plan was written against:
 
-- **Carry-in +1 and −1, on both six-trit adders.** Stride 11 in each operand, so
-  one pair in 121.
-- **Every restored variant in `Z`.** All three of `none`, `mid` and `leafmid`,
-  at stride 11 — and `leafmid` is the largest network in the repository.
-- The 10-bit binary adder, stride 37.
-- Read depth on the decoded adder, over a sample rather than the sweep.
+- ~~**Carry-in +1 and −1, on both six-trit adders.** Stride 11 in each operand, so
+  one pair in 121.~~ **Swept.** Every pair at both carry-ins on both adders.
+- ~~**Every restored variant in `Z`.** All three of `none`, `mid` and `leafmid`,
+  at stride 11 — and `leafmid` is the largest network in the repository.~~
+  **Swept.** All three exhaustively at carry-in 0; `leafmid` is still the largest
+  network here and it is the one sweep that costs a quarter of an hour.
+- ~~The 10-bit binary adder, stride 37.~~ **Swept**, every pair at carry-in 0.
+- Read depth on the decoded adder, over a sample rather than the sweep. **Still
+  sampled**: `AW` swept pass counts and outputs, not depths, and `depths()` is
+  deliberately out of scope below.
+
+What is still sampled, said plainly rather than left to be inferred from what the
+list above no longer says: the binary adder at carry-in +1, the binary restored
+variants at anything but stride 37, and read depth.
 
 ## What is missing
 
@@ -133,7 +142,8 @@ is a different instrument that agrees with it on the easy cases.
    three of the four predictions about what it would cost were wrong — see
    [`../results/00-model.md`](../results/00-model.md) and
    [`../results/07-negative.md`](../results/07-negative.md).
-5. **Then, and only then, a second set for the sweeps.** The carry-in ±1 sweeps
+5. **Then, and only then, a second set for the sweeps. Done: `AW`, and three of
+   its four predictions failed.** The carry-in ±1 sweeps
    on both six-trit adders and the restored variants exhaustively are what the
    instrument is *for*, but they are not in `AV` and must not be: an instrument
    that has not been held against the oracle produces facts about the instrument,
@@ -148,6 +158,18 @@ is a different instrument that agrees with it on the easy cases.
    already zero. Three separate candidate predictions were drafted for this file
    and discarded against those five entries. What remains genuinely open in this
    neighbourhood is the carry-in ±1 space at stride 1, and nothing else.
+
+   **What it found.** `F`'s rule survives the crossing *unchanged*, and every one of
+   `AW`'s four predictions about how it would have to change is wrong. `AW1`
+   admitted position 0 to the rule and the registered form is wrong on exactly two
+   thirds of every pair at both carry-ins; `AW2`'s and `AW3`'s numbers follow it
+   down; `AW4` predicted the floor would drop to eight and it stays at nine. The
+   mechanism is measured rather than argued: position 0's carry is a primary input,
+   so the detector that would let its early leaf through resolves on the *same pass*
+   as the operand detectors gating the selectors above it, and the saving has
+   nowhere to go. One position up that gap is two passes and the saving is real.
+   **Position 0 is excluded because it is the boundary cell, not because `c_0` is
+   zero** — and the four sweeps this file bought are what could tell those apart.
 6. **A page.** A new one, with its own template and its own test; `test-page.js`
    pins the existing page's markup in detail and the two are different documents.
    `build/bundle.js` has a hardcoded file list that has never included
@@ -170,10 +192,14 @@ is a different instrument that agrees with it on the easy cases.
   non-driven node, the self-inverter gives its three different answers to its three
   seeds, and both of `solve()`'s refusals are reproduced. A solver that dropped the
   seed is one of the mutants the gate is shown to catch.
-- **The exhaustive sweeps disagree with the samples.** This would not stop the
-  plan — it would be the best thing it produced — but it retires results in `Y`,
-  `E` and `Z` and that consequence should be accepted before the run, not
-  negotiated after it.
+- ~~**The exhaustive sweeps disagree with the samples.**~~ **They did not, and the
+  consequence this bullet asked to be accepted before the run was never called in.**
+  Every corner `Y`, `E` and `Z` disclosed as sampled is now swept: sum, overflow and
+  pass count over every operand pair, on both six-trit adders at both non-zero
+  carry-ins, on all three restore variants, and on the ten-bit binary adder — zero
+  disagreements anywhere. Nothing in `Y`, `E` or `Z` is retired. What the sweeps did
+  overturn was a *scope line* rather than a measurement: `F1`'s guess about what lay
+  past the carry-in it fixed.
 - ~~**A number in this file rots.**~~ **Pinned.** `test/test-solver.js` reads the
   five switch counts and four pass counts out of the table above and recomputes
   them, the way `test-budget.js` pins `12-roadmap.md`. The pass counts are checked

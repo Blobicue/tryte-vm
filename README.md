@@ -4,16 +4,16 @@
 
 **A working computer that counts in three states instead of two** — core
 arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
-assembly, transistors underneath it, and <!--g:readme-audits-lede-->forty-nine audits establishing<!--/g--> exactly what
+assembly, transistors underneath it, and <!--g:readme-audits-lede-->fifty audits establishing<!--/g--> exactly what
 its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
 before it was measured, in its own commit, and every failed prediction was kept.
-<!--g:readme-lede-tally-->201 predictions, 161 held, 40 failed — and of those
+<!--g:readme-lede-tally-->205 predictions, 161 held, 44 failed — and of those
 successes only 129 were ever at risk<!--/g-->. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**2,230 checks**, all passing. Every number below is recomputed by one of them,
+**2,281 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -24,7 +24,7 @@ node src/run.js programs/multiply.tasm 7 5
 
 | | |
 |---|---|
-| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + <!--g:readme-audits-badge-->forty-nine audits<!--/g--> |
+| **What it is** | balanced-ternary VM + assembler + self-hosting interpreter + switch-level device layer + <!--g:readme-audits-badge-->fifty audits<!--/g--> |
 | **How it was found** | [`METHOD.md`](METHOD.md) — the discovery loop, its failure catalogue, and what parallelises |
 | **What was found** | [`results/`](results/) — every result keyed by subject, with a generated ledger of every prediction |
 | **What is not built** | [`design/`](design/) — interconnect, decode and sequencing, enumerated before anything is chosen, and [`design/12-roadmap.md`](design/12-roadmap.md) for the order to build them in |
@@ -54,7 +54,7 @@ programs/    demos, plus interp.tasm and interp-core.tasm — the two emulators
 bench/       benchmark pairs: one task, two implementations
 design/      the design phase for the machine that does not exist yet
 results/     the same corpus keyed by SUBJECT rather than by date, plus 99-ledger.md
-tools/       <!--g:readme-audits-tree-->the forty-nine audits, each with its registered predictions<!--/g-->
+tools/       <!--g:readme-audits-tree-->the fifty audits, each with its registered predictions<!--/g-->
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
 build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
@@ -64,14 +64,14 @@ build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
 
 ## Findings at a glance
 
-<!--g:readme-tally-->Forty-eight prediction sets, registered before their runs. **161 held, 40 failed**<!--/g--> — the
+<!--g:readme-tally-->Forty-nine prediction sets, registered before their runs. **161 held, 44 failed**<!--/g--> — the
 failures are kept, and four of them produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
 [`FINDINGS.json`](FINDINGS.json).
 
 **And the successes are worth less than that line says.**
-<!--g:readme-at-risk-->Twenty-five of those predictions were never at risk — computable from the registration's own text before the run — and seven cannot be called either way. Against the 169 that were genuinely at risk the failure rate is **23.7%**, not the 19.9% the raw counts give. Both numbers are true and they answer different questions<!--/g-->.
+<!--g:readme-at-risk-->Twenty-five of those predictions were never at risk — computable from the registration's own text before the run — and seven cannot be called either way. Against the 173 that were genuinely at risk the failure rate is **25.4%**, not the 21.5% the raw counts give. Both numbers are true and they answer different questions<!--/g-->.
 Every prediction carries an `at_risk` verdict in the manifest, and a check now fails
 on a set registered without one.
 
@@ -125,6 +125,7 @@ on a set registered without one.
 | **AT1–AT4** | what does an *insertion* cost a ledger forger? | 2 held, **AT2 and AT3 failed — and AT3's failure found a universal forgery costing two entries and no search at all** |
 | **AU1–AU4** | what does the *width* of the head buy, once mixing has been measured twice and found worth nothing? | 2 held, **AU2 and AU4 failed — and the two laws it fitted separate a second preimage from a collision by exactly one square root** |
 | **AV1–AV4** | what does the packed representation buy the switch-level solver, and what does WebAssembly buy on top? | 1 held, **AV1, AV2 and AV3 failed — the two registered in tension failed together, on the premise they shared** |
+| **AW1–AW4** | does the pass-count rule survive a non-zero carry-in, where `F` said the bottom position can save as well? | **AW1, AW2, AW3 and AW4 all failed — the rule needed no amendment at all, because the bottom position cannot save at any carry-in** |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:
@@ -443,8 +444,10 @@ positionwise logic plus one carrying `ADD` reaches at width two.
 
 E4 measured that the decoded adder settles early on 279,936 of its 531,441
 operand pairs and could not say why. This says why, and the account is exact —
-**at carry-in 0**, which is what every sweep here fixed. With a non-zero carry-in
-the bottom position can save too, and the walk below is a different walk.
+**at carry-in 0**, which is what every sweep here fixed. At a non-zero carry-in the
+walk below is a different walk, and `AW` has since run both of them over every pair.
+The rule needed no change: what `F` guessed about the far side of its own scope line
+— that the bottom position can save too — is the part that was wrong.
 
 **Each digit asks a question that takes an extra beat.** Its selectors are gated
 partly on the raw carry coming in and partly on a detector answering *"is that

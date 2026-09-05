@@ -168,14 +168,66 @@ one of the four that landed near its boundary, so a second identical run was mad
 before the verdict was written down; the ratio came back 2.21 and did not flip
 (`AV3`).
 
+### 7. The rule off its own scope line — and the boundary cell that cannot save
+
+`F` derived where the decoded adder's 128/243 comes from and checked it over every
+operand pair, and then wrote its own limit into the record: *"carry-in 0 throughout;
+with a non-zero carry-in the bottom position can save as well (six of its nine
+digit-pairs qualify) and the walk is a different one."* `AW` spent the instrument
+`AV` built on crossing that line — all 531,441 pairs at carry-in +1 and all 531,441
+at carry-in −1, two solves each, no stride anywhere.
+
+**The disclosure was honest and its guess was wrong, in the safest possible
+direction.** The six digit-pairs really do satisfy the condition. The walk really is
+a different one. And the bottom position still cannot save, so `F`'s rule needed no
+amendment at all — it is exact, pair by pair, at all three carry-ins.
+
+| | registered | measured |
+|---|---|---|
+| `AW1` the rule with position 0 admitted | exact, pair by pair | wrong on two thirds of every pair |
+| `AW2` and the walk gives 46,899 | 46,899 | 223,803 |
+| `AW3` the two carry-ins are exact mirrors | every bin equal, vectors reversed | every bin equal, vectors reversed — and not those vectors |
+| `AW4` and the floor drops by one | 8 | 9 |
+
+`AW1` failed on the observation its own risk line named: *"the condition can hold
+while the saving does not happen."* It does hold — on twelve of the eighteen
+(digit-pair, non-zero carry-in) combinations, which is `F`'s six of nine — and the
+saving does not happen, on every one. Every disagreement is by exactly one pass, in
+one direction, and `src/device.js` was asked directly on a sample of them rather
+than the packed solver being believed about its own failure.
+
+**The mechanism is measured, not argued, and it is why the exclusion is structural.**
+A position saves when its carry's raw value is known while that carry's MID detector
+is not — but the early leaf that buys is only usable if the selectors above it, gated
+by the *operand* detectors, have already resolved. At position 0 the carry is a
+primary input, so its detector and the operand detectors resolve on the **same pass**:
+gap zero, and the saving has nowhere to go. At position 1 the gap is **two passes**,
+and the saving is real — `c2` lands at pass 3 on all twelve qualifying combinations
+and at pass 4 on the six that do not. So **position 0 is excluded because it is the
+boundary cell, not because `c_0` is zero**, which is the reason `F` gave and the one
+a carry-in-0 sweep structurally cannot tell apart from the real one.
+
+`AW3` is the one worth reading twice. Its headline — the two carry-ins are exact
+mirrors — **held exactly**: every bin equal, and the carry-state vectors one
+another's reverse. What failed is the pair of numbers the sentence names, which it
+inherited from `AW2`. It is scored `FAILED` on the whole sentence, and both readings
+are in the manifest so the call can be overruled rather than re-derived.
+
+**And the sweeps agreed with the samples everywhere.** The plan that bought this
+instrument listed "the exhaustive sweeps disagree with the samples" as the outcome
+that would retire results in `Y`, `E` and `Z`. It did not happen: every corner those
+sets disclosed as sampled is now swept — both six-trit adders at both non-zero
+carry-ins, all three restore variants, and the ten-bit binary adder — with zero
+wrong sums, zero wrong overflow trits and zero pairs off their recorded pass count.
+
 ---
 
 ## How it was established
 
 | | |
 |---|---|
-| tools | [`device-audit.js`](../tools/device-audit.js), [`axiom-audit.js`](../tools/axiom-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`solver-audit.js`](../tools/solver-audit.js) |
-| tests | `test-device.js`, `test-axioms.js`, `test-midrail.js`, `test-solver.js` |
+| tools | [`device-audit.js`](../tools/device-audit.js), [`axiom-audit.js`](../tools/axiom-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`solver-audit.js`](../tools/solver-audit.js), [`carryin-audit.js`](../tools/carryin-audit.js) |
+| tests | `test-device.js`, `test-axioms.js`, `test-midrail.js`, `test-solver.js`, `test-carryin.js` |
 | method | axioms are checked by **breaking them** and observing what stops working, not by restating them |
 
 `test-device.js` also carries a deliberately naive second solver and holds the two
@@ -207,10 +259,11 @@ Beyond those:
   ratios are this machine's; the seconds recorded in `Y1` and `E1` are other hardware,
   and no ratio here is taken against them. What transfers is the shape — where the
   oracle's time is not, and that the two rewrites agree with it — not the figures.
-- **And `AV` did not run the sweeps the instrument was built for.** The exhaustive
-  carry-in ±1 sweeps and the restored variants at stride 1 belong to a later set,
-  registered after this gate went green, because an instrument that has not been held
-  against the oracle produces facts about the instrument.
+- **`AV` did not run the sweeps the instrument was built for; `AW` did.** They were
+  deliberately a later set, registered after this gate went green, because an
+  instrument that has not been held against the oracle produces facts about the
+  instrument. `AW` re-ran that gate on its own branch before reading a single count,
+  and on the module it actually swept with rather than only on the stock one.
 
 ---
 
@@ -222,5 +275,6 @@ Beyond those:
 | `X` | the axioms the device model rests on | 4 held, `X2` failed |
 | `Z` | the two limits every switch count is quoted under | 4 held, `Z2` failed |
 | `AV` | what the packed representation buys the solver, and what WebAssembly buys on top | 1 held, `AV1`, `AV2` and `AV3` failed |
+| `AW` | whether the pass-count rule survives a non-zero carry-in, where `F` said the bottom position can save | all four failed |
 
 Full text in [`99-ledger.md`](99-ledger.md).

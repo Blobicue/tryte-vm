@@ -961,7 +961,7 @@
             },
             "scope": "carry-in 0 throughout; with a non-zero carry-in the bottom position can save as well (six of its nine digit-pairs qualify) and the walk is a different one"
           },
-          "note": "Reproducing a total is much weaker than reproducing it term by term, so this was registered in the strong form. Zero disagreements against the actual solver over 597,861 pairs across five widths, every one of them exhaustive. The distribution sums to 531,441. Scoped to carry-in 0 after the fact: every sweep fixed it, and the exclusion of the bottom position is a property of that choice rather than of the circuit. Caught by asking what the sweep actually visited, which is T-CLAIM-NARROWED-BY-A-DESIGN checking itself.",
+          "note": "Reproducing a total is much weaker than reproducing it term by term, so this was registered in the strong form. Zero disagreements against the actual solver over 597,861 pairs across five widths, every one of them exhaustive. The distribution sums to 531,441. Scoped to carry-in 0 after the fact: every sweep fixed it, and the exclusion of the bottom position is a property of that choice rather than of the circuit. Caught by asking what the sweep actually visited, which is T-CLAIM-NARROWED-BY-A-DESIGN checking itself. AW crossed that scope line and swept both non-zero carry-ins exhaustively: the scope clause above is right that the walk is different and that six of the nine bottom digit-pairs qualify, and WRONG that the bottom position can save. It cannot, at any carry-in, so this rule needs no amendment -- position 0 is excluded because it is the boundary cell rather than because c_0 is zero. Kept verbatim rather than corrected: F-POSITION-ZERO-NEVER-SAVES is where that is recorded.",
           "basis": "measured",
           "at_risk": "AT RISK"
         },
@@ -5028,6 +5028,292 @@
           "note": "HELD, and WEAK, and the registration said which before the run rather than after it. The two ratios separate by 0.013 against a 0.5 line, and the second run gives 0.018 -- so the effect is not merely inside the band, it is two orders of magnitude inside it. What that buys is narrow and was registered as narrow: leafmid grows switches and nodes by close to the same factor, so the traversal term and the update term grow together between these two networks and this pair cannot separate them. The one thing it could still have caught is a working set falling out of cache on one side and not the other, and nothing did. A pair chosen to vary switches and nodes INDEPENDENTLY would be the better instrument and this set did not build one."
         }
       ]
+    },
+    {
+      "id": "AW",
+      "subject": "Does the decoded adder's pass-count rule survive a non-zero carry-in, where F1's own scope line says the bottom position can save as well? All 531,441 operand pairs at carry-in +1 and all 531,441 at carry-in -1, no stride, two solves each -- at the predicted k where it must settle and at k-1 where it must not -- on the WebAssembly solver AV built, re-gated against src/device.js on this branch and on the module carrying the sweep driver rather than only on the stock one",
+      "tool": "tools/carryin-audit.js",
+      "registered_at": "57c065f",
+      "results_at": "c6e917f",
+      "asserted_in": "test/test-carryin.js",
+      "predictions": [
+        {
+          "id": "AW1",
+          "claim": "the pass count of every operand pair at carry-in +1 and at carry-in -1 is 13 minus the number of positions i in 0..4 satisfying F's condition, pair by pair",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "at_risk": "AT RISK: `F` established the rule only where position 0 is inert, so this moves it onto the one position whose behaviour was never exercised. Position 0 is the boundary cell -- its carry comes from outside the adder rather than from another cell -- and if the carry-in arrives already determined while an internal carry does not, the detector timing that the whole rule turns on is different there and the condition can hold while the saving does not happen. `E4` already failed once by predicting a pass count for this adder. Refuted by a single disagreeing pair.",
+          "measured": {
+            "pairs_swept": 1062882,
+            "disagreements_registered_rule": 708588,
+            "disagreements_plus_1": 354294,
+            "disagreements_minus_1": 354294,
+            "fraction_wrong": "2/3",
+            "corrected_minus_registered": {
+              "0": 177147,
+              "1": 354294
+            },
+            "disagreements_F_rule_unchanged": 0,
+            "oracle_probed_disagreements": [
+              {
+                "a": -364,
+                "b": -363,
+                "registered_k": 9,
+                "corrected_k": 10,
+                "oracle_k": 10
+              },
+              {
+                "a": -364,
+                "b": -362,
+                "registered_k": 9,
+                "corrected_k": 10,
+                "oracle_k": 10
+              },
+              {
+                "a": -364,
+                "b": -360,
+                "registered_k": 10,
+                "corrected_k": 11,
+                "oracle_k": 11
+              },
+              {
+                "a": -364,
+                "b": -359,
+                "registered_k": 10,
+                "corrected_k": 11,
+                "oracle_k": 11
+              },
+              {
+                "a": -364,
+                "b": -357,
+                "registered_k": 10,
+                "corrected_k": 11,
+                "oracle_k": 11
+              },
+              {
+                "a": -364,
+                "b": -356,
+                "registered_k": 10,
+                "corrected_k": 11,
+                "oracle_k": 11
+              },
+              {
+                "a": -364,
+                "b": -364,
+                "registered_k": 8,
+                "corrected_k": 9,
+                "oracle_k": 9
+              },
+              {
+                "a": -364,
+                "b": -362,
+                "registered_k": 9,
+                "corrected_k": 10,
+                "oracle_k": 10
+              },
+              {
+                "a": -364,
+                "b": -361,
+                "registered_k": 9,
+                "corrected_k": 10,
+                "oracle_k": 10
+              },
+              {
+                "a": -364,
+                "b": -359,
+                "registered_k": 10,
+                "corrected_k": 11,
+                "oracle_k": 11
+              },
+              {
+                "a": -364,
+                "b": -358,
+                "registered_k": 9,
+                "corrected_k": 10,
+                "oracle_k": 10
+              },
+              {
+                "a": -364,
+                "b": -356,
+                "registered_k": 10,
+                "corrected_k": 11,
+                "oracle_k": 11
+              }
+            ],
+            "sum_wrong": 0,
+            "overflow_wrong": 0,
+            "carry_node_wrong": 0,
+            "position0_combinations": 18,
+            "position0_qualifying": 12,
+            "position0_arriving_early": 0,
+            "position0_arrival_passes": [
+              2
+            ],
+            "position0_detector_gap": [
+              0
+            ],
+            "position1_qualifying": 12,
+            "position1_arriving_early": 12,
+            "position1_arrival_when_qualifying": [
+              3
+            ],
+            "position1_arrival_when_not": [
+              4
+            ],
+            "position1_detector_gap": [
+              2
+            ],
+            "machine": "AMD Ryzen 7 7800X3D 8-Core Processor           ",
+            "node_version": "v22.22.3",
+            "subject_switches": 540,
+            "subject_nodes": 208,
+            "gate": {
+              "networks": 128,
+              "node_values": 313697,
+              "divergences": 0,
+              "modules_gated": 2,
+              "refusals_matched": 46,
+              "pass_count_cases": 642,
+              "never_settling_cases": 3,
+              "states_produced": "\"X\" \"Z\" -1 0 1",
+              "stock_module_bytes": 1386,
+              "swept_module_bytes": 1595
+            },
+            "matrix_derived_agrees_with_registration": true,
+            "probe_vs_gated_path_disagreements": 0,
+            "probe_vs_gated_path_pairs": 300,
+            "mutation_flags_at_k": {
+              "1": 200
+            },
+            "mutation_flags_at_k_plus_1": {
+              "3": 200
+            },
+            "mutation_flags_at_k_minus_1": {
+              "0": 200
+            },
+            "control_carry_in_0_pairs": 531441,
+            "control_carry_in_0_distribution": {
+              "9": 108,
+              "10": 4428,
+              "11": 54108,
+              "12": 221292,
+              "13": 251505
+            },
+            "control_reproduces_F1_bin_for_bin": true,
+            "control_disagreements": 0,
+            "independent_runs_giving_this_verdict": 2
+          },
+          "note": "FAILED on the observation its own risk line named: \"the condition can hold while the saving does not happen\". It holds on twelve of the eighteen (digit-pair, non-zero carry-in) combinations, which is exactly the six of nine F1's scope line disclosed, and the saving happens on none of them. The registered rule is wrong on 354,294 of 531,441 pairs at each carry-in -- exactly two thirds, since 354,294 is 2 x 3^11 -- and every disagreement is by exactly one pass in one direction. src/device.js was asked directly on a sample rather than the packed solver being believed about its own failure, and agreed with F's rule every time. WHAT IT TAUGHT: F's rule needs no amendment. Position 0 is excluded because it is the BOUNDARY cell, not because c_0 is zero, which is the reason F gave. The mechanism is measured rather than argued: a position saves when its carry's raw value is known while that carry's MID detector is not, and the early leaf that buys is only usable if the selectors above it, gated by the operand detectors, have resolved. At position 0 the carry is a primary input so both detectors resolve on the same pass -- gap 0 -- and the saving has nowhere to go; at position 1 the gap is 2 and the saving is real. A sweep that fixes the carry-in at 0 cannot separate those two reasons even in principle, because there both are true at once. Recorded as F-POSITION-ZERO-NEVER-SAVES."
+        },
+        {
+          "id": "AW2",
+          "claim": "exactly 46,899 of the 531,441 pairs take the full thirteen passes at carry-in +1, and exactly 46,899 at carry-in -1",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "at_risk": "AT RISK: this is one number from five matrix applications and it is refuted by being off by one. It is not implied by AW1 -- AW1 could hold pair by pair while this is wrong, if the number of constrained positions is four rather than five because position 0's saving is real but does not cost a pass. That is the likeliest way to be wrong and it lands here rather than on AW1.",
+          "measured": {
+            "registered": 46899,
+            "pairs_at_thirteen_passes_plus": 223803,
+            "pairs_at_thirteen_passes_minus": 223803,
+            "distribution_plus_1": {
+              "9": 162,
+              "10": 6156,
+              "11": 67068,
+              "12": 234252,
+              "13": 223803
+            },
+            "distribution_minus_1": {
+              "9": 162,
+              "10": 6156,
+              "11": 67068,
+              "12": 234252,
+              "13": 223803
+            },
+            "registered_walk_applications": 5,
+            "registered_start_vector": [
+              0,
+              0,
+              1
+            ],
+            "measured_start_vector_plus": [
+              0,
+              6,
+              3
+            ],
+            "measured_start_vector_minus": [
+              3,
+              6,
+              0
+            ],
+            "measured_walk_applications": 4,
+            "walk_from_measured_start_plus": 223803,
+            "walk_from_measured_start_minus": 223803,
+            "walk_reproduces_the_sweep": true
+          },
+          "note": "FAILED as a consequence of AW1, and its own risk line named the arithmetic exactly: \"the number of constrained positions is four rather than five\". It is four. What the risk line got wrong is the reason -- it supposed position 0's saving would be real but free, the shape F2 found at the top position, and instead the saving does not happen at all. The two are indistinguishable from a pass count and are separated by watching the node: position 0's carry is determined at pass 2 whether or not the condition holds. THE WALK WAS NOT WRONG; THE START VECTOR WAS. Run from the vector position 0 actually hands on -- (0, 6, 3) at carry-in +1 and (3, 6, 0) at carry-in -1, which is position 0 free rather than determined -- with four applications rather than five, F's own matrix gives 223,803 exactly, at both carry-ins. That is F's shape with a different start, and it is checked against the sweep rather than asserted."
+        },
+        {
+          "id": "AW3",
+          "claim": "the pass-count distribution at carry-in -1 is identical to the one at carry-in +1 bin for bin, and the carry-state vectors are reverses: (695, 3789, 727) against (727, 3789, 695)",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "at_risk": "AT RISK: negating both operands and the carry-in maps one sweep onto the other and balanced ternary has no sign bit, so the symmetry ought to be exact -- but it is a claim about the DEVICE, not about the arithmetic. `sti` is four switches and `nti`/`pti` are two, the n-type and p-type thresholds are not placed symmetrically about MID, and the decoded selector's detector pulls LOW and HIGH both to vss. A device model asymmetric in the sign is the ordinary case, not the exotic one, and any single bin differing refutes this.",
+          "measured": {
+            "same_distribution_bin_for_bin": true,
+            "carry_vectors_are_reverses": true,
+            "registered_vectors_hold": false,
+            "carry_vector_plus": [
+              3351,
+              18117,
+              3399
+            ],
+            "carry_vector_minus": [
+              3399,
+              18117,
+              3351
+            ],
+            "carry_vector_plus_in_pairs": [
+              30159,
+              163053,
+              30591
+            ],
+            "carry_vector_minus_in_pairs": [
+              30591,
+              163053,
+              30159
+            ],
+            "registered_vector_plus": [
+              695,
+              3789,
+              727
+            ],
+            "top_digit_is_free": true,
+            "symmetry_reading": true,
+            "literal_reading": false,
+            "scored_on": "literal"
+          },
+          "note": "THE HALF THIS PREDICTION IS ABOUT HELD EXACTLY, AND THE VERDICT IS STILL FAILED -- read the two readings before reading the outcome. AW3's headline is that the two carry-ins are exact mirrors, its AT RISK line is entirely about device asymmetry (sti is four switches where nti and pti are two, the thresholds are not placed symmetrically about MID), and it names its own refutation condition: \"any single bin differing refutes this\". No bin differs. Every bin of the two distributions is equal and the carry-state vectors are one another's reverse, so there is no device asymmetry in the sign and the reader must not infer one from the FAILED. What failed is the pair of vectors the sentence names, which it inherited from AW2: the measured prefixes are (3351, 18117, 3399) against (3399, 18117, 3351), not (695, 3789, 727). Scored FAILED on the whole sentence, following X2 and E5 -- a prediction with a refuted half is not trimmed to the half that survived -- and both readings are recorded so the call can be overruled rather than re-derived. Units are given twice on purpose: the sweep bins PAIRS and the registration counts PREFIXES, which is the same quantity divided by the nine free choices of the top digit, and comparing the two would report a factor of nine as a miss."
+        },
+        {
+          "id": "AW4",
+          "claim": "the minimum pass count over the sweep is 8 at both non-zero carry-ins, against 9 at carry-in 0, and at least one pair attains it",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "at_risk": "AT RISK: refuted if the floor stays at 9, which is what happens if position 0's saving is unrealisable in the device for the reason AW1's risk line describes, and refuted equally if the floor drops below 8, which is what happens if position 5 can save after all at a non-zero carry-in -- `F2` checked eighteen of eighteen digit-pairs and both non-zero carries, so that would overturn `F2` rather than merely surprise this set. NOT REGISTERED — derivable, already on the record, or measured while building the instrument, and listed so the registered set is not inflated: - That the decoded adder still computes `T.add` at both non-zero carry-ins. `E1` proved the cell exhaustively over all 27 input triples and the ripple chains cells, so correctness follows by induction; the sweep reports it and it is not a prediction. The same applies to the tree adder and to every restored variant. - That the tree adder's pass count stays 7 at a non-zero carry-in. `Y2` derived it from gate-dependency depth, which does not mention the data. - 251,505 at carry-in 0. That is `F3`, reproduced here only as a control on the method before it was extended. - The wall-clock of the sweeps. `AV` priced the instrument; this set spends it. Run: npm run audit:carryin",
+          "measured": {
+            "registered_floor": 8,
+            "floor_plus": 9,
+            "floor_minus": 9,
+            "floor_carry_in_0": 9,
+            "pairs_at_the_floor_plus": 162,
+            "pairs_at_the_floor_minus": 162,
+            "pairs_at_the_floor_carry_in_0": 108,
+            "maximum_saving_positions": 4,
+            "ceiling": 13
+          },
+          "note": "FAILED on the first of the two routes its own risk line named -- \"the floor stays at 9, which is what happens if position 0's saving is unrealisable in the device\" -- and it is unrealisable for exactly the reason AW1's risk line described. It did not fail the other way: nothing settles below 9 at any carry-in, so F2 is not overturned and position 5 still cannot save. Four positions can save, 1 through 4, so 13 - 4 = 9 is the floor and it is attained. The carry-in-0 floor of 9 is measured in this run through this driver rather than quoted from E4, and the distribution it came from reproduces F1's bin for bin."
+        }
+      ]
     }
   ],
   "unregistered_findings": [
@@ -5590,6 +5876,138 @@
       "evidence": "Walking net.devices and collecting a, b and gate, recomputed from the builders rather than transcribed.",
       "asserted_in": "test/test-solver.js",
       "scope": "These three networks. Not a law about how node count scales with switch count."
+    },
+    {
+      "id": "F-POSITION-ZERO-NEVER-SAVES",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "F's pass-count rule is exact at carry-in +1 and -1 with NO amendment: position 0 never saves a pass, at any carry-in. Over all 1,062,882 pairs at the two non-zero carry-ins the rule as F1 published it -- positions 1..n-2, with the carry-in seeded rather than assumed zero -- disagrees with the solver on none of them.",
+      "argument": "This is what AW1's failure taught and it is not a prediction of this set: it is F's own rule, unchanged, run at a carry-in F never swept. Position 0 is excluded because it is the BOUNDARY cell -- its carry arrives from outside the adder rather than from another cell -- and the exclusion is structural rather than arithmetic. A position saves when its carry's raw value is known while that carry's MID detector is not, and the early leaf that buys is usable only if the selectors above it, gated by the operand detectors, have already resolved. Position 0's carry is a primary input, so its detector and the operand detectors resolve on the SAME pass -- measured gap 0 over all eighteen (digit-pair, non-zero carry-in) combinations -- and c1 lands at pass 2 whether or not the condition holds. At position 1 the gap is 2 passes and c2 lands at pass 3 on all twelve qualifying combinations against pass 4 on the six that do not, which is the positive control: without it the zero at position 0 would be a check with no power. So F's stated reason -- that the carry-in is 0 and the condition needs a non-zero carry -- is true at carry-in 0 and is not why. A carry-in-0 sweep cannot tell the two reasons apart, because there both hold at once.",
+      "evidence": "tools/carryin-audit.js, exhaustive at both non-zero carry-ins at width 6, and replicated exhaustively at widths 2, 3 and 4 in test/test-carryin.js. The arrival passes are read off the packed solver node by node, not inferred from pass counts.",
+      "scope": "The decoded adder, at carry-in -1, 0 and +1, at widths 2 through 4 and 6. Not a claim about the selector-tree adder, whose pass count does not depend on the data at all (Y2).",
+      "asserted_in": "test/test-carryin.js",
+      "measured": {
+        "pairs": 1062882,
+        "disagreements": 0,
+        "position0_detector_gap": [
+          0
+        ],
+        "position1_detector_gap": [
+          2
+        ],
+        "position0_arrival_passes": [
+          2
+        ],
+        "position1_arrival_when_qualifying": [
+          3
+        ],
+        "position1_arrival_when_not": [
+          4
+        ],
+        "qualifying_combinations": 12,
+        "combinations": 18
+      }
+    },
+    {
+      "id": "F-CARRY-IN-SWEEPS-CLOSED",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "Both six-trit adders compute T.add including the overflow trit at carry-in +1 and -1 over every one of the 531,441 operand pairs, and the selector-tree adder takes exactly seven passes on every one of them. Y1 and E1 sampled these at stride 11, one pair in 121; nothing disagrees.",
+      "argument": "Not a prediction, and the registration says why: E1 proved the decoded cell exhaustively over all 27 input triples and a ripple chains cells, so correctness follows by induction, and Y2 derived the tree adder's seven passes from gate-dependency depth, which does not mention the data. What the sweep buys is that a disclosed sample stops being a place a defect can hide. design/13-instrument.md listed 'the exhaustive sweeps disagree with the samples' as the outcome that would retire results in Y, E and Z, and asked for that consequence to be accepted before the run rather than negotiated after it. It was not called in.",
+      "evidence": "Two solves per pair -- at the recorded pass count and at one below it -- so the count is a claim in both directions, which is how every pass count in results/ was measured.",
+      "scope": "Carry-in +1 and -1 at width 6. The binary adder at carry-in +1 is still not swept.",
+      "asserted_in": "test/test-carryin.js",
+      "measured": {
+        "tree_switches": 624,
+        "tree_nodes": 328,
+        "pairs_each_carry_in": 531441,
+        "tree_sum_wrong": 0,
+        "tree_overflow_wrong": 0,
+        "tree_not_exactly_seven": 0,
+        "decoded_sum_wrong": 0,
+        "decoded_overflow_wrong": 0,
+        "sampled_before": 4489,
+        "sampling_stride_before": 11,
+        "seconds": {
+          "control_carry_in_0": 86.6,
+          "carry_in_plus_1_registered_rule": 84.7,
+          "carry_in_plus_1_corrected_rule": 96.8,
+          "carry_in_minus_1_registered_rule": 97.6,
+          "carry_in_minus_1_corrected_rule": 103.1,
+          "tree_plus": 70.6,
+          "tree_minus": 68.1,
+          "restore_none": 67.6,
+          "restore_mid": 297.5,
+          "restore_leafmid": 1002.6,
+          "binary": 82.8
+        }
+      }
+    },
+    {
+      "id": "F-RESTORE-VARIANTS-EXHAUSTIVE",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "All three ternary restore variants add correctly and take exactly their recorded pass count -- none 7, mid 19, leafmid 31 -- over every one of the 531,441 operand pairs at carry-in 0. Z4 and Z5 sampled these at stride 11 on networks up to 1,776 switches; nothing disagrees, and Z5's pairs_differing_by_data stays 0 exhaustively.",
+      "argument": "Z5 derived all six pass counts by hand from gate-dependency depth before measuring them -- each inverter is its own stage, so a two-inverter buffer adds two per level, times the number of digits, plus the pass that observes nothing changed -- so this is a derivation checked over its whole domain rather than a new claim. leafmid is the largest network in the repository and the reason these were sampled in the first place was Net.solve()'s speed rather than the question; AV's solver is what made the sweep affordable, and it is still the single most expensive one here.",
+      "evidence": "Two solves per pair on each variant, at the recorded count and at one below.",
+      "scope": "Carry-in 0, the three TERNARY variants. The binary restored variants are still sampled at stride 37.",
+      "asserted_in": "test/test-carryin.js",
+      "measured": {
+        "none": {
+          "switches": 624,
+          "nodes": 328,
+          "pairs": 531441,
+          "registered_passes": 7,
+          "sum_wrong": 0,
+          "overflow_wrong": 0,
+          "not_exactly_that_many_passes": 0,
+          "seconds": 67.6
+        },
+        "mid": {
+          "switches": 912,
+          "nodes": 472,
+          "pairs": 531441,
+          "registered_passes": 19,
+          "sum_wrong": 0,
+          "overflow_wrong": 0,
+          "not_exactly_that_many_passes": 0,
+          "seconds": 297.5
+        },
+        "leafmid": {
+          "switches": 1776,
+          "nodes": 904,
+          "pairs": 531441,
+          "registered_passes": 31,
+          "sum_wrong": 0,
+          "overflow_wrong": 0,
+          "not_exactly_that_many_passes": 0,
+          "seconds": 1002.6
+        },
+        "sampled_before": 4489,
+        "sampling_stride_before": 11
+      }
+    },
+    {
+      "id": "F-BINARY-ADDER-EXHAUSTIVE",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "The ten-bit binary ripple adder computes the sum and the carry-out correctly and settles in exactly eleven passes on all 1,048,576 of its operand pairs at carry-in 0. Both adder-audit.js and Z4 sampled it at stride 37, 784 pairs.",
+      "argument": "The binary adder is the control every ternary-versus-binary switch-count ratio in this repository is taken against -- Y5, Z1, Z3, E5 -- so a defect in it would move numbers well outside the set that measured it, and it was the most heavily used circuit here still standing on a sample. Carry-in 0 is spelled -1 in this device model, which has no zero level on the binary rails.",
+      "evidence": "Two solves per pair, at eleven passes and at ten.",
+      "scope": "Carry-in 0 and the unrestored variant. Carry-in +1 and the binary restored variants remain at stride 37.",
+      "asserted_in": "test/test-carryin.js",
+      "measured": {
+        "width": 10,
+        "switches": 280,
+        "nodes": 163,
+        "pairs": 1048576,
+        "stride": 1,
+        "wrong": 0,
+        "not_exactly_eleven": 0,
+        "seconds": 82.8,
+        "sampled_before": 784,
+        "sampling_stride_before": 37
+      }
     }
   ],
   "reaudits": [],

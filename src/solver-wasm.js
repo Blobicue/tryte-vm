@@ -278,9 +278,18 @@ const sweepFn = W.fn('sweep', {
  */
 const FUNCS = [reachFn, solveFn, seedFn, sweepFn];
 
+/**
+ * The three names the module exports. A DEFAULT, not a fixture: a set that needs a
+ * driver of its own -- `AW`'s two-solve pass-count probe is the first -- appends its
+ * function to `FUNCS` and its name here, and gets a module whose first four functions
+ * are these bytes unchanged. Calling `moduleBytes()` or `makeR2()` with no argument
+ * still emits exactly what `AV` timed and `test-solver.js` pins to the byte.
+ */
+const EXPORTS = ['solve', 'sweep', 'seedCodes'];
+
 /** The module's bytes. Emitted, never committed. */
-function moduleBytes(fns = FUNCS) {
-  return W.emitModule(fns, { memoryPages: 1, exports: ['solve', 'sweep', 'seedCodes'] });
+function moduleBytes(fns = FUNCS, exports = EXPORTS) {
+  return W.emitModule(fns, { memoryPages: 1, exports });
 }
 
 /* ------------------------------------------------------- loading a network */
@@ -310,8 +319,8 @@ function layout(P) {
  * response to stream, the bytes were built here, and the streaming form would tie
  * this to a fetch the published page is not going to make.
  */
-async function makeR2({ fns = FUNCS } = {}) {
-  const bytes = moduleBytes(fns);
+async function makeR2({ fns = FUNCS, exports = EXPORTS } = {}) {
+  const bytes = moduleBytes(fns, exports);
   const { instance } = await WebAssembly.instantiate(bytes, {});
   const ex = instance.exports;
   let mem = ex.memory;
@@ -359,6 +368,22 @@ async function makeR2({ fns = FUNCS } = {}) {
     layoutOf: P => { load(P); return L; },
 
     /**
+     * Load `P` and reserve `extra` bytes of scratch after it, handing back where
+     * that block starts and views over the memory as it is NOW.
+     *
+     * This exists so a caller can drive its own exported function over its own
+     * block layout without a second copy of the loading logic -- `sweep` below is
+     * one such caller and `AW`'s probe is another. The views are re-taken here
+     * rather than returned once and kept, because `memory.grow` DETACHES the old
+     * buffer and a view held across it reads zeros forever without raising.
+     */
+    reserve(P, extra = 0) {
+      load(P, extra);
+      return { layout: L, base: (L.end + 3) & ~3,
+        u8: new Uint8Array(mem.buffer), i32: new Int32Array(mem.buffer) };
+    },
+
+    /**
      * One solve, with `netpack.js` doing the seeding and the two refusals so that
      * R2 inherits R0's `init` semantics rather than carrying a second copy of them.
      * Throws R0's message at the cap.
@@ -395,4 +420,5 @@ async function makeR2({ fns = FUNCS } = {}) {
   };
 }
 
-module.exports = { HEADER, FIELD, HEADER_BYTES, FUNCS, moduleBytes, layout, makeR2 };
+module.exports = { HEADER, FIELD, HEADER_BYTES, EXPORTS, FUNCS, moduleBytes, layout, makeR2,
+  hdr, at4, at1 };
