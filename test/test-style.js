@@ -30,7 +30,7 @@ const MEDIA = tokensIn(/@media \(prefers-color-scheme: dark\) \{[\s\S]*?:root:no
 
 // The luminance and contrast maths moved to test/theme.js when a second document
 // wanted it. Two copies of a checker are two checkers that can disagree.
-const { ratio } = require('./theme.js');
+const { ratio, preamble } = require('./theme.js');
 
 /* Every pair where the page paints text on a background. */
 const PAIRS = [
@@ -44,6 +44,21 @@ const PAIRS = [
   ['text on sunken', '--ink',   '--sunken',  4.5],
 ];
 const ON_ACCENT = [['Run button', '--pos'], ['NEG switch', '--neg'], ['ZERO switch', '--zero']];
+
+console.log('\n=== 0. THE DOCUMENT PREAMBLE ===');
+{
+  // Both of these shipped broken on all three published pages, and both were found by
+  // opening one in a browser rather than by any check here. See `preamble` in
+  // test/theme.js for what each one costs.
+  const P = preamble(html);
+  check('the page opens with a doctype, so it is not parsed in quirks mode',
+    P.hasDoctype);
+  check('   and declares utf-8 inside the first 1024 bytes, so its encoding is a '
+    + 'property of the page rather than of how it was served',
+    P.hasCharset);
+  check('   and does not declare one too late in the file to be read',
+    !P.charsetLate);
+}
 
 console.log('\n=== 1. THEME STRUCTURE ===');
 check('every token has a base :root definition', (() => {

@@ -29,7 +29,7 @@ const path = require('path');
 const vm = require('vm');
 const { execFileSync } = require('child_process');
 
-const { ratio, structure } = require('./theme.js');
+const { ratio, structure, preamble } = require('./theme.js');
 const B = require('../build/bundle.js');
 const T = require('../src/ternary.js');
 const D = require('../src/device.js');
@@ -163,6 +163,33 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
   check('   and it is T.add underneath, not a second addition written on the page',
     [[7, 5, 0], [-100, -300, 1], [0, 0, -1], [364, 364, 1]]
       .every(([a, b, c]) => L.oracle(a, b, c).sum === T.add(T.add(a, b), c)));
+}
+
+console.log('\n=== 0b. THE DOCUMENT PREAMBLE ===');
+{
+  // Both of these shipped broken on all three published pages, and both were found by
+  // opening one in a browser rather than by any check here. See `preamble` in
+  // test/theme.js for what each one costs.
+  const P = preamble(html);
+  check('the page opens with a doctype, so it is not parsed in quirks mode',
+    P.hasDoctype);
+  check('   and declares utf-8 inside the first 1024 bytes, so its encoding is a '
+    + 'property of the page rather than of how it was served',
+    P.hasCharset);
+  check('   and does not declare one too late in the file to be read',
+    !P.charsetLate);
+  // AND THE CHECK HAS TEETH, shown on the two shapes it exists to catch rather than
+  // asserted: the page as it was before this section was written, and a page whose
+  // charset sits past the 1024 bytes the parser reads.
+  const stripped = html.replace(/^\s*<!doctype html>\s*/i, '').replace(/<meta\s+charset[^>]*>\s*/i, '');
+  check('   and a page with neither is caught',
+    !preamble(stripped).hasDoctype && !preamble(stripped).hasCharset);
+  check('   and a charset pushed past 1024 bytes is caught as late, not as present',
+    (() => {
+      const late = '<!doctype html>\n' + 'x'.repeat(1100) + '\n<meta charset="utf-8">';
+      const p = preamble(late);
+      return p.hasDoctype && !p.hasCharset && p.charsetLate;
+    })());
 }
 
 console.log('\n=== 1. THE PAGE IS THE ONE THE BUILD PRODUCES ===');
