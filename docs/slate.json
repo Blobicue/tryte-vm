@@ -2,8 +2,8 @@
  "schema": "tryte-vm/slate@1",
  "purpose": "A retrieval-shaped projection of FINDINGS.json plus authored marginalia. Flat, addressable entries with stable ids, topic routes and validated cross-links. The manifest remains the authority; this is a view of it and never a second copy of the truth.",
  "counts": {
-  "entries": 309,
-  "predictions": 205,
+  "entries": 313,
+  "predictions": 209,
   "findings": 72,
   "traps": 19,
   "notes": 13,
@@ -81,6 +81,10 @@
    "AU3",
    "AV4",
    "AW3",
+   "AX1",
+   "AX2",
+   "AX3",
+   "AX4",
    "F-FOLD-BUYS-DEPTH",
    "F-RADIX-ECONOMY",
    "F-GATES-FROM-SWITCHES",
@@ -235,6 +239,8 @@
    "AV1",
    "AV3",
    "AV4",
+   "AX1",
+   "AX4",
    "F-CONTROL-CANNOT-DISCRIMINATE",
    "F-AN-EXTRACTOR-THAT-READS-HISTORY-IS-BROKEN-BY-HISTORY",
    "T-ONE-POINT",
@@ -321,6 +327,9 @@
    "AV4",
    "AW1",
    "AW3",
+   "AX1",
+   "AX2",
+   "AX3",
    "F-COST-INVARIANCE-IS-THE-NORM",
    "F-TERNARY-RICHER-IN-VARIETY-POORER-IN-STRUCTURE",
    "F-27-EDO-BEATS-12-EDO-ON-CONSONANCE",
@@ -7885,6 +7894,354 @@
    "asserted_in": "test/test-carryin.js",
    "registered_at": "57c065f",
    "results_at": "c6e917f",
+   "links": []
+  },
+  {
+   "id": "AX1",
+   "kind": "prediction",
+   "set": "AX",
+   "subject": "Where does the WebAssembly solver spend a pass? Four modules emitted from one intermediate representation by substituting into the exported function list -- the whole pass, the conduction loop alone, the reachability walks alone, the per-node update alone -- each with the early exit removed, each seeded to the same realistic state captured after a full solve of one operand pair, each run for a fixed pass count over that fixed state, wall-clock median of five interleaved repetitions after a discarded warm-up, on the unrestored six-trit tree ripple adder and again on the decoded adder, with shares reported as a fraction of the whole and never of the sum of the parts",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "instrument",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "the reachability walk is the majority of the WebAssembly solver: reach's share of the whole pass lands in [0.55, 0.80] of WHOLE on the benchmark, measured by emitting four modules from one intermediate representation -- the whole pass, conduction alone, the reachability walks alone, the per-node update alone -- each with the early exit removed, each seeded to the same state captured after a full solve of one operand pair, each run for a fixed pass count over that state",
+   "argument": null,
+   "note": "HELD, and by a margin the run-to-run spread does not reach: reach is 61.7% of the pass on the benchmark and every one of 5 independent runs lands inside the band. The registration wrote its AT RISK line against the operation count that had already misled AV1 -- reach is about 70% by count, and AV1 registered a majority on that kind of reasoning and failed at 11.1% -- and this time the count and the clock agree. What the count could not have told anyone is the OTHER two: the update loop is the second cost, over 328 nodes, while the walk is more than twice the update loop over an order of magnitude more edge visits, so per operation the walk is much the cheaper of the two and wins on volume alone. THE INSTRUMENT CAME NEARER TO DECIDING THIS THAN THE SUBJECT DID. At a fifth of the registered pass block, one run in five put reach at 0.5474 -- below the registered floor of 0.55, on the same machine, from the same state, with the same modules. The pass block is a free parameter of the instrument, the share provably does not depend on it (doubling the block moves the three shares by at most 0.0451), and only the VARIANCE does -- so lengthening it is an estimator improvement and not a thumb on the scale. It is recorded anyway, with the short-block runs, because the choice was made after seeing that the short block could flip a verdict, and that is the sequence a reader is entitled to.",
+   "measured": {
+    "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+    "node_version": "v22.22.3",
+    "passes_per_run": 300000,
+    "repetitions": 6,
+    "repetitions_kept": 5,
+    "independent_runs": 5,
+    "gate_networks": 128,
+    "gate_node_values_compared": 313697,
+    "gate_divergences": 0,
+    "module_bytes_stock": 1386,
+    "whole_with_exit_is_stock_module": true,
+    "byte_algebra_exact": true,
+    "only_solve_differs_between_modules": true,
+    "write_matrix_as_expected": true,
+    "fixed_point_bytes_moved": 0,
+    "whole_recomputes_memory_exactly": true,
+    "definite_bitset_equals_possible": true,
+    "seed_state_cond_codes": {
+     "0": 312,
+     "1": 312
+    },
+    "seed_state_value_codes": {
+     "2": 83,
+     "3": 183,
+     "4": 62
+    },
+    "driven_nodes": 16,
+    "pass_block_invariance": 0.0204,
+    "pass_block_invariance_all_runs": [
+     0.0204,
+     0.0404,
+     0.0282,
+     0.0451,
+     0.0312
+    ],
+    "linear_memory_bytes_tree": 18100,
+    "linear_memory_bytes_decoded": 14872,
+    "benchmark": "624 switches, 328 nodes",
+    "benchmark_pair_index": 10000,
+    "operand_pair": [
+     -351,
+     159
+    ],
+    "settling_passes": 7,
+    "seconds": {
+     "WHOLE": 1.92717,
+     "C": 0.2179,
+     "R": 1.18857,
+     "U": 0.5545
+    },
+    "all_seconds": {
+     "WHOLE": [
+      1.97013,
+      1.89837,
+      1.92717,
+      1.95234,
+      1.82476,
+      2.14464
+     ],
+     "C": [
+      0.23813,
+      0.21825,
+      0.19851,
+      0.20193,
+      0.25773,
+      0.2179
+     ],
+     "R": [
+      1.1421,
+      1.14632,
+      1.1675,
+      1.2296,
+      1.18857,
+      1.3153
+     ],
+     "U": [
+      0.53771,
+      0.51177,
+      0.58169,
+      0.5545,
+      0.52256,
+      0.64615
+     ]
+    },
+    "ns_per_pass": {
+     "WHOLE": 6423.9,
+     "C": 726.3,
+     "R": 3961.9,
+     "U": 1848.3
+    },
+    "share_reach": 0.6167,
+    "registered_band": [
+     0.55,
+     0.8
+    ],
+    "share_reach_further_runs": [
+     0.6223,
+     0.6595,
+     0.6017,
+     0.622
+    ],
+    "share_reach_all_runs": [
+     0.6167,
+     0.6223,
+     0.6595,
+     0.6017,
+     0.622
+    ],
+    "reach_exceeds_the_other_two_together": true,
+    "short_block_passes_per_run": 60000,
+    "short_block_runs": 5,
+    "short_block_share_reach": [
+     0.5474,
+     0.6112,
+     0.6203,
+     0.6032,
+     0.6137
+    ],
+    "short_block_runs_below_registered_floor": 1
+   },
+   "tool": "tools/phases-audit.js",
+   "asserted_in": "test/test-phases.js",
+   "registered_at": "aab3dba",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AX2",
+   "kind": "prediction",
+   "set": "AX",
+   "subject": "Where does the WebAssembly solver spend a pass? Four modules emitted from one intermediate representation by substituting into the exported function list -- the whole pass, the conduction loop alone, the reachability walks alone, the per-node update alone -- each with the early exit removed, each seeded to the same realistic state captured after a full solve of one operand pair, each run for a fixed pass count over that fixed state, wall-clock median of five interleaved repetitions after a discarded warm-up, on the unrestored six-trit tree ripple adder and again on the decoded adder, with shares reported as a fraction of the whole and never of the sum of the parts",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "conduction is not negligible: its share of WHOLE is at least 0.10",
+   "argument": null,
+   "note": "HELD, and the phase nobody had counted is about an eighth of the pass -- but read it as \"about an eighth\", not as a verdict at a line. Conduction measures 11.3% of WHOLE on the benchmark and clears the floor on all 5 runs, the lowest by 0.0131, while the spread between those runs is 0.0183. The margin and the spread are the same order. That is not a defect in this measurement -- every run agreed on the verdict, and the decoded adder puts conduction higher still at 12.0% -- but a reader who wants a number from this prediction should take the range and not the digit after it. The registration was right that nothing pointed either way: 624 device evaluations against thousands of edge visits could have put conduction under a tenth, and it does not. WHY it does not is not measured here and is offered as the likely reason rather than a result: a device evaluation is a dependent load, a branch, a compare and a store, where an edge visit is a bitset test that usually fails and costs nothing further. Nothing in this set separates per-operation cost from operation count, and a set that wanted that number would have to count the visits rather than infer them.",
+   "measured": {
+    "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+    "node_version": "v22.22.3",
+    "passes_per_run": 300000,
+    "repetitions": 6,
+    "repetitions_kept": 5,
+    "independent_runs": 5,
+    "devices": 624,
+    "nodes": 328,
+    "settling_passes": 7,
+    "seconds": {
+     "WHOLE": 1.92717,
+     "C": 0.2179,
+     "R": 1.18857,
+     "U": 0.5545
+    },
+    "share_conduction": 0.1131,
+    "share_reach": 0.6167,
+    "share_update": 0.2877,
+    "registered_floor": 0.1,
+    "share_conduction_further_runs": [
+     0.1167,
+     0.1314,
+     0.1198,
+     0.118
+    ],
+    "share_conduction_all_runs": [
+     0.1131,
+     0.1167,
+     0.1314,
+     0.1198,
+     0.118
+    ],
+    "lowest_margin_over_floor": 0.0131,
+    "spread_between_runs": 0.0183,
+    "share_conduction_decoded": 0.12,
+    "short_block_passes_per_run": 60000,
+    "short_block_share_conduction": [
+     0.1194,
+     0.1153,
+     0.1176,
+     0.1082,
+     0.1165
+    ]
+   },
+   "tool": "tools/phases-audit.js",
+   "asserted_in": "test/test-phases.js",
+   "registered_at": "aab3dba",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AX3",
+   "kind": "prediction",
+   "set": "AX",
+   "subject": "Where does the WebAssembly solver spend a pass? Four modules emitted from one intermediate representation by substituting into the exported function list -- the whole pass, the conduction loop alone, the reachability walks alone, the per-node update alone -- each with the early exit removed, each seeded to the same realistic state captured after a full solve of one operand pair, each run for a fixed pass count over that fixed state, wall-clock median of five interleaved repetitions after a discarded warm-up, on the unrestored six-trit tree ripple adder and again on the decoded adder, with shares reported as a fraction of the whole and never of the sum of the parts",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "the split is a property of the algorithm and not of the network: each of the three shares on the decoded adder is within 0.10 absolute of the same share on the tree adder",
+   "argument": null,
+   "note": "HELD, and it is the prediction that makes AX1 worth quoting anywhere else. The two networks were chosen to differ in exactly the way that would break it -- 540 devices over 208 nodes against 624 over 328, so the decoded adder does half again as much conduction per node -- and the shares barely move: the widest of the three separations is 0.0359 against a registered 0.1. They move in the direction the shape predicts, conduction up and update down on the network with more devices per node, and they move a third as far as the line. The settling counts differ too (7 passes against 13), so the split is not a property of running seven passes either. What this does NOT establish is the general claim, and the noun is worth watching: two networks are two networks, both are ripple adders, and T-CLAIM-NARROWED-BY-A-DESIGN has bitten twice for exactly this.",
+   "measured": {
+    "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+    "node_version": "v22.22.3",
+    "passes_per_run": 300000,
+    "repetitions": 6,
+    "repetitions_kept": 5,
+    "independent_runs": 5,
+    "tree": {
+     "switches": 624,
+     "nodes": 328,
+     "devices": 624,
+     "settling_passes": 7,
+     "seconds": {
+      "WHOLE": 1.92717,
+      "C": 0.2179,
+      "R": 1.18857,
+      "U": 0.5545
+     },
+     "share_conduction": 0.1131,
+     "share_reach": 0.6167,
+     "share_update": 0.2877,
+     "share_sum": 1.0175
+    },
+    "decoded": {
+     "switches": 540,
+     "nodes": 208,
+     "devices": 540,
+     "settling_passes": 13,
+     "seconds": {
+      "WHOLE": 1.40025,
+      "C": 0.16798,
+      "R": 0.91384,
+      "U": 0.36051
+     },
+     "share_conduction": 0.12,
+     "share_reach": 0.6526,
+     "share_update": 0.2575,
+     "share_sum": 1.03
+    },
+    "separations": {
+     "conduction": 0.0069,
+     "reach": 0.0359,
+     "update": 0.0302
+    },
+    "widest_separation": 0.0359,
+    "registered_separation": 0.1,
+    "widest_separation_further_runs": [
+     0.041,
+     0.0435,
+     0.0475,
+     0.0564
+    ],
+    "widest_separation_all_runs": [
+     0.0359,
+     0.041,
+     0.0435,
+     0.0475,
+     0.0564
+    ],
+    "devices_per_node_tree": 1.9024,
+    "devices_per_node_decoded": 2.5962
+   },
+   "tool": "tools/phases-audit.js",
+   "asserted_in": "test/test-phases.js",
+   "registered_at": "aab3dba",
+   "results_at": "PENDING",
+   "links": []
+  },
+  {
+   "id": "AX4",
+   "kind": "prediction",
+   "set": "AX",
+   "subject": "Where does the WebAssembly solver spend a pass? Four modules emitted from one intermediate representation by substituting into the exported function list -- the whole pass, the conduction loop alone, the reachability walks alone, the per-node update alone -- each with the early exit removed, each seeded to the same realistic state captured after a full solve of one operand pair, each run for a fixed pass count over that fixed state, wall-clock median of five interleaved repetitions after a discarded warm-up, on the unrestored six-trit tree ripple adder and again on the decoded adder, with shares reported as a fraction of the whole and never of the sum of the parts",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "instrument"
+   ],
+   "routes_derived": true,
+   "claim": "the decomposition is honest: conduction plus reach plus update sums to within 0.15 of WHOLE",
+   "argument": null,
+   "note": "HELD, and this is the instrument checking itself, so it is the one to read before the other three. The parts sum to 101.8% of the whole on the benchmark and 103.0% on the decoded adder, against a tolerance of 0.15 either way; across 5 runs the furthest any of them lands from the whole is 0.0631. Both failure routes the registration named were open and neither happened: three separate passes over the same arrays did not cost more than one pass does, so nothing is being lost to re-reading state the whole pass keeps warm, and the whole pass did not exceed a cache level the individual phases fit inside. A whole loaded network is 18100 bytes of linear memory on the benchmark and 14872 on the decoded adder, so on this machine every variant and the whole pass are working inside the same level of cache; that is the likely reason rather than a measured one, and it is worth saying because it is also the reason this result should not be expected to survive a network large enough to fall out of it. AND ONE LIMIT OF THE PROBE BEHIND ALL FOUR: a region counts as written when no byte of it still holds the poison, which a legitimately written bitset byte equal to the poison could defeat. It did not happen on either network, and the stronger signal is the one recorded beside it -- every region a variant writes came back RESTORED, byte for byte, to what the full solve produced.",
+   "measured": {
+    "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+    "node_version": "v22.22.3",
+    "passes_per_run": 300000,
+    "repetitions": 6,
+    "repetitions_kept": 5,
+    "independent_runs": 5,
+    "share_conduction": 0.1131,
+    "share_reach": 0.6167,
+    "share_update": 0.2877,
+    "share_sum": 1.0175,
+    "share_sum_decoded": 1.03,
+    "registered_tolerance": 0.15,
+    "share_sum_further_runs": [
+     1.0023,
+     1.0631,
+     0.9768,
+     1.0112
+    ],
+    "share_sum_all_runs": [
+     1.0175,
+     1.0023,
+     1.0631,
+     0.9768,
+     1.0112
+    ],
+    "share_sum_decoded_all_runs": [
+     1.03,
+     1.0058,
+     1.0219,
+     1.0076,
+     0.9924
+    ],
+    "furthest_from_the_whole": 0.0631
+   },
+   "tool": "tools/phases-audit.js",
+   "asserted_in": "test/test-phases.js",
+   "registered_at": "aab3dba",
+   "results_at": "PENDING",
    "links": []
   },
   {

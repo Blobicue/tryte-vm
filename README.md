@@ -9,11 +9,11 @@ its instruction set can reach and what the device model beneath it rests on.
 
 **And a record of how it was found out about.** Every claim here was registered
 before it was measured, in its own commit, and every failed prediction was kept.
-<!--g:readme-lede-tally-->205 predictions, 161 held, 44 failed — and of those
-successes only 129 were ever at risk<!--/g-->. That loop is written up separately in
+<!--g:readme-lede-tally-->209 predictions, 165 held, 44 failed — and of those
+successes only 133 were ever at risk<!--/g-->. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**2,390 checks**, all passing. Every number below is recomputed by one of them,
+**2,441 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
@@ -65,14 +65,14 @@ build/       inlines src/ into docs/tryte-vm.html and docs/tryte-lab.html,
 
 ## Findings at a glance
 
-<!--g:readme-tally-->Forty-nine prediction sets, registered before their runs. **161 held, 44 failed**<!--/g--> — the
+<!--g:readme-tally-->Fifty prediction sets, registered before their runs. **165 held, 44 failed**<!--/g--> — the
 failures are kept, and four of them produced the result that replaced them.
 Full detail,
 with registering commits and the tests that assert each one, in
 [`FINDINGS.json`](FINDINGS.json).
 
 **And the successes are worth less than that line says.**
-<!--g:readme-at-risk-->Twenty-five of those predictions were never at risk — computable from the registration's own text before the run — and seven cannot be called either way. Against the 173 that were genuinely at risk the failure rate is **25.4%**, not the 21.5% the raw counts give. Both numbers are true and they answer different questions<!--/g-->.
+<!--g:readme-at-risk-->Twenty-five of those predictions were never at risk — computable from the registration's own text before the run — and seven cannot be called either way. Against the 177 that were genuinely at risk the failure rate is **24.9%**, not the 21.1% the raw counts give. Both numbers are true and they answer different questions<!--/g-->.
 Every prediction carries an `at_risk` verdict in the manifest, and a check now fails
 on a set registered without one.
 
@@ -127,6 +127,7 @@ on a set registered without one.
 | **AU1–AU4** | what does the *width* of the head buy, once mixing has been measured twice and found worth nothing? | 2 held, **AU2 and AU4 failed — and the two laws it fitted separate a second preimage from a collision by exactly one square root** |
 | **AV1–AV4** | what does the packed representation buy the switch-level solver, and what does WebAssembly buy on top? | 1 held, **AV1, AV2 and AV3 failed — the two registered in tension failed together, on the premise they shared** |
 | **AW1–AW4** | does the pass-count rule survive a non-zero carry-in, where `F` said the bottom position can save as well? | **AW1, AW2, AW3 and AW4 all failed — the rule needed no amendment at all, because the bottom position cannot save at any carry-in** |
+| **AX1–AX4** | where does the WebAssembly solver spend a pass, across conduction, the reachability walks and the per-node update? | all four held — the walk is the majority, conduction is a phase nobody had counted and not a rounding error, and the split barely moves between two networks of deliberately different shape |
 
 Measured but never registered as predictions — listed separately so the
 pre-registration record is not inflated by facts that were never at risk:
