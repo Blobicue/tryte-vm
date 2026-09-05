@@ -885,7 +885,20 @@ function report(argv = []) {
 
     log('');
     log(line);
-    for (const id of ['AX1', 'AX2', 'AX3', 'AX4']) log(`  ${id}  ${A.verdict[id]}`);
+    // A VERDICT PRINTED IN QUICK MODE IS NOT A VERDICT, and the banner that says so is
+    // by now far off the top of the screen. Both AX2 and AX3 have been seen to flip
+    // here -- AX3 scores the DIFFERENCE of two noisy ratios and inherits both errors,
+    // and AX2's margin over its floor is the same order as the spread between runs --
+    // so this summary can disagree with the manifest. That is a reader walking away
+    // with the wrong outcome rather than a measurement problem, and the fix belongs on
+    // the line that can be misread, not only at the top of the page.
+    const mark = quick ? '   (quick mode: NOT a measurement)' : '';
+    for (const id of ['AX1', 'AX2', 'AX3', 'AX4']) log(`  ${id}  ${A.verdict[id]}${mark}`);
+    if (quick) {
+      log('');
+      log('  Nothing above is a measurement. `npm run audit:phases` is the audit, and');
+      log('  `FINDINGS.json` carries the outcomes that were recorded from it.');
+    }
     log(line);
     return A;
   });
