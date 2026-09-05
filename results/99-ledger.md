@@ -2347,7 +2347,7 @@ branch rather than merely present in a local object store.
 | tool | `tools/phases-audit.js` |
 | asserted in | `test/test-phases.js` |
 | registered | `aab3dba` |
-| results | `PENDING` |
+| results | `59e2f50` |
 
 ### `AX1` — HELD
 

@@ -5320,7 +5320,7 @@
       "subject": "Where does the WebAssembly solver spend a pass? Four modules emitted from one intermediate representation by substituting into the exported function list -- the whole pass, the conduction loop alone, the reachability walks alone, the per-node update alone -- each with the early exit removed, each seeded to the same realistic state captured after a full solve of one operand pair, each run for a fixed pass count over that fixed state, wall-clock median of five interleaved repetitions after a discarded warm-up, on the unrestored six-trit tree ripple adder and again on the decoded adder, with shares reported as a fraction of the whole and never of the sum of the parts",
       "tool": "tools/phases-audit.js",
       "registered_at": "aab3dba",
-      "results_at": "PENDING",
+      "results_at": "59e2f50",
       "asserted_in": "test/test-phases.js",
       "predictions": [
         {
