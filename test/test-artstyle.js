@@ -16,7 +16,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { ratio, structure } = require('./theme.js');
+const { ratio, structure, preamble } = require('./theme.js');
 
 let pass = 0; const fails = [];
 const check = (name, cond, detail = '') => {
@@ -45,6 +45,21 @@ const PAIRS = [
   ['a bench verdict, built',       '--build',     '--panel-2',   4.5],
   ['a bench verdict, burnt',       '--burn',      '--panel-2',   4.5],
 ];
+
+console.log('\n=== 0. THE DOCUMENT PREAMBLE ===');
+{
+  // Both of these shipped broken on all three published pages, and both were found by
+  // opening one in a browser rather than by any check here. See `preamble` in
+  // test/theme.js for what each one costs.
+  const P = preamble(html);
+  check('the page opens with a doctype, so it is not parsed in quirks mode',
+    P.hasDoctype);
+  check('   and declares utf-8 inside the first 1024 bytes, so its encoding is a '
+    + 'property of the page rather than of how it was served',
+    P.hasCharset);
+  check('   and does not declare one too late in the file to be read',
+    !P.charsetLate);
+}
 
 console.log('\n=== 1. THEME STRUCTURE ===');
 check('the page defines a dark palette at all', S.hasDark);

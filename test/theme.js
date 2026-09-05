@@ -72,4 +72,35 @@ function structure(css) {
   };
 }
 
-module.exports = { lum, ratio, tokens, blockOf, structure };
+/**
+ * The document preamble, which every published page here had been shipping without.
+ *
+ * Not a palette question, but it lives beside one because it is the same defect class
+ * and the same three documents: something arithmetic catches and inspection does not.
+ * All three pages opened straight at `<title>`, and a browser given that has to guess
+ * twice.
+ *
+ *   NO DOCTYPE  puts the page in QUIRKS MODE. `document.compatMode` reads
+ *               `BackCompat`, and the box model, line-height and table sizing stop
+ *               being the ones the stylesheet above was written against.
+ *   NO CHARSET  makes the encoding a property of how the page was DELIVERED rather
+ *               than of the page. Served without one in the header -- which is what
+ *               a plain static server and `file://` both do -- Chrome falls back to
+ *               a locale default, resolved to `windows-1252` when this was measured,
+ *               and every em-dash in the prose rendered as three characters.
+ *
+ * Both were found by opening the page in a browser, which no check here does. These
+ * two lines are what a check can do instead.
+ */
+function preamble(html) {
+  const head = html.slice(0, 1024);            // the charset must land inside 1024 bytes
+  return {
+    hasDoctype: /^\s*<!doctype html>/i.test(html),
+    hasCharset: /<meta\s+charset\s*=\s*["']?utf-8["']?\s*>/i.test(head),
+    // A charset declaration after 1024 bytes is ignored by the parser, so a page that
+    // has one further down is not saved by it -- that is the failure worth naming.
+    charsetLate: !/<meta\s+charset/i.test(head) && /<meta\s+charset/i.test(html),
+  };
+}
+
+module.exports = { lum, ratio, tokens, blockOf, structure, preamble };

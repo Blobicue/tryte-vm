@@ -5,7 +5,9 @@
   "main": "src/vm.js",
   "scripts": {
     "test": "node test/run-all.js",
-    "build": "node build/build-artifact.js",
+    "build": "npm run build:vm && npm run build:lab",
+    "build:vm": "node build/build-artifact.js",
+    "build:lab": "node build/build-lab.js",
     "threeway": "node src/run.js programs/threeway.tasm 7 -3 0 42 -100",
     "multiply": "node src/run.js programs/multiply.tasm 7 5",
     "tgate": "node src/run.js programs/tgate.tasm 123 -45",

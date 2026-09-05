@@ -484,7 +484,7 @@ it updates in place rather than forking a second copy.
 ```bash
 npm test          # everything, including the manifest validator
 npm run counts    # restamp every generated count
-npm run build     # rebuild the page if src/ or programs/ changed
+npm run build     # rebuild BOTH published pages if src/ or programs/ changed
 ```
 
 Work on a branch, merge only when the suite is green on `main`, and re-run it

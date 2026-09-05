@@ -170,10 +170,39 @@ is a different instrument that agrees with it on the easy cases.
    nowhere to go. One position up that gap is two passes and the saving is real.
    **Position 0 is excluded because it is the boundary cell, not because `c_0` is
    zero** — and the four sweeps this file bought are what could tell those apart.
-6. **A page.** A new one, with its own template and its own test; `test-page.js`
-   pins the existing page's markup in detail and the two are different documents.
-   `build/bundle.js` has a hardcoded file list that has never included
-   `device.js`, so this needs the bundler parameterised rather than extended.
+6. **A page. Done: `docs/tryte-lab.html`**, built by `build/build-lab.js` out of
+   `build/lab-template.html`, with its own suite in `test/test-lab.js`. A new one,
+   because `test-page.js` pins the existing page's markup in detail and the two are
+   different documents. `build/bundle.js` had a hardcoded file list that never
+   included `device.js`, so the bundler was parameterised rather than extended:
+   `buildLabBundle()` sits beside `buildBundle()`, wraps each module in an IIFE
+   because `add`, `sub` and `mul` are declared at top level in both `ternary.js` and
+   `wasm-emit.js`, and leaves the flat form byte for byte as it was.
+
+   **It is a second copy of the instrument, so it is gated like one.**
+   `build/build-lab.js` runs real switch-level sweeps through the BUNDLED code and
+   through the module code — every design the page offers, at every carry-in — and
+   refuses to write the page when the two disagree, on the bytes, on the pass
+   counts, or against `T.add`. `test/test-lab.js` then runs that gate as a
+   subprocess, so the comparison cannot be skipped by not rebuilding. Same
+   arrangement `docs/tick-argument.html` has and for the same reason: a second
+   implementation that is never compared is just an unchecked claim.
+
+   **What the page reports, and the shape of each.** Progress while it runs;
+   divergence from the oracle, which is `T.add` out of `src/ternary.js` and not a
+   second addition written for the browser; the switch count and the mid-rail tap
+   count as SEPARATE columns beside the narrowest binary adder covering the same
+   state count, because folding those two together would turn the comparison into
+   an assertion about the one currency this model prices at zero; and the pass-count
+   **histogram** rather than a single pass count — got without a second solver, by
+   replacing exactly one node of `solve`'s own body so the loop that takes the
+   passes is the thing that counts them.
+
+   **What the constraints of a `file://` URL decided.** `WebAssembly.instantiate`
+   and never `instantiateStreaming`, which wants a `Response`; no worker, so the
+   chunking is on `requestAnimationFrame`; no `SharedArrayBuffer`, which wants
+   headers a local file cannot send; and no committed binary or base64 blob, since
+   a page that shipped the bytes would be a page whose emitter is decoration.
 
 ## What would stop it
 

@@ -1,0 +1,763 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Tryte Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;600&display=swap">
+
+<style>
+:root {
+  color-scheme: light;
+  /* The same palette docs/tryte-vm.html ships, because the same arithmetic
+     already holds over it: three states carry the colour, chrome stays quiet. */
+  --paper:    #F1F4F7;
+  --surface:  #FFFFFF;
+  --sunken:   #E8EDF2;
+  --ink:      #161B21;
+  --ink-2:    #556170;
+  --ink-3:    #7C8895;
+  --rule:     #D6DEE6;
+  --neg:      #B0402A;
+  --neg-bg:   #F7E5E0;
+  --pos:      #0A6F82;
+  --pos-bg:   #DCEEF1;
+  --zero:     #67727F;
+  --zero-bg:  #E9EDF1;
+  --on-accent:#FFFFFF;
+  --shadow:   0 1px 2px rgba(20,30,40,.06), 0 4px 14px rgba(20,30,40,.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper:   #101418;
+    --surface: #181D23;
+    --sunken:  #0B0E12;
+    --ink:     #E4EAF1;
+    --ink-2:   #9BA8B5;
+    --ink-3:   #74818E;
+    --rule:    #29313A;
+    --neg:     #E3805F;
+    --neg-bg:  #33201B;
+    --pos:     #3FB3C6;
+    --pos-bg:  #142E34;
+    --zero:    #7E8A96;
+    --zero-bg: #1E242B;
+    --on-accent: #0B1216;
+    --shadow:  0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper:   #101418;
+  --surface: #181D23;
+  --sunken:  #0B0E12;
+  --ink:     #E4EAF1;
+  --ink-2:   #9BA8B5;
+  --ink-3:   #74818E;
+  --rule:    #29313A;
+  --neg:     #E3805F;
+  --neg-bg:  #33201B;
+  --pos:     #3FB3C6;
+  --pos-bg:  #142E34;
+  --zero:    #7E8A96;
+  --zero-bg: #1E242B;
+  --on-accent: #0B1216;
+  --shadow:  0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.3);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 960px; margin: 0 auto; padding: 56px 24px 96px; display: flex; flex-direction: column; gap: 32px; }
+
+h1, h2 { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: -0.015em; }
+h1 { font-size: clamp(1.8rem, 4.4vw, 2.5rem); line-height: 1.1; }
+h2 { font-size: 1.1rem; line-height: 1.3; color: var(--ink-2); text-transform: lowercase; }
+
+p { margin: 0 0 12px; }
+p:last-child { margin-bottom: 0; }
+.lede { color: var(--ink-2); font-size: 1.05rem; max-width: 62ch; }
+.note { color: var(--ink-3); font-size: 0.85rem; max-width: 74ch; }
+code, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.9em; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* --- controls ------------------------------------------------------------- */
+.controls { display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: flex-end; }
+.controls label { display: flex; flex-direction: column; gap: 4px; font-size: 0.78rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+select, button {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.92rem;
+  padding: 7px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--rule);
+  background: var(--sunken);
+  color: var(--ink);
+}
+button { cursor: pointer; font-weight: 500; }
+button.go { background: var(--pos); color: var(--on-accent); border-color: var(--pos); }
+button[disabled] { opacity: 0.45; cursor: default; }
+
+/* --- readouts ------------------------------------------------------------- */
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 18px; margin: 0; }
+.facts dt { color: var(--ink-3); font-size: 0.85rem; }
+.facts dd { margin: 0; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.92rem; color: var(--ink); }
+
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--rule); }
+th:first-child, td:first-child { text-align: left; }
+thead th { color: var(--ink-3); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
+td { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+tr.here td { background: var(--pos-bg); color: var(--pos); }
+td.mid { background: var(--zero-bg); color: var(--zero); }
+
+.bar { height: 8px; border-radius: 4px; background: var(--sunken); overflow: hidden; }
+.bar-fill { height: 100%; width: 0%; background: var(--pos); }
+.hbar { display: inline-block; height: 9px; background: var(--pos); border-radius: 2px; vertical-align: middle; }
+
+.tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.78rem; font-family: "IBM Plex Mono", ui-monospace, monospace; }
+.tag.ok { background: var(--pos-bg); color: var(--pos); }
+.tag.bad { background: var(--neg-bg); color: var(--neg); }
+.tag.idle { background: var(--zero-bg); color: var(--zero); }
+</style>
+
+<div class="wrap">
+
+<header>
+  <h1>Tryte Lab</h1>
+  <p class="lede">Switch-level sweeps, run here rather than reported from somewhere
+  else. The solver is R2 — the same fixed-point algorithm <code>src/device.js</code>
+  defines, over the packed form, in WebAssembly — and the module is emitted by
+  JavaScript on this page at load time. No committed binary, no base64 blob, no
+  toolchain: the emitter ships and the page calls it.</p>
+</header>
+
+<section id="lab">
+
+  <div class="panel">
+    <h2>0 &mdash; the instrument, before any verdict</h2>
+    <dl class="facts">
+      <dt>module</dt><dd id="i-bytes">not built</dd>
+      <dt>exports</dt><dd id="i-exports">&mdash;</dd>
+      <dt>pass counter</dt><dd id="i-derived">&mdash;</dd>
+    </dl>
+    <p class="note">The pass count is not a second solver. <code>solvePasses</code> is
+    <code>solve</code>'s own body with one node replaced — the <code>return 1</code>
+    that fires when a pass changes nothing becomes <code>return iter + 1</code> — so
+    what counts the passes is the loop that takes them. Every other function in the
+    module is <code>src/solver-wasm.js</code>'s, unaltered, and a sweep that does not
+    settle inside the cap reports the bound rather than a half-settled state.</p>
+  </div>
+
+  <div class="panel">
+    <h2>1 &mdash; the network, and what it costs</h2>
+    <div class="controls">
+      <label>selector<select id="c-family"></select></label>
+      <label>restoring buffers<select id="c-restore"></select></label>
+      <label>carry-in<select id="c-cin"></select></label>
+      <label>operand stride<select id="c-stride"></select></label>
+    </div>
+    <table>
+      <thead><tr><th>design</th><th>switches</th><th>mid-rail taps</th><th>rails</th></tr></thead>
+      <tbody id="cost-body"></tbody>
+    </table>
+    <p class="note">Two columns, and they are never added together. A mid-rail tap is
+    a switch that touches <code>vmid</code>, and this device model gives
+    <code>vmid</code> away free — so every switch of ternary's margin over the binary
+    row is borrowed from the one column the model prices at zero. Folding the taps
+    into the switch count, or leaving them out of the table, would each turn a
+    comparison into an assertion.</p>
+  </div>
+
+  <div class="panel">
+    <h2>2 &mdash; the sweep</h2>
+    <div class="controls">
+      <button id="b-run" class="go">Run the sweep</button>
+      <button id="b-stop">Stop</button>
+      <span id="s-tag" class="tag idle">idle</span>
+    </div>
+    <div class="bar"><div class="bar-fill" id="bar-fill"></div></div>
+    <p class="mono" id="s-progress">nothing has run yet</p>
+    <p class="note" id="s-domain">&mdash;</p>
+  </div>
+
+  <div class="panel">
+    <h2>3 &mdash; against the arithmetic oracle</h2>
+    <dl class="facts">
+      <dt>pairs compared</dt><dd id="r-pairs">&mdash;</dd>
+      <dt>sum disagreements</dt><dd id="r-sum">&mdash;</dd>
+      <dt>carry-out disagreements</dt><dd id="r-carry">&mdash;</dd>
+      <dt>outputs not on a level</dt><dd id="r-unresolved">&mdash;</dd>
+      <dt>did not settle</dt><dd id="r-unsettled">&mdash;</dd>
+    </dl>
+    <p class="mono" id="r-first">&mdash;</p>
+    <p class="note">The oracle is <code>T.add</code> out of
+    <code>src/ternary.js</code>, and the carry-out is what that wrap threw away.
+    "Did not settle" is counted apart from "got it wrong": a pair that ran out of
+    passes has no answer to disagree with, and conflating the two has produced a
+    false verdict in this repository before.</p>
+  </div>
+
+  <div class="panel">
+    <h2>4 &mdash; how many passes each pair took</h2>
+    <table>
+      <thead><tr><th>passes</th><th>pairs</th><th>share</th></tr></thead>
+      <tbody id="hist-body"></tbody>
+    </table>
+    <p class="mono" id="hist-verdict">&mdash;</p>
+    <p class="note">A pass is one sweep of the whole network: conduction
+    once per device, then rails &times; 2 reachability walks, then every undriven node
+    re-derived. One bucket means the settling time does not depend on the data; more
+    than one means it does.</p>
+  </div>
+
+</section>
+
+<p class="note">Source: the five files under <code>src/</code> that this page inlines
+verbatim, plus the driver below them. Everything the page reports it computed here.</p>
+
+</div>
+
+<script>
+/* --- lab bundle begins --- */
+/*__LAB_BUNDLE__*/
+/* --- lab bundle ends --- */
+
+/* ===========================================================================
+ * The lab driver.
+ *
+ * Everything above this line is `src/` inlined verbatim by `build/build-lab.js`,
+ * which also refuses to write this file if a real sweep through the bundled code
+ * and the same sweep through the module code disagree. Everything below is the
+ * layer the bundle cannot supply: emitting the module, choosing a network,
+ * chunking the sweep so the tab stays alive, and comparing what came back against
+ * `T.add`.
+ *
+ * WHAT THIS PAGE DELIBERATELY DOES NOT USE, and why each one would break it:
+ *
+ *   `WebAssembly.instantiateStreaming` wants a `Response`. There is none — the
+ *   bytes were built three lines earlier — and it fails outright from `file://`.
+ *   `instantiate(bytes)` is the form that works from a downloaded file.
+ *
+ *   Web Workers are unreliable from `file://`, so the chunking runs on
+ *   `requestAnimationFrame` on the main thread instead: one block of pairs per
+ *   frame, and the tab stays live between them.
+ *
+ *   `SharedArrayBuffer` needs COOP and COEP headers, which a local file cannot
+ *   send. The module's own linear memory is the only buffer here.
+ *
+ *   And no base64 blob. A page that shipped the bytes would be a page whose
+ *   emitter is decoration; emitting them is the entire argument for having one.
+ * ======================================================================== */
+
+/* --- the pass counter, derived rather than written ----------------------- */
+
+/**
+ * `solve` answers 1 for settled and 0 for ran out, which is what a sweep needs
+ * and not what a histogram needs. The histogram wants the pass the fixed point
+ * landed on, and the only thing that knows it is the loop.
+ *
+ * So this walks `solve`'s own body and replaces exactly one node — the
+ * `return 1` that fires when a pass changed nothing — with `return iter + 1`.
+ * Everything else is the same tree: same conduction evaluation, same rails x 2
+ * traversals, same Jacobi update, same cap. A hand-written counting solver would
+ * be a second implementation of the fixed point, and this repository's standing
+ * rule is that a second implementation nobody compares is an unchecked claim.
+ *
+ * The walk COPIES. Mutating the tree in place would edit `SW.FUNCS` itself and
+ * silently change the module `test-solver.js` pins to the byte.
+ */
+let SUBSTITUTIONS = 0;
+function returnsThePassInstead(node) {
+  if (Array.isArray(node)) return node.map(returnsThePassInstead);
+  if (node && typeof node === 'object') {
+    if (node.k === 'return' && node.e && node.e.k === 'const' && node.e.v === 1) {
+      SUBSTITUTIONS++;
+      return W.ret(W.add(W.get('iter'), W.konst(1)));
+    }
+    const copy = {};
+    for (const key of Object.keys(node)) copy[key] = returnsThePassInstead(node[key]);
+    return copy;
+  }
+  return node;
+}
+
+const SOLVE_FN = SW.FUNCS.filter(f => f.name === 'solve')[0];
+const solvePassesFn = W.fn('solvePasses', {
+  params: SOLVE_FN.params,
+  locals: SOLVE_FN.locals,
+  results: SOLVE_FN.results,
+  body: returnsThePassInstead(SOLVE_FN.body),
+});
+
+/**
+ * `passSweep(codesPtr, pairCount, outIdsPtr, outCount, outPtr, passPtr, maxIter)`
+ * — the driver, inside the module, so a chunk of pairs costs one crossing of the
+ * boundary rather than one per pair. `sweep`'s shape with a pass count stored per
+ * pair; a zero there means the pair ran out, which is counted and not thrown.
+ */
+const passSweepFn = W.fn('passSweep', {
+  params: ['codesPtr', 'pairCount', 'outIdsPtr', 'outCount', 'outPtr', 'passPtr', 'maxIter'],
+  results: ['i32'],
+  locals: ['p', 'j', 'k', 'unsettled', 'inputCount', 'valueP'],
+  body: [
+    W.set('inputCount', SW.hdr('inputCount')),
+    W.set('valueP', SW.hdr('value')),
+    W.set('unsettled', W.konst(0)),
+    ...W.forUpTo('p', W.konst(0), W.get('pairCount'), [
+      W.callStmt('seedCodes', [W.add(W.get('codesPtr'),
+        W.mul(W.get('p'), W.get('inputCount')))]),
+      W.set('k', W.call('solvePasses', [W.get('maxIter')])),
+      W.store32(SW.at4('passPtr', W.get('p')), W.get('k')),
+      W.ifThen(W.eq(W.get('k'), W.konst(0)),
+        [W.set('unsettled', W.add(W.get('unsettled'), W.konst(1)))]),
+      ...W.forUpTo('j', W.konst(0), W.get('outCount'), [
+        W.store8(W.add(W.get('outPtr'),
+          W.add(W.mul(W.get('p'), W.get('outCount')), W.get('j'))),
+        W.load8u(SW.at1('valueP', W.load32(SW.at4('outIdsPtr', W.get('j')))))),
+      ]),
+    ]),
+    W.ret(W.get('unsettled')),
+  ],
+});
+
+/** `AV`'s four functions unchanged, then the two this page appends. */
+const LAB_FUNCS = SW.FUNCS.concat([solvePassesFn, passSweepFn]);
+const LAB_EXPORTS = SW.EXPORTS.concat(['passSweep']);
+
+let INSTRUMENT = null;
+function instrument() {
+  if (!INSTRUMENT) INSTRUMENT = SW.makeR2({ fns: LAB_FUNCS, exports: LAB_EXPORTS });
+  return INSTRUMENT;
+}
+
+/* --- the networks on offer ------------------------------------------------ */
+
+/* Six trits, because that is the width the oracle is written at: `T.add` IS the
+ * balanced-ternary addition this machine's arithmetic is defined by, and a page
+ * that swept some other width would need a second definition of adding up. */
+const WIDTH = T.TRITS_PER_TRYTE;
+const INPUT_NAMES = [];
+for (let i = 0; i < WIDTH; i++) INPUT_NAMES.push('a' + i);
+for (let i = 0; i < WIDTH; i++) INPUT_NAMES.push('b' + i);
+INPUT_NAMES.push('cin');
+const OUTPUT_NAMES = [];
+for (let i = 0; i < WIDTH; i++) OUTPUT_NAMES.push('s' + i);
+OUTPUT_NAMES.push('c' + WIDTH);
+
+/** The narrowest binary ripple adder that covers the same state count. */
+const BINARY_BITS = Math.ceil(Math.log2(T.TRYTE_STATES));
+
+const FAMILIES = [
+  ['tree', 'selector tree, gated on the raw select'],
+  ['decoded', 'decoded select, one detector per signal'],
+];
+const RESTORES = [
+  ['none', 'none'],
+  ['mid', 'mid: the second rank buffered'],
+  ['leafmid', 'leafmid: leaves and second rank buffered'],
+];
+const CARRY_INS = [0, 1, -1];
+/* Stride 1 is every pair. The others exist so a reader can get an answer out of
+ * the biggest networks without waiting for all of them, and the page says which
+ * it did rather than letting a sample read as a sweep. */
+const STRIDES = [1, 3, 7, 11, 37];
+
+function buildNetwork(spec) {
+  const opts = { restore: spec.restore || 'none' };
+  const net = new D.Net();
+  if (spec.family === 'decoded') D.dRippleAdder(net, WIDTH, opts);
+  else D.tRippleAdder(net, WIDTH, opts);
+  return net;
+}
+
+/** Every design the selectors can name, plus the binary row they are read against. */
+function costRows() {
+  const rows = [];
+  for (const [family, familyLabel] of FAMILIES) {
+    for (const [restore] of RESTORES) {
+      const c = buildNetwork({ family, restore }).cost();
+      rows.push({
+        id: family + '/' + restore,
+        label: WIDTH + '-trit ripple, ' + familyLabel
+          + (restore === 'none' ? '' : ', restore: ' + restore),
+        switches: c.switches, midRail: c.midRailConnections, rails: c.rails,
+      });
+    }
+  }
+  const bin = D.bRippleAdder(D.binaryNet(), BINARY_BITS).cost();
+  rows.push({
+    id: 'binary', label: BINARY_BITS + '-bit binary ripple, the same state count',
+    switches: bin.switches, midRail: bin.midRailConnections, rails: bin.rails,
+  });
+  return rows;
+}
+
+/** The operand values one axis of the sweep visits, at the chosen stride. */
+function operandValues(stride) {
+  const out = [];
+  for (let v = T.TRYTE_MIN; v <= T.TRYTE_MAX; v += (stride || 1)) out.push(v);
+  return out;
+}
+
+/**
+ * What the adder is supposed to answer. `T.add` wraps into the tryte range, so the
+ * carry out of the top trit is exactly what that wrap discarded — one expression,
+ * out of the shipped arithmetic, rather than a second addition written here.
+ */
+function oracle(a, b, cin) {
+  const sum = T.add(T.add(a, b), cin);
+  return { sum: sum, carry: (a + b + cin - sum) / T.TRYTE_STATES };
+}
+
+/* --- the sweep ------------------------------------------------------------ */
+
+const CHUNK = 1 << 12;
+const CAP = 64;
+const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+
+/**
+ * One chunked sweep. Returns the report; calls `onProgress` with it after every
+ * chunk, so the page can paint a partial answer while the rest is still running.
+ *
+ * The scratch block is reserved ONCE, for the largest chunk this sweep will ask
+ * for, and the views are taken after that reservation. `memory.grow` detaches the
+ * old buffer, and a view held across it reads zeros forever without raising
+ * anything at all.
+ */
+async function runSweep(spec, opts) {
+  opts = opts || {};
+  // A HIDDEN TAB STOPS `requestAnimationFrame` DEAD, and this was measured rather
+  // than assumed: a stride-1 sweep left in a background tab sat at chunk 1 of 130
+  // with the page's own timer reading 0.3s. rAF is still the right pump while the
+  // page is visible -- it paces the run to what the progress line can actually show,
+  // and there is no reason to render to a tab nobody is looking at. But a sweep is
+  // compute, not animation, and a user who starts one and switches away should come
+  // back to a finished run rather than a frozen bar. So: rAF when visible, a message
+  // pump when hidden. `setTimeout` is the wrong fallback -- background tabs clamp it
+  // to one second a tick, which would be slower than the stall it replaces.
+  //
+  // Both pumps are built ON DEMAND. The gate in `build/build-lab.js` runs this same
+  // function in a `vm` realm with no DOM at all, and a `new MessageChannel()` at the
+  // top of the function threw there before it could reach the `opts.yieldNow` the
+  // gate supplies -- so the fallback for a case the gate never takes broke the gate.
+  let pump = null;
+  const macrotask = () => {
+    if (!pump) { pump = new MessageChannel(); pump.port1.start(); }
+    return new Promise(resolve => {
+      pump.port1.onmessage = () => resolve();
+      pump.port2.postMessage(0);
+    });
+  };
+  const yieldNow = opts.yieldNow || (() =>
+    (typeof document !== 'undefined' && document.hidden && typeof MessageChannel === 'function')
+      ? macrotask()
+      : new Promise(resolve => requestAnimationFrame(resolve)));
+  const onProgress = opts.onProgress || (() => {});
+  const shouldStop = opts.shouldStop || (() => false);
+  const cap = opts.cap || CAP;
+  const inst = opts.instrument || await instrument();
+
+  const net = buildNetwork(spec);
+  const cost = net.cost();
+  const P = NP.pack(net, INPUT_NAMES);
+  const values = operandValues(spec.stride);
+  const axis = values.length;
+  const pairCount = axis * axis;
+  const chunk = Math.min(opts.chunk || CHUNK, pairCount);
+
+  const ic = INPUT_NAMES.length, oc = OUTPUT_NAMES.length;
+  const outIds = new Int32Array(oc);
+  for (let j = 0; j < oc; j++) outIds[j] = NP.nodeId(P, OUTPUT_NAMES[j]);
+
+  const need = chunk * ic + 4 * chunk + 4 * oc + chunk * oc + 64;
+  const room = inst.reserve(P, need);
+  const u8 = room.u8, i32 = room.i32;
+  let at = room.base;
+  const codesPtr = at; at += chunk * ic; at = (at + 3) & ~3;
+  const passPtr = at; at += 4 * chunk;
+  const outIdsPtr = at; at += 4 * oc;
+  const outPtr = at;
+  i32.set(outIds, outIdsPtr >> 2);
+
+  const report = {
+    spec: spec, cost: cost, nodeCount: P.nodeCount, deviceCount: P.deviceCount,
+    axis: axis, pairCount: pairCount, exhaustive: (spec.stride || 1) === 1,
+    done: 0, compared: 0, wrongSum: 0, wrongCarry: 0, unresolved: 0, unsettled: 0,
+    passes: {}, first: null, stopped: false, seconds: 0, chunk: chunk, cap: cap,
+  };
+  const t0 = clock();
+
+  for (let i0 = 0; i0 < pairCount; i0 += chunk) {
+    if (shouldStop()) { report.stopped = true; break; }
+    const m = Math.min(chunk, pairCount - i0);
+
+    for (let p = 0; p < m; p++) {
+      const idx = i0 + p;
+      const ta = T.toTrits(values[(idx / axis) | 0], WIDTH);
+      const tb = T.toTrits(values[idx % axis], WIDTH);
+      const base = codesPtr + p * ic;
+      for (let j = 0; j < WIDTH; j++) {
+        u8[base + j] = ta[j] + 3;
+        u8[base + WIDTH + j] = tb[j] + 3;
+      }
+      u8[base + 2 * WIDTH] = spec.cin + 3;
+    }
+
+    inst.exports.passSweep(codesPtr, m, outIdsPtr, oc, outPtr, passPtr, cap);
+
+    for (let p = 0; p < m; p++) {
+      const idx = i0 + p;
+      const a = values[(idx / axis) | 0], b = values[idx % axis];
+      const k = i32[(passPtr >> 2) + p];
+      report.passes[k] = (report.passes[k] || 0) + 1;
+      // T-EXHAUSTED-NOT-CLOSED: a pair that ran out of passes has no answer, so it
+      // is counted as its own outcome rather than scored against the oracle.
+      if (k === 0) { report.unsettled++; if (!report.first) report.first = a + ' + ' + b + ' did not settle within ' + cap + ' passes'; continue; }
+      const base = outPtr + p * oc;
+      const trits = [];
+      let onLevels = true;
+      for (let j = 0; j <= WIDTH; j++) {
+        const code = u8[base + j];
+        if (code < 2) { onLevels = false; break; }          // 0 is Z, 1 is X
+        if (j < WIDTH) trits.push(code - 3);
+      }
+      if (!onLevels) {
+        report.unresolved++;
+        if (!report.first) report.first = a + ' + ' + b + ' left an output floating or contended';
+        continue;
+      }
+      report.compared++;
+      const want = oracle(a, b, spec.cin);
+      const gotSum = T.fromTrits(trits);
+      const gotCarry = u8[base + WIDTH] - 3;
+      if (gotSum !== want.sum) {
+        report.wrongSum++;
+        if (!report.first) report.first = a + ' + ' + b + ': sum ' + gotSum + ', T.add says ' + want.sum;
+      }
+      if (gotCarry !== want.carry) {
+        report.wrongCarry++;
+        if (!report.first) report.first = a + ' + ' + b + ': carry-out ' + gotCarry + ', the wrap says ' + want.carry;
+      }
+    }
+
+    report.done += m;
+    report.seconds = (clock() - t0) / 1000;
+    onProgress(report);
+    if (report.done < pairCount) await yieldNow();
+  }
+
+  report.seconds = (clock() - t0) / 1000;
+  return report;
+}
+
+/* --- the page ------------------------------------------------------------- */
+
+const root = (typeof document !== 'undefined') ? document.getElementById('lab') : null;
+let READY = null;
+
+if (root) {
+  const $ = id => document.getElementById(id);
+  const set = (id, text) => { $(id).textContent = text; };
+  const group = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  const option = (sel, value, label) => {
+    const o = document.createElement('option');
+    o.value = String(value); o.textContent = label;
+    sel.appendChild(o);
+    return o;
+  };
+  for (const [id, label] of FAMILIES) option($('c-family'), id, label);
+  for (const [id, label] of RESTORES) option($('c-restore'), id, label);
+  for (const c of CARRY_INS) option($('c-cin'), c, c > 0 ? '+1' : String(c));
+  for (const s of STRIDES) {
+    option($('c-stride'), s, s === 1 ? '1 — every pair' : s + ' — one pair in ' + (s * s));
+  }
+  $('c-family').value = 'tree';
+  $('c-restore').value = 'none';
+  $('c-cin').value = '0';
+  $('c-stride').value = '1';
+
+  const spec = () => ({
+    family: $('c-family').value,
+    restore: $('c-restore').value,
+    cin: Number($('c-cin').value),
+    stride: Number($('c-stride').value),
+  });
+
+  function drawCost() {
+    const body = $('cost-body');
+    body.textContent = '';                     // clears children in a DOM and in a shim
+    const here = spec().family + '/' + spec().restore;
+    for (const row of costRows()) {
+      const tr = document.createElement('tr');
+      if (row.id === here) tr.className = 'here';
+      const cells = [row.label, group(row.switches), group(row.midRail), String(row.rails)];
+      cells.forEach((text, i) => {
+        const td = document.createElement('td');
+        if (i === 2) td.className = 'mid';
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    }
+  }
+
+  function drawDomain() {
+    const s = spec();
+    const axis = operandValues(s.stride).length;
+    set('s-domain', s.stride === 1
+      ? 'Exhaustive: all ' + group(axis * axis) + ' operand pairs at carry-in '
+        + (s.cin > 0 ? '+1' : s.cin) + ', which is every pair the ' + WIDTH
+        + '-trit adder has.'
+      : 'Sampled, and said so: ' + group(axis * axis) + ' of '
+        + group(T.TRYTE_STATES * T.TRYTE_STATES) + ' pairs, one in ' + (s.stride * s.stride)
+        + ', at carry-in ' + (s.cin > 0 ? '+1' : s.cin) + '.');
+  }
+
+  function drawReport(r) {
+    set('r-pairs', group(r.compared) + ' of ' + group(r.pairCount));
+    set('r-sum', group(r.wrongSum));
+    set('r-carry', group(r.wrongCarry));
+    set('r-unresolved', group(r.unresolved));
+    set('r-unsettled', group(r.unsettled));
+
+    const body = $('hist-body');
+    body.textContent = '';
+    const keys = Object.keys(r.passes).map(Number).sort((x, y) => x - y);
+    const top = keys.reduce((mx, k) => Math.max(mx, r.passes[k]), 1);
+    for (const k of keys) {
+      const tr = document.createElement('tr');
+      const count = r.passes[k];
+      const label = document.createElement('td');
+      label.textContent = k === 0 ? 'did not settle' : String(k);
+      const num = document.createElement('td');
+      num.textContent = group(count);
+      const bar = document.createElement('td');
+      const fill = document.createElement('span');
+      fill.className = 'hbar';
+      fill.style.width = Math.max(2, Math.round(100 * count / top)) + '%';
+      bar.appendChild(fill);
+      tr.appendChild(label); tr.appendChild(num); tr.appendChild(bar);
+      body.appendChild(tr);
+    }
+    const settled = keys.filter(k => k !== 0);
+    set('hist-verdict', settled.length === 0
+      ? '—'
+      : (settled.length === 1
+        ? 'One bucket: every pair took the same ' + settled[0]
+          + ' passes, so settling time here does not depend on the data.'
+        : 'More than one bucket: settling time depends on the operands, from '
+          + settled[0] + ' passes to ' + settled[settled.length - 1] + '.'));
+  }
+
+  /* The module is emitted when the page loads, not when Run is pressed, because
+   * "this page emits its own WebAssembly" is the claim and the panel above should
+   * be reporting a module that exists rather than one that would. */
+  async function showInstrument() {
+    const inst = await instrument();
+    set('i-bytes', group(inst.bytes.length) + ' bytes, emitted here at load time');
+    set('i-exports', LAB_EXPORTS.join(', '));
+    set('i-derived', SUBSTITUTIONS + ' node substituted into solve, '
+      + LAB_FUNCS.length + ' functions in the module');
+    return inst;
+  }
+
+  let stopping = false;
+  let running = false;
+
+  const paint = r => {
+    const pct = 100 * r.done / r.pairCount;
+    $('bar-fill').style.width = pct.toFixed(1) + '%';
+    set('s-progress', group(r.done) + ' / ' + group(r.pairCount) + ' pairs   '
+      + pct.toFixed(1) + '%   ' + r.seconds.toFixed(1) + 's');
+    drawReport(r);
+  };
+
+  async function run() {
+    if (running) return;
+    running = true; stopping = false;
+    $('b-run').disabled = true;
+    $('b-stop').disabled = false;
+    $('s-tag').className = 'tag idle';
+    $('s-tag').textContent = 'running';
+    set('s-progress', 'building the network…');
+
+    let r = null, blew = null;
+    try {
+      r = await runSweep(spec(), { instrument: await showInstrument(),
+        onProgress: paint, shouldStop: () => stopping });
+    } catch (e) {
+      blew = e;
+    } finally {
+      running = false;
+      $('b-run').disabled = false;
+      $('b-stop').disabled = true;
+    }
+    if (blew) {
+      $('s-tag').className = 'tag bad';
+      $('s-tag').textContent = 'threw';
+      set('r-first', 'The sweep threw: ' + (blew && blew.message ? blew.message : blew));
+      return;
+    }
+    paint(r);
+    const clean = r.wrongSum === 0 && r.wrongCarry === 0 && r.unresolved === 0
+      && r.unsettled === 0;
+    $('s-tag').className = 'tag ' + (r.stopped ? 'idle' : (clean ? 'ok' : 'bad'));
+    $('s-tag').textContent = r.stopped ? 'stopped'
+      : (clean ? 'agrees with T.add' : 'DIVERGED');
+    set('r-first', r.first
+      ? 'First divergence: ' + r.first
+      : (r.stopped
+        ? 'Stopped early, so this is a partial sweep of the domain named above.'
+        : 'No divergence in any of the ' + group(r.compared) + ' pairs compared.'));
+  }
+
+  $('b-run').addEventListener('click', run);
+  $('b-stop').addEventListener('click', () => { stopping = true; });
+  $('b-stop').disabled = true;
+  for (const id of ['c-family', 'c-restore', 'c-cin', 'c-stride']) {
+    $(id).addEventListener('change', () => { drawCost(); drawDomain(); });
+  }
+  drawCost();
+  drawDomain();
+  READY = showInstrument();
+}
+
+/**
+ * Inert in a browser, and the whole of what `build/build-lab.js` and
+ * `test/test-lab.js` reach for: they run this script with no DOM at all, so the
+ * block above declines and this is all that is left. A page whose sweep can only
+ * be driven by clicking it is a page nobody can hold against the modules.
+ */
+globalThis.__LAB_EXPORT__ = {
+  T: T, D: D, NP: NP, W: W, SW: SW,
+  WIDTH: WIDTH, INPUT_NAMES: INPUT_NAMES, OUTPUT_NAMES: OUTPUT_NAMES,
+  BINARY_BITS: BINARY_BITS, FAMILIES: FAMILIES, RESTORES: RESTORES,
+  CARRY_INS: CARRY_INS, STRIDES: STRIDES, CHUNK: CHUNK, CAP: CAP,
+  substitutions: () => SUBSTITUTIONS,
+  solvePassesFn: solvePassesFn, passSweepFn: passSweepFn,
+  LAB_FUNCS: LAB_FUNCS, LAB_EXPORTS: LAB_EXPORTS,
+  instrument: instrument, buildNetwork: buildNetwork, costRows: costRows,
+  operandValues: operandValues, oracle: oracle, runSweep: runSweep,
+  ready: () => READY,
+};
+</script>
