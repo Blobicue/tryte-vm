@@ -256,6 +256,22 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
       && inst.exports.boundaries(-136) === 0);
     check('the solver module validates before anything is asked of it',
       WebAssembly.validate(SW.moduleBytes()));
+    // THE LEB ENCODERS REFUSE WHAT THEY CANNOT ENCODE, rather than returning a wrong
+    // byte string. `>>>` and `>>` are 32-bit, so above 2^31 both loops read a wrapped
+    // value as the number they were given: `uleb(2**40)` and `sleb(2**40)` each
+    // returned `[0]`, and `sleb(2**31)` returned the encoding of -2^31, none of them
+    // raising. Nothing here can reach those magnitudes -- the module is about 1.4 KB
+    // -- so this guards a future caller. It is checked because a silently wrong byte
+    // string is the worst shape a fault can take in an encoder: the module either
+    // fails validation somewhere unrelated to the cause, or quietly does not.
+    check('   and its LEB encoders throw past 32 bits instead of returning a wrong encoding',
+      [[() => W.uleb(2 ** 31)], [() => W.uleb(2 ** 40)], [() => W.sleb(2 ** 31)],
+       [() => W.sleb(2 ** 40)], [() => W.sleb(-(2 ** 40))]]
+        .every(([f]) => { try { f(); return false; } catch (e) { return true; } }));
+    check('   and still encode the values either side of every boundary they are used at',
+      JSON.stringify(W.sleb(63)) === '[63]' && JSON.stringify(W.sleb(64)) === '[192,0]'
+      && JSON.stringify(W.sleb(-1)) === '[127]' && JSON.stringify(W.uleb(0)) === '[0]'
+      && JSON.stringify(W.uleb(2 ** 31 - 1)) === '[255,255,255,255,7]');
     // No committed binary, no base64, no toolchain: the bytes are built here.
     check('   and its bytes are emitted at run time rather than read from disk',
       SW.moduleBytes().length > 0 && !fs.existsSync(path.join(__dirname, '..', 'src', 'solver.wasm')));

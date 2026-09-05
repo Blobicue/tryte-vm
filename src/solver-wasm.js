@@ -283,7 +283,9 @@ const FUNCS = [reachFn, solveFn, seedFn, sweepFn];
  * driver of its own -- `AW`'s two-solve pass-count probe is the first -- appends its
  * function to `FUNCS` and its name here, and gets a module whose first four functions
  * are these bytes unchanged. Calling `moduleBytes()` or `makeR2()` with no argument
- * still emits exactly what `AV` timed and `test-solver.js` pins to the byte.
+ * still emits exactly what `AV` timed. `test-solver.js` pins that emission's LENGTH,
+ * not its bytes -- this line said "to the byte" and was wrong, which is the sort of
+ * overclaim that reads as a stronger guarantee than anything is actually holding.
  */
 const EXPORTS = ['solve', 'sweep', 'seedCodes'];
 

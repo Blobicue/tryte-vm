@@ -31,9 +31,29 @@
 
 /* ------------------------------------------------------------------ LEB128 */
 
+/**
+ * The range both encoders below actually work over.
+ *
+ * `>>>` and `>>` are 32-BIT operators. Above 2^31 they wrap, and the loops here read
+ * the wrapped value as if it were the number they were given, so both encoders return
+ * a WRONG ANSWER RATHER THAN AN ERROR: `uleb(2**40)` and `sleb(2**40)` each came back
+ * as `[0]`, and `sleb(2**31)` came back as the encoding of -2^31. `uleb`'s existing
+ * guard did not catch any of it, because it tests sign and integrality and the
+ * failure is one of MAGNITUDE.
+ *
+ * Nothing in this repository can reach it -- the emitted module is about 1.4 KB and
+ * every index, count and offset in it is small -- so this is a guard against a future
+ * caller, not a repair of a live fault. It is here because a silently wrong byte
+ * string is the worst shape a fault can take in an encoder: the module either fails
+ * validation somewhere unrelated, or does not, and both are hours.
+ */
+const LEB_LIMIT = 2 ** 31;
+const inRange = n => Number.isInteger(n) && n >= -LEB_LIMIT && n < LEB_LIMIT;
+
 /** Unsigned LEB128: sizes, indices, counts, alignments, offsets. */
 function uleb(n) {
   if (n < 0 || !Number.isInteger(n)) throw new Error(`uleb of ${n}`);
+  if (n >= LEB_LIMIT) throw new Error(`uleb of ${n}: past 2^31, where >>> wraps and this would return a wrong encoding rather than fail`);
   const out = [];
   do { let b = n & 0x7f; n >>>= 7; if (n !== 0) b |= 0x80; out.push(b); } while (n !== 0);
   return out;
@@ -42,6 +62,7 @@ function uleb(n) {
 /** Signed LEB128: every `i32.const`, and nothing else in this module. */
 function sleb(n) {
   if (!Number.isInteger(n)) throw new Error(`sleb of ${n}`);
+  if (!inRange(n)) throw new Error(`sleb of ${n}: outside 32 bits, where >> wraps and this would return a wrong encoding rather than fail`);
   const out = [];
   let more = true;
   while (more) {
