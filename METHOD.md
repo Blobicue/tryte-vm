@@ -13,17 +13,17 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-<!--g:method-tally-->Forty-eight prediction sets, **201 registered predictions, 161 held, 40 failed.** Nineteen
-distinct failure classes, which bit **71 times** between them. Sixty-eight findings
+<!--g:method-tally-->Forty-nine prediction sets, **205 registered predictions, 161 held, 44 failed.** Nineteen
+distinct failure classes, which bit **71 times** between them. Seventy-two findings
 measured but never registered<!--/g-->, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
 recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
 document drifts from the manifest, the suite fails.
 
 **That last clause was not true of the registered set itself, and a read-only audit
-found it out.** <!--g:method-at-risk-->Twenty-five of those 201 were never at risk at all, and seven cannot be called either way. Corrected to what a run could
-actually have refuted, the record is **169 at risk, 129 held, 40 failed — a 23.7%
-failure rate** against 19.9% over everything registered<!--/g-->. The raw counts above are
+found it out.** <!--g:method-at-risk-->Twenty-five of those 205 were never at risk at all, and seven cannot be called either way. Corrected to what a run could
+actually have refuted, the record is **173 at risk, 129 held, 44 failed — a 25.4%
+failure rate** against 21.5% over everything registered<!--/g-->. The raw counts above are
 not lowered: every one of those predictions was registered before its run, and that is
 a fact about what happened. (This sentence used to carry the total as a literal, and it
 went stale by eight the moment two more sets landed — `T-STALE-CONSTANT` inside the
@@ -68,16 +68,20 @@ A rise in it does not mean the project got worse; here it means somebody swept.
 A prediction carries two independent labels, and running them together was costing
 something. `outcome` is the prediction against the run — held or failed. **`basis` is
 the scope of the claim**: swept at the width it was swept at, or argued at every width.
-<!--g:method-basis-->Ten of those 201 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
+<!--g:method-basis-->Ten of those 205 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
 each with its argument written out beside its measurement. The measurement is still
 required. A proof does not excuse running it — an argument is also a thing that can be
 wrong, and the run is what would say so.
 
-**<!--g:method-failures-lede-->The 40 failures produced more than the 129 successes that were genuinely at risk<!--/g-->.** Each one is
+**<!--g:method-failures-lede-->The 44 failures produced more than the 129 successes that were genuinely at risk<!--/g-->.** Each one is
 still in the manifest, marked `FAILED`, with the result it led to:
 
 | failed | what it claimed | what it produced |
 |---|---|---|
+| **AW1** | the decoded adder's pass-count rule survives a non-zero carry-in with position 0 admitted to it, exactly, pair by pair | it is wrong on exactly two thirds of every pair at both carry-ins, and what it produced is that the rule needed no amendment at all. `F` had scoped itself honestly — "with a non-zero carry-in the bottom position can save as well (six of its nine digit-pairs qualify) and the walk is a different one" — and this set was registered to cross that line. The six digit-pairs really do qualify and the bottom position still cannot save. The exclusion is about the BOUNDARY, not about the zero: position 0's carry is a primary input, so its MID detector resolves on the same pass as the operand detectors gating the selectors above it, and the early leaf has nowhere to go; one position up that gap is two passes and the saving is real. **A careful disclosure of a limit is not a prediction about what lies past it**, and a sweep that fixes the carry-in at 0 cannot tell the two reasons apart even in principle |
+| **AW2** | exactly 46,899 pairs take the full thirteen passes at each non-zero carry-in | 223,803, and its own AT RISK line had named the arithmetic — "the number of constrained positions is four rather than five" — while getting the reason wrong. **The walk was not wrong; the start vector was.** Run from the vector position 0 actually hands on, with four applications rather than five, `F`'s own matrix gives 223,803 to the digit at both carry-ins |
+| **AW3** | the two carry-ins are exact mirrors, bin for bin, with carry-state vectors (695, 3789, 727) and its reverse | every bin IS equal and the vectors ARE one another's reverse — the half the prediction is about held exactly, and its own refutation condition, "any single bin differing", was never met. What failed is the two numbers the sentence names, inherited from AW2. Kept `FAILED` on the whole sentence following `X2` and `E5`, with **both readings recorded** so the call can be overruled rather than re-derived. It is the clearest case in the corpus of a verdict that must not be read without its note |
+| **AW4** | the pass-count floor drops from nine to eight once a fifth position can save | it stays at nine, which is the first of the two routes the prediction's own risk line named, and it did not drop below eight either — so `F2` stands and position 5 still cannot save. Four positions can save, and 13 − 4 = 9 |
 | **AV1** | more than half of the switch-level oracle's per-solve time is spent in the per-node update loop rather than in the six reachability walks | 11.1%, and a second identical run agreed at 10.2%. The registration wrote its AT RISK line against its own arithmetic — edge visits outnumber update operations five to one, so traversal is the larger term BY COUNT — and predicted that allocation would be dear enough per operation to invert that. It is not. So the count was right and the claim built on it was wrong, which localises the cost: what actually separates the oracle from the packed solver is the per-solve `Map` of arrays of objects, the fresh `Set` per rail per mode per pass, and the string-keyed value object — the three things the ablation was deliberately forbidden to touch, because the next prediction's upper route was about exactly those |
 | **AV2** | the packed representation is worth between 15 and 40 times the oracle | 10.37, and the derivation was on the record before the run so the miss is attributable rather than explicable. The band was one quotient: an anchor of 75 nanoseconds per edge visit over a target in the low single digits. The oracle measures 55.7 and the packed solver 5.37, so the anchor was too slow AND the target too fast, and the product of those two errors is the whole of it. **AV1 and AV2 were registered in tension on purpose** — the registration argued about which of them would give if allocation dominated — and both failed instead, consistently, because the premise they SHARED was the wrong one. A tension registered between two predictions still rests on everything they agree about |
 | **AV3** | WebAssembly buys between 1.0 and 2.0 times on top of the rewrite | 2.14 — it failed HIGH, by the bounds-check route the registration itself named, and the outcome the registrant said they would least like, a hand-rolled emitter losing outright to TurboFan, did not happen. It is the only one of the four that landed near its line, so a second identical run was made BEFORE the verdict was written down: 2.21, no flip, both recorded. That is `T-CRITERION-IN-THE-NOISE` checked in the forward direction and coming out clean, rather than discovered afterwards by a threshold that returned a pass and a fail from the same world |
@@ -249,7 +253,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-eight sets<!--/g--> and they form very nearly
+fanned out; the *frontier did not*. Trace <!--g:method-trace-->the forty-nine sets<!--/g--> and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from
