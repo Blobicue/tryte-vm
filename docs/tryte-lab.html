@@ -1,0 +1,2809 @@
+<title>Tryte Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;600&display=swap">
+
+<style>
+:root {
+  color-scheme: light;
+  /* The same palette docs/tryte-vm.html ships, because the same arithmetic
+     already holds over it: three states carry the colour, chrome stays quiet. */
+  --paper:    #F1F4F7;
+  --surface:  #FFFFFF;
+  --sunken:   #E8EDF2;
+  --ink:      #161B21;
+  --ink-2:    #556170;
+  --ink-3:    #7C8895;
+  --rule:     #D6DEE6;
+  --neg:      #B0402A;
+  --neg-bg:   #F7E5E0;
+  --pos:      #0A6F82;
+  --pos-bg:   #DCEEF1;
+  --zero:     #67727F;
+  --zero-bg:  #E9EDF1;
+  --on-accent:#FFFFFF;
+  --shadow:   0 1px 2px rgba(20,30,40,.06), 0 4px 14px rgba(20,30,40,.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper:   #101418;
+    --surface: #181D23;
+    --sunken:  #0B0E12;
+    --ink:     #E4EAF1;
+    --ink-2:   #9BA8B5;
+    --ink-3:   #74818E;
+    --rule:    #29313A;
+    --neg:     #E3805F;
+    --neg-bg:  #33201B;
+    --pos:     #3FB3C6;
+    --pos-bg:  #142E34;
+    --zero:    #7E8A96;
+    --zero-bg: #1E242B;
+    --on-accent: #0B1216;
+    --shadow:  0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper:   #101418;
+  --surface: #181D23;
+  --sunken:  #0B0E12;
+  --ink:     #E4EAF1;
+  --ink-2:   #9BA8B5;
+  --ink-3:   #74818E;
+  --rule:    #29313A;
+  --neg:     #E3805F;
+  --neg-bg:  #33201B;
+  --pos:     #3FB3C6;
+  --pos-bg:  #142E34;
+  --zero:    #7E8A96;
+  --zero-bg: #1E242B;
+  --on-accent: #0B1216;
+  --shadow:  0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.3);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 960px; margin: 0 auto; padding: 56px 24px 96px; display: flex; flex-direction: column; gap: 32px; }
+
+h1, h2 { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: -0.015em; }
+h1 { font-size: clamp(1.8rem, 4.4vw, 2.5rem); line-height: 1.1; }
+h2 { font-size: 1.1rem; line-height: 1.3; color: var(--ink-2); text-transform: lowercase; }
+
+p { margin: 0 0 12px; }
+p:last-child { margin-bottom: 0; }
+.lede { color: var(--ink-2); font-size: 1.05rem; max-width: 62ch; }
+.note { color: var(--ink-3); font-size: 0.85rem; max-width: 74ch; }
+code, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.9em; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* --- controls ------------------------------------------------------------- */
+.controls { display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: flex-end; }
+.controls label { display: flex; flex-direction: column; gap: 4px; font-size: 0.78rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+select, button {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.92rem;
+  padding: 7px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--rule);
+  background: var(--sunken);
+  color: var(--ink);
+}
+button { cursor: pointer; font-weight: 500; }
+button.go { background: var(--pos); color: var(--on-accent); border-color: var(--pos); }
+button[disabled] { opacity: 0.45; cursor: default; }
+
+/* --- readouts ------------------------------------------------------------- */
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 18px; margin: 0; }
+.facts dt { color: var(--ink-3); font-size: 0.85rem; }
+.facts dd { margin: 0; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.92rem; color: var(--ink); }
+
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--rule); }
+th:first-child, td:first-child { text-align: left; }
+thead th { color: var(--ink-3); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
+td { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+tr.here td { background: var(--pos-bg); color: var(--pos); }
+td.mid { background: var(--zero-bg); color: var(--zero); }
+
+.bar { height: 8px; border-radius: 4px; background: var(--sunken); overflow: hidden; }
+.bar-fill { height: 100%; width: 0%; background: var(--pos); }
+.hbar { display: inline-block; height: 9px; background: var(--pos); border-radius: 2px; vertical-align: middle; }
+
+.tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.78rem; font-family: "IBM Plex Mono", ui-monospace, monospace; }
+.tag.ok { background: var(--pos-bg); color: var(--pos); }
+.tag.bad { background: var(--neg-bg); color: var(--neg); }
+.tag.idle { background: var(--zero-bg); color: var(--zero); }
+</style>
+
+<div class="wrap">
+
+<header>
+  <h1>Tryte Lab</h1>
+  <p class="lede">Switch-level sweeps, run here rather than reported from somewhere
+  else. The solver is R2 — the same fixed-point algorithm <code>src/device.js</code>
+  defines, over the packed form, in WebAssembly — and the module is emitted by
+  JavaScript on this page at load time. No committed binary, no base64 blob, no
+  toolchain: the emitter ships and the page calls it.</p>
+</header>
+
+<section id="lab">
+
+  <div class="panel">
+    <h2>0 &mdash; the instrument, before any verdict</h2>
+    <dl class="facts">
+      <dt>module</dt><dd id="i-bytes">not built</dd>
+      <dt>exports</dt><dd id="i-exports">&mdash;</dd>
+      <dt>pass counter</dt><dd id="i-derived">&mdash;</dd>
+    </dl>
+    <p class="note">The pass count is not a second solver. <code>solvePasses</code> is
+    <code>solve</code>'s own body with one node replaced — the <code>return 1</code>
+    that fires when a pass changes nothing becomes <code>return iter + 1</code> — so
+    what counts the passes is the loop that takes them. Every other function in the
+    module is <code>src/solver-wasm.js</code>'s, unaltered, and a sweep that does not
+    settle inside the cap reports the bound rather than a half-settled state.</p>
+  </div>
+
+  <div class="panel">
+    <h2>1 &mdash; the network, and what it costs</h2>
+    <div class="controls">
+      <label>selector<select id="c-family"></select></label>
+      <label>restoring buffers<select id="c-restore"></select></label>
+      <label>carry-in<select id="c-cin"></select></label>
+      <label>operand stride<select id="c-stride"></select></label>
+    </div>
+    <table>
+      <thead><tr><th>design</th><th>switches</th><th>mid-rail taps</th><th>rails</th></tr></thead>
+      <tbody id="cost-body"></tbody>
+    </table>
+    <p class="note">Two columns, and they are never added together. A mid-rail tap is
+    a switch that touches <code>vmid</code>, and this device model gives
+    <code>vmid</code> away free — so every switch of ternary's margin over the binary
+    row is borrowed from the one column the model prices at zero. Folding the taps
+    into the switch count, or leaving them out of the table, would each turn a
+    comparison into an assertion.</p>
+  </div>
+
+  <div class="panel">
+    <h2>2 &mdash; the sweep</h2>
+    <div class="controls">
+      <button id="b-run" class="go">Run the sweep</button>
+      <button id="b-stop">Stop</button>
+      <span id="s-tag" class="tag idle">idle</span>
+    </div>
+    <div class="bar"><div class="bar-fill" id="bar-fill"></div></div>
+    <p class="mono" id="s-progress">nothing has run yet</p>
+    <p class="note" id="s-domain">&mdash;</p>
+  </div>
+
+  <div class="panel">
+    <h2>3 &mdash; against the arithmetic oracle</h2>
+    <dl class="facts">
+      <dt>pairs compared</dt><dd id="r-pairs">&mdash;</dd>
+      <dt>sum disagreements</dt><dd id="r-sum">&mdash;</dd>
+      <dt>carry-out disagreements</dt><dd id="r-carry">&mdash;</dd>
+      <dt>outputs not on a level</dt><dd id="r-unresolved">&mdash;</dd>
+      <dt>did not settle</dt><dd id="r-unsettled">&mdash;</dd>
+    </dl>
+    <p class="mono" id="r-first">&mdash;</p>
+    <p class="note">The oracle is <code>T.add</code> out of
+    <code>src/ternary.js</code>, and the carry-out is what that wrap threw away.
+    "Did not settle" is counted apart from "got it wrong": a pair that ran out of
+    passes has no answer to disagree with, and conflating the two has produced a
+    false verdict in this repository before.</p>
+  </div>
+
+  <div class="panel">
+    <h2>4 &mdash; how many passes each pair took</h2>
+    <table>
+      <thead><tr><th>passes</th><th>pairs</th><th>share</th></tr></thead>
+      <tbody id="hist-body"></tbody>
+    </table>
+    <p class="mono" id="hist-verdict">&mdash;</p>
+    <p class="note">A pass is one sweep of the whole network: conduction
+    once per device, then rails &times; 2 reachability walks, then every undriven node
+    re-derived. One bucket means the settling time does not depend on the data; more
+    than one means it does.</p>
+  </div>
+
+</section>
+
+<p class="note">Source: the five files under <code>src/</code> that this page inlines
+verbatim, plus the driver below them. Everything the page reports it computed here.</p>
+
+</div>
+
+<script>
+/* --- lab bundle begins --- */
+/* --- src/ternary.js --- */
+const T = (function () {
+/* ---------------------------------------------------------------------------
+ * ternary.js — balanced ternary core
+ *
+ * A TRIT is one of -1, 0, +1.
+ * A TRYTE is 6 trits. 3^6 = 729 distinct values, held balanced: -364 .. +364.
+ *
+ * Balanced ternary has no sign bit. The sign of a number is the sign of its
+ * leading non-zero trit, and negation is simply flipping every trit. There is
+ * no two's complement, no separate subtract circuit, and truncating a value
+ * rounds it to nearest rather than toward zero. Those four properties are the
+ * whole reason this number system is interesting, and each is asserted in
+ * test/test.js rather than merely claimed here.
+ * ------------------------------------------------------------------------- */
+
+const TRITS_PER_TRYTE = 6;
+const RADIX = 3;
+const TRYTE_STATES = RADIX ** TRITS_PER_TRYTE;   // 729
+const TRYTE_MAX = (TRYTE_STATES - 1) / 2;        // +364
+const TRYTE_MIN = -TRYTE_MAX;                    // -364
+
+/** Fold any integer into the balanced tryte range, wrapping mod 729. */
+function wrap(v) {
+  return ((((v - TRYTE_MIN) % TRYTE_STATES) + TRYTE_STATES) % TRYTE_STATES) + TRYTE_MIN;
+}
+
+/** Integer -> array of 6 trits, least-significant first. Wraps out-of-range input. */
+function toTrits(v, n = TRITS_PER_TRYTE) {
+  let x = wrap(v);
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    let r = ((x % RADIX) + RADIX) % RADIX;   // 0, 1, 2
+    if (r === 2) r = -1;                     // 2 carries up and becomes -1
+    out.push(r);
+    x = (x - r) / RADIX;
+  }
+  return out;
+}
+
+/** Array of trits (LSB first) -> integer. */
+function fromTrits(trits) {
+  let v = 0;
+  for (let i = trits.length - 1; i >= 0; i--) v = v * RADIX + trits[i];
+  return v;
+}
+
+/** Human-readable form, most-significant first: '+' / '0' / '-'. */
+function tritString(v) {
+  return toTrits(v).reverse().map(t => (t > 0 ? '+' : t < 0 ? '-' : '0')).join('');
+}
+
+/** Parse '+-0++0' (MSB first) back to an integer. */
+function parseTritString(s) {
+  const trits = s.trim().split('').map(c => {
+    if (c === '+') return 1;
+    if (c === '-') return -1;
+    if (c === '0') return 0;
+    throw new Error(`bad trit character: ${c}`);
+  });
+  return fromTrits(trits.reverse());
+}
+
+/* --- arithmetic ---------------------------------------------------------- */
+
+const add = (a, b) => wrap(a + b);
+const sub = (a, b) => wrap(a - b);
+const mul = (a, b) => wrap(a * b);
+
+/** Negation: flip every trit. Provably identical to arithmetic negation. */
+function neg(a) {
+  return fromTrits(toTrits(a).map(t => -t));
+}
+
+/** Sign is the sign of the leading (most significant) non-zero trit. */
+function sign(a) {
+  const t = toTrits(a);
+  for (let i = t.length - 1; i >= 0; i--) if (t[i] !== 0) return t[i];
+  return 0;
+}
+
+/** Shift left n trits — multiply by 3^n, wrapping. */
+const shiftLeft = (a, n) => wrap(a * RADIX ** n);
+
+/**
+ * Shift right n trits. Dropping low trits in balanced ternary rounds to
+ * nearest (ties away from zero), which is why no rounding logic is needed.
+ */
+function shiftRight(a, n) {
+  const t = toTrits(a);
+  const kept = t.slice(n).concat(new Array(n).fill(0));
+  return fromTrits(kept);
+}
+
+/* --- tritwise gates ------------------------------------------------------ */
+/* The ternary-native analogs. MIN generalises AND, MAX generalises OR, and
+ * NEG generalises NOT. CLAMPSUM is the 9-row gate published in the source
+ * conversation, confirmed there as the saturating ternary sum. */
+
+const tritwise2 = fn => (a, b) => {
+  const x = toTrits(a), y = toTrits(b);
+  return fromTrits(x.map((t, i) => fn(t, y[i])));
+};
+
+const tMIN = tritwise2((p, q) => Math.min(p, q));
+const tMAX = tritwise2((p, q) => Math.max(p, q));
+const tCLAMPSUM = tritwise2((p, q) => Math.max(-1, Math.min(1, p + q)));
+const tNEG = neg;
+
+/**
+ * TGATE — the idea the source conversation was reaching for, in ternary-native
+ * form. A control tryte reconfigures the unit per trit position: each control
+ * trit selects which gate acts on that slice of the two data trytes.
+ *
+ *   control trit -1  ->  NEG(x)        (ignores y)
+ *   control trit  0  ->  MIN(x, y)
+ *   control trit +1  ->  MAX(x, y)
+ *
+ * One tryte of control therefore names one of 3^6 = 729 distinct 6-slice
+ * circuits, and the data reconfigures the unit as it arrives.
+ */
+function tgate(control, x, y) {
+  const c = toTrits(control), xs = toTrits(x), ys = toTrits(y);
+  return fromTrits(c.map((mode, i) => {
+    if (mode === -1) return -xs[i];
+    if (mode === 0) return Math.min(xs[i], ys[i]);
+    return Math.max(xs[i], ys[i]);
+  }));
+}
+
+/**
+ * TTABLE — apply an arbitrary two-input ternary truth table, tritwise.
+ *
+ * A two-input trit function is nine rows, so nine entries fully specify one of
+ * the 3^9 = 19,683 such functions. Row order is x-major:
+ *
+ *      index = (x + 1) * 3 + (y + 1)      x, y in {-1, 0, +1}
+ *
+ * Only the LOWEST TRIT of each entry is used, which is this machine's own idiom
+ * for reading a trit out of a tryte (v - 3*(v>>1)) and makes the operation total:
+ * no table can be malformed enough to fault.
+ *
+ * TGATE is the special case where the table is chosen per position from three
+ * fixed candidates; this chooses one table for all positions but allows any of
+ * the 19,683.
+ */
+function ttable(table, x, y) {
+  const xs = toTrits(x), ys = toTrits(y);
+  return fromTrits(xs.map((xt, i) => lowTrit(table[(xt + 1) * 3 + (ys[i] + 1)])));
+}
+
+/** The least significant trit of a value. Exact because shiftRight rounds. */
+function lowTrit(v) {
+  const w = wrap(v);
+  return w - 3 * shiftRight(w, 1);
+}
+
+/** The nine-entry table equivalent to one TGATE mode, for a fixed y-trit. */
+function tgateModeTable(mode) {
+  const out = [];
+  for (let x = -1; x <= 1; x++) {
+    for (let y = -1; y <= 1; y++) {
+      out.push(mode === -1 ? -x : mode === 0 ? Math.min(x, y) : Math.max(x, y));
+    }
+  }
+  return out;
+}
+
+/**
+ * Fold a chain of TOP tables into ONE table that does the same job.
+ *
+ *      T3[a][b] = T2[ T1[a][b] ][b]
+ *
+ * Column-wise composition, and notice what is missing: y. The formula does not
+ * mention the second operand, so a chain folds once at build time and stays
+ * correct for every input it will ever see.
+ *
+ * This works because TOP's columns are arbitrary, so the family is CLOSED under
+ * composition. TGATE's are not: its three modes generate a seven-element per-trit
+ * monoid, so most composites of two TGATEs are not any TGATE. Being foldable is a
+ * property TOP has and TGATE does not.
+ *
+ * The fold stops at a carry. ADD couples trit positions, so a chain broken by one
+ * is not positionwise any more and no single table can stand for it — the same
+ * boundary the carry audit measured.
+ */
+function foldTables(...tables) {
+  return tables.reduce((t1, t2) => {
+    const out = [];
+    for (let a = -1; a <= 1; a++) {
+      for (let b = -1; b <= 1; b++) {
+        const mid = lowTrit(t1[(a + 1) * 3 + (b + 1)]);
+        out.push(lowTrit(t2[(mid + 1) * 3 + (b + 1)]));
+      }
+    }
+    return out;
+  });
+}
+
+/**
+ * TTABLEC — a table-driven operation WITH A CARRY, so one instruction can reach
+ * past the positionwise ceiling.
+ *
+ * Every table-driven operation so far computes out_p from (x_p, y_p) alone, which
+ * caps the whole family at 27^w however many tables it owns. This one takes a
+ * third input, the carry out of the position below, and emits a carry to the
+ * position above. That is the cross-trit coupling the carry audit identified as
+ * the only escape.
+ *
+ * 27 rows, indexed x-major:
+ *
+ *      index = (x + 1) * 9 + (y + 1) * 3 + (c + 1)
+ *
+ * Each row is ONE cell holding both outputs packed as  out + 3 * carry, which is
+ * just a two-trit number: the low trit is the output, the next is the carry. The
+ * machine's own arithmetic does the unpacking, so no new encoding is invented.
+ *
+ * Positions are processed least significant first, carry starts at 0, and the
+ * final carry is dropped — exactly ADD's wrapping semantics, which is why ADD
+ * turns out to be one particular table.
+ */
+function ttableC(table, x, y) {
+  const xs = toTrits(x), ys = toTrits(y);
+  const out = [];
+  let c = 0;
+  for (let i = 0; i < TRITS_PER_TRYTE; i++) {
+    const cell = wrap(table[(xs[i] + 1) * 9 + (ys[i] + 1) * 3 + (c + 1)]);
+    out.push(lowTrit(cell));
+    c = shiftRight(cell, 1);
+  }
+  return fromTrits(out);
+}
+
+/** The 27-row table for balanced ternary addition. ADD is a table. */
+function addCarryTable() {
+  const t = [];
+  for (let x = -1; x <= 1; x++) {
+    for (let y = -1; y <= 1; y++) {
+      for (let c = -1; c <= 1; c++) {
+        const sum = x + y + c;
+        const carry = Math.sign(sum) * Math.round(Math.abs(sum) / 3);
+        t.push((sum - 3 * carry) + 3 * carry);      // out in the low trit, carry in the next
+      }
+    }
+  }
+  return t;
+}
+
+/** Content address for a table, so identical ones can share one copy of the cells. */
+function tableKey(table) {
+  return table.map(lowTrit).join(',');
+}
+
+/** The identity table: passes x through untouched, whatever y is. */
+function identityTable() {
+  const out = [];
+  for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) out.push(x);
+  return out;
+}
+
+
+
+return { TRITS_PER_TRYTE, RADIX, TRYTE_STATES, TRYTE_MAX, TRYTE_MIN, wrap, toTrits, fromTrits, tritString, parseTritString, add, sub, mul, neg, sign, shiftLeft, shiftRight, tMIN, tMAX, tCLAMPSUM, tNEG, tgate, ttable, lowTrit, tgateModeTable, foldTables, tableKey, identityTable, ttableC, addCarryTable };
+})();
+/* --- src/device.js --- */
+const D = (function () {
+/* device.js — a SWITCH-LEVEL simulator for multi-valued logic.
+ *
+ * THIS IS NOT SPICE. There are no currents, capacitances, delays or continuous
+ * voltages here. A transistor is a switch that conducts or does not, according to
+ * its gate's discrete level against a threshold, and a node takes the level of
+ * whichever rail it is connected to. This is IRSIM's model with a third rail. It
+ * can tell you a network computes the wrong function; it cannot tell you whether
+ * the network would work in silicon.
+ *
+ * STATED LIMITS — the things this model assumes away, listed because they are
+ * exactly the hard parts of building a real ternary device:
+ *
+ *   1. VMID IS A FREE RAIL. Real ternary logic must GENERATE its middle level —
+ *      resistive dividers that burn static power, or dual-supply schemes. Here it
+ *      is simply available, which is the single largest thing this model hides.
+ *      Switch counts therefore report VMID connections in a SEPARATE column: a
+ *      binary circuit needs no third rail, and a comparison that folds that
+ *      dependency into one number is not a comparison.
+ *   2. No level restoration or gain. A node driven through a chain of pass
+ *      devices is assumed to arrive at full level. Real pass networks degrade,
+ *      which is why real designs interleave restoring inverters.
+ *   3. No noise margins, and three levels have thinner ones than two.
+ *   4. Multi-threshold devices are counted as one switch each, though they are
+ *      not equally manufacturable.
+ *
+ * LEVELS. -1 LOW, 0 MID, +1 HIGH, matching this project's trits. Two further
+ * node states exist and are not levels:
+ *   'Z'  floating — connected to no rail
+ *   'X'  unresolved — contended between rails, or dependent on an unknown
+ *
+ *
+ * ------------------------------------------------------------------------------
+ * AXIOMS. Everything above this layer rests on these, so they are stated here and
+ * PROVED in test/test-axioms.js — exhaustively, since the domains are tiny. That
+ * test also checks completeness: every id below must have a proof, and every
+ * proof must name an id here, so neither list can drift from the other.
+ *
+ * THE DEVICE — one switch, in isolation.
+ *
+ *   D1  DETERMINISM. Conduction is a function of the gate's level alone. No
+ *       history, no hysteresis, no dependence on the terminals.
+ *   D2  MONOTONICITY. An n-type's conduction is non-decreasing in gate level; a
+ *       p-type's is non-increasing. This is what makes it a THRESHOLD device
+ *       rather than an arbitrary one, and it is the property the gate designs
+ *       actually exploit.
+ *   D3  INCLUSIVE THRESHOLD. n(t) conducts AT t as well as above it; p(t) conducts
+ *       AT t as well as below. The two therefore overlap at exactly g = t — and
+ *       that overlap is load-bearing, not incidental: it is the only way this
+ *       model isolates the middle level. See X1.
+ *   D4  BIDIRECTIONALITY. The two terminals are interchangeable; a switch passes
+ *       signal either way, as a pass transistor does and a logic gate does not.
+ *   D5  GATE ISOLATION. The gate is read, never driven through. It draws nothing,
+ *       and in every builder this module exports no node is both a device's
+ *       control and one of its terminals. A NETWORK may still wire one that way,
+ *       and the self-inverter used to prove N7 and N8 does exactly that.
+ *   D6  UNKNOWN IS NOT OFF. An undetermined gate yields undetermined conduction.
+ *       Treating it as non-conducting is the classic switch-simulator bug: it
+ *       makes broken circuits look clean.
+ *
+ * THE NETWORK — how node levels are resolved.
+ *
+ *   N1  RAILS ARE FIXED. Nothing in the network changes a rail's level.
+ *   N2  SOURCES ARE TERMINALS. A path stops at any driven node. Signal does not
+ *       pass THROUGH a rail or an input. Violating this makes correct circuits
+ *       resolve to X, which is a bug this model actually had.
+ *   N3  ONE RAIL DETERMINES. A node connected to exactly one rail, with no other
+ *       rail even possibly reaching it, takes that rail's level.
+ *   N4  CONTENTION IS X. Two or more rails reaching a node leaves it unresolved.
+ *   N5  ISOLATION IS Z. No rail reaching a node leaves it floating.
+ *   N6  UNKNOWNS ONLY SUBTRACT. An unknown conduction can make a node less
+ *       determined, never more. The solver never claims a level it cannot justify.
+ *   N7  TERMINATION FROM THE DEFAULT START. Nodes firm up in gate-dependency
+ *       order, and may pass THROUGH X on the way: in a chain, the far end is still
+ *       unresolved on the pass that gives its gate a level, and takes a level on
+ *       the pass after. A node on a gate CYCLE never gets a determined gate at
+ *       all, so it lands on X and stays there — which is why the all-Z start
+ *       always reaches a fixed point rather than oscillating.
+ *
+ *       That is a property of THAT START, not of the iteration. Seeded at a level
+ *       the self-inverter runs -1 -> +1 -> -1 forever and solve() throws rather
+ *       than hand back a half-settled state. Some seeds do settle; none is
+ *       guaranteed to. The audit found this — the axiom used to say oscillation
+ *       was impossible, full stop. See X2.
+ *   N8  JUSTIFIED, NOT MERELY CONSISTENT. A level is assigned only when a
+ *       conducting path from exactly one rail justifies it FROM THE CURRENT
+ *       STATE. Fixed points are NOT unique, and the solver does not find the most
+ *       determined one: a self-latching node has consistent, fully determined
+ *       assignments it will not invent. The standard ternary inverter wired to
+ *       its own input holds at MID — check the conduction rule and see — and the
+ *       solver returns X for it. The initial state is therefore part of the
+ *       semantics, which is why solve() takes one. See X2.
+ *
+ * THEOREMS — what a circuit built on the above may rely on.
+ *
+ *   T1  TOTALITY. A well-formed gate produces a level for every input. Never X,
+ *       never Z.
+ *   T2  NO SNEAK PATHS. For every input, exactly one rail is definitely connected
+ *       to the output — never none, never two.
+ *   T3  COMPOSITION. Wiring one gate's output to another's input computes the
+ *       composition of their functions.
+ *   T4  SLICE INDEPENDENCE. Gates sharing only rails do not interact, so a
+ *       six-trit datapath is six copies of a one-trit gate.
+ *   T5  ONLY RAIL LEVELS EXIST. A non-driven node can take a level only from a
+ *       rail, and that has two consequences this model needs stated rather than
+ *       assumed.
+ *
+ *       A level that is not some rail's CANNOT BE MADE. A divider between vss and
+ *       vdd — two conducting devices, one to each — is contention, and resolves
+ *       to X. So the middle level cannot be generated inside the model; it has to
+ *       be given. That is why limit 1 at the top of this file is the largest one:
+ *       vmid being free is not a convenience, it is a thing this vocabulary is
+ *       incapable of pricing.
+ *
+ *       And an INPUT DOES NOT SOURCE. It gates, and it terminates a path, but a
+ *       conducting device between an input and a node transfers nothing — the
+ *       node is Z, not the input's level. Reachability starts at rails and only
+ *       at rails. Every circuit here uses inputs purely as gates, so this has
+ *       never bitten anything; it is stated so that it cannot.
+ * ------------------------------------------------------------------------------
+ *
+ * CONDUCTION. An n-type conducts when its gate is at or above its threshold; a
+ * p-type when at or below. If the gate is Z or X the conduction is UNKNOWN, and
+ * unknown conduction poisons whatever it could reach. Treating unknown as "off"
+ * is the classic switch-simulator bug: it makes broken circuits look clean.
+ */
+
+const LOW = -1, MID = 0, HIGH = 1;
+const RAILS = { vss: LOW, vmid: MID, vdd: HIGH };
+const BINARY_RAILS = { vss: LOW, vdd: HIGH };
+
+class Net {
+  /** @param {object} rails name -> level. Use BINARY_RAILS for a two-level net. */
+  constructor(rails = RAILS) {
+    this.rails = { ...rails };
+    this.devices = [];
+    this.inputs = {};
+  }
+
+  /** An n-type: conducts when value(gate) >= vt. */
+  n(gate, vt, a, b) { this.devices.push({ kind: 'n', gate, vt, a, b }); return this; }
+  /** A p-type: conducts when value(gate) <= vt. */
+  p(gate, vt, a, b) { this.devices.push({ kind: 'p', gate, vt, a, b }); return this; }
+
+  /** Switch count, and how many of those switches touch the mid rail. */
+  cost() {
+    const total = this.devices.length;
+    const viaMid = this.devices.filter(d => d.a === 'vmid' || d.b === 'vmid').length;
+    return { switches: total, midRailConnections: viaMid, rails: Object.keys(this.rails).length };
+  }
+
+  /**
+   * Resolve every node, given input levels. Returns a map of node -> level|'Z'|'X'.
+   * Throws rather than returning a half-settled state if it does not converge.
+   *
+   * `init` seeds non-driven nodes; anything it omits starts at Z. This is not a
+   * test seam. N8 says the starting state is part of the semantics — the fixed
+   * point is not unique — so a solver that hid its initial state would be hiding
+   * half of what it means. Naming a driven or unknown node here throws.
+   */
+  solve(inputs, maxIterations = 64, init = {}) {
+    const value = { ...this.rails };
+    for (const [k, v] of Object.entries(inputs)) value[k] = v;
+    const driven = new Set([...Object.keys(this.rails), ...Object.keys(inputs)]);
+
+    // Every node the devices mention, minus the ones already fixed.
+    const nodes = new Set();
+    for (const d of this.devices) { nodes.add(d.a); nodes.add(d.b); nodes.add(d.gate); }
+    for (const nm of nodes) if (!driven.has(nm)) value[nm] = 'Z';
+    for (const [nm, v] of Object.entries(init)) {
+      if (driven.has(nm)) throw new Error(`init names a driven node: ${nm}`);
+      if (!nodes.has(nm)) throw new Error(`init names a node no device mentions: ${nm}`);
+      value[nm] = v;
+    }
+
+    const conducts = d => {
+      const g = value[d.gate];
+      if (g === 'Z' || g === 'X' || g === undefined) return 'unknown';
+      return d.kind === 'n' ? (g >= d.vt) : (g <= d.vt);
+    };
+
+    /**
+     * Which devices touch each node. Built once per solve, so a walk follows a
+     * node's own edges instead of rescanning every device in the network. Pure
+     * bookkeeping: the reachable set is the same either way, and the differential
+     * test in test/test-device.js holds the two implementations against each
+     * other on random networks.
+     */
+    const adj = new Map();
+    const link = (from, to, i) => {
+      let list = adj.get(from);
+      if (!list) { list = []; adj.set(from, list); }
+      list.push({ i, other: to });
+    };
+    this.devices.forEach((d, i) => { link(d.a, d.b, i); link(d.b, d.a, i); });
+
+    /**
+     * Nodes reachable from a rail, following edges the predicate accepts.
+     *
+     * DRIVEN NODES ARE TERMINALS. A rail or an input is an ideal source: signal
+     * stops there, it does not pass through. Without this, a path from vmid that
+     * happens to touch vss and then continues out of vss makes every node vss
+     * drives look contended with vmid, and correct circuits resolve to X. That
+     * was a real bug here, and the composition test is what caught it.
+     */
+    const reach = (rail, accept) => {
+      const seen = new Set([rail]);
+      const stack = [rail];
+      while (stack.length) {
+        const at = stack.pop();
+        const edges = adj.get(at);
+        if (edges === undefined) continue;
+        for (const e of edges) {
+          if (!accept(e.i)) continue;
+          const other = e.other;
+          if (seen.has(other)) continue;
+          seen.add(other);
+          if (!driven.has(other)) stack.push(other);       // do not expand through a source
+        }
+      }
+      return seen;
+    };
+
+    for (let iter = 0; iter < maxIterations; iter++) {
+      // Conduction is a function of the current state (D1), so it is fixed for
+      // the whole pass. Evaluating it once per device beats once per edge walk.
+      const cond = this.devices.map(conducts);
+      const definite = {}, possible = {};
+      for (const rail of Object.keys(this.rails)) {
+        definite[rail] = reach(rail, i => cond[i] === true);
+        possible[rail] = reach(rail, i => cond[i] !== false);
+      }
+      let changed = false;
+      for (const nm of nodes) {
+        if (driven.has(nm)) continue;
+        const def = Object.keys(this.rails).filter(r => definite[r].has(nm));
+        const pos = Object.keys(this.rails).filter(r => possible[r].has(nm));
+        let next;
+        if (pos.length === 0) next = 'Z';                       // nothing can reach it
+        else if (def.length === 1 && pos.length === 1) next = this.rails[def[0]];
+        else next = 'X';                                        // contended, or unknown
+        if (value[nm] !== next) { value[nm] = next; changed = true; }
+      }
+      if (!changed) return value;
+    }
+    throw new Error('switch-level network did not settle — oscillation or a cycle');
+  }
+
+  /**
+   * How many conducting switches each node's level arrived through, counted from
+   * the rail that drives it. This is the quantity a real pass network degrades
+   * with, and the one this model otherwise cannot see (stated limit 2: no level
+   * restoration).
+   *
+   * PARALLEL PATHS TAKE THE SHORTEST. In a real pass network a node driven by two
+   * routes from the same rail degrades no worse than its best route, so the
+   * shortest conducting path is the honest bound. Taking the longest would
+   * overstate every fan-in structure in the repository.
+   *
+   * Nodes that settle to Z or X have no depth and are omitted: nothing arrived.
+   */
+  depths(inputs, maxIterations = 64) {
+    const value = this.solve(inputs, maxIterations);
+    const driven = new Set([...Object.keys(this.rails), ...Object.keys(inputs)]);
+    const on = d => {
+      const g = value[d.gate];
+      if (g === 'Z' || g === 'X' || g === undefined) return false;
+      return d.kind === 'n' ? (g >= d.vt) : (g <= d.vt);
+    };
+    const adj = new Map();
+    const link = (from, to) => {
+      let l = adj.get(from);
+      if (!l) { l = []; adj.set(from, l); }
+      l.push(to);
+    };
+    for (const d of this.devices) if (on(d)) { link(d.a, d.b); link(d.b, d.a); }
+
+    const depth = {};
+    for (const rail of Object.keys(this.rails)) {
+      const dist = new Map([[rail, 0]]);
+      const queue = [rail];
+      while (queue.length) {
+        const at = queue.shift();
+        if (at !== rail && driven.has(at)) continue;      // a source terminates a path (N2)
+        for (const next of adj.get(at) || []) {
+          if (dist.has(next)) continue;
+          dist.set(next, dist.get(at) + 1);
+          queue.push(next);
+        }
+      }
+      for (const [nm, hops] of dist) {
+        if (driven.has(nm)) continue;
+        if (value[nm] !== this.rails[rail]) continue;     // only the rail that drives it
+        if (depth[nm] === undefined || hops < depth[nm]) depth[nm] = hops;
+      }
+    }
+    return depth;
+  }
+
+  /**
+   * The deepest any node that something READS sits, over a list of inputs.
+   *
+   * "Read" means the node gates a device or is a named output. That restriction
+   * is the whole definition, and it is not cosmetic: a pass network is full of
+   * internal nodes reachable backwards from an output through an off-path branch,
+   * and taking the maximum over ALL nodes reports those instead. MIN's helper
+   * node reads as depth 4 that way and 2 this way, and the 4 describes nothing —
+   * no device's behaviour depends on that node's level.
+   */
+  readDepth(inputList, outputs = []) {
+    const read = new Set(outputs);
+    for (const d of this.devices) read.add(d.gate);
+    let worst = 0, where = null;
+    for (const inputs of inputList) {
+      const driven = new Set([...Object.keys(this.rails), ...Object.keys(inputs)]);
+      const depth = this.depths(inputs);
+      for (const nm of read) {
+        if (driven.has(nm)) continue;
+        const d = depth[nm];
+        if (d !== undefined && d > worst) { worst = d; where = nm; }
+      }
+    }
+    return { depth: worst, node: where };
+  }
+
+  /** Evaluate one output node over a list of input assignments. */
+  table(outName, inputNames, levels) {
+    const rows = [];
+    const rec = (pre) => {
+      if (pre.length === inputNames.length) {
+        const inputs = {};
+        inputNames.forEach((n, i) => { inputs[n] = pre[i]; });
+        rows.push({ in: pre.slice(), out: this.solve(inputs)[outName] });
+        return;
+      }
+      for (const l of levels) rec(pre.concat([l]));
+    };
+    rec([]);
+    return rows;
+  }
+}
+
+/* ---------------------------------------------------------------- ternary gates
+ * The three ternary inverters are standard multi-valued-logic parts. Written
+ * here as switch networks so their behaviour is derived, not asserted. */
+
+/** Standard ternary inverter: -1 -> +1, 0 -> 0, +1 -> -1. This is NEG. */
+function sti(net, inp, out) {
+  net.p(inp, LOW, 'vdd', out);            // only when in is LOW
+  net.n(inp, HIGH, 'vss', out);           // only when in is HIGH
+  const m = `${out}$mid`;                 // series pair: conducts only when in is MID
+  net.n(inp, MID, 'vmid', m);
+  net.p(inp, MID, m, out);
+  return net;
+}
+
+/** Negative ternary inverter: -1 -> +1, 0 -> -1, +1 -> -1. */
+function nti(net, inp, out) {
+  net.p(inp, LOW, 'vdd', out);
+  net.n(inp, MID, 'vss', out);
+  return net;
+}
+
+/** Positive ternary inverter: -1 -> +1, 0 -> +1, +1 -> -1. */
+function pti(net, inp, out) {
+  net.p(inp, MID, 'vdd', out);
+  net.n(inp, HIGH, 'vss', out);
+  return net;
+}
+
+/**
+ * MIN(a, b), the AND-analogue.
+ *   LOW  when either input is LOW          — p-types in parallel to vss
+ *   HIGH when both inputs are HIGH         — n-types in series to vdd
+ *   MID  when min is neither, i.e. min = 0 — both >= MID AND either <= MID
+ */
+function tmin(net, a, b, out) {
+  net.p(a, LOW, 'vss', out);
+  net.p(b, LOW, 'vss', out);
+  const s = `${out}$hi`;
+  net.n(a, HIGH, 'vdd', s);
+  net.n(b, HIGH, s, out);
+  const m1 = `${out}$m1`, m2 = `${out}$m2`;
+  net.n(a, MID, 'vmid', m1);
+  net.n(b, MID, m1, m2);                  // both at or above MID
+  net.p(a, MID, m2, out);
+  net.p(b, MID, m2, out);                 // either at or below MID
+  return net;
+}
+
+/** MAX(a, b), the OR-analogue. The dual of MIN throughout. */
+function tmax(net, a, b, out) {
+  net.n(a, HIGH, 'vdd', out);
+  net.n(b, HIGH, 'vdd', out);
+  const s = `${out}$lo`;
+  net.p(a, LOW, 'vss', s);
+  net.p(b, LOW, s, out);
+  const m1 = `${out}$m1`, m2 = `${out}$m2`;
+  net.p(a, MID, 'vmid', m1);
+  net.p(b, MID, m1, m2);                  // both at or below MID
+  net.n(a, MID, m2, out);
+  net.n(b, MID, m2, out);                 // either at or above MID
+  return net;
+}
+
+/* ------------------------------------------------------------- selectors, tables
+ * The repository's monoid audits ended by making the truth table DATA: TOPC reads
+ * a 27-cell table and the carry falls out of it. These build the same idea in
+ * switches. A table becomes a tree of selectors, and any three-input trit
+ * function is then a circuit without anyone designing one. */
+
+/**
+ * 1-of-3 selector. Exactly one path conducts, for each of the three select
+ * levels — the LOW and HIGH arms are one switch each, and the MID arm is a series
+ * pair, for the same reason the standard ternary inverter's is (X4).
+ * Four switches.
+ */
+function tmux(net, sel, lo, mid, hi, out) {
+  net.p(sel, LOW, lo, out);               // sel <= LOW, i.e. sel is LOW
+  net.n(sel, HIGH, hi, out);              // sel >= HIGH, i.e. sel is HIGH
+  const s = `${out}$s`;
+  net.n(sel, MID, mid, s);                // series: sel >= MID AND sel <= MID
+  net.p(sel, MID, s, out);
+  return net;
+}
+
+/**
+ * A restoring buffer: two standard ternary inverters in series, so the level is
+ * re-driven from the rails and the pass depth downstream restarts at zero. Two,
+ * not one, because one inverts — a single STI would restore the level and negate
+ * the value. Eight switches.
+ */
+function tBuffer(net, inp, out, tag) {
+  const mid = `${tag}$bi`;
+  sti(net, inp, mid);
+  sti(net, mid, out);
+  return net;
+}
+
+/**
+ * Options for the table builders. A bare boolean is still accepted and means
+ * `share`, because every existing call site passes one that way and silently
+ * reading `true.share` as undefined would have built the wrong circuit.
+ */
+const asOpts = o => (typeof o === 'boolean' ? { share: o } : (o || {}));
+
+const RAIL_FOR = { '-1': 'vss', 0: 'vmid', 1: 'vdd' };
+/** Cell index for a 27-entry table, matching ternary.js's ttableC convention. */
+const cellIndex = (a, b, c) => (a + 1) * 9 + (b + 1) * 3 + (c + 1);
+
+/**
+ * Any three-input trit function, from its 27 cells: nine leaf selectors driven by
+ * c off the rails, three selected by b, one by a. Thirteen selectors, 52 switches.
+ * `share` merges leaf selectors whose three cells are identical, which is the
+ * hash-consing `tableKey` does on tables, done to the circuit instead.
+ */
+function ttable3(net, a, b, c, cells, out, tag, opts = false) {
+  const { share = false, restore = 'none' } = asOpts(opts);
+  const bufLeaf = restore === 'leafmid';
+  const bufMid = restore === 'mid' || restore === 'leafmid';
+  const leafCache = new Map();
+  const mids = [];
+  for (let av = -1; av <= 1; av++) {
+    const leaves = [];
+    for (let bv = -1; bv <= 1; bv++) {
+      const rails = [-1, 0, 1].map(cv => RAIL_FOR[cells[cellIndex(av, bv, cv)]]);
+      const key = rails.join(',');
+      let leaf = share ? leafCache.get(key) : undefined;
+      if (leaf === undefined) {
+        leaf = `${tag}$l${share ? leafCache.size : `${av}_${bv}`}`;
+        tmux(net, c, rails[0], rails[1], rails[2], leaf);
+        if (bufLeaf) { const r = `${leaf}r`; tBuffer(net, leaf, r, r); leaf = r; }
+        if (share) leafCache.set(key, leaf);   // cache the BUFFERED name, or it is rebuffered
+      }
+      leaves.push(leaf);
+    }
+    let mid = `${tag}$m${av}`;
+    tmux(net, b, leaves[0], leaves[1], leaves[2], mid);
+    if (bufMid) { const r = `${mid}r`; tBuffer(net, mid, r, r); mid = r; }
+    mids.push(mid);
+  }
+  tmux(net, a, mids[0], mids[1], mids[2], out);
+  return net;
+}
+
+/** The two trit tables of a balanced-ternary full adder, from the raw sum. */
+function adderTables() {
+  const sum = [], carry = [];
+  for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (let c = -1; c <= 1; c++) {
+    const s = a + b + c;                          // -3 .. +3
+    const cy = Math.sign(s) * Math.round(Math.abs(s) / 3);
+    sum.push(s - 3 * cy);
+    carry.push(cy);
+  }
+  return { sum, carry };
+}
+
+/** One full-adder cell: sum and carry-out, each a table realised as a tree. */
+function tAdderCell(net, a, b, cin, sum, cout, tag, opts = false) {
+  const t = adderTables();
+  ttable3(net, a, b, cin, t.sum, sum, `${tag}S`, opts);
+  ttable3(net, a, b, cin, t.carry, cout, `${tag}C`, opts);
+  return net;
+}
+
+/**
+ * An n-trit ripple adder. Nodes: a0..a{n-1}, b0..b{n-1}, cin in; s0..s{n-1} and
+ * c{n} out. The carry out of the top trit is the overflow, so this is an adder
+ * rather than a mod-3^n unit.
+ */
+function tRippleAdder(net, n = 6, opts = false) {
+  for (let i = 0; i < n; i++) {
+    tAdderCell(net, `a${i}`, `b${i}`, i === 0 ? 'cin' : `c${i}`, `s${i}`, `c${i + 1}`, `A${i}`, opts);
+  }
+  return net;
+}
+
+/* ------------------------------------------------------------- decoded selectors
+ * The selector above gates every arm on the raw select, which forces its MIDDLE
+ * arm to be a series pair: isolating the middle level from a raw trit needs the
+ * D3 overlap and nothing less (X4). Three arms, four switches, two hops deep.
+ *
+ * Decode the select once instead. A detector answers "is this signal MID?" in
+ * four switches, and then every arm of every selector using that signal is a
+ * SINGLE device. The detector is paid once per SIGNAL rather than once per
+ * selector, so a tree of thirteen selectors pays for it once.
+ *
+ * This exists because Z2 claimed the selector tree's depth floor was ternary's
+ * floor "at any price", and it was not. */
+
+/**
+ * MID detector: LOW and HIGH both pull to vss, MID passes vmid. Table (-1, 0, -1).
+ * The series pair lives here, once, instead of inside every selector.
+ */
+function isMid(net, sel, out) {
+  net.p(sel, LOW, 'vss', out);
+  net.n(sel, HIGH, 'vss', out);
+  const m = `${out}$m`;
+  net.n(sel, MID, 'vmid', m);
+  net.p(sel, MID, m, out);
+  return net;
+}
+
+/**
+ * 1-of-3 selector with every arm a single device. `selMid` must be the output of
+ * isMid(sel): it is HIGH-side conducting exactly when sel is MID, so the middle
+ * arm needs one n-type rather than a series pair. Three switches.
+ */
+function dmux(net, sel, selMid, lo, mid, hi, out) {
+  net.p(sel, LOW, lo, out);
+  net.n(sel, HIGH, hi, out);
+  net.n(selMid, MID, mid, out);
+  return net;
+}
+
+/**
+ * The same table-as-a-tree as ttable3, on decoded selectors. The caller must have
+ * built a detector for each of a, b and c named `${sel}$im` — dAdderCell does.
+ */
+function dtable3(net, a, b, c, cells, out, tag, opts = false) {
+  const { share = false } = asOpts(opts);
+  const leafCache = new Map();
+  const mids = [];
+  for (let av = -1; av <= 1; av++) {
+    const leaves = [];
+    for (let bv = -1; bv <= 1; bv++) {
+      const rails = [-1, 0, 1].map(cv => RAIL_FOR[cells[cellIndex(av, bv, cv)]]);
+      const key = rails.join(',');
+      let leaf = share ? leafCache.get(key) : undefined;
+      if (leaf === undefined) {
+        leaf = `${tag}$l${share ? leafCache.size : `${av}_${bv}`}`;
+        dmux(net, c, `${c}$im`, rails[0], rails[1], rails[2], leaf);
+        if (share) leafCache.set(key, leaf);
+      }
+      leaves.push(leaf);
+    }
+    const mid = `${tag}$m${av}`;
+    dmux(net, b, `${b}$im`, leaves[0], leaves[1], leaves[2], mid);
+    mids.push(mid);
+  }
+  dmux(net, a, `${a}$im`, mids[0], mids[1], mids[2], out);
+  return net;
+}
+
+/** One full-adder cell on decoded selectors, detectors included. */
+function dAdderCell(net, a, b, cin, sum, cout, tag, opts = false) {
+  for (const sel of [a, b, cin]) isMid(net, sel, `${sel}$im`);
+  const t = adderTables();
+  dtable3(net, a, b, cin, t.sum, sum, `${tag}S`, opts);
+  dtable3(net, a, b, cin, t.carry, cout, `${tag}C`, opts);
+  return net;
+}
+
+/** An n-trit ripple adder on decoded selectors. Same node names as tRippleAdder. */
+function dRippleAdder(net, n = 6, opts = false) {
+  for (let i = 0; i < n; i++) {
+    dAdderCell(net, `a${i}`, `b${i}`, i === 0 ? 'cin' : `c${i}`, `s${i}`, `c${i + 1}`, `A${i}`, opts);
+  }
+  return net;
+}
+
+/* ---------------------------------------------------------------- binary baseline
+ * The same solver, two levels and two rails, so switch counts can be compared
+ * without comparing across models. The selector and table builders are repeated
+ * here rather than shared, because a two-level selector is genuinely a different
+ * circuit — two switches, no series arm — and pretending otherwise would put the
+ * ternary mid-rail cost on the binary side by accident. */
+
+function binaryNet() { return new Net(BINARY_RAILS); }
+
+function bInv(net, inp, out) {
+  net.p(inp, LOW, 'vdd', out);
+  net.n(inp, HIGH, 'vss', out);
+  return net;
+}
+
+function bNand(net, a, b, out) {
+  net.p(a, LOW, 'vdd', out);
+  net.p(b, LOW, 'vdd', out);
+  const s = `${out}$s`;
+  net.n(a, HIGH, 'vss', s);
+  net.n(b, HIGH, s, out);
+  return net;
+}
+
+function bAnd(net, a, b, out) {
+  const t = `${out}$n`;
+  bNand(net, a, b, t);
+  return bInv(net, t, out);
+}
+
+/** 1-of-2 selector. Two switches: no series arm, because there is no middle. */
+function bmux(net, sel, lo, hi, out) {
+  net.p(sel, LOW, lo, out);
+  net.n(sel, HIGH, hi, out);
+  return net;
+}
+
+const BRAIL_FOR = { '-1': 'vss', 1: 'vdd' };
+const bCellIndex = (a, b, c) => ((a + 1) / 2) * 4 + ((b + 1) / 2) * 2 + (c + 1) / 2;
+
+/** Any three-input bit function from its 8 cells. Seven selectors, 14 switches. */
+function bBuffer(net, inp, out, tag) {
+  const mid = `${tag}$bi`;
+  bInv(net, inp, mid);
+  bInv(net, mid, out);
+  return net;
+}
+
+function btable3(net, a, b, c, cells, out, tag, opts = false) {
+  const { share = false, restore = 'none' } = asOpts(opts);
+  const bufLeaf = restore === 'leafmid';
+  const bufMid = restore === 'mid' || restore === 'leafmid';
+  const leafCache = new Map();
+  const mids = [];
+  for (const av of [-1, 1]) {
+    const leaves = [];
+    for (const bv of [-1, 1]) {
+      const rails = [-1, 1].map(cv => BRAIL_FOR[cells[bCellIndex(av, bv, cv)]]);
+      const key = rails.join(',');
+      let leaf = share ? leafCache.get(key) : undefined;
+      if (leaf === undefined) {
+        leaf = `${tag}$l${share ? leafCache.size : `${av}_${bv}`}`;
+        bmux(net, c, rails[0], rails[1], leaf);
+        if (bufLeaf) { const r = `${leaf}r`; bBuffer(net, leaf, r, r); leaf = r; }
+        if (share) leafCache.set(key, leaf);
+      }
+      leaves.push(leaf);
+    }
+    let mid = `${tag}$m${av}`;
+    bmux(net, b, leaves[0], leaves[1], mid);
+    if (bufMid) { const r = `${mid}r`; bBuffer(net, mid, r, r); mid = r; }
+    mids.push(mid);
+  }
+  bmux(net, a, mids[0], mids[1], out);
+  return net;
+}
+
+/** Sum and carry tables of a binary full adder, in the same -1/+1 encoding. */
+function bAdderTables() {
+  const sum = [], carry = [];
+  for (const a of [-1, 1]) for (const b of [-1, 1]) for (const c of [-1, 1]) {
+    const ones = [a, b, c].filter(v => v === 1).length;
+    sum.push(ones % 2 === 1 ? 1 : -1);
+    carry.push(ones >= 2 ? 1 : -1);
+  }
+  return { sum, carry };
+}
+
+/** An n-bit binary ripple adder, built exactly as the ternary one is. */
+function bRippleAdder(net, n = 10, opts = false) {
+  const t = bAdderTables();
+  for (let i = 0; i < n; i++) {
+    const cin = i === 0 ? 'cin' : `c${i}`;
+    btable3(net, `a${i}`, `b${i}`, cin, t.sum, `s${i}`, `A${i}S`, opts);
+    btable3(net, `a${i}`, `b${i}`, cin, t.carry, `c${i + 1}`, `A${i}C`, opts);
+  }
+  return net;
+}
+
+
+
+return { LOW, MID, HIGH, RAILS, BINARY_RAILS, Net, sti, nti, pti, tmin, tmax, tmux, ttable3, cellIndex, adderTables, tAdderCell, tRippleAdder, tBuffer, asOpts, isMid, dmux, dtable3, dAdderCell, dRippleAdder, binaryNet, bInv, bNand, bAnd, bmux, btable3, bAdderTables, bRippleAdder, bBuffer };
+})();
+/* --- src/netpack.js --- */
+const NP = (function () {
+/* netpack.js — the same solver, over a representation instead of a name space.
+ *
+ * `src/device.js` is R0: the oracle, and it stays the oracle. It keys nodes by
+ * string, holds levels in a plain object, rebuilds a `Map` of arrays of objects
+ * for adjacency on every solve, and allocates a fresh `Set` per rail per mode per
+ * pass. Everything it computes is right; the cost of computing it is bookkeeping.
+ *
+ * This file is R1. It lowers a `Net` to dense integer node ids, parallel typed
+ * arrays for the device table, CSR adjacency, and rail and driven masks computed
+ * ONCE PER NETWORK rather than once per solve — and then runs R0's algorithm over
+ * that, unchanged.
+ *
+ * R1 IS A NEGATIVE CONTROL, NOT A FASTER SOLVER. It exists to price the
+ * REPRESENTATION, so that the WebAssembly layer above it is measured against a
+ * JavaScript baseline that has already had every data-structure win taken out of
+ * it. Concretely, and these are constraints rather than notes:
+ *
+ *   - Same fixed-point loop, same termination test, same throw at the cap.
+ *   - Conduction evaluated once per device per pass, from the state at the START
+ *     of the pass (D1), and read by both walks.
+ *   - Six traversals per pass on a three-rail net — three rails times
+ *     definite/possible — and FOUR on a two-rail one, because the count is
+ *     `rails x 2` and not the constant six. Never fused: the possible walk is not
+ *     derived from the definite one.
+ *   - No incremental recomputation. Every node is re-derived every pass from the
+ *     reachability sets, exactly as R0 does, even where nothing near it moved.
+ *   - Jacobi, not Gauss-Seidel: the update reads the pass's reachability sets and
+ *     never a value another node wrote in the same pass, so node order is free.
+ *
+ * If R1 improves the algorithm, R1-against-R0 measures algorithm and
+ * representation together, R2-against-R1 stops isolating WebAssembly, and the
+ * three-way split this whole instrument is built on measures nothing.
+ *
+ * WHAT IS DELIBERATELY STRICTER THAN R0. R0 takes its input NAMES fresh on every
+ * solve, so its `driven` set is per-solve. The packed form computes the driven
+ * mask once per network, which means the input names have to be declared at pack
+ * time: `pack(net, ['a0', 'b0', 'cin'])`. A solve whose input keys are not exactly
+ * that list throws rather than resolving against a mask built for other names.
+ * That is a narrower contract than R0's, it is the only difference in what the
+ * two accept, and every case the anti-divergence gate compares is one both accept.
+ *
+ * STATE CODES. R0's node values are `-1 | 0 | 1 | 'Z' | 'X'`. Five states, so the
+ * packed form carries five codes and not three: a representation that could not
+ * express Z and X would have dropped N5 and N4 on the floor.
+ *
+ *   Z = 0   floating, and the initial state of every non-driven node
+ *   X = 1   contended, or dependent on an unknown
+ *   L = 2   LOW (-1)      M = 3   MID (0)      H = 4   HIGH (+1)
+ *
+ * so `code - 3` is the level and `code >= 2` is "is a level". `init` seeds any
+ * of the five on any non-driven node, because N8 makes the starting state part of
+ * the semantics — the self-inverter has fixed points this solver will not invent,
+ * and a packed form that could only start at Z would be a different model.
+ */
+
+const CODE_Z = 0, CODE_X = 1, CODE_LOW = 2, CODE_MID = 3, CODE_HIGH = 4;
+/** Device conduction, one per device per pass. Unknown is not off (D6). */
+const OFF = 0, ON = 1, UNKNOWN = 2;
+
+/** R0's `-1 | 0 | 1 | 'Z' | 'X'` to a code. Throws on anything else. */
+function encodeState(v) {
+  if (v === 'Z') return CODE_Z;
+  if (v === 'X') return CODE_X;
+  if (v === -1) return CODE_LOW;
+  if (v === 0) return CODE_MID;
+  if (v === 1) return CODE_HIGH;
+  throw new Error(`not a node state: ${JSON.stringify(v)}`);
+}
+
+/** A code back to R0's spelling, so the two can be compared without a translator. */
+function decodeState(c) {
+  if (c === CODE_Z) return 'Z';
+  if (c === CODE_X) return 'X';
+  return c - 3;
+}
+
+/**
+ * Lower a `Net` to the packed form. Everything here is per-NETWORK: the device
+ * table, the adjacency, the rail levels and the driven mask are built once and
+ * read by every solve, which is the whole of what R1 changes.
+ *
+ * Node ids are assigned rails first, then the declared inputs, then every node the
+ * devices mention, in device order — dense, so a node is an index into typed
+ * arrays rather than a key into an object.
+ */
+function pack(net, inputNames = []) {
+  const index = new Map();
+  const names = [];
+  const id = nm => {
+    let k = index.get(nm);
+    if (k === undefined) { k = names.length; index.set(nm, k); names.push(nm); }
+    return k;
+  };
+
+  // Rails first, and their LEVELS, because R0 assigns `this.rails[def[0]]` — the
+  // rail's declared level, which an input of the same name can shadow in `value`
+  // without changing what a definite reach to that rail assigns.
+  const railNames = Object.keys(net.rails);
+  const railId = new Int32Array(railNames.length);
+  const railLevel = new Int8Array(railNames.length);
+  railNames.forEach((nm, r) => {
+    railId[r] = id(nm);
+    const lv = net.rails[nm];
+    if (lv !== -1 && lv !== 0 && lv !== 1) {
+      throw new Error(`rail ${nm} is at ${JSON.stringify(lv)}, and only -1, 0 and 1 are levels`);
+    }
+    railLevel[r] = lv;
+  });
+
+  const inputId = new Int32Array(inputNames.length);
+  inputNames.forEach((nm, i) => { inputId[i] = id(nm); });
+
+  const m = net.devices.length;
+  const devA = new Int32Array(m), devB = new Int32Array(m), devGate = new Int32Array(m);
+  const devIsN = new Uint8Array(m), devVt = new Int8Array(m);
+  net.devices.forEach((d, i) => {
+    devA[i] = id(d.a); devB[i] = id(d.b); devGate[i] = id(d.gate);
+    devIsN[i] = d.kind === 'n' ? 1 : 0;
+    devVt[i] = d.vt;
+  });
+
+  const nodeCount = names.length;
+
+  // `mentioned` is what R0's `nodes` set holds: the nodes some device names. It is
+  // NOT the node list, because a rail or an input no device touches is still in
+  // R0's returned value — and `init` rejects a name outside `mentioned` even when
+  // the network has a node by that id.
+  const mentioned = new Uint8Array(nodeCount);
+  for (let i = 0; i < m; i++) {
+    mentioned[devA[i]] = 1; mentioned[devB[i]] = 1; mentioned[devGate[i]] = 1;
+  }
+
+  const driven = new Uint8Array(nodeCount);
+  for (let r = 0; r < railId.length; r++) driven[railId[r]] = 1;
+  for (let i = 0; i < inputId.length; i++) driven[inputId[i]] = 1;
+
+  // CSR adjacency over the 2m directed edges, in R0's link order: device i
+  // contributes a->b then b->a. Counting sort, so the build is linear.
+  const adjStart = new Int32Array(nodeCount + 1);
+  for (let i = 0; i < m; i++) { adjStart[devA[i] + 1]++; adjStart[devB[i] + 1]++; }
+  for (let n = 0; n < nodeCount; n++) adjStart[n + 1] += adjStart[n];
+  const cursor = Int32Array.from(adjStart.subarray(0, nodeCount));
+  const adjNode = new Int32Array(2 * m), adjDev = new Int32Array(2 * m);
+  for (let i = 0; i < m; i++) {
+    let at = cursor[devA[i]]++; adjNode[at] = devB[i]; adjDev[at] = i;
+    at = cursor[devB[i]]++; adjNode[at] = devA[i]; adjDev[at] = i;
+  }
+
+  const words = (nodeCount + 31) >>> 5;
+  return {
+    names, index, nodeCount, deviceCount: m,
+    railNames, railId, railLevel, railCount: railNames.length,
+    inputNames: inputNames.slice(), inputId,
+    devA, devB, devGate, devIsN, devVt,
+    mentioned, driven, adjStart, adjNode, adjDev, words,
+    // Scratch, allocated once per network rather than once per pass. R0 builds a
+    // fresh `Set` per rail per mode per pass; these are those same sets, reused.
+    value: new Uint8Array(nodeCount),
+    cond: new Uint8Array(m),
+    reachDef: new Uint32Array(railNames.length * words),
+    reachPos: new Uint32Array(railNames.length * words),
+    stack: new Int32Array(nodeCount + 1),
+  };
+}
+
+/**
+ * Seed the value array: rails at their declared levels, inputs at theirs, every
+ * other node at Z, then `init` on top. The two throws are R0's, word for word —
+ * a driven node cannot be seeded, and a name no device mentions is not a node —
+ * because the gate compares refusals as well as answers.
+ */
+function seed(P, inputs, init) {
+  const keys = Object.keys(inputs);
+  if (keys.length !== P.inputNames.length) {
+    throw new Error(`packed for inputs [${P.inputNames}], solved with [${keys}]`);
+  }
+  const v = P.value;
+  for (let n = 0; n < P.nodeCount; n++) v[n] = CODE_Z;
+  for (let r = 0; r < P.railCount; r++) v[P.railId[r]] = encodeState(P.railLevel[r]);
+  for (const k of keys) {
+    const n = P.index.get(k);
+    if (n === undefined || P.inputNames.indexOf(k) === -1) {
+      throw new Error(`packed for inputs [${P.inputNames}], solved with [${keys}]`);
+    }
+    v[n] = encodeState(inputs[k]);
+  }
+  for (const k of Object.keys(init)) {
+    const n = P.index.get(k);
+    if (n !== undefined && P.driven[n]) throw new Error(`init names a driven node: ${k}`);
+    if (n === undefined || !P.mentioned[n]) {
+      throw new Error(`init names a node no device mentions: ${k}`);
+    }
+    v[n] = encodeState(init[k]);
+  }
+}
+
+/**
+ * Nodes reachable from a rail, following edges the mode accepts, into one of the
+ * preallocated bitsets.
+ *
+ * DRIVEN NODES ARE TERMINALS (N2). A rail or an input is an ideal source: it is
+ * marked reached and it is NOT expanded through. R0's comment on this names the
+ * bug it fixes; the packed form inherits the bug if it drops the guard, and the
+ * gate would then see every correct circuit resolve to X.
+ */
+function reach(P, railIdx, bits, definite) {
+  const { adjStart, adjNode, adjDev, cond, driven, stack, words } = P;
+  const base = railIdx * words;
+  for (let w = 0; w < words; w++) bits[base + w] = 0;
+  const start = P.railId[railIdx];
+  bits[base + (start >>> 5)] |= (1 << (start & 31));
+  stack[0] = start;
+  let sp = 1;
+  while (sp > 0) {
+    const at = stack[--sp];
+    const end = adjStart[at + 1];
+    for (let e = adjStart[at]; e < end; e++) {
+      const c = cond[adjDev[e]];
+      // definite: the edge conducts. possible: it is not known NOT to conduct.
+      if (definite ? c !== ON : c === OFF) continue;
+      const other = adjNode[e];
+      const w = base + (other >>> 5), bit = 1 << (other & 31);
+      if (bits[w] & bit) continue;
+      bits[w] |= bit;
+      if (!driven[other]) stack[sp++] = other;      // do not expand through a source
+    }
+  }
+}
+
+const CAP_MESSAGE = 'switch-level network did not settle — oscillation or a cycle';
+
+/**
+ * R0's `solve`, over the packed form. Returns the value array (owned by `P`, and
+ * overwritten by the next solve) rather than a fresh object per call, because the
+ * object R0 builds is part of what the representation costs and is exactly the
+ * kind of thing this comparison exists to price.
+ *
+ * Throws rather than returning a half-settled state, with R0's message, because
+ * "did not settle within k" is a MEASUREMENT — `fullSweep` probes the pass count
+ * by solving at k and again at k-1 and catching the throw. A solver that handed
+ * back the half-settled state would agree with R0 on every easy case and be a
+ * different instrument.
+ */
+function solvePacked(P, inputs, maxIterations = 64, init = {}) {
+  seed(P, inputs, init);
+  if (run(P, maxIterations)) return P.value;
+  throw new Error(CAP_MESSAGE);
+}
+
+/**
+ * The fixed-point loop itself, over a value array something else has already
+ * seeded. True if it reached a fixed point inside the cap, false if it ran out —
+ * the caller turns the false into R0's throw, because a sweep wants to COUNT the
+ * cases that did not settle rather than catch an exception per pair.
+ *
+ * Split out of `solvePacked` so the sweep driver and the single solve run the
+ * same code and cannot drift apart. Nothing above this line is the algorithm.
+ */
+function run(P, maxIterations) {
+  const { value, cond, devGate, devIsN, devVt, deviceCount, nodeCount,
+    driven, railCount, railLevel, reachDef, reachPos, words } = P;
+
+  for (let iter = 0; iter < maxIterations; iter++) {
+    // Conduction is a function of the current state (D1), so it is fixed for the
+    // whole pass. Once per device, read by both walks — R0's `devices.map(conducts)`.
+    for (let i = 0; i < deviceCount; i++) {
+      const g = value[devGate[i]];
+      if (g < CODE_LOW) { cond[i] = UNKNOWN; continue; }      // Z or X: unknown, not off
+      const level = g - 3;
+      cond[i] = (devIsN[i] ? (level >= devVt[i]) : (level <= devVt[i])) ? ON : OFF;
+    }
+
+    // Six traversals on a three-rail net, four on a two-rail one. Not fused.
+    for (let r = 0; r < railCount; r++) {
+      reach(P, r, reachDef, true);
+      reach(P, r, reachPos, false);
+    }
+
+    let changed = false;
+    for (let n = 0; n < nodeCount; n++) {
+      if (driven[n]) continue;
+      const w = n >>> 5, bit = 1 << (n & 31);
+      let defCount = 0, defRail = -1, posCount = 0;
+      for (let r = 0; r < railCount; r++) {
+        const off = r * words + w;
+        if (reachDef[off] & bit) { defCount++; defRail = r; }
+        if (reachPos[off] & bit) posCount++;
+      }
+      let next;
+      if (posCount === 0) next = CODE_Z;                             // nothing can reach it
+      else if (defCount === 1 && posCount === 1) next = railLevel[defRail] + 3;
+      else next = CODE_X;                                            // contended, or unknown
+      if (value[n] !== next) { value[n] = next; changed = true; }
+    }
+    if (!changed) return true;
+  }
+  return false;
+}
+
+/**
+ * Seed straight from state CODES, one per declared input, in the order they were
+ * declared at pack time. This is the sweep's entry: no object per pair, no name
+ * lookup per input, and no `init` — the same starting state R0 reaches through
+ * `{...spread('a', a), ...spread('b', b), cin: 0}`, arrived at by index.
+ */
+function seedCodes(P, codes, at = 0) {
+  const v = P.value;
+  for (let n = 0; n < P.nodeCount; n++) v[n] = CODE_Z;
+  for (let r = 0; r < P.railCount; r++) v[P.railId[r]] = P.railLevel[r] + 3;
+  for (let i = 0; i < P.inputId.length; i++) v[P.inputId[i]] = codes[at + i];
+}
+
+/**
+ * One solve per pair, over a block of operand codes, reading a fixed list of
+ * output nodes out of each result. The shape R2's exported `sweep` has to match:
+ * the driver is inside, and the caller crosses the boundary once per block rather
+ * than once per pair.
+ *
+ * Returns how many pairs did not settle inside the cap. That count is a
+ * MEASUREMENT — `fullSweep` learns the pass count from exactly this — so it is
+ * returned rather than thrown, and a single solve still throws.
+ */
+function sweepPacked(P, codes, pairCount, outIds, out, maxIterations) {
+  const k = outIds.length;
+  let unsettled = 0;
+  for (let i = 0; i < pairCount; i++) {
+    seedCodes(P, codes, i * P.inputId.length);
+    if (!run(P, maxIterations)) unsettled++;
+    for (let j = 0; j < k; j++) out[i * k + j] = P.value[outIds[j]];
+  }
+  return unsettled;
+}
+
+/**
+ * The same solve, returning R0's shape: a plain object from node name to
+ * `-1 | 0 | 1 | 'Z' | 'X'`. This is what the anti-divergence gate compares, and
+ * it is deliberately NOT what the benchmark calls — building the object is part
+ * of R0's per-solve cost, and pricing it away silently would be the rewrite
+ * laundering itself.
+ */
+function solveNamed(P, inputs, maxIterations = 64, init = {}) {
+  const v = solvePacked(P, inputs, maxIterations, init);
+  const out = {};
+  for (let n = 0; n < P.nodeCount; n++) out[P.names[n]] = decodeState(v[n]);
+  return out;
+}
+
+/** The dense id of a node, for reading one value out of the array by name. */
+function nodeId(P, name) {
+  const n = P.index.get(name);
+  if (n === undefined) throw new Error(`no such node: ${name}`);
+  return n;
+}
+
+
+
+return { CODE_Z, CODE_X, CODE_LOW, CODE_MID, CODE_HIGH, OFF, ON, UNKNOWN, CAP_MESSAGE, encodeState, decodeState, pack, seed, seedCodes, reach, run, solvePacked, sweepPacked, solveNamed, nodeId };
+})();
+/* --- src/wasm-emit.js --- */
+const W = (function () {
+/* wasm-emit.js — WebAssembly bytes, emitted at run time by JavaScript.
+ *
+ * NO TOOLCHAIN, NO COMMITTED BINARY, NO BASE64. The module this file builds is
+ * assembled in memory when something asks for it, from source a reader can
+ * follow, so the published page emits its own solver at load time rather than
+ * shipping an opaque blob nobody can check. That constraint is
+ * `design/13-instrument.md`'s and it is the reason this file exists at all.
+ *
+ * TWO LAYERS, and the second is the point.
+ *
+ *   THE ENCODER  — LEB128, the section layout, and one byte per instruction. Six
+ *                  sections of the eleven, because the module needs integer
+ *                  arithmetic, linear memory and structured control flow and
+ *                  nothing else: no tables, no globals, no imports, no data.
+ *
+ *   THE LANGUAGE — a statement and expression layer over it. `src/solver-wasm.js`
+ *                  is written in THAT, not in opcode arrays. A solver spelled as
+ *                  a list of bytes is a solver nobody can hold against R0 by
+ *                  reading it, and the whole value of R2 is that it is the same
+ *                  algorithm; an unreadable R2 could differ anywhere and the gate
+ *                  would be the only thing that ever knew.
+ *
+ * THE ENCODING TRAP, named because it is the one that costs the hours: sizes,
+ * indices and local counts are UNSIGNED LEB128, and `i32.const` is SIGNED. The
+ * two agree on 0..63 and diverge at 64, so a module that works on every small
+ * constant fails on the first one past 63 -- and it fails as a validation error
+ * far from the constant that caused it. Both encoders are checked on the values
+ * either side of every boundary in `test/test-solver.js`.
+ */
+
+/* ------------------------------------------------------------------ LEB128 */
+
+/** Unsigned LEB128: sizes, indices, counts, alignments, offsets. */
+function uleb(n) {
+  if (n < 0 || !Number.isInteger(n)) throw new Error(`uleb of ${n}`);
+  const out = [];
+  do { let b = n & 0x7f; n >>>= 7; if (n !== 0) b |= 0x80; out.push(b); } while (n !== 0);
+  return out;
+}
+
+/** Signed LEB128: every `i32.const`, and nothing else in this module. */
+function sleb(n) {
+  if (!Number.isInteger(n)) throw new Error(`sleb of ${n}`);
+  const out = [];
+  let more = true;
+  while (more) {
+    let b = n & 0x7f;
+    n >>= 7;
+    if ((n === 0 && (b & 0x40) === 0) || (n === -1 && (b & 0x40) !== 0)) more = false;
+    else b |= 0x80;
+    out.push(b);
+  }
+  return out;
+}
+
+/** A length-prefixed run of bytes, which is how every wasm vector and section is framed. */
+const sized = bytes => uleb(bytes.length).concat(bytes);
+/** A vector: its element count, then the elements. */
+const vec = items => uleb(items.length).concat(...items);
+
+/**
+ * A name as UTF-8 bytes. `TextEncoder` rather than `Buffer`, because this emitter is
+ * meant to run in a BROWSER as well as in node -- the published page generates its
+ * own module instead of shipping one, so a node-only global here would be a hole in
+ * the only property that arrangement has. `TextEncoder` is a global in both, and the
+ * two agree byte for byte on every name this module can emit.
+ */
+const utf8 = s => new TextEncoder().encode(s);
+
+/* ------------------------------------------------------------------ opcodes */
+
+const OP = {
+  block: 0x02, loop: 0x03, if: 0x04, else: 0x05, end: 0x0b,
+  br: 0x0c, br_if: 0x0d, return: 0x0f, call: 0x10,
+  drop: 0x1a,
+  local_get: 0x20, local_set: 0x21, local_tee: 0x22,
+  i32_load: 0x28, i32_load8_s: 0x2c, i32_load8_u: 0x2d,
+  i32_store: 0x36, i32_store8: 0x3a,
+  i32_const: 0x41,
+  i32_eqz: 0x45, i32_eq: 0x46, i32_ne: 0x47,
+  i32_lt_s: 0x48, i32_lt_u: 0x49, i32_gt_s: 0x4a, i32_gt_u: 0x4b,
+  i32_le_s: 0x4c, i32_le_u: 0x4d, i32_ge_s: 0x4e, i32_ge_u: 0x4f,
+  i32_add: 0x6a, i32_sub: 0x6b, i32_mul: 0x6c,
+  i32_and: 0x71, i32_or: 0x72, i32_xor: 0x73,
+  i32_shl: 0x74, i32_shr_s: 0x75, i32_shr_u: 0x76,
+};
+const I32 = 0x7f;          // the only value type this module uses
+const VOID = 0x40;         // block type: produces nothing
+
+/* ------------------------------------------- the language: expressions
+ *
+ * Every expression node leaves EXACTLY ONE i32 on the stack. Every statement
+ * node leaves the stack as it found it. That discipline is what lets the solver
+ * be written as nested calls instead of as a byte list, and it is the property a
+ * validation error is usually complaining about when one is raised.
+ */
+
+const konst = v => ({ k: 'const', v });
+const get = i => ({ k: 'get', i });
+const bin = (op, a, b) => ({ k: 'bin', op, a, b });
+const un = (op, a) => ({ k: 'un', op, a });
+
+const add = (a, b) => bin('i32_add', a, b);
+const sub = (a, b) => bin('i32_sub', a, b);
+const mul = (a, b) => bin('i32_mul', a, b);
+const and = (a, b) => bin('i32_and', a, b);
+const or = (a, b) => bin('i32_or', a, b);
+const shl = (a, b) => bin('i32_shl', a, b);
+const shrU = (a, b) => bin('i32_shr_u', a, b);
+const eq = (a, b) => bin('i32_eq', a, b);
+const ne = (a, b) => bin('i32_ne', a, b);
+const ltS = (a, b) => bin('i32_lt_s', a, b);
+const gtS = (a, b) => bin('i32_gt_s', a, b);
+const leS = (a, b) => bin('i32_le_s', a, b);
+const geS = (a, b) => bin('i32_ge_s', a, b);
+const eqz = a => un('i32_eqz', a);
+
+/** A 32-bit load. `addr` is a byte address; alignment is declared, never assumed. */
+const load32 = addr => ({ k: 'load', op: 'i32_load', align: 2, addr });
+/** One unsigned byte: node states and conduction codes. */
+const load8u = addr => ({ k: 'load', op: 'i32_load8_u', align: 0, addr });
+/** One SIGNED byte: device thresholds and rail levels, which are -1, 0 or +1. */
+const load8s = addr => ({ k: 'load', op: 'i32_load8_s', align: 0, addr });
+
+/* -------------------------------------------- the language: statements */
+
+const set = (i, e) => ({ k: 'set', i, e });
+const store32 = (addr, v) => ({ k: 'store', op: 'i32_store', align: 2, addr, v });
+const store8 = (addr, v) => ({ k: 'store', op: 'i32_store8', align: 0, addr, v });
+const ret = e => ({ k: 'return', e });
+const call = (name, args) => ({ k: 'call', name, args });
+const callStmt = (name, args) => ({ k: 'callStmt', name, args });
+const ifThen = (c, body) => ({ k: 'if', c, body, otherwise: null });
+const ifElse = (c, body, otherwise) => ({ k: 'if', c, body, otherwise });
+const inc = i => set(i, add(get(i), konst(1)));
+
+/**
+ * `while (cond) { body }`, and the reason it is spelled out rather than assumed:
+ * WebAssembly has no while loop. It has a `block` whose branch target is its END
+ * and a `loop` whose branch target is its START, and a while loop is one nested
+ * inside the other with the test inverted. `br_if` takes a RELATIVE depth, so a
+ * literal label index in a nested loop is the classic way to write a program that
+ * validates and jumps to the wrong place; every branch here is by name and the
+ * depth is computed when the bytes are laid out.
+ */
+let labelSeq = 0;
+function whileLoop(cond, body) {
+  const brk = `brk${labelSeq}`, cont = `cont${labelSeq}`;
+  labelSeq++;
+  return {
+    k: 'block',
+    label: brk,
+    body: [{
+      k: 'loop',
+      label: cont,
+      body: [{ k: 'brIf', label: brk, c: eqz(cond) }, ...body, { k: 'br', label: cont }],
+    }],
+  };
+}
+
+/** `for (i = from; i < to; i++) { body }`, with `to` re-read each iteration. */
+const forUpTo = (i, from, to, body) =>
+  [set(i, from), whileLoop(ltS(get(i), to), [...body, inc(i)])];
+
+/* ---------------------------------------------------------- the layout pass */
+
+/**
+ * One function: its parameters, its extra locals, and its body. Locals are named
+ * rather than numbered, because the solver has enough of them that an off-by-one
+ * in an index would be a silent wrong answer rather than an error.
+ */
+function fn(name, { params = [], locals = [], results = [], body = [] }) {
+  const slots = new Map();
+  params.forEach((p, i) => slots.set(p, i));
+  locals.forEach((l, i) => slots.set(l, params.length + i));
+  return { name, params, locals, results, body, slots };
+}
+
+/** Lay one function's body out as bytes, resolving names to indices and depths. */
+function compile(f, funcIndex) {
+  const out = [];
+  const slot = nm => {
+    const i = f.slots.get(nm);
+    if (i === undefined) throw new Error(`${f.name}: no local named ${nm}`);
+    return i;
+  };
+  // `labels` is the enclosing block/loop stack, innermost last. A branch's
+  // immediate is how many of those to unwind, so it is the distance from the end.
+  const emit = (node, labels) => {
+    if (typeof node === 'number') throw new Error(`${f.name}: raw byte in the tree`);
+    switch (node.k) {
+      case 'const': out.push(OP.i32_const, ...sleb(node.v)); return;
+      case 'get': out.push(OP.local_get, ...uleb(slot(node.i))); return;
+      case 'bin': emit(node.a, labels); emit(node.b, labels); out.push(OP[node.op]); return;
+      case 'un': emit(node.a, labels); out.push(OP[node.op]); return;
+      case 'load':
+        emit(node.addr, labels);
+        out.push(OP[node.op], ...uleb(node.align), ...uleb(0));
+        return;
+      case 'store':
+        emit(node.addr, labels); emit(node.v, labels);
+        out.push(OP[node.op], ...uleb(node.align), ...uleb(0));
+        return;
+      case 'set': emit(node.e, labels); out.push(OP.local_set, ...uleb(slot(node.i))); return;
+      case 'return': if (node.e) emit(node.e, labels); out.push(OP.return); return;
+      case 'call':
+      case 'callStmt': {
+        for (const a of node.args) emit(a, labels);
+        const idx = funcIndex.get(node.name);
+        if (idx === undefined) throw new Error(`${f.name}: calls unknown ${node.name}`);
+        out.push(OP.call, ...uleb(idx));
+        return;
+      }
+      case 'if': {
+        emit(node.c, labels);
+        out.push(OP.if, VOID);
+        const inner = labels.concat(['$if']);
+        for (const s of node.body) emit(s, inner);
+        if (node.otherwise) { out.push(OP.else); for (const s of node.otherwise) emit(s, inner); }
+        out.push(OP.end);
+        return;
+      }
+      case 'block':
+      case 'loop': {
+        out.push(node.k === 'block' ? OP.block : OP.loop, VOID);
+        const inner = labels.concat([node.label]);
+        for (const s of node.body) emit(s, inner);
+        out.push(OP.end);
+        return;
+      }
+      case 'br':
+      case 'brIf': {
+        const at = labels.lastIndexOf(node.label);
+        if (at === -1) throw new Error(`${f.name}: branch to ${node.label}, which is not open here`);
+        if (node.k === 'brIf') emit(node.c, labels);
+        out.push(node.k === 'br' ? OP.br : OP.br_if, ...uleb(labels.length - 1 - at));
+        return;
+      }
+      default: throw new Error(`${f.name}: unknown node ${node.k}`);
+    }
+  };
+  for (const s of f.body) emit(s, []);
+  out.push(OP.end);
+  // Locals are declared in runs of one type. This module has one type, so one run.
+  const decls = f.locals.length ? vec([uleb(f.locals.length).concat([I32])]) : vec([]);
+  return sized(decls.concat(out));
+}
+
+/* --------------------------------------------------------------- the module */
+
+/**
+ * Assemble a module from a list of functions. Sections go out in the order the
+ * format fixes -- type, function, memory, export, code -- because a decoder reads
+ * them in that order and does not look for them.
+ */
+function emitModule(fns, { memoryPages = 1, exports: exported = [], exportMemory = 'memory' } = {}) {
+  const funcIndex = new Map();
+  fns.forEach((f, i) => funcIndex.set(f.name, i));
+
+  // One type per distinct signature, deduplicated so the section stays small.
+  const types = [];
+  const typeOf = new Map();
+  for (const f of fns) {
+    const sig = `${f.params.length}->${f.results.length}`;
+    if (!typeOf.has(sig)) {
+      typeOf.set(sig, types.length);
+      types.push([0x60].concat(vec(f.params.map(() => [I32])), vec(f.results.map(() => [I32]))));
+    }
+  }
+
+  const typeSec = vec(types);
+  const funcSec = vec(fns.map(f => uleb(typeOf.get(`${f.params.length}->${f.results.length}`))));
+  const memSec = vec([[0x00].concat(uleb(memoryPages))]);          // min only, no maximum
+  const exportSec = vec([
+    ...exported.map(nm => {
+      const bytes = [...utf8(nm)];
+      return vec(bytes.map(b => [b])).concat([0x00], uleb(funcIndex.get(nm)));
+    }),
+    ...(exportMemory
+      ? [vec([...utf8(exportMemory)].map(b => [b])).concat([0x02], uleb(0))]
+      : []),
+  ]);
+  const codeSec = vec(fns.map(f => compile(f, funcIndex)));
+
+  const section = (id, payload) => [id].concat(sized(payload));
+  return Uint8Array.from([
+    0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00,               // magic, version 1
+    ...section(1, typeSec),
+    ...section(3, funcSec),
+    ...section(5, memSec),
+    ...section(7, exportSec),
+    ...section(10, codeSec),
+  ]);
+}
+
+/**
+ * The smallest module this emitter can produce that does something checkable:
+ * `add(a, b)`. It exists so the encoder is validated against a known answer
+ * BEFORE the solver is, because a validation failure in a four-hundred-line
+ * function says nothing about where the fault is.
+ */
+function demoAddModule() {
+  return emitModule([
+    fn('add', { params: ['a', 'b'], results: ['i32'], body: [ret(add(get('a'), get('b')))] }),
+    // and one with a constant past the signed/unsigned LEB boundary in both
+    // directions, because that is the encoding this file is most likely to get
+    // wrong and the failure would otherwise show up somewhere else entirely.
+    fn('boundaries', { params: ['x'], results: ['i32'],
+      body: [ret(add(add(get('x'), konst(-64)), konst(200)))] }),
+  ], { exports: ['add', 'boundaries'] });
+}
+
+
+
+return { uleb, sleb, sized, vec, OP, I32, VOID, konst, get, bin, un, add, sub, mul, and, or, shl, shrU, eq, ne, ltS, gtS, leS, geS, eqz, load32, load8u, load8s, set, store32, store8, ret, call, callStmt, ifThen, ifElse, inc, whileLoop, forUpTo, fn, compile, emitModule, demoAddModule };
+})();
+/* --- src/solver-wasm.js --- */
+const SW = (function () {
+/* solver-wasm.js — R2: R0's algorithm a third time, in WebAssembly, over R1's form.
+ *
+ * The module is written in the statement and expression layer of
+ * `src/wasm-emit.js` and assembled at run time. Nothing here is a byte array by
+ * hand: R2's only value is that it is THE SAME ALGORITHM, and a solver spelled as
+ * opcodes is one nobody can hold against R0 by reading it.
+ *
+ * SAME ALGORITHM, and the list is R1's list because it is R0's list. Same
+ * fixed-point loop, conduction evaluated once per device per pass from the state
+ * at the start of the pass and read by both walks, `rails x 2` traversals per pass
+ * and never fused, no incremental recomputation, Jacobi update, same termination
+ * test, and the cap reported rather than swallowed.
+ *
+ * ONE GENERIC MODULE, NOT ONE PER NETWORK. Nothing network-specific is baked into
+ * the bytes: a header at address 0 carries the counts and a base pointer per
+ * array, and every function reads what it needs into locals on entry. Loading a
+ * network is a copy of the packed typed arrays into linear memory. So the module
+ * is emitted and instantiated ONCE per process, and the gate runs a hundred and
+ * more networks through the same instance.
+ *
+ * THE CAP IS A RETURN VALUE, NOT A TRAP. `solve` answers 1 for settled and 0 for
+ * ran out, and the JavaScript side raises R0's error. "Did not settle within k"
+ * is a measurement -- `fullSweep` reads a pass count by catching exactly that
+ * throw -- and a module that trapped would give the caller an error it could not
+ * tell apart from a fault in the module.
+ *
+ * SEEDING AND REFUSALS STAY IN `netpack.js`. The gate's entry copies `P.value`
+ * after `NP.seed` has filled it, so R2 inherits R0's `init` semantics and R0's two
+ * refusals rather than carrying a second implementation of them that would then
+ * need its own comparison. The sweep's seeding IS in the module, because that is
+ * the loop being timed, and the gate checks it separately against R1's.
+ */
+
+
+
+/* --------------------------------------------------------------- the header
+ *
+ * Twenty i32 fields at address 0: five counts and fifteen base pointers. Named
+ * rather than numbered here and read by name in the module below, because an
+ * off-by-one in a hand-numbered header is a wrong answer and not an error.
+ */
+const HEADER = ['nodeCount', 'deviceCount', 'railCount', 'words', 'inputCount',
+  'devGate', 'devIsN', 'devVt', 'adjStart', 'adjNode', 'adjDev',
+  'driven', 'railId', 'railLevel', 'inputId',
+  'value', 'cond', 'reachDef', 'reachPos', 'stack'];
+const FIELD = Object.fromEntries(HEADER.map((nm, i) => [nm, i * 4]));
+const HEADER_BYTES = 128;                       // 80 used, rounded up and aligned
+const PAGE = 65536;
+
+/** Read one header field. */
+const hdr = nm => W.load32(W.konst(FIELD[nm]));
+/** Byte address of element `i` of a 4-byte-wide array based at local `base`. */
+const at4 = (base, i) => W.add(W.get(base), W.shl(i, W.konst(2)));
+/** Byte address of element `i` of a 1-byte-wide array based at local `base`. */
+const at1 = (base, i) => W.add(W.get(base), i);
+
+/* ---------------------------------------------------------------- the module */
+
+/**
+ * `reach(rail, bitsPtr, definite)` — nodes reachable from a rail, following edges
+ * the mode accepts, into one of the preallocated bitsets.
+ *
+ * DRIVEN NODES ARE TERMINALS (N2). A rail or an input is marked reached and is
+ * NOT pushed, so signal stops there rather than passing through. Dropping that
+ * guard makes every node a rail drives look contended and resolves correct
+ * circuits to X, which is a bug this model actually had.
+ */
+const reachFn = W.fn('reach', {
+  params: ['rail', 'bitsPtr', 'definite'],
+  locals: ['words', 'base', 'start', 'w', 'sp', 'atNode', 'e', 'endE', 'c', 'acc',
+    'other', 'wp', 'bit', 'cur', 'stackPtr', 'adjStartP', 'adjNodeP', 'adjDevP',
+    'condP', 'drivenP', 'railIdP'],
+  body: [
+    W.set('words', hdr('words')),
+    W.set('base', W.add(W.get('bitsPtr'),
+      W.shl(W.mul(W.get('rail'), W.get('words')), W.konst(2)))),
+    ...W.forUpTo('w', W.konst(0), W.get('words'),
+      [W.store32(at4('base', W.get('w')), W.konst(0))]),
+    W.set('railIdP', hdr('railId')),
+    W.set('start', W.load32(at4('railIdP', W.get('rail')))),
+    W.set('wp', W.add(W.get('base'), W.shl(W.shrU(W.get('start'), W.konst(5)), W.konst(2)))),
+    W.store32(W.get('wp'), W.or(W.load32(W.get('wp')),
+      W.shl(W.konst(1), W.and(W.get('start'), W.konst(31))))),
+    W.set('stackPtr', hdr('stack')),
+    W.store32(W.get('stackPtr'), W.get('start')),
+    W.set('sp', W.konst(1)),
+    W.set('adjStartP', hdr('adjStart')),
+    W.set('adjNodeP', hdr('adjNode')),
+    W.set('adjDevP', hdr('adjDev')),
+    W.set('condP', hdr('cond')),
+    W.set('drivenP', hdr('driven')),
+    W.whileLoop(W.gtS(W.get('sp'), W.konst(0)), [
+      W.set('sp', W.sub(W.get('sp'), W.konst(1))),
+      W.set('atNode', W.load32(at4('stackPtr', W.get('sp')))),
+      W.set('e', W.load32(at4('adjStartP', W.get('atNode')))),
+      W.set('endE', W.load32(at4('adjStartP', W.add(W.get('atNode'), W.konst(1))))),
+      W.whileLoop(W.ltS(W.get('e'), W.get('endE')), [
+        W.set('c', W.load8u(at1('condP', W.load32(at4('adjDevP', W.get('e')))))),
+        // definite: the edge conducts. possible: it is not known NOT to conduct.
+        W.ifElse(W.ne(W.get('definite'), W.konst(0)),
+          [W.set('acc', W.eq(W.get('c'), W.konst(1)))],
+          [W.set('acc', W.ne(W.get('c'), W.konst(0)))]),
+        W.ifThen(W.get('acc'), [
+          W.set('other', W.load32(at4('adjNodeP', W.get('e')))),
+          W.set('wp', W.add(W.get('base'),
+            W.shl(W.shrU(W.get('other'), W.konst(5)), W.konst(2)))),
+          W.set('bit', W.shl(W.konst(1), W.and(W.get('other'), W.konst(31)))),
+          W.set('cur', W.load32(W.get('wp'))),
+          W.ifThen(W.eq(W.and(W.get('cur'), W.get('bit')), W.konst(0)), [
+            W.store32(W.get('wp'), W.or(W.get('cur'), W.get('bit'))),
+            W.ifThen(W.eq(W.load8u(at1('drivenP', W.get('other'))), W.konst(0)), [
+              W.store32(at4('stackPtr', W.get('sp')), W.get('other')),
+              W.set('sp', W.add(W.get('sp'), W.konst(1))),
+            ]),
+          ]),
+        ]),
+        W.set('e', W.add(W.get('e'), W.konst(1))),
+      ]),
+    ]),
+  ],
+});
+
+/**
+ * `solve(maxIter)` — the fixed-point loop, over a value array something else has
+ * seeded. 1 if it reached a fixed point inside the cap, 0 if it ran out.
+ */
+const solveFn = W.fn('solve', {
+  params: ['maxIter'],
+  results: ['i32'],
+  locals: ['iter', 'i', 'n', 'r', 'g', 'level', 'vt', 'on', 'changed', 'next',
+    'defCount', 'defRail', 'posCount', 'wOff', 'bit', 'off',
+    'nodeCount', 'deviceCount', 'railCount', 'words', 'wordBytes',
+    'valueP', 'condP', 'devGateP', 'devIsNP', 'devVtP', 'drivenP',
+    'railLevelP', 'reachDefP', 'reachPosP'],
+  body: [
+    W.set('nodeCount', hdr('nodeCount')),
+    W.set('deviceCount', hdr('deviceCount')),
+    W.set('railCount', hdr('railCount')),
+    W.set('words', hdr('words')),
+    W.set('wordBytes', W.shl(W.get('words'), W.konst(2))),
+    W.set('valueP', hdr('value')),
+    W.set('condP', hdr('cond')),
+    W.set('devGateP', hdr('devGate')),
+    W.set('devIsNP', hdr('devIsN')),
+    W.set('devVtP', hdr('devVt')),
+    W.set('drivenP', hdr('driven')),
+    W.set('railLevelP', hdr('railLevel')),
+    W.set('reachDefP', hdr('reachDef')),
+    W.set('reachPosP', hdr('reachPos')),
+    ...W.forUpTo('iter', W.konst(0), W.get('maxIter'), [
+      // Conduction is a function of the current state (D1), so it is fixed for
+      // the whole pass: once per device, read by both walks. Z and X give
+      // UNKNOWN, never off -- treating unknown as off is the classic
+      // switch-simulator bug and it makes broken circuits look clean (D6).
+      ...W.forUpTo('i', W.konst(0), W.get('deviceCount'), [
+        W.set('g', W.load8u(at1('valueP', W.load32(at4('devGateP', W.get('i')))))),
+        W.ifElse(W.ltS(W.get('g'), W.konst(2)),
+          [W.store8(at1('condP', W.get('i')), W.konst(2))],
+          [
+            W.set('level', W.sub(W.get('g'), W.konst(3))),
+            W.set('vt', W.load8s(at1('devVtP', W.get('i')))),
+            W.ifElse(W.ne(W.load8u(at1('devIsNP', W.get('i'))), W.konst(0)),
+              [W.set('on', W.geS(W.get('level'), W.get('vt')))],
+              [W.set('on', W.leS(W.get('level'), W.get('vt')))]),
+            W.store8(at1('condP', W.get('i')), W.get('on')),
+          ]),
+      ]),
+      // rails x 2 traversals, never fused: the possible walk is not derived from
+      // the definite one.
+      ...W.forUpTo('r', W.konst(0), W.get('railCount'), [
+        W.callStmt('reach', [W.get('r'), W.get('reachDefP'), W.konst(1)]),
+        W.callStmt('reach', [W.get('r'), W.get('reachPosP'), W.konst(0)]),
+      ]),
+      // Every node re-derived from this pass's reachability sets. Jacobi: nothing
+      // read here was written by another node in the same pass, so order is free.
+      W.set('changed', W.konst(0)),
+      ...W.forUpTo('n', W.konst(0), W.get('nodeCount'), [
+        W.ifThen(W.eq(W.load8u(at1('drivenP', W.get('n'))), W.konst(0)), [
+          W.set('wOff', W.shl(W.shrU(W.get('n'), W.konst(5)), W.konst(2))),
+          W.set('bit', W.shl(W.konst(1), W.and(W.get('n'), W.konst(31)))),
+          W.set('defCount', W.konst(0)),
+          W.set('defRail', W.konst(0)),
+          W.set('posCount', W.konst(0)),
+          ...W.forUpTo('r', W.konst(0), W.get('railCount'), [
+            W.set('off', W.add(W.mul(W.get('r'), W.get('wordBytes')), W.get('wOff'))),
+            W.ifThen(W.ne(W.and(W.load32(W.add(W.get('reachDefP'), W.get('off'))),
+              W.get('bit')), W.konst(0)), [
+              W.set('defCount', W.add(W.get('defCount'), W.konst(1))),
+              W.set('defRail', W.get('r')),
+            ]),
+            W.ifThen(W.ne(W.and(W.load32(W.add(W.get('reachPosP'), W.get('off'))),
+              W.get('bit')), W.konst(0)), [
+              W.set('posCount', W.add(W.get('posCount'), W.konst(1))),
+            ]),
+          ]),
+          W.set('next', W.konst(1)),                                   // contended, or unknown
+          W.ifElse(W.eq(W.get('posCount'), W.konst(0)),
+            [W.set('next', W.konst(0))],                               // nothing can reach it
+            [W.ifThen(W.and(W.eq(W.get('defCount'), W.konst(1)),
+              W.eq(W.get('posCount'), W.konst(1))),
+            [W.set('next', W.add(W.load8s(at1('railLevelP', W.get('defRail'))), W.konst(3)))])]),
+          W.ifThen(W.ne(W.load8u(at1('valueP', W.get('n'))), W.get('next')), [
+            W.store8(at1('valueP', W.get('n')), W.get('next')),
+            W.set('changed', W.konst(1)),
+          ]),
+        ]),
+      ]),
+      W.ifThen(W.eq(W.get('changed'), W.konst(0)), [W.ret(W.konst(1))]),
+    ]),
+    W.ret(W.konst(0)),
+  ],
+});
+
+/**
+ * `seedCodes(codesPtr)` — rails at their declared levels, inputs from the codes
+ * block, everything else at Z. The sweep's seeding, inside the module, because
+ * the sweep is the loop being timed.
+ */
+const seedFn = W.fn('seedCodes', {
+  params: ['codesPtr'],
+  locals: ['n', 'r', 'i', 'nodeCount', 'railCount', 'inputCount',
+    'valueP', 'railIdP', 'railLevelP', 'inputIdP'],
+  body: [
+    W.set('nodeCount', hdr('nodeCount')),
+    W.set('railCount', hdr('railCount')),
+    W.set('inputCount', hdr('inputCount')),
+    W.set('valueP', hdr('value')),
+    W.set('railIdP', hdr('railId')),
+    W.set('railLevelP', hdr('railLevel')),
+    W.set('inputIdP', hdr('inputId')),
+    ...W.forUpTo('n', W.konst(0), W.get('nodeCount'),
+      [W.store8(at1('valueP', W.get('n')), W.konst(0))]),
+    ...W.forUpTo('r', W.konst(0), W.get('railCount'),
+      [W.store8(at1('valueP', W.load32(at4('railIdP', W.get('r')))),
+        W.add(W.load8s(at1('railLevelP', W.get('r'))), W.konst(3)))]),
+    ...W.forUpTo('i', W.konst(0), W.get('inputCount'),
+      [W.store8(at1('valueP', W.load32(at4('inputIdP', W.get('i')))),
+        W.load8u(at1('codesPtr', W.get('i'))))]),
+  ],
+});
+
+/**
+ * `sweep(codesPtr, pairCount, outIdsPtr, outCount, outPtr, maxIter)` — the driver
+ * INSIDE the module, so the boundary is crossed once per block rather than once
+ * per pair. Returns how many pairs did not settle, which is a measurement and so
+ * is counted rather than thrown.
+ */
+const sweepFn = W.fn('sweep', {
+  params: ['codesPtr', 'pairCount', 'outIdsPtr', 'outCount', 'outPtr', 'maxIter'],
+  results: ['i32'],
+  locals: ['p', 'j', 'unsettled', 'inputCount', 'valueP'],
+  body: [
+    W.set('inputCount', hdr('inputCount')),
+    W.set('valueP', hdr('value')),
+    W.set('unsettled', W.konst(0)),
+    ...W.forUpTo('p', W.konst(0), W.get('pairCount'), [
+      W.callStmt('seedCodes', [W.add(W.get('codesPtr'),
+        W.mul(W.get('p'), W.get('inputCount')))]),
+      W.ifThen(W.eq(W.call('solve', [W.get('maxIter')]), W.konst(0)),
+        [W.set('unsettled', W.add(W.get('unsettled'), W.konst(1)))]),
+      ...W.forUpTo('j', W.konst(0), W.get('outCount'), [
+        W.store8(W.add(W.get('outPtr'),
+          W.add(W.mul(W.get('p'), W.get('outCount')), W.get('j'))),
+        W.load8u(at1('valueP', W.load32(at4('outIdsPtr', W.get('j')))))),
+      ]),
+    ]),
+    W.ret(W.get('unsettled')),
+  ],
+});
+
+/**
+ * The four functions, in the order their indices are assigned. Exported as a list
+ * so a test can substitute ONE of them and rebuild -- mutation-testing a module
+ * otherwise means editing this file, running the gate and editing it back, which
+ * is a check that exists only while somebody is doing it.
+ */
+const FUNCS = [reachFn, solveFn, seedFn, sweepFn];
+
+/**
+ * The three names the module exports. A DEFAULT, not a fixture: a set that needs a
+ * driver of its own -- `AW`'s two-solve pass-count probe is the first -- appends its
+ * function to `FUNCS` and its name here, and gets a module whose first four functions
+ * are these bytes unchanged. Calling `moduleBytes()` or `makeR2()` with no argument
+ * still emits exactly what `AV` timed and `test-solver.js` pins to the byte.
+ */
+const EXPORTS = ['solve', 'sweep', 'seedCodes'];
+
+/** The module's bytes. Emitted, never committed. */
+function moduleBytes(fns = FUNCS, exports = EXPORTS) {
+  return W.emitModule(fns, { memoryPages: 1, exports });
+}
+
+/* ------------------------------------------------------- loading a network */
+
+/** Where each packed array sits in linear memory, and how much room it all needs. */
+function layout(P) {
+  let at = HEADER_BYTES;
+  const region = bytes => { at = (at + 3) & ~3; const p = at; at += bytes; return p; };
+  const n = P.nodeCount, m = P.deviceCount, rc = P.railCount, w = P.words;
+  const L = {
+    devGate: region(4 * m), devIsN: region(m), devVt: region(m),
+    adjStart: region(4 * (n + 1)), adjNode: region(8 * m), adjDev: region(8 * m),
+    driven: region(n), railId: region(4 * rc), railLevel: region(rc),
+    inputId: region(4 * P.inputId.length),
+    value: region(n), cond: region(m),
+    reachDef: region(4 * rc * w), reachPos: region(4 * rc * w),
+    stack: region(4 * (n + 1)),
+  };
+  L.end = (at + 3) & ~3;
+  return L;
+}
+
+/**
+ * Emit, instantiate, and hand back the four entries the audit and the gate need.
+ *
+ * `WebAssembly.instantiate(bytes)`, never `instantiateStreaming`: there is no
+ * response to stream, the bytes were built here, and the streaming form would tie
+ * this to a fetch the published page is not going to make.
+ */
+async function makeR2({ fns = FUNCS, exports = EXPORTS } = {}) {
+  const bytes = moduleBytes(fns, exports);
+  const { instance } = await WebAssembly.instantiate(bytes, {});
+  const ex = instance.exports;
+  let mem = ex.memory;
+  let loaded = null, L = null, scratch = 0;
+
+  // Views are re-taken after every grow: `memory.grow` DETACHES the old buffer,
+  // and a view held across it reads zeros forever without raising anything.
+  let u8 = new Uint8Array(mem.buffer);
+  const need = bytesNeeded => {
+    if (bytesNeeded <= mem.buffer.byteLength) return;
+    mem.grow(Math.ceil((bytesNeeded - mem.buffer.byteLength) / PAGE));
+    u8 = new Uint8Array(mem.buffer);
+  };
+
+  /** Copy a packed network in, unless it is already the one in memory. */
+  const load = (P, extra = 0) => {
+    if (loaded === P && scratch >= extra) return L;
+    L = layout(P);
+    need(L.end + extra);
+    scratch = extra;
+    const i32 = new Int32Array(mem.buffer);
+    const i8 = new Int8Array(mem.buffer);
+    const put32 = (ptr, arr) => i32.set(arr, ptr >> 2);
+    put32(0, Int32Array.from(HEADER.map(nm => (nm in L ? L[nm]
+      : ({ nodeCount: P.nodeCount, deviceCount: P.deviceCount, railCount: P.railCount,
+        words: P.words, inputCount: P.inputId.length })[nm]))));
+    put32(L.devGate, P.devGate);
+    u8.set(P.devIsN, L.devIsN);
+    i8.set(P.devVt, L.devVt);
+    put32(L.adjStart, P.adjStart);
+    put32(L.adjNode, P.adjNode);
+    put32(L.adjDev, P.adjDev);
+    u8.set(P.driven, L.driven);
+    put32(L.railId, P.railId);
+    i8.set(P.railLevel, L.railLevel);
+    put32(L.inputId, P.inputId);
+    loaded = P;
+    return L;
+  };
+
+  return {
+    bytes,
+    exports: ex,
+    memory: () => mem,
+    layoutOf: P => { load(P); return L; },
+
+    /**
+     * Load `P` and reserve `extra` bytes of scratch after it, handing back where
+     * that block starts and views over the memory as it is NOW.
+     *
+     * This exists so a caller can drive its own exported function over its own
+     * block layout without a second copy of the loading logic -- `sweep` below is
+     * one such caller and `AW`'s probe is another. The views are re-taken here
+     * rather than returned once and kept, because `memory.grow` DETACHES the old
+     * buffer and a view held across it reads zeros forever without raising.
+     */
+    reserve(P, extra = 0) {
+      load(P, extra);
+      return { layout: L, base: (L.end + 3) & ~3,
+        u8: new Uint8Array(mem.buffer), i32: new Int32Array(mem.buffer) };
+    },
+
+    /**
+     * One solve, with `netpack.js` doing the seeding and the two refusals so that
+     * R2 inherits R0's `init` semantics rather than carrying a second copy of them.
+     * Throws R0's message at the cap.
+     */
+    solveNamed(P, inputs, maxIterations = 64, init = {}) {
+      NP.seed(P, inputs, init);
+      load(P);
+      u8.set(P.value, L.value);
+      const settled = ex.solve(maxIterations);
+      if (!settled) throw new Error(NP.CAP_MESSAGE);
+      const out = {};
+      for (let i = 0; i < P.nodeCount; i++) out[P.names[i]] = NP.decodeState(u8[L.value + i]);
+      return out;
+    },
+
+    /**
+     * The block sweep: codes in, one call, results out. The driver is inside the
+     * module, so this crosses the boundary once however many pairs there are.
+     */
+    sweep(P, codes, pairCount, outIds, out, maxIterations) {
+      const k = outIds.length;
+      const extra = codes.length + pairCount * k + 4 * k + 16;
+      load(P, extra);
+      let at = (L.end + 3) & ~3;
+      const codesPtr = at; at += codes.length; at = (at + 3) & ~3;
+      const outIdsPtr = at; at += 4 * k; at = (at + 3) & ~3;
+      const outPtr = at;
+      u8.set(codes, codesPtr);
+      new Int32Array(mem.buffer).set(outIds, outIdsPtr >> 2);
+      const unsettled = ex.sweep(codesPtr, pairCount, outIdsPtr, k, outPtr, maxIterations);
+      out.set(u8.subarray(outPtr, outPtr + pairCount * k));
+      return unsettled;
+    },
+  };
+}
+
+
+
+return { HEADER, FIELD, HEADER_BYTES, EXPORTS, FUNCS, moduleBytes, layout, makeR2, hdr, at4, at1 };
+})();
+/* --- lab bundle ends --- */
+
+/* ===========================================================================
+ * The lab driver.
+ *
+ * Everything above this line is `src/` inlined verbatim by `build/build-lab.js`,
+ * which also refuses to write this file if a real sweep through the bundled code
+ * and the same sweep through the module code disagree. Everything below is the
+ * layer the bundle cannot supply: emitting the module, choosing a network,
+ * chunking the sweep so the tab stays alive, and comparing what came back against
+ * `T.add`.
+ *
+ * WHAT THIS PAGE DELIBERATELY DOES NOT USE, and why each one would break it:
+ *
+ *   `WebAssembly.instantiateStreaming` wants a `Response`. There is none — the
+ *   bytes were built three lines earlier — and it fails outright from `file://`.
+ *   `instantiate(bytes)` is the form that works from a downloaded file.
+ *
+ *   Web Workers are unreliable from `file://`, so the chunking runs on
+ *   `requestAnimationFrame` on the main thread instead: one block of pairs per
+ *   frame, and the tab stays live between them.
+ *
+ *   `SharedArrayBuffer` needs COOP and COEP headers, which a local file cannot
+ *   send. The module's own linear memory is the only buffer here.
+ *
+ *   And no base64 blob. A page that shipped the bytes would be a page whose
+ *   emitter is decoration; emitting them is the entire argument for having one.
+ * ======================================================================== */
+
+/* --- the pass counter, derived rather than written ----------------------- */
+
+/**
+ * `solve` answers 1 for settled and 0 for ran out, which is what a sweep needs
+ * and not what a histogram needs. The histogram wants the pass the fixed point
+ * landed on, and the only thing that knows it is the loop.
+ *
+ * So this walks `solve`'s own body and replaces exactly one node — the
+ * `return 1` that fires when a pass changed nothing — with `return iter + 1`.
+ * Everything else is the same tree: same conduction evaluation, same rails x 2
+ * traversals, same Jacobi update, same cap. A hand-written counting solver would
+ * be a second implementation of the fixed point, and this repository's standing
+ * rule is that a second implementation nobody compares is an unchecked claim.
+ *
+ * The walk COPIES. Mutating the tree in place would edit `SW.FUNCS` itself and
+ * silently change the module `test-solver.js` pins to the byte.
+ */
+let SUBSTITUTIONS = 0;
+function returnsThePassInstead(node) {
+  if (Array.isArray(node)) return node.map(returnsThePassInstead);
+  if (node && typeof node === 'object') {
+    if (node.k === 'return' && node.e && node.e.k === 'const' && node.e.v === 1) {
+      SUBSTITUTIONS++;
+      return W.ret(W.add(W.get('iter'), W.konst(1)));
+    }
+    const copy = {};
+    for (const key of Object.keys(node)) copy[key] = returnsThePassInstead(node[key]);
+    return copy;
+  }
+  return node;
+}
+
+const SOLVE_FN = SW.FUNCS.filter(f => f.name === 'solve')[0];
+const solvePassesFn = W.fn('solvePasses', {
+  params: SOLVE_FN.params,
+  locals: SOLVE_FN.locals,
+  results: SOLVE_FN.results,
+  body: returnsThePassInstead(SOLVE_FN.body),
+});
+
+/**
+ * `passSweep(codesPtr, pairCount, outIdsPtr, outCount, outPtr, passPtr, maxIter)`
+ * — the driver, inside the module, so a chunk of pairs costs one crossing of the
+ * boundary rather than one per pair. `sweep`'s shape with a pass count stored per
+ * pair; a zero there means the pair ran out, which is counted and not thrown.
+ */
+const passSweepFn = W.fn('passSweep', {
+  params: ['codesPtr', 'pairCount', 'outIdsPtr', 'outCount', 'outPtr', 'passPtr', 'maxIter'],
+  results: ['i32'],
+  locals: ['p', 'j', 'k', 'unsettled', 'inputCount', 'valueP'],
+  body: [
+    W.set('inputCount', SW.hdr('inputCount')),
+    W.set('valueP', SW.hdr('value')),
+    W.set('unsettled', W.konst(0)),
+    ...W.forUpTo('p', W.konst(0), W.get('pairCount'), [
+      W.callStmt('seedCodes', [W.add(W.get('codesPtr'),
+        W.mul(W.get('p'), W.get('inputCount')))]),
+      W.set('k', W.call('solvePasses', [W.get('maxIter')])),
+      W.store32(SW.at4('passPtr', W.get('p')), W.get('k')),
+      W.ifThen(W.eq(W.get('k'), W.konst(0)),
+        [W.set('unsettled', W.add(W.get('unsettled'), W.konst(1)))]),
+      ...W.forUpTo('j', W.konst(0), W.get('outCount'), [
+        W.store8(W.add(W.get('outPtr'),
+          W.add(W.mul(W.get('p'), W.get('outCount')), W.get('j'))),
+        W.load8u(SW.at1('valueP', W.load32(SW.at4('outIdsPtr', W.get('j')))))),
+      ]),
+    ]),
+    W.ret(W.get('unsettled')),
+  ],
+});
+
+/** `AV`'s four functions unchanged, then the two this page appends. */
+const LAB_FUNCS = SW.FUNCS.concat([solvePassesFn, passSweepFn]);
+const LAB_EXPORTS = SW.EXPORTS.concat(['passSweep']);
+
+let INSTRUMENT = null;
+function instrument() {
+  if (!INSTRUMENT) INSTRUMENT = SW.makeR2({ fns: LAB_FUNCS, exports: LAB_EXPORTS });
+  return INSTRUMENT;
+}
+
+/* --- the networks on offer ------------------------------------------------ */
+
+/* Six trits, because that is the width the oracle is written at: `T.add` IS the
+ * balanced-ternary addition this machine's arithmetic is defined by, and a page
+ * that swept some other width would need a second definition of adding up. */
+const WIDTH = T.TRITS_PER_TRYTE;
+const INPUT_NAMES = [];
+for (let i = 0; i < WIDTH; i++) INPUT_NAMES.push('a' + i);
+for (let i = 0; i < WIDTH; i++) INPUT_NAMES.push('b' + i);
+INPUT_NAMES.push('cin');
+const OUTPUT_NAMES = [];
+for (let i = 0; i < WIDTH; i++) OUTPUT_NAMES.push('s' + i);
+OUTPUT_NAMES.push('c' + WIDTH);
+
+/** The narrowest binary ripple adder that covers the same state count. */
+const BINARY_BITS = Math.ceil(Math.log2(T.TRYTE_STATES));
+
+const FAMILIES = [
+  ['tree', 'selector tree, gated on the raw select'],
+  ['decoded', 'decoded select, one detector per signal'],
+];
+const RESTORES = [
+  ['none', 'none'],
+  ['mid', 'mid: the second rank buffered'],
+  ['leafmid', 'leafmid: leaves and second rank buffered'],
+];
+const CARRY_INS = [0, 1, -1];
+/* Stride 1 is every pair. The others exist so a reader can get an answer out of
+ * the biggest networks without waiting for all of them, and the page says which
+ * it did rather than letting a sample read as a sweep. */
+const STRIDES = [1, 3, 7, 11, 37];
+
+function buildNetwork(spec) {
+  const opts = { restore: spec.restore || 'none' };
+  const net = new D.Net();
+  if (spec.family === 'decoded') D.dRippleAdder(net, WIDTH, opts);
+  else D.tRippleAdder(net, WIDTH, opts);
+  return net;
+}
+
+/** Every design the selectors can name, plus the binary row they are read against. */
+function costRows() {
+  const rows = [];
+  for (const [family, familyLabel] of FAMILIES) {
+    for (const [restore] of RESTORES) {
+      const c = buildNetwork({ family, restore }).cost();
+      rows.push({
+        id: family + '/' + restore,
+        label: WIDTH + '-trit ripple, ' + familyLabel
+          + (restore === 'none' ? '' : ', restore: ' + restore),
+        switches: c.switches, midRail: c.midRailConnections, rails: c.rails,
+      });
+    }
+  }
+  const bin = D.bRippleAdder(D.binaryNet(), BINARY_BITS).cost();
+  rows.push({
+    id: 'binary', label: BINARY_BITS + '-bit binary ripple, the same state count',
+    switches: bin.switches, midRail: bin.midRailConnections, rails: bin.rails,
+  });
+  return rows;
+}
+
+/** The operand values one axis of the sweep visits, at the chosen stride. */
+function operandValues(stride) {
+  const out = [];
+  for (let v = T.TRYTE_MIN; v <= T.TRYTE_MAX; v += (stride || 1)) out.push(v);
+  return out;
+}
+
+/**
+ * What the adder is supposed to answer. `T.add` wraps into the tryte range, so the
+ * carry out of the top trit is exactly what that wrap discarded — one expression,
+ * out of the shipped arithmetic, rather than a second addition written here.
+ */
+function oracle(a, b, cin) {
+  const sum = T.add(T.add(a, b), cin);
+  return { sum: sum, carry: (a + b + cin - sum) / T.TRYTE_STATES };
+}
+
+/* --- the sweep ------------------------------------------------------------ */
+
+const CHUNK = 1 << 12;
+const CAP = 64;
+const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+
+/**
+ * One chunked sweep. Returns the report; calls `onProgress` with it after every
+ * chunk, so the page can paint a partial answer while the rest is still running.
+ *
+ * The scratch block is reserved ONCE, for the largest chunk this sweep will ask
+ * for, and the views are taken after that reservation. `memory.grow` detaches the
+ * old buffer, and a view held across it reads zeros forever without raising
+ * anything at all.
+ */
+async function runSweep(spec, opts) {
+  opts = opts || {};
+  const yieldNow = opts.yieldNow
+    || (() => new Promise(resolve => requestAnimationFrame(resolve)));
+  const onProgress = opts.onProgress || (() => {});
+  const shouldStop = opts.shouldStop || (() => false);
+  const cap = opts.cap || CAP;
+  const inst = opts.instrument || await instrument();
+
+  const net = buildNetwork(spec);
+  const cost = net.cost();
+  const P = NP.pack(net, INPUT_NAMES);
+  const values = operandValues(spec.stride);
+  const axis = values.length;
+  const pairCount = axis * axis;
+  const chunk = Math.min(opts.chunk || CHUNK, pairCount);
+
+  const ic = INPUT_NAMES.length, oc = OUTPUT_NAMES.length;
+  const outIds = new Int32Array(oc);
+  for (let j = 0; j < oc; j++) outIds[j] = NP.nodeId(P, OUTPUT_NAMES[j]);
+
+  const need = chunk * ic + 4 * chunk + 4 * oc + chunk * oc + 64;
+  const room = inst.reserve(P, need);
+  const u8 = room.u8, i32 = room.i32;
+  let at = room.base;
+  const codesPtr = at; at += chunk * ic; at = (at + 3) & ~3;
+  const passPtr = at; at += 4 * chunk;
+  const outIdsPtr = at; at += 4 * oc;
+  const outPtr = at;
+  i32.set(outIds, outIdsPtr >> 2);
+
+  const report = {
+    spec: spec, cost: cost, nodeCount: P.nodeCount, deviceCount: P.deviceCount,
+    axis: axis, pairCount: pairCount, exhaustive: (spec.stride || 1) === 1,
+    done: 0, compared: 0, wrongSum: 0, wrongCarry: 0, unresolved: 0, unsettled: 0,
+    passes: {}, first: null, stopped: false, seconds: 0, chunk: chunk, cap: cap,
+  };
+  const t0 = clock();
+
+  for (let i0 = 0; i0 < pairCount; i0 += chunk) {
+    if (shouldStop()) { report.stopped = true; break; }
+    const m = Math.min(chunk, pairCount - i0);
+
+    for (let p = 0; p < m; p++) {
+      const idx = i0 + p;
+      const ta = T.toTrits(values[(idx / axis) | 0], WIDTH);
+      const tb = T.toTrits(values[idx % axis], WIDTH);
+      const base = codesPtr + p * ic;
+      for (let j = 0; j < WIDTH; j++) {
+        u8[base + j] = ta[j] + 3;
+        u8[base + WIDTH + j] = tb[j] + 3;
+      }
+      u8[base + 2 * WIDTH] = spec.cin + 3;
+    }
+
+    inst.exports.passSweep(codesPtr, m, outIdsPtr, oc, outPtr, passPtr, cap);
+
+    for (let p = 0; p < m; p++) {
+      const idx = i0 + p;
+      const a = values[(idx / axis) | 0], b = values[idx % axis];
+      const k = i32[(passPtr >> 2) + p];
+      report.passes[k] = (report.passes[k] || 0) + 1;
+      // T-EXHAUSTED-NOT-CLOSED: a pair that ran out of passes has no answer, so it
+      // is counted as its own outcome rather than scored against the oracle.
+      if (k === 0) { report.unsettled++; if (!report.first) report.first = a + ' + ' + b + ' did not settle within ' + cap + ' passes'; continue; }
+      const base = outPtr + p * oc;
+      const trits = [];
+      let onLevels = true;
+      for (let j = 0; j <= WIDTH; j++) {
+        const code = u8[base + j];
+        if (code < 2) { onLevels = false; break; }          // 0 is Z, 1 is X
+        if (j < WIDTH) trits.push(code - 3);
+      }
+      if (!onLevels) {
+        report.unresolved++;
+        if (!report.first) report.first = a + ' + ' + b + ' left an output floating or contended';
+        continue;
+      }
+      report.compared++;
+      const want = oracle(a, b, spec.cin);
+      const gotSum = T.fromTrits(trits);
+      const gotCarry = u8[base + WIDTH] - 3;
+      if (gotSum !== want.sum) {
+        report.wrongSum++;
+        if (!report.first) report.first = a + ' + ' + b + ': sum ' + gotSum + ', T.add says ' + want.sum;
+      }
+      if (gotCarry !== want.carry) {
+        report.wrongCarry++;
+        if (!report.first) report.first = a + ' + ' + b + ': carry-out ' + gotCarry + ', the wrap says ' + want.carry;
+      }
+    }
+
+    report.done += m;
+    report.seconds = (clock() - t0) / 1000;
+    onProgress(report);
+    if (report.done < pairCount) await yieldNow();
+  }
+
+  report.seconds = (clock() - t0) / 1000;
+  return report;
+}
+
+/* --- the page ------------------------------------------------------------- */
+
+const root = (typeof document !== 'undefined') ? document.getElementById('lab') : null;
+let READY = null;
+
+if (root) {
+  const $ = id => document.getElementById(id);
+  const set = (id, text) => { $(id).textContent = text; };
+  const group = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  const option = (sel, value, label) => {
+    const o = document.createElement('option');
+    o.value = String(value); o.textContent = label;
+    sel.appendChild(o);
+    return o;
+  };
+  for (const [id, label] of FAMILIES) option($('c-family'), id, label);
+  for (const [id, label] of RESTORES) option($('c-restore'), id, label);
+  for (const c of CARRY_INS) option($('c-cin'), c, c > 0 ? '+1' : String(c));
+  for (const s of STRIDES) {
+    option($('c-stride'), s, s === 1 ? '1 — every pair' : s + ' — one pair in ' + (s * s));
+  }
+  $('c-family').value = 'tree';
+  $('c-restore').value = 'none';
+  $('c-cin').value = '0';
+  $('c-stride').value = '1';
+
+  const spec = () => ({
+    family: $('c-family').value,
+    restore: $('c-restore').value,
+    cin: Number($('c-cin').value),
+    stride: Number($('c-stride').value),
+  });
+
+  function drawCost() {
+    const body = $('cost-body');
+    body.textContent = '';                     // clears children in a DOM and in a shim
+    const here = spec().family + '/' + spec().restore;
+    for (const row of costRows()) {
+      const tr = document.createElement('tr');
+      if (row.id === here) tr.className = 'here';
+      const cells = [row.label, group(row.switches), group(row.midRail), String(row.rails)];
+      cells.forEach((text, i) => {
+        const td = document.createElement('td');
+        if (i === 2) td.className = 'mid';
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    }
+  }
+
+  function drawDomain() {
+    const s = spec();
+    const axis = operandValues(s.stride).length;
+    set('s-domain', s.stride === 1
+      ? 'Exhaustive: all ' + group(axis * axis) + ' operand pairs at carry-in '
+        + (s.cin > 0 ? '+1' : s.cin) + ', which is every pair the ' + WIDTH
+        + '-trit adder has.'
+      : 'Sampled, and said so: ' + group(axis * axis) + ' of '
+        + group(T.TRYTE_STATES * T.TRYTE_STATES) + ' pairs, one in ' + (s.stride * s.stride)
+        + ', at carry-in ' + (s.cin > 0 ? '+1' : s.cin) + '.');
+  }
+
+  function drawReport(r) {
+    set('r-pairs', group(r.compared) + ' of ' + group(r.pairCount));
+    set('r-sum', group(r.wrongSum));
+    set('r-carry', group(r.wrongCarry));
+    set('r-unresolved', group(r.unresolved));
+    set('r-unsettled', group(r.unsettled));
+
+    const body = $('hist-body');
+    body.textContent = '';
+    const keys = Object.keys(r.passes).map(Number).sort((x, y) => x - y);
+    const top = keys.reduce((mx, k) => Math.max(mx, r.passes[k]), 1);
+    for (const k of keys) {
+      const tr = document.createElement('tr');
+      const count = r.passes[k];
+      const label = document.createElement('td');
+      label.textContent = k === 0 ? 'did not settle' : String(k);
+      const num = document.createElement('td');
+      num.textContent = group(count);
+      const bar = document.createElement('td');
+      const fill = document.createElement('span');
+      fill.className = 'hbar';
+      fill.style.width = Math.max(2, Math.round(100 * count / top)) + '%';
+      bar.appendChild(fill);
+      tr.appendChild(label); tr.appendChild(num); tr.appendChild(bar);
+      body.appendChild(tr);
+    }
+    const settled = keys.filter(k => k !== 0);
+    set('hist-verdict', settled.length === 0
+      ? '—'
+      : (settled.length === 1
+        ? 'One bucket: every pair took the same ' + settled[0]
+          + ' passes, so settling time here does not depend on the data.'
+        : 'More than one bucket: settling time depends on the operands, from '
+          + settled[0] + ' passes to ' + settled[settled.length - 1] + '.'));
+  }
+
+  /* The module is emitted when the page loads, not when Run is pressed, because
+   * "this page emits its own WebAssembly" is the claim and the panel above should
+   * be reporting a module that exists rather than one that would. */
+  async function showInstrument() {
+    const inst = await instrument();
+    set('i-bytes', group(inst.bytes.length) + ' bytes, emitted here at load time');
+    set('i-exports', LAB_EXPORTS.join(', '));
+    set('i-derived', SUBSTITUTIONS + ' node substituted into solve, '
+      + LAB_FUNCS.length + ' functions in the module');
+    return inst;
+  }
+
+  let stopping = false;
+  let running = false;
+
+  const paint = r => {
+    const pct = 100 * r.done / r.pairCount;
+    $('bar-fill').style.width = pct.toFixed(1) + '%';
+    set('s-progress', group(r.done) + ' / ' + group(r.pairCount) + ' pairs   '
+      + pct.toFixed(1) + '%   ' + r.seconds.toFixed(1) + 's');
+    drawReport(r);
+  };
+
+  async function run() {
+    if (running) return;
+    running = true; stopping = false;
+    $('b-run').disabled = true;
+    $('b-stop').disabled = false;
+    $('s-tag').className = 'tag idle';
+    $('s-tag').textContent = 'running';
+    set('s-progress', 'building the network…');
+
+    let r = null, blew = null;
+    try {
+      r = await runSweep(spec(), { instrument: await showInstrument(),
+        onProgress: paint, shouldStop: () => stopping });
+    } catch (e) {
+      blew = e;
+    } finally {
+      running = false;
+      $('b-run').disabled = false;
+      $('b-stop').disabled = true;
+    }
+    if (blew) {
+      $('s-tag').className = 'tag bad';
+      $('s-tag').textContent = 'threw';
+      set('r-first', 'The sweep threw: ' + (blew && blew.message ? blew.message : blew));
+      return;
+    }
+    paint(r);
+    const clean = r.wrongSum === 0 && r.wrongCarry === 0 && r.unresolved === 0
+      && r.unsettled === 0;
+    $('s-tag').className = 'tag ' + (r.stopped ? 'idle' : (clean ? 'ok' : 'bad'));
+    $('s-tag').textContent = r.stopped ? 'stopped'
+      : (clean ? 'agrees with T.add' : 'DIVERGED');
+    set('r-first', r.first
+      ? 'First divergence: ' + r.first
+      : (r.stopped
+        ? 'Stopped early, so this is a partial sweep of the domain named above.'
+        : 'No divergence in any of the ' + group(r.compared) + ' pairs compared.'));
+  }
+
+  $('b-run').addEventListener('click', run);
+  $('b-stop').addEventListener('click', () => { stopping = true; });
+  $('b-stop').disabled = true;
+  for (const id of ['c-family', 'c-restore', 'c-cin', 'c-stride']) {
+    $(id).addEventListener('change', () => { drawCost(); drawDomain(); });
+  }
+  drawCost();
+  drawDomain();
+  READY = showInstrument();
+}
+
+/**
+ * Inert in a browser, and the whole of what `build/build-lab.js` and
+ * `test/test-lab.js` reach for: they run this script with no DOM at all, so the
+ * block above declines and this is all that is left. A page whose sweep can only
+ * be driven by clicking it is a page nobody can hold against the modules.
+ */
+globalThis.__LAB_EXPORT__ = {
+  T: T, D: D, NP: NP, W: W, SW: SW,
+  WIDTH: WIDTH, INPUT_NAMES: INPUT_NAMES, OUTPUT_NAMES: OUTPUT_NAMES,
+  BINARY_BITS: BINARY_BITS, FAMILIES: FAMILIES, RESTORES: RESTORES,
+  CARRY_INS: CARRY_INS, STRIDES: STRIDES, CHUNK: CHUNK, CAP: CAP,
+  substitutions: () => SUBSTITUTIONS,
+  solvePassesFn: solvePassesFn, passSweepFn: passSweepFn,
+  LAB_FUNCS: LAB_FUNCS, LAB_EXPORTS: LAB_EXPORTS,
+  instrument: instrument, buildNetwork: buildNetwork, costRows: costRows,
+  operandValues: operandValues, oracle: oracle, runSweep: runSweep,
+  ready: () => READY,
+};
+</script>
