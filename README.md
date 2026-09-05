@@ -18,7 +18,7 @@ including the numbers in `METHOD.md` about the method itself.
 
 ```bash
 npm test              # everything (~2 min; the monoid and switch sweeps are real work)
-npm run build         # rebuild the interactive page from src/
+npm run build         # rebuild both published pages from src/
 node src/run.js programs/multiply.tasm 7 5
 ```
 
@@ -57,7 +57,8 @@ results/     the same corpus keyed by SUBJECT rather than by date, plus 99-ledge
 tools/       <!--g:readme-audits-tree-->the fifty audits, each with its registered predictions<!--/g-->
 test/        one suite per concern; run-all.js runs them all
 docs/origin/ the source conversation, its audit, and its 16 code artifacts
-build/       inlines src/ into docs/tryte-vm.html, and fails if they diverge
+build/       inlines src/ into docs/tryte-vm.html and docs/tryte-lab.html,
+             and fails if either diverges from the modules it was built from
 ```
 
 ---

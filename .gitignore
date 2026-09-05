@@ -2,3 +2,7 @@ node_modules/
 *.log
 .DS_Store
 Thumbs.db
+
+# Worktrees created for parallel agents. Same repository, separate checkouts;
+# staging one would commit another branch's tree into this one.
+.claude/worktrees/
