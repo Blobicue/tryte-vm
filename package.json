@@ -70,7 +70,8 @@
     "audit:width": "node tools/width-audit.js",
     "audit:solver": "node tools/solver-audit.js",
     "audit:carryin": "node tools/carryin-audit.js",
-    "audit:phases": "node tools/phases-audit.js"
+    "audit:phases": "node tools/phases-audit.js",
+    "audit:relax": "node tools/relax-audit.js"
   },
   "license": "MIT",
   "private": true
