@@ -174,6 +174,70 @@ function registrationRisk(src, py = false) {
 }
 
 /**
+ * THE REGISTERED TEXT, RECOVERED AT EACH SET'S OWN `registered_at`.
+ *
+ * `registrationRisk` above parses whatever string it is handed, and the string a
+ * caller reaches for first is the working tree -- which is the wrong string. The
+ * registration is what the registering commit contains; a tool at HEAD is that text
+ * plus every edit since, and an appeal to a tool's CURRENT wording is an appeal to
+ * text that may have been edited after the run it was supposed to precede. Section 10
+ * of `test-findings.js` states the general rule it fell into: A GUARD OVER
+ * REGISTRATION TEXT MUST READ EACH SET'S OWN registered_at, NEVER THE WORKING TREE.
+ *
+ * This lives here rather than in the checker for the reason `REGISTRATION_HEADERS`
+ * does: the recovery was section 10's private knowledge, and section 8's drift check
+ * -- the one that binds the manifest's `at_risk` to the registered line -- read the
+ * working tree instead, so the two disagreed about what "the registration" means.
+ * TWO COPIES OF A RECOVERY ARE TWO RECOVERIES THAT CAN DISAGREE.
+ *
+ * ONE SPAWN, NOT ONE PER SET -- and said that way rather than as a number, because
+ * section 10 wrote this same sentence with the count of the day in it and the count
+ * was two sets stale by the time anyone read it again. `git show` costs about three
+ * quarters of a second per call on this host, so the obvious loop pays that once per
+ * prediction set for a question `cat-file --batch` answers in one round trip.
+ * T-SEARCH-WHERE-A-CHECK-WOULD-DO, and T-STALE-CONSTANT for the wording. The
+ * batch parse below is section 10's, moved unchanged -- it was validated against the
+ * slow path when it was written, byte-identical on a five-set sample, and a rewrite
+ * would have to earn that again.
+ *
+ * FAIL CLOSED. A spec git cannot resolve -- a bad hash, a `PENDING` where a hash
+ * belongs, a tool that did not exist under that name yet -- maps to `null`, never to
+ * an empty string and never to a silent skip. An unanswerable question is not a yes.
+ * A failed spawn maps every spec to `null` and is NOT memoised, because a git that was
+ * missing once may be present next call.
+ *
+ * Keyed by `<registered_at>:<tool>`, which is the spec the caller can reconstruct.
+ */
+let _sourceMemo = null;
+
+function registeredSources(sets, cwd) {
+  const specs = sets.map(s => `${s.registered_at}:${s.tool}`);
+  const key = JSON.stringify([cwd, specs]);
+  if (_sourceMemo && _sourceMemo.key === key) return _sourceMemo.map;
+  const map = new Map();
+  let out;
+  try {
+    out = require('child_process').execFileSync('git', ['cat-file', '--batch'],
+      { cwd, input: specs.join('\n') + '\n', maxBuffer: 1 << 28 });
+  } catch {
+    for (const spec of specs) map.set(spec, null);
+    return map;                                 // deliberately not memoised
+  }
+  let i = 0;
+  for (const spec of specs) {
+    const nl = out.indexOf(10, i);
+    if (nl === -1) { map.set(spec, null); continue; }
+    const parts = out.slice(i, nl).toString('utf8').split(' ');
+    if (parts.length < 3 || parts[1] === 'missing') { map.set(spec, null); i = nl + 1; continue; }
+    const size = Number(parts[2]);
+    map.set(spec, out.slice(nl + 1, nl + 1 + size).toString('utf8'));
+    i = nl + 1 + size + 1;                      // contents, then the trailing newline
+  }
+  _sourceMemo = { key, map };
+  return map;
+}
+
+/**
  * A FLOOR, AND ONLY A FLOOR. This cannot tell whether an annotation is TRUE, and it
  * must never be read as saying so -- a guard whose limit is unstated gets taken for
  * something stronger, which is how a green check becomes evidence for a thing it never
@@ -198,5 +262,5 @@ function vacuous(text) {
 
 module.exports = {
   AT_RISK, NOT_AT_RISK, UNCALLED, classify, reason, label, tally, registrationRisk,
-  vacuous, REGISTRATION_HEADERS,
+  vacuous, REGISTRATION_HEADERS, registeredSources,
 };
