@@ -259,6 +259,26 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
     // No committed binary, no base64, no toolchain: the bytes are built here.
     check('   and its bytes are emitted at run time rather than read from disk',
       SW.moduleBytes().length > 0 && !fs.existsSync(path.join(__dirname, '..', 'src', 'solver.wasm')));
+    // AND THE EMITTER RUNS WHERE THE PAGE RUNS. "Emitted at run time" is only worth
+    // something if the run time can be a BROWSER -- that is the whole argument for a
+    // runtime emitter over a committed binary, and it is the property AV's
+    // registration described the construction by. A node-only global anywhere in the
+    // browser-bound files falsifies it silently: everything stays green here and the
+    // page is simply broken, which is the direction nothing catches by being
+    // surprised. `Buffer` was used twice in wasm-emit.js and is the reason this
+    // check exists; `TextEncoder` is a global in both and agrees byte for byte.
+    check('   and nothing in the browser-bound source reaches for a node-only global',
+      (() => {
+        const NODE_ONLY = /\b(?:Buffer|process|__dirname|__filename|require)\s*[.(]/;
+        const bad = ['ternary', 'device', 'netpack', 'wasm-emit', 'solver-wasm']
+          .filter(f => NODE_ONLY.test(
+            fs.readFileSync(path.join(__dirname, '..', 'src', `${f}.js`), 'utf8')
+              // comments may NAME the globals they warn about; code may not use them
+              .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
+              // solver-wasm's two require() lines are stripped by the bundler
+              .replace(/^const \w+ = require\(.*\);$/gm, '')));
+        return bad.length === 0;
+      })(), 'node-only global in: see src/');
     check('   and R2 answers through WebAssembly rather than through a fallback',
       (await A.makeR2()).exports.solve instanceof Function
       && WebAssembly.Module.exports(new WebAssembly.Module(SW.moduleBytes()))

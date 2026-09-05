@@ -59,6 +59,15 @@ const sized = bytes => uleb(bytes.length).concat(bytes);
 /** A vector: its element count, then the elements. */
 const vec = items => uleb(items.length).concat(...items);
 
+/**
+ * A name as UTF-8 bytes. `TextEncoder` rather than `Buffer`, because this emitter is
+ * meant to run in a BROWSER as well as in node -- the published page generates its
+ * own module instead of shipping one, so a node-only global here would be a hole in
+ * the only property that arrangement has. `TextEncoder` is a global in both, and the
+ * two agree byte for byte on every name this module can emit.
+ */
+const utf8 = s => new TextEncoder().encode(s);
+
 /* ------------------------------------------------------------------ opcodes */
 
 const OP = {
@@ -265,11 +274,11 @@ function emitModule(fns, { memoryPages = 1, exports: exported = [], exportMemory
   const memSec = vec([[0x00].concat(uleb(memoryPages))]);          // min only, no maximum
   const exportSec = vec([
     ...exported.map(nm => {
-      const bytes = [...Buffer.from(nm, 'utf8')];
+      const bytes = [...utf8(nm)];
       return vec(bytes.map(b => [b])).concat([0x00], uleb(funcIndex.get(nm)));
     }),
     ...(exportMemory
-      ? [vec([...Buffer.from(exportMemory, 'utf8')].map(b => [b])).concat([0x02], uleb(0))]
+      ? [vec([...utf8(exportMemory)].map(b => [b])).concat([0x02], uleb(0))]
       : []),
   ]);
   const codeSec = vec(fns.map(f => compile(f, funcIndex)));
