@@ -732,13 +732,14 @@ console.log('\n=== 8. AT RISK: COULD THE RUN HAVE REFUTED IT AT ALL? ===');
 
   // The annotation belongs to the REGISTRATION, which is why this reads the tool
   // rather than the manifest: a set that only fills in `at_risk` at results time is
-  // grading itself. Note honestly what this reads -- the tool AS IT STANDS. The
-  // registered block is what `git show <registered_at>:<tool>` returns, which is what
-  // the decoration audit read and what any re-audit must read; a line edited in later
-  // is visible in that history rather than invisible to it, but it is not this check
-  // that would notice. (The same is true of the completeness check in section 2, which
-  // reads current tools for the prediction ids themselves. Moving both to the
-  // registration commit is one coherent change and not a patch for this one.)
+  // grading itself. Note honestly what THIS FIRST CHECK reads -- the tool AS IT
+  // STANDS, which is enough for the question it asks (is there an annotation at all,
+  // and does it say something), because a line that exists at HEAD and not at
+  // `registered_at` is caught below and a line that exists at neither is caught here.
+  // The two drift checks underneath do read `registered_at`, through the shared
+  // recovery in `tools/at-risk.js`. (The completeness check in section 2 still reads
+  // current tools for the prediction ids themselves. Moving that one to the
+  // registration commit is a separate change and not a patch for this one.)
   //
   // The rule cannot be applied backwards -- a commit that is already history cannot
   // grow an AT RISK line -- so it binds from `AQ`, the first set that wrote them, and
@@ -792,20 +793,149 @@ console.log('\n=== 8. AT RISK: COULD THE RUN HAVE REFUTED IT AT ALL? ===');
     // it if it is useful, and make the suite fail when it drifts. The manifest keeps
     // its copy because renderers want a self-contained record; the copy is now the
     // registered line, byte for byte after whitespace normalisation.
-    const drift = [];
-    for (const s of bound) {
-      const file = path.join(ROOT, s.tool);
-      if (!fs.existsSync(file)) continue;
-      const lines = R.registrationRisk(fs.readFileSync(file, 'utf8'), s.tool.endsWith('.py'));
-      if (!lines) continue;
-      for (const p of s.predictions) {
-        const flat = t => String(t || '').replace(/^AT RISK:\s*/i, '').replace(/\s+/g, ' ').trim();
-        if (flat(p.at_risk) !== flat(lines[p.id])) drift.push(p.id);
+    //
+    // AND "REGISTERED" MEANS AT registered_at, NOT AT HEAD. This check read the
+    // WORKING TREE for every set it bound, which quietly gave away the only thing it
+    // was for.
+    // The point of binding the manifest to the registration is that the registration
+    // is fixed by a commit; compared against the tree, an editor who changes a tool's
+    // AT RISK line and changes the manifest to match passes, and the drift from what
+    // was actually registered is invisible in the one place that was supposed to see
+    // it. Section 10 states the general rule after a sweep fell into it -- A GUARD
+    // OVER REGISTRATION TEXT MUST READ EACH SET'S OWN registered_at, NEVER THE WORKING
+    // TREE -- and this was the guard still standing on the wrong side of it. The
+    // recovery is section 10's, moved into `tools/at-risk.js` so there is one of it.
+    //
+    // FAIL CLOSED. A set whose `registered_at` will not resolve is an OFFENDER, not a
+    // skip: the old loop `continue`d past a tool it could not read, so the way to
+    // silence it was to make it unreadable. `results_at` is deliberately never
+    // consulted -- it is legitimately `PENDING` for a set mid-flight (section 4 says
+    // so), and a set that has registered but not yet reported still has a registration
+    // to be held to. The binding is to `registered_at`, which is known the moment the
+    // registration lands and can never afterwards be `PENDING`.
+    const flat = t => String(t || '').replace(/^AT RISK:\s*/i, '').replace(/\s+/g, ' ').trim();
+    const clip = t => { const s = flat(t); return s.length > 80 ? `${s.slice(0, 80)}...` : s; };
+    // ONE COMPARATOR, so the synthetic control below runs through the same code the
+    // real checks run through rather than through something true of any object.
+    // `srcOf` supplies the text to be quoted FROM, `lineOf` the text doing the
+    // quoting; every row it returns is a disagreement it could name.
+    const driftAgainst = (sets, srcOf, lineOf) => {
+      const rows = [];
+      for (const s of sets) {
+        const src = srcOf(s);
+        if (typeof src !== 'string' || src === '') {
+          rows.push(`${s.id}: no source at ${s.registered_at}`); continue;
+        }
+        const reg = R.registrationRisk(src, s.tool.endsWith('.py'));
+        if (!reg) { rows.push(`${s.id}: no registration block at ${s.registered_at}`); continue; }
+        for (const p of s.predictions) {
+          const there = reg[p.id];
+          if (typeof there !== 'string') { rows.push(`${p.id}: not annotated where it was registered`); continue; }
+          const here = lineOf(s, p);
+          if (flat(here) !== flat(there)) {
+            rows.push(`${p.id}: registered "${clip(there)}" / found "${clip(here) || '(nothing)'}"`);
+          }
+        }
       }
-    }
-    check('   and the manifest quotes the registered line rather than paraphrasing it',
-      drift.length === 0, `manifest and registration differ for: ${drift.join(' ')}`);
+      return rows;
+    };
+    const registeredSrc = s => R.registeredSources(M.prediction_sets, ROOT)
+      .get(`${s.registered_at}:${s.tool}`);
+    const treeLines = new Map();
+    const treeLine = (s, p) => {
+      if (!treeLines.has(s.id)) {
+        const f = path.join(ROOT, s.tool);
+        treeLines.set(s.id, fs.existsSync(f)
+          ? R.registrationRisk(fs.readFileSync(f, 'utf8'), s.tool.endsWith('.py')) : null);
+      }
+      const l = treeLines.get(s.id);
+      return l ? l[p.id] : undefined;
+    };
 
+    const drift = driftAgainst(bound, registeredSrc, (s, p) => p.at_risk);
+    check('   and the manifest quotes the line AS REGISTERED — recovered at each set\'s '
+      + 'own `registered_at`, never read off the working tree',
+      drift.length === 0, `manifest and registration differ — ${drift.join(' | ')}`);
+
+    // THE WORKING-TREE READ IS KEPT, AS ITS OWN CHECK, BECAUSE IT NOW ASSERTS SOMETHING
+    // THE OTHER ONE CANNOT. Given the manifest quotes the registered line, comparing
+    // the manifest to the tree adds exactly one fact: that the tree still says what was
+    // registered. So it is asserted as that fact directly, tree against registration,
+    // and its failure detail names the real defect -- a registration block edited after
+    // the run it was supposed to precede, which `AGENTS.md` forbids outright -- instead
+    // of blaming the manifest for a tool someone rewrote. Same coverage, truer
+    // diagnosis. Dropping it would have lost the only check that watches for that edit.
+    //
+    // PER AT RISK LINE, NOT WHOLE BLOCK, and that restriction is load-bearing rather
+    // than lazy: `AQ`'s header was normalised from `REGISTERED PREDICTIONS` at some
+    // later commit, so a whole-block comparison fires on an edit that has already
+    // landed and cannot be un-landed. A check that forbids a state the repository is
+    // already legitimately in is T-CHECK-FORBIDS-HEALTHY-STATE, and this is where it
+    // would have bitten.
+    const edited = driftAgainst(bound, registeredSrc, treeLine);
+    check('   and no bound set\'s AT RISK line has been EDITED since it was registered — '
+      + 'the tool at HEAD against the tool at its own `registered_at`',
+      edited.length === 0, `edited after registration — ${edited.join(' | ')}`);
+
+    // TEETH ON THE REPAIR ITSELF, and specifically on the difference between the two
+    // sources -- a control that cannot separate them would leave the old check in
+    // place under a new name. The failure constructed here is the exact one the
+    // working-tree read could not see: a manifest line that MATCHES the tool as it
+    // stands and does not match the tool as it was registered. Fed to the same
+    // comparator both ways, it must fire against the registered source and stay silent
+    // against the current one -- that silence being exactly what the suite used to
+    // report, and it was demonstrated live on a clone before this landed.
+    // The three fail-closed shapes go through it too, because "cannot read it" and
+    // "read it and it agreed" must not produce the same answer.
+    check('   and that comparison FIRES on a manifest line matching the CURRENT tool '
+      + 'and not the REGISTERED one — the drift the working-tree read could not see — '
+      + 'and fails closed on a source it cannot recover',
+      (() => {
+        const mk = body => [' * PREDICTED OUTCOMES', ' *', ' *   ZZ1  a claim.',
+          ` *        AT RISK: ${body}`, ' */'].join('\n');
+        const WAS = 'this comes out the other way if any leaf count in [2, 8192] '
+          + 'factorises into three levels more cheaply than into two.';
+        const NOW = 'this comes out the other way if the moon is made of cheese, which '
+          + 'is an annotation nobody ever registered and the tree now carries.';
+        const set = {
+          id: 'ZZ', tool: 'tools/zz-audit.js', registered_at: 'deadbee',
+          results_at: 'PENDING', predictions: [{ id: 'ZZ1', at_risk: `AT RISK: ${NOW}` }],
+        };
+        const m = (src, s = set) => driftAgainst([s], () => src, (_s, p) => p.at_risk);
+        const honest = { ...set, predictions: [{ id: 'ZZ1', at_risk: `AT RISK: ${WAS}` }] };
+        return m(mk(WAS)).length === 1                     // against the registration: caught
+          && /registered "this comes out/.test(m(mk(WAS))[0])   // and it says which text is which
+          && m(mk(NOW)).length === 0                       // against the tree: invisible
+          && m(mk(WAS), honest).length === 0               // a manifest that does quote it
+          && m(null).length === 1                          // unrecoverable is not a pass
+          && m('a tool carrying no registration at all').length === 1
+          && m([' * PREDICTED OUTCOMES', ' *', ' *   ZZ1  a claim, unannotated.',
+            ' */'].join('\n')).length === 1;               // registered without an AT RISK line
+      })());
+    // The decision about `PENDING` said out loud rather than left to be inferred from
+    // which field the code happens to read. A set that has registered and not yet
+    // reported is exactly the set most able to quietly edit its own registration, so
+    // exempting it would put the hole where it is cheapest to use.
+    check('   and a set whose `results_at` is still PENDING is compared anyway — the '
+      + 'binding is to `registered_at`, and a set mid-flight is not exempt from quoting '
+      + 'its own registration',
+      (() => {
+        const mid = {
+          id: 'ZZ', tool: 'tools/zz-audit.js', registered_at: 'deadbee',
+          results_at: 'PENDING',
+          predictions: [{ id: 'ZZ1', at_risk: 'AT RISK: a paraphrase of the registered line.' }],
+        };
+        const src = [' * PREDICTED OUTCOMES', ' *', ' *   ZZ1  a claim.',
+          ' *        AT RISK: the registered line itself, which the manifest above does '
+          + 'not quote.', ' */'].join('\n');
+        return driftAgainst([mid], () => src, (_s, p) => p.at_risk).length === 1;
+      })());
+    // AND THE NEGATIVE CONTROL IS THE REAL CORPUS, with real traffic under it: the two
+    // checks above run this same comparator over every bound set against both sources
+    // and report nothing, which is what says the discriminator separates drift from
+    // agreement rather than flagging everything it reads. That control is those two
+    // checks passing -- restating it as a third assertion would add a line that can
+    // only ever fail with them, which reads as coverage and is none.
     check('   and both halves of that would be caught, on a real registered line and a '
       + 'hollow one',
       (() => {
@@ -1108,27 +1238,17 @@ console.log('\n=== 10. AN INSTRUMENT THAT READS HISTORY ===');
 // HAVE MATCHED, set by set, rather than reporting over whatever it happened to find.
 {
   const HEADERS = ['PREDICTED OUTCOMES', 'REGISTERED PREDICTIONS'];
-  // ONE SPAWN, NOT FORTY-SEVEN. `git show` costs about three quarters of a second per
-  // call on this host, so the obvious loop puts half a minute into a check that answers
-  // in two seconds through `cat-file --batch`. T-SEARCH-WHERE-A-CHECK-WOULD-DO, and the
-  // suite's own rule that the most expensive sweep gets a cap. Validated against the
-  // slow path before it replaced it: byte-identical on a five-set sample.
-  const specs = M.prediction_sets.map(s => `${s.registered_at}:${s.tool}`);
-  const srcs = new Map();
-  {
-    const out = execFileSync('git', ['cat-file', '--batch'],
-      { cwd: ROOT, input: specs.join('\n') + '\n', maxBuffer: 1 << 28 });
-    let i = 0;
-    for (const spec of specs) {
-      const nl = out.indexOf(10, i);
-      if (nl === -1) { srcs.set(spec, null); continue; }
-      const parts = out.slice(i, nl).toString('utf8').split(' ');
-      if (parts.length < 3 || parts[1] === 'missing') { srcs.set(spec, null); i = nl + 1; continue; }
-      const size = Number(parts[2]);
-      srcs.set(spec, out.slice(nl + 1, nl + 1 + size).toString('utf8'));
-      i = nl + 1 + size + 1;                    // contents, then the trailing newline
-    }
-  }
+  // THE RECOVERY MOVED INTO THE INSTRUMENT, for the reason this section already gives
+  // about the vocabulary: it was this section's private knowledge, and section 8's
+  // drift check -- which is a guard over registration text and therefore bound by the
+  // rule stated above -- read the working tree instead. One spawn and one recovery for
+  // both, memoised on the spec list, so the two cannot disagree about what "the
+  // registration" is. The batch parse itself is unchanged; it was validated against
+  // the slow `git show` path when it was written, byte-identical on a five-set sample.
+  // `AR` is required here rather than reached for -- the module is memoised, and a
+  // second binding of the same module is not a second parser.
+  const AR = require('../tools/at-risk.js');
+  const srcs = AR.registeredSources(M.prediction_sets, ROOT);
   const rows = M.prediction_sets.map(s => [s.id, srcs.get(`${s.registered_at}:${s.tool}`)]);
   const matched = rows.filter(([, src]) => src && HEADERS.some(h => src.includes(h)));
   const legacy = matched.filter(([, src]) => !src.includes(HEADERS[0])).map(([id]) => id);
@@ -1161,10 +1281,6 @@ console.log('\n=== 10. AN INSTRUMENT THAT READS HISTORY ===');
   // have fallen into it silently, because no check reads a caller's assumptions. A
   // workaround in the checker is not a fix in the instrument. These three assert the
   // instrument, not this section's private copy of the knowledge.
-  // `R` is block-scoped where the vocabulary is first used, so it is required here
-  // rather than reached for -- the module is memoised, and a second binding of the same
-  // module is not a second parser.
-  const AR = require('../tools/at-risk.js');
   check(`   and the SHARED parser recovers a block at registered_at for all `
     + `${M.prediction_sets.length} sets, so a caller outside this file cannot fall in`,
     rows.every(([, src]) => src && AR.registrationRisk(src, false) !== null),
