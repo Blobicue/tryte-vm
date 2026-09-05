@@ -83,6 +83,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const MAIN = require.main === module;
@@ -90,10 +91,56 @@ const log = (...a) => { if (MAIN) console.log(...a); };
 
 const { routesFor } = require('./render-slate.js');
 
-/** Where the siblings are. Read-only, and nothing below ever opens them for writing. */
+/**
+ * The repository's MAIN working tree, which is not always the checkout this file sits
+ * in. `null` when git cannot say, and the only caller then keeps the old answer.
+ *
+ * Ask git rather than counting `..`s. `--git-common-dir` names the SHARED `.git` -- the
+ * same directory whether it is asked from the main checkout or from a linked worktree,
+ * which is exactly the property `__dirname` does not have -- and the directory holding
+ * it is the main working tree.
+ */
+function mainWorktree(from) {
+  let common;
+  try {
+    common = execFileSync('git', ['rev-parse', '--path-format=absolute', '--git-common-dir'],
+      { cwd: from, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  } catch (e) {
+    // No git on PATH, no repository here, or a git too old for `--path-format`. All
+    // three mean the same thing to the caller: this question has no answer today.
+    return null;
+  }
+  if (!common) return null;
+  // `dirname` is a working tree only when the common dir is a `.git` INSIDE one. A bare
+  // main repository (`/x/repo.git`) and a submodule (`/super/.git/modules/<name>`) both
+  // put it somewhere that is not, and naming a directory two levels off the mark is
+  // worse than declining -- the fallback below is at least a behaviour someone tested.
+  return path.basename(common) === '.git' ? path.dirname(path.resolve(common)) : null;
+}
+
+const MAIN_WORKTREE = mainWorktree(ROOT) || ROOT;
+
+/**
+ * Where the siblings are. Read-only, and nothing below ever opens them for writing.
+ *
+ * Beside the MAIN working tree, and the distinction is not pedantry. This read
+ * `ROOT/..`, which is the same directory only when this checkout IS the main one.
+ * Inside a linked worktree `ROOT` is `<repo>/.claude/worktrees/<name>`, so `ROOT/..` is
+ * the directory holding the other worktrees; no siblings live there, the federation
+ * read nothing, and section 7 of `test/test-slate-query.js` went red. A red suite stops
+ * `test/run-all.js --write` stamping the check count -- so a constant that looks local
+ * to this file blocked the ordinary end-of-work step for every agent in a worktree.
+ *
+ * Hence git, rather than a pattern match on the worktree directory's name: the next
+ * isolation scheme will put it somewhere else, and git will still know where it is.
+ *
+ * WHAT DELIBERATELY DOES NOT MOVE: the write destination in `run()`, which stays under
+ * `ROOT`. Reads reach outward to the main tree's neighbours; writes never leave the
+ * checkout they were launched from, so `--write` in a worktree writes to the worktree.
+ */
 const SIBLINGS = {
-  ladderlang: path.join(ROOT, '..', 'ladderlang'),
-  bitblock: path.join(ROOT, '..', 'bitblock'),
+  ladderlang: path.join(MAIN_WORKTREE, '..', 'ladderlang'),
+  bitblock: path.join(MAIN_WORKTREE, '..', 'bitblock'),
 };
 
 /** Longest prose kept on any one entry. Long enough to be a claim, short enough to index. */
@@ -481,4 +528,4 @@ if (MAIN) {
   process.exit(0);
 }
 
-module.exports = { build, run, entry, squash, SIBLINGS, PROSE_CAP, ladderClaims, ladderLedger, ladderWorklog, bitblockSchemas };
+module.exports = { build, run, entry, squash, SIBLINGS, MAIN_WORKTREE, mainWorktree, PROSE_CAP, ladderClaims, ladderLedger, ladderWorklog, bitblockSchemas };

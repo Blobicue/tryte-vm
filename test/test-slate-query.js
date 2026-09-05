@@ -88,6 +88,30 @@
  * and a mutation that does not mutate proves nothing about the checks that survived it.
  *
  * ---------------------------------------------------------------------------
+ * WHERE THE SIBLINGS ARE LOOKED FOR IS ITSELF CHECKED
+ *
+ * `slate-federate.js` resolved them as `<this checkout>/..`, which is right only in the
+ * main checkout. Inside a linked worktree that names the directory holding the other
+ * worktrees, so every check in section 7 went red -- and a red suite stops
+ * `test/run-all.js --write` stamping the check count, which is the step this repository
+ * requires before any commit. One wrong constant, and no agent working in a worktree
+ * could finish. Section 7 now pins the resolution against a SECOND reading of the same
+ * fact (`git worktree list --porcelain`, whose first entry is the main working tree)
+ * rather than against a literal path, and pins the half that must not move with it:
+ * reads reach outward to the main tree's neighbours, writes stay in this checkout.
+ *
+ * Mutated by making that derivation return `null`, which restores the pre-fix behaviour
+ * exactly. RED: 2 in a worktree -- the beside-THAT check, printing the worktree and the
+ * main tree side by side, and the reachability check, which is the original defect. In
+ * the main checkout the SAME mutation is invisible: all 103 pass, because there the two
+ * answers coincide and always did.
+ *
+ * That asymmetry is the whole shape of the defect and the reason it survived: the bad
+ * constant cannot be observed from the place the suite is usually run. It is also why
+ * the new check is worth its line despite looking tautological from the main checkout --
+ * the environment that can falsify it is the one nobody was running in.
+ *
+ * ---------------------------------------------------------------------------
  * WHAT THIS SUITE CANNOT SEE, so the silence is not read as coverage:
  *
  * - RELEVANCE. It checks that named entries surface for named questions. It cannot
@@ -486,6 +510,31 @@ function spawn(args) {
 }
 
 console.log('\n=== 7. THE FEDERATION — TWO SIBLINGS, READ ONLY ===');
+
+// WHERE it looks for them is derived from git, not from this checkout's depth, and the
+// derivation is checked against a SECOND reading of the same fact rather than against a
+// literal path: `git worktree list --porcelain` lists the main working tree first, by
+// definition. Both readings come from git and neither comes from `__dirname`, which is
+// the point -- `__dirname/..` is the repository root only in the main checkout.
+let mainFromList = null;
+try {
+  const porcelain = execFileSync('git', ['worktree', 'list', '--porcelain'],
+    { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  const first = /^worktree (.+)$/m.exec(porcelain);
+  if (first) mainFromList = path.resolve(first[1].trim());
+} catch (e) { mainFromList = null; }
+check('git names a main working tree for this checkout',
+  mainFromList !== null, 'git worktree list said nothing');
+check('   and the federation looks for siblings beside THAT, not beside this checkout',
+  mainFromList !== null && path.resolve(F.MAIN_WORKTREE) === mainFromList,
+  `${F.MAIN_WORKTREE} vs ${mainFromList}`);
+// The other half, which had to NOT change: reads reach outward to the main tree's
+// neighbours, writes stay in the checkout they were launched from. In the main checkout
+// those are the same directory and this check is free; in a worktree they are not, and
+// it is the difference between writing here and writing into somebody else's tree.
+const dest = path.resolve(F.run(false).out);
+check('   while the file it writes stays inside THIS checkout',
+  dest.startsWith(path.resolve(ROOT) + path.sep), dest);
 
 const haveSiblings = Object.entries(F.SIBLINGS).filter(([, p]) => fs.existsSync(p));
 check(`the sibling corpora are reachable (${haveSiblings.map(([k]) => k).join(', ') || 'none'})`,
