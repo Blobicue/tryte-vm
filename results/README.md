@@ -97,11 +97,11 @@ anything.
 
 | | |
 |---|---|
-<!--g:results-table-->| prediction sets | 49 |
-| registered predictions | 205 — **161 held, 44 failed** |
-| of those, genuinely at risk | 173 — 129 held, 44 failed |
+<!--g:results-table-->| prediction sets | 50 |
+| registered predictions | 209 — **165 held, 44 failed** |
+| of those, genuinely at risk | 177 — 133 held, 44 failed |
 | never at risk | 25 decorative, 7 uncalled |
-| failure rate | **25.4%** of what was at risk; 21.5% of all registered |
+| failure rate | **24.9%** of what was at risk; 21.1% of all registered |
 | measured but never registered | 72 |
 | defect classes | 19, recurring 71 times |<!--/g-->
 

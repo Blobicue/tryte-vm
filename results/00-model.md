@@ -220,14 +220,86 @@ sets disclosed as sampled is now swept — both six-trit adders at both non-zero
 carry-ins, all three restore variants, and the ten-bit binary adder — with zero
 wrong sums, zero wrong overflow trits and zero pairs off their recorded pass count.
 
+### 8. And inside that instrument, where the time actually goes
+
+`AV` priced the solver from the outside. `AX` opens it. One pass of the WebAssembly
+solver is three sequential loops with three different trip counts — conduction once per
+device, the reachability walks twice per rail, and the per-node update once per node —
+and nothing had ever measured which of them holds the time. Conduction had never been
+named as a cost at all.
+
+**The ablation `AV` used does not transfer, and that is the whole design problem.**
+Removing a phase corrupts the input of the next: ablate conduction and the walks
+traverse a stale graph, ablate the walks and the update loop takes different branches.
+A subtractive decomposition would measure each phase against a perturbed neighbour and
+report the perturbation as the phase. So this one is **additive**. Four modules are
+emitted from one intermediate representation by substituting a single function — the
+whole pass, conduction alone, the walks alone, the update alone — the early exit is
+removed from every one of them *including* the whole, and each is seeded to the same
+state captured after a full solve of one operand pair and then run for a fixed pass
+count over that fixed state.
+
+**That state is a fixed point of all four variants**, which is checked and not assumed,
+and it is what makes the construction work: over a full settling count not one byte of
+linear memory moves, so every pass does identical work and no phase is ever timed
+against a neighbour something else has disturbed.
+
+| | registered | measured |
+|---|---|---|
+| `AX1` the reachability walk is the majority | 0.55 to 0.80 of the whole | 0.6167 |
+| `AX2` conduction is not negligible | at least 0.10 | 0.1131 |
+| `AX3` the split belongs to the algorithm, not the network | each share within 0.10 | widest 0.0359 |
+| `AX4` and the parts sum to the whole | within 0.15 | 1.0175 |
+
+**The gate came first here too.** The whole pass, with its early exit restored, is
+byte-for-byte the module `AV` proved, and it was held against `src/device.js` again on
+this branch before any clock was read — the same 128 networks and 313,697 node values,
+zero divergences.
+
+**The harder question was whether the ablated modules had actually stopped.** Three of
+the four compute a wrong answer by construction, so no gate can hold them against
+anything, and *each part is faster than the whole* is a timing inequality offered as
+evidence about timing. Two independent demonstrations answer it. The emitted bytes
+satisfy an exact identity — the whole pass's function body is the empty variant's
+prologue, then conduction's bytes, then the walks', then the update's, then the empty
+variant's scaffolding, and the shipped function is that same run with the early exit
+spliced in — so each variant carries exactly its own slice, encoded the way that slice
+is encoded inside the whole. And a **write probe** fills one state region with a byte
+that is neither a state code nor a conduction code, runs the variant, and reads back
+what survived: a region a variant must not touch comes back byte-for-byte poisoned, and
+a region it does write comes back *restored* to what the full solve produced. It is
+checked against a mutant that did not stop, and it catches it.
+
+**`AX3` is what makes `AX1` worth quoting anywhere else.** The two networks were chosen
+to differ in the way that would break it — the decoded adder runs 540 devices over 208
+nodes against 624 over 328, so proportionally more conduction per node and fewer node
+updates per device — and the three shares move in the direction that shape predicts and
+nothing like as far as the line. Their settling counts differ as well, so the split is
+not a property of running seven passes.
+
+**And the instrument came nearer to deciding this than the subject did.** The number of
+passes in a timed run is a free parameter, and at a fifth of the one used here, one run
+in five put the walk at 0.5474 — under `AX1`'s floor, on the same machine, from the same
+state, with the same modules. Doubling the block moves the three shares by at most
+0.0451 on any of the five runs, so the block length changes the *variance* and not the
+value, and lengthening it is an estimator improvement rather than a thumb on the scale.
+It is disclosed anyway, with the short-block runs kept beside the long ones, because
+the choice was made after seeing that a short block could flip a verdict. `AX2`'s margin over its floor and the
+spread between runs are the same order, so it should be read as a range and not as the
+digit after it.
+
+**What this does not say** is what any of it implies for a solver that slices across
+operand pairs. That is arithmetic over `AX1`, and it belongs to whatever set proposes
+one.
+
 ---
 
 ## How it was established
 
 | | |
 |---|---|
-| tools | [`device-audit.js`](../tools/device-audit.js), [`axiom-audit.js`](../tools/axiom-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`solver-audit.js`](../tools/solver-audit.js), [`carryin-audit.js`](../tools/carryin-audit.js) |
-| tests | `test-device.js`, `test-axioms.js`, `test-midrail.js`, `test-solver.js`, `test-carryin.js` |
+| tools | [`device-audit.js`](../tools/device-audit.js), [`axiom-audit.js`](../tools/axiom-audit.js), [`midrail-audit.js`](../tools/midrail-audit.js), [`solver-audit.js`](../tools/solver-audit.js), [`carryin-audit.js`](../tools/carryin-audit.js), [`phases-audit.js`](../tools/phases-audit.js) |
+| tests | `test-device.js`, `test-axioms.js`, `test-midrail.js`, `test-solver.js`, `test-carryin.js`, `test-phases.js` |
 | method | axioms are checked by **breaking them** and observing what stops working, not by restating them |
 
 `test-device.js` also carries a deliberately naive second solver and holds the two
@@ -264,6 +336,13 @@ Beyond those:
   instrument that has not been held against the oracle produces facts about the
   instrument. `AW` re-ran that gate on its own branch before reading a single count,
   and on the module it actually swept with rather than only on the stock one.
+- **`AX`'s shares are shares of a pass over a CONVERGED state, on two networks.** The
+  state is fixed by the construction and is the one the registration named, but at
+  convergence no device on either network is unknown, so the definite and possible
+  walks traverse identical edges. A decomposition seeded mid-solve is a different
+  measurement and nobody has made it. And two networks are two networks: both are
+  ripple adders, and `T-CLAIM-NARROWED-BY-A-DESIGN` has bitten twice for exactly the
+  step from *the two things I swept* to *the algorithm*.
 
 ---
 
@@ -276,5 +355,6 @@ Beyond those:
 | `Z` | the two limits every switch count is quoted under | 4 held, `Z2` failed |
 | `AV` | what the packed representation buys the solver, and what WebAssembly buys on top | 1 held, `AV1`, `AV2` and `AV3` failed |
 | `AW` | whether the pass-count rule survives a non-zero carry-in, where `F` said the bottom position can save | all four failed |
+| `AX` | where the WebAssembly solver spends a pass, decomposed into its three phases | all four held |
 
 Full text in [`99-ledger.md`](99-ledger.md).

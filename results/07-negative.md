@@ -283,7 +283,7 @@ out than the finding is to publish.*
 
 ### Part three — checks that failed for the right reason in the wrong place
 
-Two more, distinct from both lists above, because the code was working as written and
+More, distinct from both lists above, because the code was working as written and
 the *specification* was wrong:
 
 - **A check encoding "we are early."** The design suite required `PROPOSED` to be the
@@ -320,6 +320,20 @@ the *specification* was wrong:
   the number of prediction sets. They are equal only *between* phases — during a
   registration there is deliberately one more tool than there are results. **The check
   was failing on the protocol working.** (`T-CHECK-FORBIDS-HEALTHY-STATE`, 2)
+- **A verdict that turned on how long the clock ran.** `AX` decomposes a solver pass by
+  timing four modules over a fixed number of passes, and that number is a parameter of
+  the instrument rather than of the question. At a fifth of the length finally used, one
+  run in five put the reachability walk at 0.5474 — below `AX1`'s registered floor of
+  0.55 — while every run at the full length lands inside the band. **The same world,
+  returning both verdicts, decided by an instrument setting nobody had registered.** It
+  is here rather than in the failure list because it was caught in the forward
+  direction, before a verdict was written: the shares are provably independent of the
+  block length and only their variance is not, so lengthening it improves the estimator
+  without moving the estimand — but the choice was made *after* seeing the short block
+  straddle a line, so both sets of runs are on the record and the manifest says which
+  came first. (`T-CRITERION-IN-THE-NOISE`, whose earlier bites — `H1`, `AV3`, and the
+  hour asserted in `test-headroom` listed above — are all the same shape: a wall clock
+  on a shared host, asked for a verdict.)
 
 ---
 
