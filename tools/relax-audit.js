@@ -154,6 +154,67 @@ const PASS_BLOCK = 20000;
 const REPS = 6;                    // five kept, the first discarded as warm-up
 const STATES = 64;                 // converged states, strided through AV's order
 
+const NP = require('../src/netpack.js');
+const ON = 0 + 1, OFF = 0;         // netpack's conduction codes; the third is UNKNOWN
+
+/* ========================================================== THE REFERENCE
+ *
+ * Frontier relaxation over the packed form, in plain JavaScript, computing the same
+ * reachable set as `NP.reach` computes by walking a stack.
+ *
+ * IT IS HERE TO BE AN ORACLE, NOT TO BE TIMED. `AY1` prices the traversal change in
+ * WEBASSEMBLY, and nothing below times this function. It exists because the emitter's
+ * own docstring warns that a type or arity mistake surfaces as a validation error far
+ * from its cause, and porting an algorithm into that IR without a correct reference to
+ * differ against is how two attempts at this set were spent. Write the answer down in
+ * a language that can be debugged, prove it equals the walk, and then the wasm either
+ * matches this or is wrong in a way that can be located.
+ *
+ * TWO RULES CARRIED OVER FROM THE WALK, both easy to lose and both load-bearing:
+ *
+ *   `definite` accepts only a conducting device; `possible` accepts anything not
+ *   known to be off. Collapsing those two gives a solver that agrees with the oracle
+ *   on most networks and quietly disagrees wherever a gate is undetermined.
+ *
+ *   A DRIVEN NODE TAKES THE BIT AND DOES NOT PASS IT ON -- axiom `N2`, sources are
+ *   terminals, which the walk enforces by not pushing them. The SEED rail is the
+ *   exception: the walk pushes it unconditionally, so it propagates outward even
+ *   though it is itself driven. A relaxation that treats the seed like any other
+ *   driven node computes nothing; one that lets every driven node propagate lets a
+ *   path run THROUGH a rail, which is the bug `src/device.js` records having had, and
+ *   which makes correct circuits resolve to X.
+ *
+ * Returns the number of sweeps taken, the last of which changed nothing.
+ */
+function relaxReach(P, railIdx, bits, definite) {
+  const { adjStart, adjNode, adjDev, cond, driven, words, nodeCount } = P;
+  const base = railIdx * words;
+  for (let w = 0; w < words; w++) bits[base + w] = 0;
+  const start = P.railId[railIdx];
+  bits[base + (start >>> 5)] |= (1 << (start & 31));
+
+  let sweeps = 0, changed = true;
+  while (changed) {
+    changed = false;
+    sweeps++;
+    for (let at = 0; at < nodeCount; at++) {
+      if (at !== start && driven[at]) continue;
+      if (!(bits[base + (at >>> 5)] & (1 << (at & 31)))) continue;
+      const end = adjStart[at + 1];
+      for (let e = adjStart[at]; e < end; e++) {
+        const c = cond[adjDev[e]];
+        if (definite ? c !== ON : c === OFF) continue;
+        const other = adjNode[e];
+        const w = base + (other >>> 5), bit = 1 << (other & 31);
+        if (bits[w] & bit) continue;
+        bits[w] |= bit;
+        changed = true;
+      }
+    }
+  }
+  return sweeps;
+}
+
 // ---------------------------------------------------------------- the measurement
 
 function report() {
@@ -192,4 +253,4 @@ function report() {
 
 if (MAIN) report();
 
-module.exports = { report, PASS_BLOCK, REPS, STATES };
+module.exports = { report, relaxReach, PASS_BLOCK, REPS, STATES };
