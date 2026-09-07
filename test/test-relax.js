@@ -172,6 +172,90 @@ console.log('\n=== 4. AY4  frontier depth, and whether it varies ===');
   check('AY4 ...', false, 'not yet measured');
 }
 
-console.log(`\n${'='.repeat(64)}`);
-console.log(fails.length ? `${fails.length} CHECK(S) FAILED:\n  ${fails.join('\n  ')}` : `ALL ${pass} CHECKS PASSED`);
-process.exit(fails.length ? 1 : 0);
+/* R2f is a WebAssembly module and `WebAssembly.instantiate` is a promise, so the part
+ * of this suite that touches it is one async function. Everything above is synchronous
+ * and has already run by the time this is called. */
+async function wasmSection() {
+  console.log('\n=== 0b. R2f: THE SAME RELAXATION, IN THE MODULE ===');
+  const SW = require('../src/solver-wasm.js');
+  const D = require('../src/device.js');
+  const NP = require('../src/netpack.js');
+  const T = require('../src/ternary.js');
+  const spread = (nm, v) =>
+    Object.fromEntries(T.toTrits(v, 6).map((t, i) => [`${nm}${i}`, t]));
+  const packFor = kind => {
+    const net = new D.Net();
+    if (kind === 'tree') D.tRippleAdder(net, 6, false); else D.dRippleAdder(net, 6);
+    const names = [];
+    for (let i = 0; i < 6; i++) names.push(`a${i}`);
+    for (let i = 0; i < 6; i++) names.push(`b${i}`);
+    names.push('cin');
+    return NP.pack(net, names);
+  };
+
+  check('R2f emits and validates as a module', (() => {
+    const bytes = SW.moduleBytes(A.RELAX_FUNCS);
+    return bytes.length > 0 && WebAssembly.validate(bytes);
+  })());
+  // THE SUBSTITUTION IS THE ONLY CHANGE. Everything but `reach` is AV's, and the stock
+  // emission is still exactly what AV timed -- test-solver.js pins that length, so a
+  // module edited rather than appended to would go red over there instead of here.
+  check('   and it is AV\'s module with one function swapped, not a rebuilt one',
+    A.RELAX_FUNCS.length === SW.FUNCS.length
+    && A.RELAX_FUNCS.slice(1).every((f, i) => f === SW.FUNCS[i + 1])
+    && A.RELAX_FUNCS[0] !== SW.FUNCS[0]
+    && A.RELAX_FUNCS[0].name === 'reach'
+    && A.RELAX_FUNCS[0].params.length === SW.FUNCS[0].params.length);
+  check('   and the stock module is untouched at the length AV timed',
+    SW.moduleBytes().length === 1386);
+
+  // THE DIFFERENTIAL, AND IT IS RUN AGAINST THE JS REFERENCE FIRST ON PURPOSE. A
+  // disagreement with `relaxReach` localises to a line of IR; a disagreement three
+  // layers up, with the oracle, does not. Both are checked, per rail, in both modes,
+  // over mid-solve states as well as converged ones.
+  const EXPORTS = ['solve', 'sweep', 'seedCodes', 'reach'];
+  const r2f = await SW.makeR2({ fns: A.RELAX_FUNCS, exports: EXPORTS });
+  let compared = 0, vsRef = 0, vsWalk = 0, unknown = false;
+  for (const kind of ['tree', 'decoded']) {
+    const P = packFor(kind);
+    const rails = P.railId.length;
+    const jsRelax = new Uint32Array(rails * P.words);
+    const jsWalk = new Uint32Array(rails * P.words);
+    for (let s = 0; s < 8; s++) {
+      const idx = s * 4096;
+      const a = T.TRYTE_MIN + (idx % 729);
+      const b = T.TRYTE_MIN + Math.floor(idx / 729) % 729;
+      const inputs = { ...spread('a', a), ...spread('b', b), cin: 0 };
+      try { NP.solveNamed(P, inputs, 1 + (s % 5)); } catch (e) { /* mid-solve: the point */ }
+      for (let i = 0; i < P.cond.length; i++) if (P.cond[i] === NP.UNKNOWN) unknown = true;
+      for (let r = 0; r < rails; r++) {
+        for (const definite of [true, false]) {
+          NP.reach(P, r, jsWalk, definite);
+          A.relaxReach(P, r, jsRelax, definite);
+          const L = r2f.layoutOf(P);
+          const u8 = new Uint8Array(r2f.memory().buffer);
+          u8.set(P.value.subarray(0, P.nodeCount), L.value);
+          u8.set(P.cond.subarray(0, P.cond.length), L.cond);
+          r2f.exports.reach(r, L.reachDef, definite ? 1 : 0);
+          const got = new Uint32Array(r2f.memory().buffer,
+            L.reachDef + r * P.words * 4, P.words);
+          compared++;
+          for (let w = 0; w < P.words; w++) if (got[w] !== jsRelax[r * P.words + w]) { vsRef++; break; }
+          for (let w = 0; w < P.words; w++) if (got[w] !== jsWalk[r * P.words + w]) { vsWalk++; break; }
+        }
+      }
+    }
+  }
+  check(`R2f's reach matches the JS reference over ${compared} rail-mode-state comparisons`,
+    vsRef === 0, `${vsRef} differ`);
+  check('   and matches the walk it replaces, which is the claim that matters',
+    vsWalk === 0, `${vsWalk} differ`);
+  check('   over states that include an undetermined device, so the two modes differ',
+    unknown);
+}
+
+wasmSection().then(() => {
+  console.log(`\n${'='.repeat(64)}`);
+  console.log(fails.length ? `${fails.length} CHECK(S) FAILED:\n  ${fails.join('\n  ')}` : `ALL ${pass} CHECKS PASSED`);
+  process.exit(fails.length ? 1 : 0);
+}).catch(e => { console.error(e); process.exit(1); });

@@ -253,4 +253,96 @@ function report() {
 
 if (MAIN) report();
 
-module.exports = { report, relaxReach, PASS_BLOCK, REPS, STATES };
+/* ====================================================== R2f's REACH, IN THE IR
+ *
+ * `relaxReach` above, expressed in the emitter's statement and expression layer, so
+ * that substituting it into `FUNCS` yields R2f: R2 with the walk replaced and nothing
+ * else touched. It takes `reach`'s NAME and ARITY, because `solveFn` calls it by name
+ * three rails at a time and that call site is one of the things this set must not
+ * change.
+ *
+ * SIMPLER THAN THE FUNCTION IT REPLACES, which is worth saying because the emitter's
+ * docstring makes writing anything in this IR sound forbidding: relaxation needs no
+ * stack, so there is no push, no pop and no stack pointer. It is a `changed` flag
+ * around a scan over nodes around a scan over each node's adjacency slice.
+ *
+ * THE IR HAS NO `continue`, so the two guards `relaxReach` writes as early exits --
+ * the node must be the seed or undriven, and must already hold the bit -- become one
+ * `ifThen` wrapping the whole body. That is the only structural difference between the
+ * two, and it is why they are worth differing against each other rather than eyeballing.
+ */
+const W = require('../src/wasm-emit.js');
+const SW = require('../src/solver-wasm.js');
+
+const hdr = nm => W.load32(W.konst(SW.FIELD[nm]));
+const at4 = (base, i) => W.add(W.get(base), W.shl(i, W.konst(2)));
+const at1 = (base, i) => W.add(W.get(base), i);
+/** The word holding node `n`'s bit, and the bit itself. */
+const wordOf = n => W.add(W.get('base'), W.shl(W.shrU(n, W.konst(5)), W.konst(2)));
+const bitOf = n => W.shl(W.konst(1), W.and(n, W.konst(31)));
+
+const relaxFn = W.fn('reach', {
+  params: ['rail', 'bitsPtr', 'definite'],
+  locals: ['words', 'base', 'start', 'w', 'at', 'e', 'endE', 'c', 'acc', 'other',
+    'wp', 'bit', 'cur', 'changed', 'nodeCount',
+    'adjStartP', 'adjNodeP', 'adjDevP', 'condP', 'drivenP', 'railIdP'],
+  body: [
+    W.set('words', hdr('words')),
+    W.set('nodeCount', hdr('nodeCount')),
+    W.set('base', W.add(W.get('bitsPtr'),
+      W.shl(W.mul(W.get('rail'), W.get('words')), W.konst(2)))),
+    ...W.forUpTo('w', W.konst(0), W.get('words'),
+      [W.store32(at4('base', W.get('w')), W.konst(0))]),
+    W.set('railIdP', hdr('railId')),
+    W.set('start', W.load32(at4('railIdP', W.get('rail')))),
+    W.set('wp', wordOf(W.get('start'))),
+    W.store32(W.get('wp'), W.or(W.load32(W.get('wp')), bitOf(W.get('start')))),
+    W.set('adjStartP', hdr('adjStart')),
+    W.set('adjNodeP', hdr('adjNode')),
+    W.set('adjDevP', hdr('adjDev')),
+    W.set('condP', hdr('cond')),
+    W.set('drivenP', hdr('driven')),
+    W.set('changed', W.konst(1)),
+    W.whileLoop(W.ne(W.get('changed'), W.konst(0)), [
+      W.set('changed', W.konst(0)),
+      ...W.forUpTo('at', W.konst(0), W.get('nodeCount'), [
+        // The seed rail propagates though it is driven; every other driven node takes
+        // the bit and stops (N2). And a node with no bit has nothing to pass on.
+        W.ifThen(
+          W.and(
+            W.or(W.eq(W.get('at'), W.get('start')),
+              W.eqz(W.load8u(at1('drivenP', W.get('at'))))),
+            W.ne(W.and(W.load32(wordOf(W.get('at'))), bitOf(W.get('at'))), W.konst(0))),
+          [
+            W.set('e', W.load32(at4('adjStartP', W.get('at')))),
+            W.set('endE', W.load32(at4('adjStartP', W.add(W.get('at'), W.konst(1))))),
+            W.whileLoop(W.ltS(W.get('e'), W.get('endE')), [
+              W.set('c', W.load8u(at1('condP', W.load32(at4('adjDevP', W.get('e')))))),
+              // definite: the edge conducts. possible: it is not known NOT to conduct.
+              W.ifElse(W.ne(W.get('definite'), W.konst(0)),
+                [W.set('acc', W.eq(W.get('c'), W.konst(1)))],
+                [W.set('acc', W.ne(W.get('c'), W.konst(0)))]),
+              W.ifThen(W.get('acc'), [
+                W.set('other', W.load32(at4('adjNodeP', W.get('e')))),
+                W.set('wp', wordOf(W.get('other'))),
+                W.set('bit', bitOf(W.get('other'))),
+                W.set('cur', W.load32(W.get('wp'))),
+                W.ifThen(W.eq(W.and(W.get('cur'), W.get('bit')), W.konst(0)), [
+                  W.store32(W.get('wp'), W.or(W.get('cur'), W.get('bit'))),
+                  W.set('changed', W.konst(1)),
+                ]),
+              ]),
+              W.set('e', W.add(W.get('e'), W.konst(1))),
+            ]),
+          ]),
+      ]),
+    ]),
+  ],
+});
+
+/** R2f's function list: `AV`'s four with the walk swapped for relaxation. */
+const RELAX_FUNCS = [relaxFn, ...SW.FUNCS.slice(1)];
+
+module.exports = {
+  report, relaxReach, relaxFn, RELAX_FUNCS, PASS_BLOCK, REPS, STATES,
+};
