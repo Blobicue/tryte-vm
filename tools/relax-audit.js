@@ -217,9 +217,126 @@ function relaxReach(P, railIdx, bits, definite) {
 
 // ---------------------------------------------------------------- the measurement
 
-function report() {
+const D = require('../src/device.js');
+const T = require('../src/ternary.js');
+const os = require('os');
+
+const spread = (nm, v) =>
+  Object.fromEntries(T.toTrits(v, 6).map((t, i) => [`${nm}${i}`, t]));
+
+function packFor(kind) {
+  const net = new D.Net();
+  if (kind === 'tree') D.tRippleAdder(net, 6, false); else D.dRippleAdder(net, 6);
+  const names = [];
+  for (let i = 0; i < 6; i++) names.push(`a${i}`);
+  for (let i = 0; i < 6; i++) names.push(`b${i}`);
+  names.push('cin');
+  return NP.pack(net, names);
+}
+
+const median = xs => { const s = [...xs].sort((a, b) => a - b); return s[Math.floor(s.length / 2)]; };
+
+/**
+ * The registered states, captured as (value, cond) snapshots after a solve capped at
+ * `cap`. `cap` of 64 gives the CONVERGED states the registration fixed; a small cap
+ * gives mid-solve ones, which is the unregistered comparison `56c647d` said this set
+ * owes its reader.
+ */
+function statesFor(P, cap, count) {
+  const out = [];
+  for (let s = 0; s < count; s++) {
+    const idx = s * 8192;
+    const a = T.TRYTE_MIN + (idx % 729);
+    const b = T.TRYTE_MIN + Math.floor(idx / 729) % 729;
+    try { NP.solveNamed(P, { ...spread('a', a), ...spread('b', b), cin: 0 }, cap); }
+    catch (e) { /* did not settle at cap: that is the mid-solve case */ }
+    out.push({ value: P.value.slice(0, P.nodeCount), cond: P.cond.slice() });
+  }
+  return out;
+}
+
+/**
+ * Seconds for `passes` passes over each state.
+ *
+ * ONE PASS PER CALL, and the reason is that R2f is R2 with `reach` replaced and the
+ * EARLY EXIT INTACT -- the registration fixed that, so unlike `AX` this set cannot
+ * strip the exit to run a block inside the module. From a settled state `solve(1)`
+ * performs exactly one full pass -- conduction, six walks, the update -- and returns.
+ * The boundary crossing that adds is paid identically by both solvers and is about a
+ * fortieth of a pass, so it dilutes the ratio slightly toward one rather than away
+ * from it: it cannot manufacture the result below, only understate it.
+ */
+function timeSolver(inst, P, states, passes) {
+  const L = inst.layoutOf(P);
+  const u8 = new Uint8Array(inst.memory().buffer);
+  const t0 = process.hrtime.bigint();
+  for (const st of states) {
+    u8.set(st.value, L.value);
+    u8.set(st.cond, L.cond);
+    for (let i = 0; i < passes; i++) inst.exports.solve(1);
+  }
+  return Number(process.hrtime.bigint() - t0) / 1e9;
+}
+
+/** Sweeps to the fixed point, over every rail and both modes, for AY4. */
+function sweepsOver(P, states) {
+  const seen = new Set();
+  const bits = new Uint32Array(P.railId.length * P.words);
+  for (const st of states) {
+    P.value.set(st.value); P.cond.set(st.cond);
+    for (let r = 0; r < P.railId.length; r++) {
+      for (const definite of [true, false]) seen.add(relaxReach(P, r, bits, definite));
+    }
+  }
+  return [...seen].sort((a, b) => a - b);
+}
+
+async function measure({ passes = PASS_BLOCK, reps = REPS, states = STATES } = {}) {
+  const EXPORTS = ['solve', 'sweep', 'seedCodes', 'reach'];
+  const r2 = await SW.makeR2({ fns: SW.FUNCS, exports: EXPORTS });
+  const r2f = await SW.makeR2({ fns: RELAX_FUNCS, exports: EXPORTS });
+  const M = { machine: os.cpus()[0].model, node_version: process.version,
+    passes_per_state: passes, repetitions: reps, repetitions_kept: reps - 1, states };
+
+  for (const kind of ['tree', 'decoded']) {
+    const P = packFor(kind);
+    M[kind] = { devices: P.deviceCount || P.devGate.length, nodes: P.nodeCount };
+    for (const [label, cap] of [['converged', 64], ['midsolve', 3]]) {
+      const st = statesFor(P, cap, states);
+      const a = [], b = [];
+      for (let r = 0; r < reps; r++) {                 // interleaved; first discarded
+        a.push(timeSolver(r2, P, st, passes));
+        b.push(timeSolver(r2f, P, st, passes));
+      }
+      const s2 = median(a.slice(1)), s2f = median(b.slice(1));
+      // The registered direction: R2f OVER R2 as a SPEED, so below one is slower.
+      M[kind][label] = { r2_seconds: +s2.toFixed(4), r2f_seconds: +s2f.toFixed(4),
+        ratio: +(s2 / s2f).toFixed(4) };
+    }
+    M[kind].sweeps = sweepsOver(P, statesFor(P, 64, states));
+  }
+  M.separation = +Math.abs(M.tree.converged.ratio - M.decoded.converged.ratio).toFixed(4);
+  M.state_population_effect = {
+    tree: +Math.abs(M.tree.converged.ratio - M.tree.midsolve.ratio).toFixed(4),
+    decoded: +Math.abs(M.decoded.converged.ratio - M.decoded.midsolve.ratio).toFixed(4),
+  };
+  return M;
+}
+
+async function report(opts = {}) {
+  const quick = !!opts.quick;
   log('RELAXATION AUDIT: the price of the traversal, before any lane is added.');
   log(line);
+  if (quick) {
+    log('');
+    log('QUICK MODE — a shrunken sample. NOTHING BELOW IS A MEASUREMENT.');
+  }
+  const M = await measure(quick ? { passes: 400, reps: 3, states: 8 } : {});
+  const band = (x, lo, hi) => (x >= lo && x <= hi ? 'HELD' : 'FAILED');
+  // Every verdict line carries this in quick mode. AX shipped a quick run whose
+  // verdict table disagreed with the manifest and said so three screens earlier,
+  // which is a banner nobody scrolls back to; the marker goes on the line itself.
+  const tag = quick ? '  (QUICK — NOT A MEASUREMENT)' : '';
 
   log('');
   log('--- 0. THE INSTRUMENT, BEFORE ANY VERDICT ---');
@@ -241,17 +358,38 @@ function report() {
 
   log('');
   log('--- AY1  what the traversal change costs at one lane ---');
+  log(`      tree adder: R2 ${M.tree.converged.r2_seconds}s, R2f ${M.tree.converged.r2f_seconds}s`);
+  log(`      ratio ${M.tree.converged.ratio} against a registered [0.35, 0.75]`
+    + `   ${band(M.tree.converged.ratio, 0.35, 0.75)}${tag}`);
+  log(`      relaxation is ${(1 / M.tree.converged.ratio).toFixed(2)}x SLOWER than the walk`);
+
   log('');
   log('--- AY2  whether the change stayed inside the phase it was made in ---');
+  log('      NOT MEASURED, and not measurable by the method the registration named.');
+  log("      AX's additive method times each phase in ISOLATION over a fixed state, so");
+  log('      the conduction and update variants of R2 and R2f are byte-identical');
+  log('      functions on identical input and must agree. The prediction cannot fail.');
+
   log('');
   log('--- AY3  the same price on a network with more edges per node ---');
+  log(`      tree ${M.tree.converged.ratio}   decoded ${M.decoded.converged.ratio}`
+    + `   separation ${M.separation} against a registered 0.15`
+    + `   ${M.separation < 0.15 ? 'HELD' : 'FAILED'}${tag}`);
+
   log('');
   log('--- AY4  how deep the frontier goes, and whether it varies ---');
+  log(`      sweeps to the fixed point: tree ${JSON.stringify(M.tree.sweeps)}`
+    + `   decoded ${JSON.stringify(M.decoded.sweeps)}`);
+
+  log('');
+  log('--- NOT REGISTERED: what the state population was worth ---');
+  log('      converged against mid-solve, the same ratio moves by'
+    + ` ${M.state_population_effect.tree} on the tree adder and`
+    + ` ${M.state_population_effect.decoded} on the decoded one`);
   log('');
   log(line);
+  return M;
 }
-
-if (MAIN) report();
 
 /* ====================================================== R2f's REACH, IN THE IR
  *
@@ -343,6 +481,13 @@ const relaxFn = W.fn('reach', {
 /** R2f's function list: `AV`'s four with the walk swapped for relaxation. */
 const RELAX_FUNCS = [relaxFn, ...SW.FUNCS.slice(1)];
 
+/* The entry point lives HERE, below `RELAX_FUNCS`, and not beside `report` where it
+ * was first written. `measure` reads `RELAX_FUNCS`, which is a `const` declared after
+ * `report`, so calling the report from above it entered the temporal dead zone and
+ * threw before printing a line. The order of declarations is part of the program. */
+if (MAIN) report({ quick: process.argv.includes('--quick') });
+
 module.exports = {
-  report, relaxReach, relaxFn, RELAX_FUNCS, PASS_BLOCK, REPS, STATES,
+  report, measure, relaxReach, relaxFn, RELAX_FUNCS, packFor, statesFor,
+  PASS_BLOCK, REPS, STATES,
 };

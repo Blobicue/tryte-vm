@@ -11,6 +11,11 @@ const A = require('../tools/relax-audit.js');
 const { execFileSync } = require('child_process');
 const path = require('path');
 
+const fs = require('fs');
+const MANIFEST = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'FINDINGS.json'), 'utf8'));
+const AY = MANIFEST.prediction_sets.find(s => s.id === 'AY');
+const of = id => (AY ? AY.predictions.find(p => p.id === id) : null);
+
 let pass = 0; const fails = [];
 const check = (name, cond, detail = '') => {
   if (cond) { pass++; console.log(`  [PASS] ${name}`); }
@@ -25,11 +30,23 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
   // 0b. THE TOOL AS IT IS ACTUALLY RUN. T-TOOL-CHECKED-ONLY-BY-IMPORT: importing a
   // tool sets MAIN false, so every log line is skipped and a fault in the report path
   // stays invisible to a suite that only imports. Run the real thing.
+  // `--quick` shrinks the sample and nothing else: every print path runs, including
+  // all four verdict lines, so the report path is covered without this check costing
+  // the audit's ten minutes. It matters here more than usual -- at the short sample
+  // BOTH failed predictions come out HELD, so the quick run's verdicts contradict the
+  // manifest. That is why the tool tags every verdict line rather than printing one
+  // banner: AX shipped a quick run whose banner was three screens above the table.
   const out = execFileSync(process.execPath,
-    [path.join(__dirname, '..', 'tools', 'relax-audit.js')],
+    [path.join(__dirname, '..', 'tools', 'relax-audit.js'), '--quick'],
     { encoding: 'utf8', timeout: 300000 });
   check('the audit runs as a program and prints its own report',
     out.includes('RELAXATION AUDIT') && out.includes('AY1'));
+  check('   and its four verdict sections all reach the print path',
+    ['AY1', 'AY2', 'AY3', 'AY4'].every(id => out.includes(`--- ${id} `)));
+  check('   and every quick verdict says on its own line that it is not a measurement',
+    out.split('\n').filter(l => /\b(HELD|FAILED)\b/.test(l))
+      .every(l => /QUICK — NOT A MEASUREMENT/.test(l)),
+    'a verdict line without the marker');
 
   // 0c. Check the pipeline against a case whose answer is known independently.
   //
@@ -154,22 +171,74 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
 
 console.log('\n=== 1. AY1  the price of the traversal at one lane ===');
 {
-  check('AY1 ...', false, 'not yet measured');
+    const p = of('AY1'), m = p && p.measured;
+  check('AY1 is recorded, and it FAILED', p && p.outcome === 'FAILED');
+  check('   relaxation is slower, and past the floor rather than at it: the ratio is '
+    + 'below the registered 0.35',
+    m && m.ratio < 0.35 && m.registered_band[0] === 0.35 && m.registered_band[1] === 0.75,
+    m && `${m.ratio}`);
+  check('   and the slowdown the ratio implies is the one recorded beside it',
+    m && Math.abs(1 / m.ratio - m.times_slower) < 0.01,
+    m && `${(1 / m.ratio).toFixed(3)} against ${m.times_slower}`);
 }
 
 console.log('\n=== 2. AY2  whether the change stayed inside its phase ===');
 {
-  check('AY2 ...', false, 'not yet measured');
+    const p = of('AY2');
+  check('AY2 is recorded as HELD on a proof rather than a run',
+    p && p.outcome === 'HELD' && p.basis === 'proven');
+  // THE CHECK IN THIS SECTION WORTH KEEPING. AY2 quotes its REGISTERED line, not the
+  // verdict on it -- the drift check in test-findings.js compares that field against
+  // the tool at `registered_at`, so a later judgement written into it would read as
+  // the registrant having predicted something they did not.
+  check('   and its at_risk field still quotes the registration rather than the verdict',
+    p && /independent of `AY1` by construction/.test(p.at_risk));
+  check('   and the verdict that it was decorative lives in the note, where it belongs',
+    p && /DECORATIVE/.test(p.note) && /nowhere to live but a note/.test(p.note));
+  check('   and the argument says why no run could have refuted it',
+    p && typeof p.argument === 'string' && /ISOLATION/.test(p.argument)
+    && p.measured.measurable_by_registered_method === false);
 }
 
 console.log('\n=== 3. AY3  the same price on a network with more edges per node ===');
 {
-  check('AY3 ...', false, 'not yet measured');
+    const p = of('AY3'), m = p && p.measured;
+  check('AY3 is recorded, and it FAILED', p && p.outcome === 'FAILED');
+  check('   the two networks separate by more than the registered tolerance',
+    m && m.separation > m.registered_tolerance && m.registered_tolerance === 0.15,
+    m && `${m.separation}`);
+  // THE DIRECTION IS THE FINDING, not the verdict. The risk line expected the DENSER
+  // network to punish relaxation, because relaxation sweeps edges. It is the denser
+  // network that relaxation does BETTER on, because that network is shallower.
+  check('   and relaxation does BETTER on the denser network, against the risk line',
+    m && m.decoded_ratio > m.tree_ratio,
+    m && `tree ${m.tree_ratio}, decoded ${m.decoded_ratio}`);
+  check('   which is sweep count beating edge density: the decoded adder is shallower',
+    (() => {
+      const four = of('AY4').measured;
+      return Math.max(...four.decoded_sweeps) < Math.min(...four.tree_sweeps);
+    })());
 }
 
 console.log('\n=== 4. AY4  frontier depth, and whether it varies ===');
 {
-  check('AY4 ...', false, 'not yet measured');
+    const p = of('AY4'), m = p && p.measured;
+  check('AY4 is recorded, and it HELD', p && p.outcome === 'HELD');
+  check('   the depth never reaches the registered ceiling of 6',
+    m && Math.max(...m.tree_sweeps, ...m.decoded_sweeps) < m.ceiling,
+    m && `${Math.max(...m.tree_sweeps, ...m.decoded_sweeps)} against ${m.ceiling}`);
+  // HELD ON THE POOLED READING AND FAILED ON THE PER-NETWORK ONE, and both are pinned
+  // so that neither can be quietly dropped. The sentence said "over the sixty-four
+  // states on both networks", which pools them; the reading that matters for a lane is
+  // the other one, because a word of lanes holds pairs from ONE network.
+  check('   and it varies across the pooled population, which is what the sentence said',
+    m && new Set([...m.tree_sweeps, ...m.decoded_sweeps]).size > 1);
+  check('   and does NOT vary within the decoded adder, which a per-network reading '
+    + 'would have failed on',
+    m && m.varies_within_tree === true && m.varies_within_decoded === false
+    && m.decoded_sweeps.length === 1);
+  check('   and the note says the ambiguity was the registrant\'s',
+    p && /ambiguity/.test(p.note) && /registrant/.test(p.note));
 }
 
 /* R2f is a WebAssembly module and `WebAssembly.instantiate` is a promise, so the part
