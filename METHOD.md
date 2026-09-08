@@ -13,7 +13,7 @@ for *this* repository. What follows is the part that is not about ternary.
 
 ## What it produced
 
-<!--g:method-tally-->Fifty prediction sets, **209 registered predictions, 165 held, 44 failed.** Nineteen
+<!--g:method-tally-->Fifty-one prediction sets, **213 registered predictions, 167 held, 46 failed.** Nineteen
 distinct failure classes, which bit **71 times** between them. Seventy-two findings
 measured but never registered<!--/g-->, listed separately so the pre-registration record is
 not inflated by things that were never at risk. Every number in this section is
@@ -21,9 +21,9 @@ recomputed from [`FINDINGS.json`](FINDINGS.json) by the test suite; if this
 document drifts from the manifest, the suite fails.
 
 **That last clause was not true of the registered set itself, and a read-only audit
-found it out.** <!--g:method-at-risk-->Twenty-five of those 209 were never at risk at all, and seven cannot be called either way. Corrected to what a run could
-actually have refuted, the record is **177 at risk, 133 held, 44 failed — a 24.9%
-failure rate** against 21.1% over everything registered<!--/g-->. The raw counts above are
+found it out.** <!--g:method-at-risk-->Twenty-five of those 213 were never at risk at all, and seven cannot be called either way. Corrected to what a run could
+actually have refuted, the record is **181 at risk, 135 held, 46 failed — a 25.4%
+failure rate** against 21.6% over everything registered<!--/g-->. The raw counts above are
 not lowered: every one of those predictions was registered before its run, and that is
 a fact about what happened. (This sentence used to carry the total as a literal, and it
 went stale by eight the moment two more sets landed — `T-STALE-CONSTANT` inside the
@@ -68,16 +68,18 @@ A rise in it does not mean the project got worse; here it means somebody swept.
 A prediction carries two independent labels, and running them together was costing
 something. `outcome` is the prediction against the run — held or failed. **`basis` is
 the scope of the claim**: swept at the width it was swept at, or argued at every width.
-<!--g:method-basis-->Ten of those 209 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
+<!--g:method-basis-->Eleven of those 213 carry an argument that holds at every width rather than a sweep at one, and are marked `proven` in the manifest<!--/g-->,
 each with its argument written out beside its measurement. The measurement is still
 required. A proof does not excuse running it — an argument is also a thing that can be
 wrong, and the run is what would say so.
 
-**<!--g:method-failures-lede-->The 44 failures produced more than the 133 successes that were genuinely at risk<!--/g-->.** Each one is
+**<!--g:method-failures-lede-->The 46 failures produced more than the 135 successes that were genuinely at risk<!--/g-->.** Each one is
 still in the manifest, marked `FAILED`, with the result it led to:
 
 | failed | what it claimed | what it produced |
 |---|---|---|
+| **AY1** | replacing the reachability walk's worklist with frontier relaxation costs between a quarter and three quarters of the walk's speed at one lane | 0.2557, so relaxation is 3.91× slower — past the floor rather than at it. The band came from an edge count plus the argument that a branchless, stackless edge scan is cheaper per edge than the walk's, and the registration named that as **the same shape of reasoning that failed in `AV1`**. It failed the same way twice: sweeping the whole node array once per frontier level costs more than the branchless inner loop saves |
+| **AY3** | the price of the traversal change is a property of the algorithm, so the two networks agree within 0.15 | 0.1666, and **the direction is the opposite of the risk line's**. That line expected the denser network to punish relaxation, because relaxation sweeps edges and the decoded adder packs more edges per node. Relaxation does *better* there — 0.4223 against 0.2557 — because the decoded adder reaches its fixed point in two sweeps where the tree adder needs three or four. **Sweep count dominates edge density**, which neither prediction could have shown alone and which is worth more than either verdict |
 | **AW1** | the decoded adder's pass-count rule survives a non-zero carry-in with position 0 admitted to it, exactly, pair by pair | it is wrong on exactly two thirds of every pair at both carry-ins, and what it produced is that the rule needed no amendment at all. `F` had scoped itself honestly — "with a non-zero carry-in the bottom position can save as well (six of its nine digit-pairs qualify) and the walk is a different one" — and this set was registered to cross that line. The six digit-pairs really do qualify and the bottom position still cannot save. The exclusion is about the BOUNDARY, not about the zero: position 0's carry is a primary input, so its MID detector resolves on the same pass as the operand detectors gating the selectors above it, and the early leaf has nowhere to go; one position up that gap is two passes and the saving is real. **A careful disclosure of a limit is not a prediction about what lies past it**, and a sweep that fixes the carry-in at 0 cannot tell the two reasons apart even in principle |
 | **AW2** | exactly 46,899 pairs take the full thirteen passes at each non-zero carry-in | 223,803, and its own AT RISK line had named the arithmetic — "the number of constrained positions is four rather than five" — while getting the reason wrong. **The walk was not wrong; the start vector was.** Run from the vector position 0 actually hands on, with four applications rather than five, `F`'s own matrix gives 223,803 to the digit at both carry-ins |
 | **AW3** | the two carry-ins are exact mirrors, bin for bin, with carry-state vectors (695, 3789, 727) and its reverse | every bin IS equal and the vectors ARE one another's reverse — the half the prediction is about held exactly, and its own refutation condition, "any single bin differing", was never met. What failed is the two numbers the sentence names, inherited from AW2. Kept `FAILED` on the whole sentence following `X2` and `E5`, with **both readings recorded** so the call can be overruled rather than re-derived. It is the clearest case in the corpus of a verdict that must not be read without its note |
@@ -253,7 +255,7 @@ loop couples one prediction set to another except the shared manifest.
   and converted a plausible rule into a derived one.
 
 **And one thing that did NOT parallelize here — the important one.** Verification
-fanned out; the *frontier did not*. Trace <!--g:method-trace-->the fifty sets<!--/g--> and they form very nearly
+fanned out; the *frontier did not*. Trace <!--g:method-trace-->the fifty-one sets<!--/g--> and they form very nearly
 a single chain. Q was asked because P3 failed, and Q3 turned out to explain the
 failure. R followed Q. Z was spawned by caveats Y had left standing. E exists only
 because Z2 failed, and F exists only because E4 failed. Two questions came from

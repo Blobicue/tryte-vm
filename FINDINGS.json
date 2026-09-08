@@ -5625,7 +5625,7 @@
       "subject": "What does replacing the reachability walk's worklist with frontier relaxation cost, at one lane, before any lane parallelism is added? R2 against R2f -- the same module with reachFn replaced and nothing else altered -- over 64 states on two networks, registered so that a bitsliced R3 can be argued against a measured number instead of built and then explained.",
       "tool": "tools/relax-audit.js",
       "registered_at": "844c6f0",
-      "results_at": "PENDING",
+      "results_at": "2fc4f4c",
       "asserted_in": "test/test-relax.js",
       "predictions": [
         {
