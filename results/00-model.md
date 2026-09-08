@@ -292,6 +292,49 @@ digit after it.
 operand pairs. That is arithmetic over `AX1`, and it belongs to whatever set proposes
 one.
 
+### 9. What the walk would cost to give up
+
+`AX1` left one thing standing in the way of a solver that slices across operand pairs:
+of the three phases, two are flat scans that slice without argument, and the third —
+the reachability walk, 61.7% of a pass — cannot, because its worklist is a per-lane
+gather. Sixty-four lanes would each want a different node on top of the stack.
+
+The escape is to stop walking. Frontier relaxation reaches the same fixed point by
+sweeping every edge until no bit moves: branch-free, gather-free, and identical across
+lanes. But it is an **algorithm change**, and this folder already fixed how those are
+priced when `R1` was built — a comparison that changes two things at once measures
+neither. So `AY` built R2f, which is R2 with the walk replaced and nothing else
+altered, and timed it **at one lane**, before any lane parallelism could confound it.
+
+**It costs a factor of four.** R2f runs the tree adder's states in 27.6 seconds against
+R2's 7.1 — a ratio of 0.2557 where [0.35, 0.75] was registered, so `AY1` failed low and
+past its floor rather than at it. The band came from an edge count plus the argument
+that a stackless, branchless edge scan is cheaper per edge than the walk's, and the
+registration named that as the same reasoning that had already failed in `AV1`. It
+failed the same way twice.
+
+**And the second failure explains the first.** `AY3` predicted the price was a property
+of the algorithm, so the two networks would agree within 0.15. They separate by 0.1666
+— and in the direction *opposite* to the risk line. That line expected the decoded
+adder to punish relaxation, because relaxation sweeps edges and the decoded adder packs
+more edges per node. Relaxation does **better** there, 0.4223 against 0.2557, because
+the decoded adder reaches its fixed point in **two** sweeps where the tree adder needs
+three or four.
+
+> **Relaxation is priced by how deep a network is, not by how many edges it has.**
+
+Neither prediction could have produced that alone; it fell out of them disagreeing.
+`AY4` measured the depths that carry it — 3 and 4 on the tree adder, 2 on every one of
+the decoded adder's states — and that second figure matters twice over, because a word
+of lanes holds pairs from **one** network: on the decoded adder no lane would ever
+diverge, while on the tree adder the deepest lane in a word costs a quarter more than
+the shallowest.
+
+**What this does not say**, again deliberately, is whether lanes can win the factor of
+four back. That is arithmetic over `AY1` and belongs to the set that proposes R3 — which
+now has a measured number to argue against instead of an assumption to be surprised by,
+which is the whole reason `AY` was registered before anything was built.
+
 ---
 
 ## How it was established
@@ -356,5 +399,6 @@ Beyond those:
 | `AV` | what the packed representation buys the solver, and what WebAssembly buys on top | 1 held, `AV1`, `AV2` and `AV3` failed |
 | `AW` | whether the pass-count rule survives a non-zero carry-in, where `F` said the bottom position can save | all four failed |
 | `AX` | where the WebAssembly solver spends a pass, decomposed into its three phases | all four held |
+| `AY` | what replacing the walk's worklist with frontier relaxation costs, at one lane | 2 held, `AY1` and `AY3` failed |
 
 Full text in [`99-ledger.md`](99-ledger.md).

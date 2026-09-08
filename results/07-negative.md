@@ -164,6 +164,35 @@ runs are on the record. The failure itself is the good direction: WebAssembly bo
 *more* than was registered, by the bounds-checking route the registration had already
 named as the way it could break high.
 
+**`AY1` / `AY3` — the same reasoning that broke `AV1` broke again, and the second
+failure is what explained the first.** `AY1` put the cost of swapping the reachability
+walk for frontier relaxation in [0.35, 0.75] and measured 0.2557 — 3.91× slower, past
+the floor rather than at it. Its band came from an edge count plus the argument that a
+stackless, branchless edge scan is cheaper per edge than the walk's, and **the
+registration named that as the shape of reasoning that had already failed in `AV1`**,
+where the operation count and the clock disagreed. Registering against a known failure
+mode does not make it stop being one.
+
+What no edge count could have said is why. `AY3` predicted the price was a property of
+the algorithm and the two networks would agree within 0.15; they separate by 0.1666,
+**in the direction opposite to its own risk line**. That line expected the *denser*
+network to punish relaxation, since relaxation sweeps edges. Relaxation does better
+there — 0.4223 against 0.2557 — because the decoded adder settles in two sweeps where
+the tree adder needs three or four. Sweep count dominates edge density, and the pair of
+failures says it where neither alone could.
+
+**`AY2` — the twenty-sixth decorative prediction, and the first registered by someone
+who had read the file describing the other twenty-five.** It asked whether relaxation
+perturbs its neighbouring phases, and prescribed `AX`'s additive method to find out.
+That method times each phase in **isolation**, so the conduction and update variants of
+the two solvers are the same function over the same input and must agree: no run could
+have refuted it. Recorded `HELD` on `proven`, with the verdict in the note and **not**
+in `at_risk` — that field quotes the registration, and the drift check binding it to the
+tool at `registered_at` caught the attempt to write a later judgement into it. The
+effect the prediction named is real and remains unmeasured, because isolation is
+exactly what removes it. The registrant chose the method; the corpus has no structural
+home for a post-`1acfeee` prediction found decorative, so this note is it.
+
 **`AW1`–`AW4` — a set that crossed another set's disclosed scope line and found the
 disclosure right and the guess wrong.** `F1` had scoped itself honestly: *"carry-in 0
 throughout; with a non-zero carry-in the bottom position can save as well (six of its
