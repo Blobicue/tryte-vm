@@ -13,6 +13,8 @@
 
 const T = require('./ternary.js');
 const { OPS } = require('./isa.js');
+const P = require('./phinary.js');
+const ALL_OPS = { ...OPS, ...P.PHINARY_OPS };
 
 function parseNumber(tok, labels, where) {
   tok = tok.trim();
@@ -91,7 +93,7 @@ function assemble(src, origin = 0) {
       if (L.args.length !== 3) throw new Error(`.table needs exactly 3 targets (line ${L.lineNo})`);
       pc += 3;
     } else {
-      if (!(L.mnemonic in OPS)) throw new Error(`unknown instruction '${L.mnemonic}' (line ${L.lineNo})`);
+      if (!(L.mnemonic in ALL_OPS)) throw new Error(`unknown instruction '${L.mnemonic}' (line ${L.lineNo})`);
       pc += 2;
     }
   }
@@ -119,7 +121,7 @@ function assemble(src, origin = 0) {
     }
     if (L.mnemonic === '.TABLE') { L.args.forEach(a => emit(parseNumber(a, labels, where))); continue; }
 
-    const spec = OPS[L.mnemonic];
+    const spec = ALL_OPS[L.mnemonic];
     emit(spec.code);
     if (spec.operand === 'none') {
       if (L.args.length) throw new Error(`${L.mnemonic} takes no operand (${where})`);

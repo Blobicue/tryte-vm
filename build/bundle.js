@@ -35,6 +35,7 @@ function strip(source, exposeAs) {
 function buildBundle() {
   return [
     '/* --- src/ternary.js --- */',   strip(read('src/ternary.js'), 'T'),
+    '/* --- src/phinary.js --- */',   strip(read('src/phinary.js'), 'P'),
     '/* --- src/isa.js --- */',       strip(read('src/isa.js')),
     '/* --- src/vm.js --- */',        strip(read('src/vm.js')),
     '/* --- src/assembler.js --- */', strip(read('src/assembler.js')),

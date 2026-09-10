@@ -103,6 +103,7 @@ const OP = {
   i32_lt_s: 0x48, i32_lt_u: 0x49, i32_gt_s: 0x4a, i32_gt_u: 0x4b,
   i32_le_s: 0x4c, i32_le_u: 0x4d, i32_ge_s: 0x4e, i32_ge_u: 0x4f,
   i32_add: 0x6a, i32_sub: 0x6b, i32_mul: 0x6c,
+  i32_rem_s: 0x6f,
   i32_and: 0x71, i32_or: 0x72, i32_xor: 0x73,
   i32_shl: 0x74, i32_shr_s: 0x75, i32_shr_u: 0x76,
 };
@@ -125,6 +126,7 @@ const un = (op, a) => ({ k: 'un', op, a });
 const add = (a, b) => bin('i32_add', a, b);
 const sub = (a, b) => bin('i32_sub', a, b);
 const mul = (a, b) => bin('i32_mul', a, b);
+const remS = (a, b) => bin('i32_rem_s', a, b);
 const and = (a, b) => bin('i32_and', a, b);
 const or = (a, b) => bin('i32_or', a, b);
 const shl = (a, b) => bin('i32_shl', a, b);
@@ -334,7 +336,7 @@ function demoAddModule() {
 
 module.exports = {
   uleb, sleb, sized, vec, OP, I32, VOID,
-  konst, get, bin, un, add, sub, mul, and, or, shl, shrU,
+  konst, get, bin, un, add, sub, mul, remS, and, or, shl, shrU,
   eq, ne, ltS, gtS, leS, geS, eqz,
   load32, load8u, load8s,
   set, store32, store8, ret, call, callStmt, ifThen, ifElse, inc,

@@ -6,6 +6,7 @@
 
 const T = require('./ternary.js');
 const { BY_CODE } = require('./isa.js');
+const P = require('./phinary.js');
 
 const CELLS = T.TRYTE_STATES;              // 729
 const idx = addr => T.wrap(addr) - T.TRYTE_MIN;   // tryte address -> array slot
@@ -26,6 +27,9 @@ class TryteVM {
   read(addr) { return this.mem[idx(addr)]; }
   write(addr, v) { this.mem[idx(addr)] = T.wrap(v); }
 
+  readCoord(u, v) { return this.read(27 * v + u); }
+  writeCoord(u, v, val) { this.write(27 * v + u, val); }
+
   /** Load assembled cells at a starting address. */
   loadImage(cells, start = 0) {
     cells.forEach((v, i) => this.write(start + i, v));
@@ -41,7 +45,7 @@ class TryteVM {
     const pcBefore = this.PC;
     const opcode = this.read(this.PC);
     const operand = this.read(this.PC + 1);
-    const op = BY_CODE[opcode];
+    const op = BY_CODE[opcode] || P.PHINARY_BY_CODE[opcode];
     if (!op) throw new Error(`illegal opcode ${opcode} at address ${pcBefore}`);
 
     let nextPC = T.wrap(this.PC + 2);
@@ -84,6 +88,32 @@ class TryteVM {
         const tbl = [];
         for (let i = 0; i < 27; i++) tbl.push(this.read(T.wrap(this.C + i)));
         this.A = T.ttableC(tbl, this.A, this.read(operand));
+        break;
+      }
+      // --- phinary memory & arithmetic opcodes (PM0) -------------------------
+      case 'PHINORM': {
+        const sign = this.A < 0 ? -1 : 1;
+        const mag = Math.abs(this.A);
+        this.A = T.wrap(sign * P.fromZeckendorf(P.toZeckendorf(mag)));
+        break;
+      }
+      case 'PHIMUL': {
+        const pair = new P.PhiPair(this.A, this.C);
+        const res = operand >= 0 ? P.phiScale(pair) : P.phiScaleInv(pair);
+        this.A = T.wrap(res.a);
+        this.C = T.wrap(res.b);
+        break;
+      }
+      case 'PHILOAD': {
+        const v = this.read(operand);
+        const u = this.A;
+        this.A = this.read(27 * v + u);
+        break;
+      }
+      case 'PHISTORE': {
+        const v = this.read(operand);
+        const u = this.C;
+        this.write(27 * v + u, this.A);
         break;
       }
       default: throw new Error(`unimplemented op ${op.name}`);
