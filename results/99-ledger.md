@@ -7,13 +7,13 @@ Every registered prediction, in the order it was registered, rendered from
 [`FINDINGS.json`](../FINDINGS.json). **Nothing on this page is authored** — if a
 line here is wrong, the manifest is wrong.
 
-**47 sets · 197 predictions · 160 held · 37 failed**
+**48 sets · 199 predictions · 161 held · 38 failed**
 · 66 measured but never registered
 · 19 defect classes, 70 occurrences
 
-Of those 197 predictions, **165 were genuinely at risk**;
+Of those 199 predictions, **167 were genuinely at risk**;
 25 were not, and 7 could not be called. The failure rate is
-therefore **22.4% of what was at risk** and 18.8% of everything
+therefore **22.8% of what was at risk** and 19.1% of everything
 registered. Both are true and they answer different questions —
 see `F-REGISTRATION-IS-NOT-RISK`.
 
@@ -2232,6 +2232,38 @@ branch rather than merely present in a local object store.
 **Measured.** heads_per_width: 400; fraction_of_heads_with_a_universal_pair: [1,0.5275,0.6075,0.6625,0.6,0.645]; registered_band: [0.56,0.7]; mean_c_of_zero: [1,0.83,0.9175,0.97,0.93,1.0225]; fraction_of_accumulators_with_none: [0,0.45833,0.35185,0.37397,0.3534,0.359]; registered_accumulator_band: [0.335,0.395]; poisson_closed_form_any: 0.63212; poisson_closed_form_none: 0.36788; at_measured_none_at_width_six: 0.35117; unconditioned_family_fraction_with_a_pair: [0.7025,0.645,0.6425,0.61,0.6625,0.655]; unconditioned_family_mean_c_of_zero: [1.0325,0.965,1.0625,1.0075,1.04,1.025]; split_head_c_of_zero_at_width_four: 2; split_head_c_of_zero_at_width_six: 3
 
 **Note.** FAILED at width two, on legs (a) and (c) together, and the failure is a property of the head family I chose rather than of width -- which the set can say only because it ran the unconditioned family beside the conditioned one. At width two the conditioned family reads 0.5275 against a band at [0.56, 0.70] and 0.45833 of accumulators admitting none against [0.335, 0.395]; the UNCONDITIONED family at the same width reads 0.6450 and a mean c(ZERO) of 0.965, comfortably where the closed form says. CONDITIONING ON EXACTLY ONE FIXED POINT -- which is what makes a head comparable to D's P and what gives it an insertion family at all -- is what pushes width two out of band, at nine states where one constraint is a ninth of the object. T-CLAIM-NARROWED-BY-A-DESIGN, sixth bite, caught by the control rather than by a reader. (b) held: width six's 0.6450 is not the smallest, width two's 0.5275 is. Widths 3, 4, 5 and 6 all held on both legs -- 0.6075, 0.6625, 0.6000, 0.6450 and 0.35185, 0.37397, 0.35340, 0.35900 -- so from 27 states up the answer is stable and it is the one that matters: ABOUT TWO THIRDS OF HEADS AT EVERY WIDTH ADMIT A TWO-ENTRY, ZERO-OPERATION, ZERO-KNOWLEDGE FORGERY, and width six is not rarer than width three. Width one is the other end of the same degeneracy and is reported rather than registered: every head has exactly one universal pair at every accumulator, so the fraction is 1.0000 and no accumulator admits none. The split-round head has 2 at width four and 3 at width six, so the anchor family has them too.
+
+---
+
+## Set `AV` — Controller-only native ternary dense-layer profiling: resident feature packing versus repacking both operands; no mini-PC, training or model-quality claim
+
+| | |
+|---|---|
+| outcome | 1 held, 1 failed |
+| tool | `research/compute-preflight/audit.cjs` |
+| asserted in | `test/test-compute-preflight.js` |
+| registered | `abcfb635adb43439341013328d4e6c95daa75e5d` |
+| results | `62ccfaf2c9eaf9e1a74fccba37fcaf76f2a5f6d4` |
+
+### `AV1` — HELD
+
+**Claim.** At width1024, median(native resident)/median(sign resident) >= 1.25.
+
+**At risk.** the compiler can vectorize the native integer reduction while POPCNT throughput and packed-loop dependencies limit the sign kernel; the observed ratio can fall below 1.25 despite simpler Boolean products.
+
+**Measured.** id: AV1; stage: resident; threshold: 1.25; ratio: 3.7953041089047086; margin: 2.5453041089047086; outcome: HELD
+
+**Note.** HELD on this controller run. Median full dense-layer batch time was 23.74140625 us native versus 6.25546875 us sign-packed, with 32 output rows, batch16 and width1024. The native/native-control ratio was 1.0127641138438979. Seven same-process repetitions are local observations, not independent machines or population confidence intervals. Ordinary GCC13.2 -O3 -march=znver3 native int8 reduction is the baseline, not a claim of best available tuned library. Bit positions represent features, not independent examples. Raw receipt preserves all samples and min/max ranges.
+
+### `AV2` — FAILED
+
+**Claim.** At width1024, median(native end_to_end)/median(sign end_to_end) >= 1.10.
+
+**At risk.** scanning and packing all inputs and weights can cost more than the saved dot-product time, so the ratio can fall below 1.10 or below one.
+
+**Measured.** id: AV2; stage: end_to_end; threshold: 1.1; ratio: 0.3606629232117895; margin: -0.7393370767882106; outcome: FAILED
+
+**Note.** FAILED, and retained. Repacking both operands into reused buffers plus computation took median65.9484375 us versus native23.78515625 us, approximately2.77x slower. The same-code control ratio was0.9866800622245269. End-to-end here excludes allocation, input validation, model loading, process launch and network. This does not measure a resident-weight/new-input regime, sustained target hardware, training or useful task quality. The design implication is to measure persistent representations and conversion costs separately, not declare packed arithmetic universally faster. Other tested widths are descriptive rather than retrospectively selected successes.
 
 ---
 

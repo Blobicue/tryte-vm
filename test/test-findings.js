@@ -965,6 +965,41 @@ console.log('\n=== 9. WAS THE CRITERION DISCRIMINATING? ===');
   for (const s of M.prediction_sets) for (const p of s.predictions) byId.set(p.id, p);
   const parentOf = leg => leg.replace(/\(.\)$/, '');
 
+  // This census measured a historical corpus, not every future registration. Set
+  // AV exposed the old domain drift: subtracting the frozen line-bearing lists
+  // from today's at-risk total silently called its new timing criteria "no line".
+  // Recover the actual audited IDs, preserve their classifications and outcomes,
+  // and leave later registrations outside this historical classification.
+  const CRITERION_AUDIT = '78cfc96de8ccab612cbe13b3744ae1c4cbfd805d';
+  let auditedPredictions = [], auditHistoryError = '';
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', CRITERION_AUDIT, 'HEAD'],
+      { cwd: ROOT, stdio: 'pipe' });
+    const historical = JSON.parse(execFileSync('git', ['show', `${CRITERION_AUDIT}:FINDINGS.json`],
+      { cwd: ROOT, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 }));
+    auditedPredictions = historical.prediction_sets.flatMap(s => s.predictions);
+  } catch (e) { auditHistoryError = e.message.split('\n')[0]; }
+  check('the criterion census recovers its actual corpus from the reachable audit commit',
+    auditedPredictions.length > 0 && auditHistoryError === '', auditHistoryError);
+  const auditedIds = new Set(auditedPredictions.map(p => p.id));
+  const historicalScope = predictions => predictions.filter(p => auditedIds.has(p.id));
+  const inspectHistorical = (predictions, project = historicalScope) => {
+    const rows = project(predictions), current = new Map(rows.map(p => [p.id, p]));
+    const defects = [];
+    for (const before of auditedPredictions) {
+      const now = current.get(before.id);
+      if (!now) defects.push(`${before.id}: deleted`);
+      else if (now.at_risk !== before.at_risk || now.outcome !== before.outcome)
+        defects.push(`${before.id}: historical classification/outcome changed`);
+    }
+    if (rows.length !== auditedPredictions.length || rows.some(p => !auditedIds.has(p.id)))
+      defects.push('projection changed the audited domain');
+    return { rows, defects, atRisk: rows.filter(p => R.classify(p.at_risk) === 'at-risk') };
+  };
+  const historicalCensus = inspectHistorical(allPreds);
+  check('every historical census entry retains its ID, at-risk annotation and outcome',
+    historicalCensus.defects.length === 0, historicalCensus.defects.join('; '));
+
   const nd = Object.entries(NOT_DISCRIMINATING);
   const ndHeld = nd.filter(([, v]) => v === 'HELD');
   const ndFailed = nd.filter(([, v]) => v === 'FAILED');
@@ -1030,13 +1065,44 @@ console.log('\n=== 9. WAS THE CRITERION DISCRIMINATING? ===');
 
   // SIZES ONLY. The outcome breakdown of the middle class is deliberately not asserted
   // anywhere, because the boundary was drawn with the outcomes visible.
-  const atRiskNow = M.prediction_sets.flatMap(s => s.predictions)
-    .filter(p => R.classify(p.at_risk) === 'at-risk');
+  const atRiskThen = auditedPredictions.filter(p => R.classify(p.at_risk) === 'at-risk');
+  const atRiskNow = historicalCensus.atRisk;
   const lineBearing = NO_DRAWABLE_NULL.length + SCORED_PARENTS.length + UNSCORED_LINE_BEARING.length;
-  check(`the three classes reconcile to the at-risk total: ${atRiskNow.length - lineBearing} `
+  check(`the three classes reconcile within the 78cfc96 audit corpus: ${atRiskNow.length - lineBearing} `
     + `carry no line, ${NO_DRAWABLE_NULL.length} a line and no drawable null, `
     + `${SCORED_PARENTS.length + UNSCORED_LINE_BEARING.length} both — summing to ${atRiskNow.length}`,
-    atRiskNow.length === 165 && lineBearing === 50 && atRiskNow.length - lineBearing === 115);
+    atRiskThen.length === 165 && atRiskNow.length === 165 && lineBearing === 50
+    && atRiskNow.length - lineBearing === 115
+    && [...NO_DRAWABLE_NULL, ...SCORED_PARENTS, ...UNSCORED_LINE_BEARING]
+      .every(id => atRiskThen.some(p => p.id === id)));
+
+  // Healthy, real future traffic: AV contains timing thresholds, not new members
+  // of the old audit's "no line" class. Both arms call the production projector.
+  const laterAV = (M.prediction_sets.find(s => s.id === 'AV') || { predictions: [] }).predictions;
+  const extendedHistory = [...auditedPredictions, ...laterAV];
+  const healthyExtension = inspectHistorical(extendedHistory);
+  check('the real AV extension leaves the historical census unchanged and unclassified here',
+    laterAV.length > 0 && laterAV.every(p => !auditedIds.has(p.id)
+      && R.classify(p.at_risk) === 'at-risk')
+    && healthyExtension.defects.length === 0 && healthyExtension.atRisk.length === atRiskThen.length
+    && laterAV.every(p => !healthyExtension.rows.some(q => q.id === p.id)));
+  // Mutate the actual projection's predicate, rather than reimplementing a bad
+  // counter in the test. The same inspector must reject the original drift.
+  const projectionSource = historicalScope.toString();
+  const broadenedScope = new Function('auditedIds',
+    `return (${projectionSource.replace('auditedIds.has(p.id)', 'true')});`)(auditedIds);
+  const firstAtRisk = atRiskThen[0];
+  const deletedHistory = extendedHistory.filter(p => p.id !== (firstAtRisk || {}).id);
+  const reclassifiedHistory = extendedHistory.map(p => p.id === (firstAtRisk || {}).id
+    ? { ...p, at_risk: 'NOT AT RISK: deliberately reclassified historical entry' } : p);
+  const changedOutcome = extendedHistory.map(p => p.id === (firstAtRisk || {}).id
+    ? { ...p, outcome: p.outcome === 'HELD' ? 'FAILED' : 'HELD' } : p);
+  check('historical-domain broadening, deletion, reclassification and outcome edits are caught',
+    projectionSource.includes('auditedIds.has(p.id)') && !!firstAtRisk
+    && inspectHistorical(extendedHistory, broadenedScope).defects.length > 0
+    && inspectHistorical(deletedHistory).defects.length > 0
+    && inspectHistorical(reclassifiedHistory).defects.length > 0
+    && inspectHistorical(changedOutcome).defects.length > 0);
 
   check(`   and the ${TOTAL_LEGS} legs come from the ${SCORED_PARENTS.length} SCORED `
     + 'predictions only — AQ4 is line-bearing with a drawable null nobody has drawn, and '

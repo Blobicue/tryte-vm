@@ -2,13 +2,13 @@
  "schema": "tryte-vm/slate@1",
  "purpose": "A retrieval-shaped projection of FINDINGS.json plus authored marginalia. Flat, addressable entries with stable ids, topic routes and validated cross-links. The manifest remains the authority; this is a view of it and never a second copy of the truth.",
  "counts": {
-  "entries": 295,
-  "predictions": 197,
+  "entries": 297,
+  "predictions": 199,
   "findings": 66,
   "traps": 19,
   "notes": 13,
   "proven": 17,
-  "failed": 37
+  "failed": 38
  },
  "routes": {
   "algebra": [
@@ -79,6 +79,7 @@
    "AS3",
    "AT3",
    "AU3",
+   "AV2",
    "F-FOLD-BUYS-DEPTH",
    "F-RADIX-ECONOMY",
    "F-GATES-FROM-SWITCHES",
@@ -488,6 +489,7 @@
    "F-TREE-BRANCHES-IN-ITS-OWN-BASE"
   ],
   "unrouted": [
+   "AV1",
    "F-ADD-IS-A-TABLE",
    "F-ORDER-K-MASKING",
    "F-TGATE-NOT-CLOSED",
@@ -7291,6 +7293,62 @@
    "asserted_in": "test/test-width.js",
    "registered_at": "4b74c7d",
    "results_at": "af7d5d4",
+   "links": []
+  },
+  {
+   "id": "AV1",
+   "kind": "prediction",
+   "set": "AV",
+   "subject": "Controller-only native ternary dense-layer profiling: resident feature packing versus repacking both operands; no mini-PC, training or model-quality claim",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "unrouted"
+   ],
+   "routes_derived": true,
+   "claim": "At width1024, median(native resident)/median(sign resident) >= 1.25.",
+   "argument": null,
+   "note": "HELD on this controller run. Median full dense-layer batch time was 23.74140625 us native versus 6.25546875 us sign-packed, with 32 output rows, batch16 and width1024. The native/native-control ratio was 1.0127641138438979. Seven same-process repetitions are local observations, not independent machines or population confidence intervals. Ordinary GCC13.2 -O3 -march=znver3 native int8 reduction is the baseline, not a claim of best available tuned library. Bit positions represent features, not independent examples. Raw receipt preserves all samples and min/max ranges.",
+   "measured": {
+    "id": "AV1",
+    "stage": "resident",
+    "threshold": 1.25,
+    "ratio": 3.7953041089047086,
+    "margin": 2.5453041089047086,
+    "outcome": "HELD"
+   },
+   "tool": "research/compute-preflight/audit.cjs",
+   "asserted_in": "test/test-compute-preflight.js",
+   "registered_at": "abcfb635adb43439341013328d4e6c95daa75e5d",
+   "results_at": "62ccfaf2c9eaf9e1a74fccba37fcaf76f2a5f6d4",
+   "links": []
+  },
+  {
+   "id": "AV2",
+   "kind": "prediction",
+   "set": "AV",
+   "subject": "Controller-only native ternary dense-layer profiling: resident feature packing versus repacking both operands; no mini-PC, training or model-quality claim",
+   "outcome": "FAILED",
+   "basis": "measured",
+   "routes": [
+    "cost-model"
+   ],
+   "routes_derived": true,
+   "claim": "At width1024, median(native end_to_end)/median(sign end_to_end) >= 1.10.",
+   "argument": null,
+   "note": "FAILED, and retained. Repacking both operands into reused buffers plus computation took median65.9484375 us versus native23.78515625 us, approximately2.77x slower. The same-code control ratio was0.9866800622245269. End-to-end here excludes allocation, input validation, model loading, process launch and network. This does not measure a resident-weight/new-input regime, sustained target hardware, training or useful task quality. The design implication is to measure persistent representations and conversion costs separately, not declare packed arithmetic universally faster. Other tested widths are descriptive rather than retrospectively selected successes.",
+   "measured": {
+    "id": "AV2",
+    "stage": "end_to_end",
+    "threshold": 1.1,
+    "ratio": 0.3606629232117895,
+    "margin": -0.7393370767882106,
+    "outcome": "FAILED"
+   },
+   "tool": "research/compute-preflight/audit.cjs",
+   "asserted_in": "test/test-compute-preflight.js",
+   "registered_at": "abcfb635adb43439341013328d4e6c95daa75e5d",
+   "results_at": "62ccfaf2c9eaf9e1a74fccba37fcaf76f2a5f6d4",
    "links": []
   },
   {

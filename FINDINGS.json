@@ -4826,6 +4826,50 @@
           "note": "FAILED at width two, on legs (a) and (c) together, and the failure is a property of the head family I chose rather than of width -- which the set can say only because it ran the unconditioned family beside the conditioned one. At width two the conditioned family reads 0.5275 against a band at [0.56, 0.70] and 0.45833 of accumulators admitting none against [0.335, 0.395]; the UNCONDITIONED family at the same width reads 0.6450 and a mean c(ZERO) of 0.965, comfortably where the closed form says. CONDITIONING ON EXACTLY ONE FIXED POINT -- which is what makes a head comparable to D's P and what gives it an insertion family at all -- is what pushes width two out of band, at nine states where one constraint is a ninth of the object. T-CLAIM-NARROWED-BY-A-DESIGN, sixth bite, caught by the control rather than by a reader. (b) held: width six's 0.6450 is not the smallest, width two's 0.5275 is. Widths 3, 4, 5 and 6 all held on both legs -- 0.6075, 0.6625, 0.6000, 0.6450 and 0.35185, 0.37397, 0.35340, 0.35900 -- so from 27 states up the answer is stable and it is the one that matters: ABOUT TWO THIRDS OF HEADS AT EVERY WIDTH ADMIT A TWO-ENTRY, ZERO-OPERATION, ZERO-KNOWLEDGE FORGERY, and width six is not rarer than width three. Width one is the other end of the same degeneracy and is reported rather than registered: every head has exactly one universal pair at every accumulator, so the fraction is 1.0000 and no accumulator admits none. The split-round head has 2 at width four and 3 at width six, so the anchor family has them too."
         }
       ]
+    },
+    {
+      "id": "AV",
+      "subject": "Controller-only native ternary dense-layer profiling: resident feature packing versus repacking both operands; no mini-PC, training or model-quality claim",
+      "tool": "research/compute-preflight/audit.cjs",
+      "registered_at": "abcfb635adb43439341013328d4e6c95daa75e5d",
+      "results_at": "62ccfaf2c9eaf9e1a74fccba37fcaf76f2a5f6d4",
+      "asserted_in": "test/test-compute-preflight.js",
+      "receipt": "research/compute-preflight/controller-20260915.json",
+      "receipt_sha256": "9f9b5af5a444da12fbfbdba31d40acfb2db1f7073f48aeb000eb22441365dc99",
+      "predictions": [
+        {
+          "id": "AV1",
+          "claim": "At width1024, median(native resident)/median(sign resident) >= 1.25.",
+          "outcome": "HELD",
+          "basis": "measured",
+          "at_risk": "AT RISK: the compiler can vectorize the native integer reduction while POPCNT throughput and packed-loop dependencies limit the sign kernel; the observed ratio can fall below 1.25 despite simpler Boolean products.",
+          "measured": {
+            "id": "AV1",
+            "stage": "resident",
+            "threshold": 1.25,
+            "ratio": 3.7953041089047086,
+            "margin": 2.5453041089047086,
+            "outcome": "HELD"
+          },
+          "note": "HELD on this controller run. Median full dense-layer batch time was 23.74140625 us native versus 6.25546875 us sign-packed, with 32 output rows, batch16 and width1024. The native/native-control ratio was 1.0127641138438979. Seven same-process repetitions are local observations, not independent machines or population confidence intervals. Ordinary GCC13.2 -O3 -march=znver3 native int8 reduction is the baseline, not a claim of best available tuned library. Bit positions represent features, not independent examples. Raw receipt preserves all samples and min/max ranges."
+        },
+        {
+          "id": "AV2",
+          "claim": "At width1024, median(native end_to_end)/median(sign end_to_end) >= 1.10.",
+          "outcome": "FAILED",
+          "basis": "measured",
+          "at_risk": "AT RISK: scanning and packing all inputs and weights can cost more than the saved dot-product time, so the ratio can fall below 1.10 or below one.",
+          "measured": {
+            "id": "AV2",
+            "stage": "end_to_end",
+            "threshold": 1.1,
+            "ratio": 0.3606629232117895,
+            "margin": -0.7393370767882106,
+            "outcome": "FAILED"
+          },
+          "note": "FAILED, and retained. Repacking both operands into reused buffers plus computation took median65.9484375 us versus native23.78515625 us, approximately2.77x slower. The same-code control ratio was0.9866800622245269. End-to-end here excludes allocation, input validation, model loading, process launch and network. This does not measure a resident-weight/new-input regime, sustained target hardware, training or useful task quality. The design implication is to measure persistent representations and conversion costs separately, not declare packed arithmetic universally faster. Other tested widths are descriptive rather than retrospectively selected successes."
+        }
+      ]
     }
   ],
   "unregistered_findings": [

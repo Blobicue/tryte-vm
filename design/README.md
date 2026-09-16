@@ -3,6 +3,11 @@
 
 The switch-level machine that does not exist yet, designed before it is built.
 
+A separate software research track lives in
+[`13-compute-horizon.md`](13-compute-horizon.md): the ternary training/inference,
+packed-execution and offline-worker capability DAG. It does not replace the
+switch-level roadmap or import its device costs as CPU performance claims.
+
 `src/device.js` and everything above it is arithmetic: gates, selectors, an adder.
 A **computer** needs four things this repository has never built at switch level —
 storage, a register file, instruction decode, and sequencing. This folder is the
@@ -53,6 +58,7 @@ decoding the select"* — which is the catch that eventually happened by luck.
 | [`10-integration.md`](10-integration.md) | the whole-machine budget under each combination |
 | [`11-open.md`](11-open.md) | what this phase does not settle |
 | [`12-roadmap.md`](12-roadmap.md) | **the order to build the rest in, and which machine is worth building** |
+| [`13-compute-horizon.md`](13-compute-horizon.md) | separate software research horizon: dependencies, evidence gates and parallel model work orders |
 
 Read `00` and `02` first. `02` is the short one and it is the one that constrains
 everything else: storage turned out to be blocked by an axiom nobody had ever

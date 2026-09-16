@@ -69,6 +69,7 @@ cross-reference names a set that does not exist.
 | [`06-economics.md`](06-economics.md) — currencies: the mid rail, erasure, and what an implied receipt rests on | `N` `AB` `AC` `AD` `AG` `AH` `AJ` | **rich** |
 | [`07-negative.md`](07-negative.md) — every failed prediction, and every lying instrument | — | **rich** |
 | [`08-limits.md`](08-limits.md) — what this project does not show | — | seeded |
+| [`09-compute-preflight.md`](09-compute-preflight.md) — native ternary layer profiling on the controller, with conversion costs retained | `AV` | **rich** |
 | [`99-ledger.md`](99-ledger.md) — the complete record, generated | — | generated |
 
 ### Depth is declared and allowed to be low
@@ -97,11 +98,11 @@ anything.
 
 | | |
 |---|---|
-<!--g:results-table-->| prediction sets | 47 |
-| registered predictions | 197 — **160 held, 37 failed** |
-| of those, genuinely at risk | 165 — 128 held, 37 failed |
+<!--g:results-table-->| prediction sets | 48 |
+| registered predictions | 199 — **161 held, 38 failed** |
+| of those, genuinely at risk | 167 — 129 held, 38 failed |
 | never at risk | 25 decorative, 7 uncalled |
-| failure rate | **22.4%** of what was at risk; 18.8% of all registered |
+| failure rate | **22.8%** of what was at risk; 19.1% of all registered |
 | measured but never registered | 66 |
 | defect classes | 19, recurring 70 times |<!--/g-->
 
