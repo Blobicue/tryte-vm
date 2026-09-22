@@ -10,10 +10,23 @@
       "domain": "Z_3 x Z_3 -> Z_3",
       "inputs": 2,
       "outputs": 1,
-      "truth_table": [1, -1, 0, -1, 0, 1, 0, 1, -1],
+      "truth_table": [
+        1,
+        -1,
+        0,
+        -1,
+        0,
+        1,
+        0,
+        1,
+        -1
+      ],
       "tasm": "; --- add_mod_3.tasm (Truth-table TOP instruction) ---\n        IN\n        STORE in_0\n        IN\n        STORE in_1\n        SETC  table\n        LOAD  in_0\n        TOP   in_1\n        OUT\n        HALT\ntable:  .word 1, -1, 0, -1, 0, 1, 0, 1, -1\nin_0:   .word 0\nin_1:   .word 0",
       "verified": true,
-      "synthesis_method": "isa_top_table"
+      "synthesis_method": "isa_top_table",
+      "lean_certified": true,
+      "lean_certificate": "quantum/lean/Certificates/add_mod_3_cert.lean",
+      "lean_theorem": "Certificate.AddMod3.add_mod_3_certified"
     },
     "add_mod_9": {
       "signature": "add_mod_9",
@@ -24,7 +37,10 @@
       "outputs": 1,
       "tasm": "; --- add_mod_9.tasm ---\n        IN\n        STORE in_0\n        IN\n        STORE in_1\n        LOAD  in_0\n        ADD   in_1\n        OUT\n        HALT\n        .org  -2\nin_0:   .word 0\nin_1:   .word 0",
       "verified": true,
-      "synthesis_method": "isa_direct"
+      "synthesis_method": "isa_direct",
+      "lean_certified": true,
+      "lean_certificate": "quantum/lean/Certificates/add_mod_9_cert.lean",
+      "lean_theorem": "Certificate.AddMod9.add_mod_9_certified_identity"
     },
     "t_neg": {
       "signature": "t_neg",
@@ -33,10 +49,23 @@
       "domain": "Z_3 -> Z_3",
       "inputs": 1,
       "outputs": 1,
-      "truth_table": [1, 1, 1, 0, 0, 0, -1, -1, -1],
+      "truth_table": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        -1,
+        -1,
+        -1
+      ],
       "tasm": "; --- t_neg.tasm ---\n        IN\n        NEG\n        OUT\n        HALT",
       "verified": true,
-      "synthesis_method": "isa_primitive"
+      "synthesis_method": "isa_primitive",
+      "lean_certified": true,
+      "lean_certificate": "quantum/lean/Certificates/t_neg_cert.lean",
+      "lean_theorem": "Certificate.TNeg.t_neg_certified"
     },
     "t_cycle": {
       "signature": "t_cycle",
@@ -45,10 +74,17 @@
       "domain": "Z_3 -> Z_3",
       "inputs": 1,
       "outputs": 1,
-      "permutation": [1, 2, 0],
+      "permutation": [
+        1,
+        2,
+        0
+      ],
       "tasm": "; --- t_cycle.tasm ---\n        IN\n        BR3   c_tbl\nc_tbl:  .table c_neg, c_zero, c_pos\nc_neg:  LOADI 0\n        JMP   c_done\nc_zero: LOADI 1\n        JMP   c_done\nc_pos:  LOADI -1\nc_done: OUT\n        HALT",
       "verified": true,
-      "synthesis_method": "exact_permutation"
+      "synthesis_method": "exact_permutation",
+      "lean_certified": true,
+      "lean_certificate": "quantum/lean/Certificates/t_cycle_cert.lean",
+      "lean_theorem": "Certificate.TCycle.t_cycle_certified"
     },
     "qutrit_h3": {
       "signature": "qutrit_h3",
@@ -57,10 +93,19 @@
       "domain": "C^3 -> C^3",
       "inputs": 1,
       "outputs": 1,
-      "braid_word": [2, 1, -2, 1, -2],
+      "braid_word": [
+        2,
+        1,
+        -2,
+        1,
+        -2
+      ],
       "unitary_group": "SU(3)",
       "verified": true,
-      "synthesis_method": "topological_compilation"
+      "synthesis_method": "topological_compilation",
+      "lean_certified": true,
+      "lean_certificate": "quantum/lean/Certificates/qutrit_h3_cert.lean",
+      "lean_theorem": "Certificate.QutritH3.qutrit_h3_certified_topological"
     },
     "anyon_bell_state": {
       "signature": "anyon_bell_state",
@@ -69,10 +114,19 @@
       "domain": "C^3 x C^3 -> C^9",
       "inputs": 2,
       "outputs": 2,
-      "braid_word": [1, 2, 3, 2, 1],
+      "braid_word": [
+        1,
+        2,
+        3,
+        2,
+        1
+      ],
       "entanglement_entropy_bits": 1.585,
       "verified": true,
-      "synthesis_method": "topological_b4_entangler"
+      "synthesis_method": "topological_b4_entangler",
+      "lean_certified": true,
+      "lean_certificate": "quantum/lean/Certificates/anyon_bell_state_cert.lean",
+      "lean_theorem": "Certificate.AnyonBellState.anyon_bell_state_certified_topological"
     },
     "anyon_hadamard": {
       "signature": "anyon_hadamard",
@@ -81,10 +135,26 @@
       "domain": "SU(2)",
       "inputs": 1,
       "outputs": 1,
-      "braid_word": [2, -1, 2, 2, 2, -1, 2, 2, -1, 2, 1, 1],
+      "braid_word": [
+        2,
+        -1,
+        2,
+        2,
+        2,
+        -1,
+        2,
+        2,
+        -1,
+        2,
+        1,
+        1
+      ],
       "compiled_distance": 0.0467,
       "verified": true,
-      "synthesis_method": "solovay_kitaev_anyon"
+      "synthesis_method": "solovay_kitaev_anyon",
+      "lean_certified": true,
+      "lean_certificate": "quantum/lean/Certificates/anyon_hadamard_cert.lean",
+      "lean_theorem": "Certificate.AnyonHadamard.anyon_hadamard_certified_topological"
     },
     "learned_qutrit_add": {
       "signature": "learned_qutrit_add",
@@ -93,11 +163,104 @@
       "domain": "C^3 x C^3 -> C^9",
       "inputs": 2,
       "outputs": 2,
-      "braid_word_qutrit_a": [-1, 2, -3],
-      "braid_word_qutrit_b": [1, 2, -3],
-      "braid_word": [-1, 2, -3, 1, 2, -3],
+      "braid_word_qutrit_a": [
+        -1,
+        2,
+        -3
+      ],
+      "braid_word_qutrit_b": [
+        1,
+        2,
+        -3
+      ],
+      "braid_word": [
+        -1,
+        2,
+        -3,
+        1,
+        2,
+        -3
+      ],
       "verified": true,
-      "synthesis_method": "true_ternary_quantum_hypernetwork"
+      "synthesis_method": "true_ternary_quantum_hypernetwork",
+      "lean_certified": true,
+      "lean_certificate": "quantum/lean/Certificates/learned_qutrit_add_cert.lean",
+      "lean_theorem": "Certificate.LearnedQutritAdd.learned_qutrit_add_certified_topological"
+    },
+    "mul_mod_3": {
+      "signature": "mul_mod_3",
+      "name": "Single-Trit Multiplication (AND/NAND hybrid)",
+      "kind": "truth_table",
+      "domain": "Z_3 x Z_3 -> Z_3",
+      "inputs": 2,
+      "outputs": 1,
+      "truth_table": [
+        1,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        -1,
+        0,
+        1
+      ],
+      "tasm": "; --- mul_mod_3.tasm (Synthesized TOP Truth Table) ---\n        IN\n        STORE in_0\n        IN\n        STORE in_1\n        SETC  table\n        LOAD  in_0\n        TOP   in_1\n        OUT\n        HALT\ntable:  .word 1, 0, -1, 0, 0, 0, -1, 0, 1\nin_0:   .word 0\nin_1:   .word 0",
+      "verified": true,
+      "synthesis_method": "autonomous_grokking_forge",
+      "lean_certified": true,
+      "lean_certificate": "quantum/lean/Certificates/mul_mod_3_cert.lean",
+      "lean_theorem": "Certificate.MulMod3.mul_mod_3_certified_deterministic"
+    },
+    "nor_ternary": {
+      "signature": "nor_ternary",
+      "name": "Ternary Universal NOR Gate",
+      "kind": "truth_table",
+      "domain": "Z_3 x Z_3 -> Z_3",
+      "inputs": 2,
+      "outputs": 1,
+      "truth_table": [
+        1,
+        0,
+        -1,
+        0,
+        0,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "tasm": "; --- nor_ternary.tasm (Synthesized TOP Truth Table) ---\n        IN\n        STORE in_0\n        IN\n        STORE in_1\n        SETC  table\n        LOAD  in_0\n        TOP   in_1\n        OUT\n        HALT\ntable:  .word 1, 0, -1, 0, 0, -1, -1, -1, -1\nin_0:   .word 0\nin_1:   .word 0",
+      "verified": true,
+      "synthesis_method": "autonomous_grokking_forge",
+      "lean_certified": true,
+      "lean_certificate": "quantum/lean/Certificates/nor_ternary_cert.lean",
+      "lean_theorem": "Certificate.NorTernary.nor_ternary_certified_deterministic"
+    },
+    "sqr_sub": {
+      "signature": "sqr_sub",
+      "name": "Quadratic Difference Operator",
+      "kind": "truth_table",
+      "domain": "Z_3 x Z_3 -> Z_3",
+      "inputs": 2,
+      "outputs": 1,
+      "truth_table": [
+        -1,
+        1,
+        0,
+        1,
+        0,
+        -1,
+        -1,
+        1,
+        0
+      ],
+      "tasm": "; --- sqr_sub.tasm (Synthesized TOP Truth Table) ---\n        IN\n        STORE in_0\n        IN\n        STORE in_1\n        SETC  table\n        LOAD  in_0\n        TOP   in_1\n        OUT\n        HALT\ntable:  .word -1, 1, 0, 1, 0, -1, -1, 1, 0\nin_0:   .word 0\nin_1:   .word 0",
+      "verified": true,
+      "synthesis_method": "autonomous_grokking_forge",
+      "lean_certified": true,
+      "lean_certificate": "quantum/lean/Certificates/sqr_sub_cert.lean",
+      "lean_theorem": "Certificate.SqrSub.sqr_sub_certified_deterministic"
     }
   }
 }

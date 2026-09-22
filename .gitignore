@@ -7,3 +7,6 @@ quantum/native/vtqpu
 *.so
 __pycache__/
 dist/
+*.olean
+*.ilean
+.pytest_cache/

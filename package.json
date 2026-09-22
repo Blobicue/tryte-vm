@@ -82,7 +82,11 @@
     "ternary_quantum:train": "python3 -m research.quantum_grokking.train_ternary_quantum",
     "tryte:export_test": "python3 -m unittest research/test_tryte_export.py",
     "arsenal:test": "node test/test-arsenal.js",
-    "arsenal:test_py": "python3 -m pytest research/arsenal/test_arsenal.py"
+    "arsenal:test_py": "python3 -m pytest research/arsenal/test_arsenal.py",
+    "certifier:test": "node test/test-certifier.js",
+    "certifier:test_py": "python3 -m pytest research/arsenal/test_certifier.py",
+    "jit:test": "node test/test-jit.js",
+    "lean:arsenal": "lean -o quantum/lean/TryteArsenal.olean quantum/lean/TryteArsenal.lean"
   },
   "license": "MIT",
   "private": true

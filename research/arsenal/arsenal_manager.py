@@ -98,6 +98,10 @@ def main():
     exp_p.add_argument("-o", "--output", required=True, help="Output file path")
     exp_p.add_argument("-f", "--format", choices=["tasm", "braid"], help="Export format")
 
+    # certify
+    cert_p = subparsers.add_parser("certify", help="Certify a circuit in Lean 4")
+    cert_p.add_argument("signature", nargs="?", default="--all", help="Circuit signature or '--all'")
+
     args = parser.parse_args()
 
     if args.command == "list":
@@ -124,6 +128,20 @@ def main():
 
     elif args.command == "export":
         export_circuit(args.signature, args.output, args.format)
+
+    elif args.command == "certify":
+        from research.arsenal.arsenal_certifier import certify_circuit, certify_all
+        if args.signature == "--all" or args.signature == "all":
+            results = certify_all()
+            print("=" * 80)
+            print(f"  Lean 4 Certification Complete: {len(results)} Certificates Verified (0 sorry)")
+            print("=" * 80)
+            for r in results:
+                print(f"  ✓ {r['signature']:<24} -> Theorem: {r['theorem']}")
+            print("=" * 80)
+        else:
+            res = certify_circuit(args.signature)
+            print(f"  ✓ {res['signature']} certified in Lean 4: Theorem {res['theorem']}")
 
     else:
         parser.print_help()

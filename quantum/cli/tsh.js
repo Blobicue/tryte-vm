@@ -34,6 +34,10 @@ const {
   runCircuit,
   exportCircuit,
 } = require('../src/arsenal.js');
+const {
+  certifyCircuit,
+  certifyAll,
+} = require('../src/certifier.js');
 
 class TryteQOSShell {
   constructor() {
@@ -76,7 +80,7 @@ Available Tryte-QOS Commands:
   status                   Show system status, vTQPU metrics, and cluster capacity
   compile <gate> [epsilon] Compile a gate (H, T, S, X, Z, T_NEG, T_CYCLE, H3, S3)
   run <algorithm>          Execute verified algorithm: bell, deutsch, teleport, grover, qutrit
-  arsenal <action>         Arsenal of Compute (list, get, run, export, forge)
+  arsenal <action>         Arsenal of Compute (list, get, run, export, certify, forge)
   braid <gen1 gen2 ...>    Render spacetime anyon worldlines (e.g. braid 2 -1 2 1)
   export <gate> <file>     Compile and save executable .braid binary
   import <file>            Load and inspect an executable .braid binary
@@ -171,19 +175,19 @@ Available Tryte-QOS Commands:
 
         if (sub === 'list') {
           const list = listCircuits();
-          console.log('================================================================================');
+          console.log('========================================================================================');
           console.log(`  Tryte-QOS Arsenal of Compute: ${list.length} Grokked Circuits in Cache`);
-          console.log('================================================================================');
-          console.log(`${'Signature'.padEnd(20)} | ${'Kind'.padEnd(18)} | ${'Domain'.padEnd(18)} | Verified`);
-          console.log('--------------------------------------------------------------------------------');
+          console.log('========================================================================================');
+          console.log(`${'Signature'.padEnd(20)} | ${'Kind'.padEnd(18)} | ${'Domain'.padEnd(18)} | Lean 4 Proof`);
+          console.log('----------------------------------------------------------------------------------------');
           for (const c of list) {
             const sig = (c.signature || '').padEnd(20);
             const kind = (c.kind || '').padEnd(18);
             const domain = (c.domain || '').padEnd(18);
-            const ver = c.verified ? 'YES' : 'NO';
-            console.log(`${sig} | ${kind} | ${domain} | ${ver}`);
+            const leanProof = c.lean_certified ? 'VERIFIED (0-sorry) ✓' : 'UNVERIFIED';
+            console.log(`${sig} | ${kind} | ${domain} | ${leanProof}`);
           }
-          console.log('================================================================================');
+          console.log('========================================================================================');
         } else if (sub === 'get' || sub === 'info') {
           const sig = subArgs[0];
           if (!sig) {
@@ -233,13 +237,37 @@ Available Tryte-QOS Commands:
           } catch (err) {
             console.error(`Arsenal Export Error: ${err.message}`);
           }
+        } else if (sub === 'certify') {
+          const sig = subArgs[0];
+          if (!sig || sig === '--all' || sig === 'all') {
+            console.log('Certifying all cached circuits with Lean 4 formal proof checker...');
+            const { results } = certifyAll();
+            console.log('========================================================================================');
+            console.log(`  Lean 4 Formal Proof Certification Complete: ${results.length} Circuits`);
+            console.log('========================================================================================');
+            for (const r of results) {
+              const status = r.certified ? 'VERIFIED (0-sorry) ✓' : 'FAILED ✗';
+              console.log(`  ${status} | ${r.signature.padEnd(20)} -> ${r.theorem}`);
+            }
+            console.log('========================================================================================');
+          } else {
+            console.log(`Certifying '${sig}' with Lean 4 formal proof checker...`);
+            try {
+              const res = certifyCircuit(sig);
+              console.log(`  ✓ Lean 4 Proof Verified for '${sig}'!`);
+              console.log(`    Theorem: ${res.theorem}`);
+              console.log(`    File   : ${res.certificateFile}`);
+            } catch (err) {
+              console.error(`  ✗ Certification error: ${err.message}`);
+            }
+          }
         } else if (sub === 'forge') {
           const task = subArgs[0] || 'z3_add';
           console.log(`[Arsenal Forge] Grokking synthesis forge requested for task: '${task}'`);
           console.log(`Substrate: Discrete Ternary Weights {-1, 0, 1} x Braid Generators (σ_i^±1)`);
           console.log(`Run 'python3 -m research.quantum_grokking.quantum_hypernet_grokking' to forge new topological circuits.`);
         } else {
-          console.log(`Unknown arsenal action: '${sub}'. Available: list, get, run, export, forge`);
+          console.log(`Unknown arsenal action: '${sub}'. Available: list, get, run, export, certify, forge`);
         }
         break;
       }
