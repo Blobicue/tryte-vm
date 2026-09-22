@@ -65,7 +65,11 @@
     "audit:radix": "node tools/radix-audit.js",
     "audit:forge": "node tools/forge-audit.js",
     "audit:insert": "node tools/insert-audit.js",
-    "audit:width": "node tools/width-audit.js"
+    "audit:width": "node tools/width-audit.js",
+    "quantum:test": "node quantum/test/test-quantum.js",
+    "quantum:compile": "node quantum/cli.js",
+    "quantum:lean": "lean quantum/lean/FibonacciAnyon.lean",
+    "quantum:bench": "node quantum/bench/bench-tryte-anyon.js"
   },
   "license": "MIT",
   "private": true
