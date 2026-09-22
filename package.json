@@ -89,6 +89,7 @@
     "compiler:test": "node test/test-dag-compiler.js",
     "topc:test": "node test/test-topc-multiprecision.js",
     "hybrid:test": "node test/test-hybrid-co-processor.js",
+    "crypto:test": "node test/test-crypto-arsenal.js",
     "lean:arsenal": "lean -o quantum/lean/TryteArsenal.olean quantum/lean/TryteArsenal.lean"
   },
   "license": "MIT",

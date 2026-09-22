@@ -84,7 +84,7 @@ Available Tryte-QOS Commands:
   compile expr <expr>      Compile expression to folded TASM (e.g. compile expr "fold(min, neg, max)")
   eval <expr> [inputs...]  Compile and execute expression directly on TryteVM
   run <algorithm>          Execute verified algorithm: bell, deutsch, teleport, grover, qutrit, hybrid
-  arsenal <action>         Arsenal of Compute (list, get, run, export, certify, forge)
+  arsenal <action>         Arsenal of Compute (list, get, run, export, certify, forge, hash, ca)
   braid <gen1 gen2 ...>    Render spacetime anyon worldlines (e.g. braid 2 -1 2 1)
   export <gate> <file>     Compile and save executable .braid binary
   import <file>            Load and inspect an executable .braid binary
@@ -354,8 +354,27 @@ Available Tryte-QOS Commands:
           console.log(`[Arsenal Forge] Grokking synthesis forge requested for task: '${task}'`);
           console.log(`Substrate: Discrete Ternary Weights {-1, 0, 1} x Braid Generators (σ_i^±1)`);
           console.log(`Run 'python3 -m research.quantum_grokking.quantum_hypernet_grokking' to forge new topological circuits.`);
+        } else if (sub === 'hash') {
+          const crypto = require('../../src/crypto.js');
+          const msg = subArgs.map(Number);
+          const trits = msg.length ? msg : [1, -1, 0, 1, 1, -1];
+          const digest = crypto.hashTernary(trits);
+          console.log(`Balanced Ternary Cryptographic Hash:`);
+          console.log(`  Message Trits : [${trits.join(', ')}]`);
+          console.log(`  Hash Digest   : ${digest} (1-cycle non-linear compression)`);
+        } else if (sub === 'ca') {
+          const crypto = require('../../src/crypto.js');
+          const steps = parseInt(subArgs[0], 10) || 5;
+          const initial = [0, 1, -1, 0, 1, 1, -1, 0, 1];
+          console.log(`Ternary Cellular Automaton (Rule 110 Simulation, ${steps} steps):`);
+          console.log(`  t=0: [${initial.join(', ')}]`);
+          let state = initial;
+          for (let s = 1; s <= steps; s++) {
+            state = crypto.stepCellularAutomaton(state, 1);
+            console.log(`  t=${s}: [${state.join(', ')}]`);
+          }
         } else {
-          console.log(`Unknown arsenal action: '${sub}'. Available: list, get, run, export, certify, forge`);
+          console.log(`Unknown arsenal action: '${sub}'. Available: list, get, run, export, certify, forge, hash, ca`);
         }
         break;
       }
