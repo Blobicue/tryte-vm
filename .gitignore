@@ -4,4 +4,6 @@ node_modules/
 Thumbs.db
 quantum/native/vtqpu
 *.o
+*.so
+__pycache__/
 dist/

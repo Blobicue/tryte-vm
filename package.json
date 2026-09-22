@@ -72,7 +72,11 @@
     "quantum:bench": "node quantum/bench/bench-tryte-anyon.js",
     "tsh": "node quantum/cli/tsh.js",
     "qos": "node quantum/cli/tsh.js",
-    "cluster:node": "node quantum/cluster/cluster-node.js"
+    "cluster:node": "node quantum/cluster/cluster-node.js",
+    "grokking:build": "make -C research/grokking/native",
+    "grokking:test": "python3 -m unittest research/grokking/test_ternary_grokking.py",
+    "grokking:train": "python3 -m research.grokking.train",
+    "grokking:sweep": "python3 -m research.grokking.run_experiments"
   },
   "license": "MIT",
   "private": true
