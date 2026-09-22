@@ -51,6 +51,13 @@ const OPS = {
   // a single instruction can express functions no positionwise table can. ADD is
   // one particular TOPC table.
   TOPC:   { code: 24, operand: 'addr', doc: 'A = carry-chained table at C applied to (A, mem[addr])' },
+
+  // --- the quantum co-processor --------------------------------------------
+  // Executes a topological Fibonacci anyon braid program on the vTQPU.
+  // The operand points to [length, gen1, gen2, ...].
+  // Prepares qutrit |A>, applies braid unitary U in SU(3), projectively
+  // measures into {-1, 0, +1}, and writes the collapsed trit into A.
+  QEXEC:  { code: 25, operand: 'addr', doc: 'A = vTQPU braid execution of program at addr' },
 };
 
 const BY_CODE = {};

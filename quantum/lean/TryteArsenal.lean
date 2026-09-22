@@ -369,4 +369,40 @@ theorem fullAdd_arithmetic_value (x y c : Trit) :
     tritVal s + 3 * tritVal cout = tritVal x + tritVal y + tritVal c := by
   cases x <;> cases y <;> cases c <;> rfl
 
+-- ===========================================================================
+-- Section 8: Quantum Qutrit Co-Processor & Measurement Projection
+-- ===========================================================================
+
+/--
+  Deterministic projective measurement of a 3-level quantum state in the
+  computational balanced ternary basis {|-1>, |0>, |+1>}.
+  Selects the basis state corresponding to the highest probability.
+-/
+def measureQutritBasis (pNeg pZero pPos : Nat) : Trit :=
+  if pNeg >= pZero && pNeg >= pPos then .neg
+  else if pZero >= pNeg && pZero >= pPos then .zero
+  else .pos
+
+/-- Measurement into pure basis |-1> yields .neg -/
+theorem measure_pure_neg : measureQutritBasis 1 0 0 = .neg := by rfl
+
+/-- Measurement into pure basis |0> yields .zero -/
+theorem measure_pure_zero : measureQutritBasis 0 1 0 = .zero := by rfl
+
+/-- Measurement into pure basis |+1> yields .pos -/
+theorem measure_pure_pos : measureQutritBasis 0 0 1 = .pos := by rfl
+
+/-- Measurement always produces a valid Trit -/
+theorem measure_trit_valid (pNeg pZero pPos : Nat) :
+    measureQutritBasis pNeg pZero pPos = .neg ∨
+    measureQutritBasis pNeg pZero pPos = .zero ∨
+    measureQutritBasis pNeg pZero pPos = .pos := by
+  unfold measureQutritBasis
+  split
+  · left; rfl
+  · split
+    · right; left; rfl
+    · right; right; rfl
+
+
 

@@ -10,6 +10,14 @@ const { BY_CODE } = require('./isa.js');
 const CELLS = T.TRYTE_STATES;              // 729
 const idx = addr => T.wrap(addr) - T.TRYTE_MIN;   // tryte address -> array slot
 
+let unifiedCompiler = null;
+function getUnifiedCompiler() {
+  if (!unifiedCompiler) {
+    unifiedCompiler = require('../quantum/src/unified-compiler.js');
+  }
+  return unifiedCompiler;
+}
+
 class TryteVM {
   constructor(opts = {}) {
     this.mem = new Int16Array(CELLS);
@@ -21,6 +29,8 @@ class TryteVM {
     this.maxSteps = opts.maxSteps || 200000;
     this.trace = [];
     this.tracing = !!opts.trace;
+    this.deterministicQuantum = !!opts.deterministicQuantum;
+    this.quantumRng = opts.quantumRng || null;
   }
 
   read(addr) { return this.mem[idx(addr)]; }
@@ -84,6 +94,34 @@ class TryteVM {
         const tbl = [];
         for (let i = 0; i < 27; i++) tbl.push(this.read(T.wrap(this.C + i)));
         this.A = T.ttableC(tbl, this.A, this.read(operand));
+        break;
+      }
+      // Topological Quantum Co-Processor: executes B4 anyon braid on vTQPU
+      case 'QEXEC': {
+        const { evaluateBraid3 } = getUnifiedCompiler();
+        const len = this.read(operand);
+        const word = [];
+        for (let i = 0; i < len; i++) {
+          word.push(this.read(T.wrap(operand + 1 + i)));
+        }
+        const mat = evaluateBraid3(word);
+        const inTrit = T.lowTrit(this.A);
+        const col = inTrit + 1; // -1 -> 0, 0 -> 1, +1 -> 2
+        const pNeg = mat.m[0][col].absSq();
+        const pZero = mat.m[1][col].absSq();
+        const pPos = mat.m[2][col].absSq();
+
+        // Projective measurement into balanced ternary basis {-1, 0, +1}
+        if (this.deterministicQuantum) {
+          if (pNeg >= pZero && pNeg >= pPos) this.A = -1;
+          else if (pZero >= pNeg && pZero >= pPos) this.A = 0;
+          else this.A = 1;
+        } else {
+          const r = this.quantumRng ? this.quantumRng() : Math.random();
+          if (r < pNeg) this.A = -1;
+          else if (r < pNeg + pZero) this.A = 0;
+          else this.A = 1;
+        }
         break;
       }
       default: throw new Error(`unimplemented op ${op.name}`);

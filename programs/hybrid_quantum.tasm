@@ -1,0 +1,29 @@
+; programs/hybrid_quantum.tasm — Topological Quantum-Classical Hybrid Computation
+;
+; Dispatches a 4-strand Fibonacci anyon braid program on the vTQPU,
+; measures the qutrit into the balanced ternary basis {-1, 0, +1},
+; and branches on the quantum measurement result using BR3.
+
+        LOADI 0                 ; Prepare initial qutrit state |0>
+        QEXEC anyon_prog        ; Evolve in SU(3) and projectively measure into A
+        BR3   q_branch          ; Classical 1-cycle branch on quantum outcome
+
+q_branch: .table on_neg, on_zero, on_pos
+
+on_neg:
+        LOADI -1
+        OUT
+        HALT
+
+on_zero:
+        LOADI 0
+        OUT
+        HALT
+
+on_pos:
+        LOADI 1
+        OUT
+        HALT
+
+; Braid program: length = 4, generators: [1, 2, -1, -2] (commutator braid)
+anyon_prog: .word 4, 1, 2, -1, -2
