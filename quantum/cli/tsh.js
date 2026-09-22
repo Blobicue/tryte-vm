@@ -38,11 +38,13 @@ const {
   certifyCircuit,
   certifyAll,
 } = require('../src/certifier.js');
+const { DAGCompiler } = require('../../src/dag_compiler.js');
 
 class TryteQOSShell {
   constructor() {
     this.qubitCompiler = new BraidCompiler({ forwardDepth: 7 });
     this.qutritCompiler = new UnifiedQutritCompiler(4);
+    this.dagCompiler = new DAGCompiler();
     this.hostname = os.hostname();
     this.cores = os.cpus().length;
     this.isIndexed = false;
@@ -79,6 +81,8 @@ class TryteQOSShell {
 Available Tryte-QOS Commands:
   status                   Show system status, vTQPU metrics, and cluster capacity
   compile <gate> [epsilon] Compile a gate (H, T, S, X, Z, T_NEG, T_CYCLE, H3, S3)
+  compile expr <expr>      Compile expression to folded TASM (e.g. compile expr "fold(min, neg, max)")
+  eval <expr> [inputs...]  Compile and execute expression directly on TryteVM
   run <algorithm>          Execute verified algorithm: bell, deutsch, teleport, grover, qutrit
   arsenal <action>         Arsenal of Compute (list, get, run, export, certify, forge)
   braid <gen1 gen2 ...>    Render spacetime anyon worldlines (e.g. braid 2 -1 2 1)
@@ -100,10 +104,37 @@ Available Tryte-QOS Commands:
         console.log(`Qubit Indexed Tree      : ${this.qubitCompiler.forwardTable.length} states`);
         console.log(`Qutrit Indexed Tree     : ${this.qutritCompiler.table.length} states in B₄`);
         console.log(`Arsenal of Compute      : ${listCircuits().length} Grokked Circuits in Cache`);
+        console.log(`DAG Compiler            : Active (Monoid Table Folding & JIT Grokking)`);
         console.log('----------------------------------------------------------------');
         break;
 
       case 'compile': {
+        if (args[0] && args[0].toLowerCase() === 'expr') {
+          let expr = args.slice(1).join(' ').trim();
+          if ((expr.startsWith('"') && expr.endsWith('"')) || (expr.startsWith("'") && expr.endsWith("'"))) {
+            expr = expr.slice(1, -1).trim();
+          }
+          if (!expr) {
+            console.log('Usage: compile expr <expression>');
+            console.log('Examples:');
+            console.log('  compile expr fold(min, neg, max)');
+            console.log('  compile expr x + y');
+            console.log('  compile expr add_mod_3');
+            return;
+          }
+          try {
+            const plan = this.dagCompiler.compile(expr);
+            console.log(`Compiled Expression : ${expr}`);
+            console.log(`Plan Type           : ${plan.type}`);
+            if (plan.stagesFolded) console.log(`Stages Folded       : ${plan.stagesFolded} -> 1 single cycle`);
+            if (plan.wasSynthesized) console.log(`JIT Grokked & Certified in Lean 4`);
+            console.log(`Emitted TASM Bytecode:\n${plan.tasm}`);
+          } catch (err) {
+            console.error(`Compile Expression Error: ${err.message}`);
+          }
+          return;
+        }
+
         const gate = (args[0] || 'H').toUpperCase();
         const eps = parseFloat(args[1]) || 0.05;
 
@@ -165,6 +196,41 @@ Available Tryte-QOS Commands:
           console.log(`4 Anyons -> Dimension ${q.hilbertSpaceDimensions['4 Anyons (Qutrit)'].dim} (Balanced Ternary Qutrit)`);
         } else {
           console.error(`Unknown algorithm: ${algo}. Available: bell, deutsch, teleport, grover, qutrit`);
+        }
+        break;
+      }
+
+      case 'eval': {
+        if (args.length === 0) {
+          console.log('Usage: eval <expr> [in1 in2 ...]');
+          console.log('Examples:');
+          console.log('  eval fold(min, neg, max) 1 -1');
+          console.log('  eval x + y 1 1');
+          console.log('  eval add_mod_3 -1 1');
+          break;
+        }
+        // Extract trailing numeric arguments
+        const inArgs = [];
+        let splitIdx = args.length;
+        while (splitIdx > 0 && /^-?\d+$/.test(args[splitIdx - 1])) {
+          inArgs.unshift(parseInt(args[splitIdx - 1], 10));
+          splitIdx--;
+        }
+        let expr = args.slice(0, splitIdx).join(' ').trim();
+        if ((expr.startsWith('"') && expr.endsWith('"')) || (expr.startsWith("'") && expr.endsWith("'"))) {
+          expr = expr.slice(1, -1).trim();
+        }
+        if (!expr && inArgs.length > 0) {
+          expr = String(inArgs.shift());
+        }
+        try {
+          const res = this.dagCompiler.run(expr, inArgs);
+          console.log(`Expression Evaluated : ${expr}`);
+          console.log(`Inputs               : [${inArgs.join(', ')}]`);
+          console.log(`Output               : [${res.output.join(', ')}]`);
+          console.log(`Cycles               : ${res.steps} steps (folded: ${res.stagesFolded} stages)`);
+        } catch (err) {
+          console.error(`Evaluation Error: ${err.message}`);
         }
         break;
       }

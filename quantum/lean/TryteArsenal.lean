@@ -213,3 +213,41 @@ theorem max_table_is_maxT (x y : Trit) : evalTOP max_table x y = maxT x y := by
 
 theorem csum_table_is_csumT (x y : Trit) : evalTOP csum_table x y = csumT x y := by
   cases x <;> cases y <;> rfl
+
+-- ===========================================================================
+-- Section 6: Monoid Composition & Table Folding Theory
+-- ===========================================================================
+
+/--
+  Fold two 9-entry truth tables into ONE 9-entry table equivalent to their composition:
+  T_fold[a][b] = T2[ T1[a][b] ][b]
+-/
+def foldTable (t1 t2 : Table9) : Table9 :=
+  ⟨#[
+    evalTOP t2 (evalTOP t1 .neg  .neg)  .neg,
+    evalTOP t2 (evalTOP t1 .neg  .zero) .zero,
+    evalTOP t2 (evalTOP t1 .neg  .pos)  .pos,
+    evalTOP t2 (evalTOP t1 .zero .neg)  .neg,
+    evalTOP t2 (evalTOP t1 .zero .zero) .zero,
+    evalTOP t2 (evalTOP t1 .zero .pos)  .pos,
+    evalTOP t2 (evalTOP t1 .pos  .neg)  .neg,
+    evalTOP t2 (evalTOP t1 .pos  .zero) .zero,
+    evalTOP t2 (evalTOP t1 .pos  .pos)  .pos
+  ]⟩
+
+/--
+  Soundness of Table Folding:
+  Evaluating the folded table is identically equal to evaluating t1 followed by t2.
+-/
+theorem fold_soundness (t1 t2 : Table9) (x y : Trit) :
+    evalTOP (foldTable t1 t2) x y = evalTOP t2 (evalTOP t1 x y) y := by
+  cases x <;> cases y <;> rfl
+
+/--
+  Associativity of Table Folding under Evaluation:
+  evalTOP (fold (fold t1 t2) t3) = evalTOP (fold t1 (fold t2 t3))
+-/
+theorem fold_eval_assoc (t1 t2 t3 : Table9) (x y : Trit) :
+    evalTOP (foldTable (foldTable t1 t2) t3) x y = evalTOP (foldTable t1 (foldTable t2 t3)) x y := by
+  repeat rw [fold_soundness]
+

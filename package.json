@@ -86,6 +86,7 @@
     "certifier:test": "node test/test-certifier.js",
     "certifier:test_py": "python3 -m pytest research/arsenal/test_certifier.py",
     "jit:test": "node test/test-jit.js",
+    "compiler:test": "node test/test-dag-compiler.js",
     "lean:arsenal": "lean -o quantum/lean/TryteArsenal.olean quantum/lean/TryteArsenal.lean"
   },
   "license": "MIT",
