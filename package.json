@@ -76,7 +76,9 @@
     "grokking:build": "make -C research/grokking/native",
     "grokking:test": "python3 -m unittest research/grokking/test_ternary_grokking.py",
     "grokking:train": "python3 -m research.grokking.train",
-    "grokking:sweep": "python3 -m research.grokking.run_experiments"
+    "grokking:sweep": "python3 -m research.grokking.run_experiments",
+    "quantum_grokking:test": "python3 -m unittest research/quantum_grokking/test_quantum_grokking.py",
+    "quantum_grokking:train": "python3 -m research.quantum_grokking.train_quantum"
   },
   "license": "MIT",
   "private": true
