@@ -85,6 +85,7 @@ Available Tryte-QOS Commands:
   eval <expr> [inputs...]  Compile and execute expression directly on TryteVM
   run <algorithm>          Execute verified algorithm: bell, deutsch, teleport, grover, qutrit, hybrid
   arsenal <action>         Arsenal of Compute (list, get, run, export, certify, forge, hash, ca)
+  boot, kernel             Boot native Tryte-QOS microkernel with multi-tasking scheduler
   braid <gen1 gen2 ...>    Render spacetime anyon worldlines (e.g. braid 2 -1 2 1)
   export <gate> <file>     Compile and save executable .braid binary
   import <file>            Load and inspect an executable .braid binary
@@ -424,6 +425,31 @@ Available Tryte-QOS Commands:
       case 'qutrit': {
         const q = getTopologicalQutritDimensions();
         console.log(q);
+        break;
+      }
+
+      case 'boot':
+      case 'kernel': {
+        const { bootKernel } = require('../../src/kernel.js');
+        console.log('================================================================');
+        console.log('  Booting Native Tryte-QOS Microkernel (programs/microkernel.tasm) ');
+        console.log('================================================================');
+        console.log('Architecture : Balanced Ternary {-1, 0, +1} & vTQPU Anyon Co-Processor');
+        console.log('Scheduler    : Cooperative Round-Robin with Dynamic Syscall Trapping');
+        console.log('Initializing Task Control Blocks (TCBs)...');
+        console.log('  [PID 1] User Process: Classical Counter (3 -> 0)');
+        console.log('  [PID 2] User Process: Quantum Topological Anyon Task (QEXEC B₄)');
+        console.log('Dispatching microkernel on TryteVM...');
+        const res = bootKernel({ deterministicQuantum: true });
+        console.log('----------------------------------------------------------------');
+        console.log(`Kernel Status      : ${res.status} ✓`);
+        console.log(`Total CPU Cycles   : ${res.steps} instructions executed`);
+        console.log(`Process Outputs    : [${res.output.join(', ')}]`);
+        console.log('Process Table:');
+        for (const p of res.processes) {
+          console.log(`  PID ${p.pid} (${p.name.padEnd(28)}): ${p.status}`);
+        }
+        console.log('================================================================');
         break;
       }
 

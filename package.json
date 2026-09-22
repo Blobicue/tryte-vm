@@ -90,6 +90,7 @@
     "topc:test": "node test/test-topc-multiprecision.js",
     "hybrid:test": "node test/test-hybrid-co-processor.js",
     "crypto:test": "node test/test-crypto-arsenal.js",
+    "kernel:test": "node test/test-microkernel.js",
     "lean:arsenal": "lean -o quantum/lean/TryteArsenal.olean quantum/lean/TryteArsenal.lean"
   },
   "license": "MIT",

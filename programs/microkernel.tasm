@@ -1,0 +1,169 @@
+; programs/microkernel.tasm — Native Balanced Ternary Microkernel for Tryte-QOS
+;
+; Implements:
+;   - Multi-tasking cooperative process scheduler (Round-Robin)
+;   - Task Control Blocks (TCBs): PID, PC, Status, RegA
+;   - System call dispatcher (SYSCALL: Yield, Quantum Braid, Out, Exit)
+;   - Multi-process execution: Process 1 (Classical Counter) & Process 2 (Quantum Anyon Task)
+
+; --- Microkernel Entry Point ---
+kernel_boot:
+        LOADI 1
+        STORE p1_status         ; Process 1 status = READY (1)
+        LOADI 1
+        STORE p2_status         ; Process 2 status = READY (1)
+
+        LOADI 0
+        STORE active_pid        ; Start with Process 1 (index 0)
+
+scheduler_loop:
+        ; If Process 1 is READY (status == 1), run Process 1
+        LOAD  p1_status
+        BR3   chk_p1
+chk_p1: .table chk_p2_only, chk_p2_only, run_p1
+
+chk_p2_only:
+        ; Process 1 is not ready; check Process 2
+        LOAD  p2_status
+        BR3   chk_p2
+chk_p2: .table all_done, all_done, run_p2
+
+run_p1:
+        LOADI 0
+        STORE active_pid
+        JMPX  p1_pc
+
+run_p2:
+        LOADI 1
+        STORE active_pid
+        JMPX  p2_pc
+
+; --- System Call Dispatcher ---
+; Processes jump to syscall_trap with syscall ID in Accumulator:
+;   arg = -1 : Exit
+;   arg =  0 : Yield
+;   arg =  1 : OUT
+syscall_trap:
+        STORE sys_arg
+        LOAD  active_pid
+        BR3   route_pid
+route_pid: .table handle_p1_call, handle_p1_call, handle_p2_call
+
+handle_p1_call:
+        LOAD  sys_arg
+        BR3   route_call_p1
+route_call_p1: .table sys_exit_p1, sys_yield_p1, sys_out_p1
+
+sys_exit_p1:
+        LOADI -1
+        STORE p1_status
+        JMP   chk_p2_only
+
+sys_yield_p1:
+        ; Round-robin: run p2 next if ready
+        LOAD  p2_status
+        BR3   chk_p2_after_y1
+chk_p2_after_y1: .table run_p1, run_p1, run_p2
+
+sys_out_p1:
+        LOAD  p1_val
+        OUT
+        ; Yield to p2 after output
+        LOAD  p2_status
+        BR3   chk_p2_after_o1
+chk_p2_after_o1: .table run_p1, run_p1, run_p2
+
+handle_p2_call:
+        LOAD  sys_arg
+        BR3   route_call_p2
+route_call_p2: .table sys_exit_p2, sys_yield_p2, sys_out_p2
+
+sys_exit_p2:
+        LOADI -1
+        STORE p2_status
+        JMP   scheduler_loop
+
+sys_yield_p2:
+        ; Round-robin: run p1 next if ready
+        LOAD  p1_status
+        BR3   chk_p1_after_y2
+chk_p1_after_y2: .table run_p2, run_p2, run_p1
+
+sys_out_p2:
+        LOAD  p2_val
+        OUT
+        ; Yield to p1 after output
+        LOAD  p1_status
+        BR3   chk_p1_after_o2
+chk_p1_after_o2: .table run_p2, run_p2, run_p1
+
+all_done:
+        LOADI 0                 ; Clean kernel shutdown
+        HALT
+
+; ===========================================================================
+; User Process 1: Classical Arithmetic Counter
+; Counts down from 2 to 0, emits each count via syscall, then exits.
+; ===========================================================================
+p1_body:
+        LOAD  p1_count
+        STORE p1_val
+        LOADI p1_step2
+        STORE p1_pc
+        ; Emit count via syscall OUT (arg = 1)
+        LOADI 1
+        JMP   syscall_trap
+
+p1_step2:
+        LOAD  p1_count
+        ADDI  -1
+        STORE p1_count
+        BR3   p1_check
+p1_check: .table p1_terminate, p1_terminate, p1_continue
+
+p1_continue:
+        LOADI p1_body
+        STORE p1_pc
+        ; Yield to Process 2 (arg = 0)
+        LOADI 0
+        JMP   syscall_trap
+
+p1_terminate:
+        ; Exit syscall (arg = -1)
+        LOADI -1
+        JMP   syscall_trap
+
+; ===========================================================================
+; User Process 2: Quantum Co-Processor Anyon Task
+; Executes anyon braid on vTQPU via QEXEC, emits result, then exits.
+; ===========================================================================
+p2_body:
+        LOADI 0                 ; Input state |0>
+        QEXEC p2_braid          ; Execute topological braid on vTQPU
+        STORE p2_val
+        LOADI p2_resume
+        STORE p2_pc
+        ; Emit result via syscall OUT (arg = 1)
+        LOADI 1
+        JMP   syscall_trap
+
+p2_resume:
+        ; Exit syscall (arg = -1)
+        LOADI -1
+        JMP   syscall_trap
+
+; --- Data Section ---
+active_pid:   .word 0
+sys_arg:      .word 0
+
+; Process 1 Control Block
+p1_status:    .word 1
+p1_count:     .word 2
+p1_val:       .word 0
+p1_pc:        .word p1_body
+
+; Process 2 Control Block
+p2_status:    .word 1
+p2_val:       .word 0
+p2_pc:        .word p2_body
+p2_braid:     .word 2, 2, -2     ; 2 crossings: sigma2, sigma2^-1 (identity)
