@@ -1076,16 +1076,18 @@ console.log('\n=== 9. WAS THE CRITERION DISCRIMINATING? ===');
     && [...NO_DRAWABLE_NULL, ...SCORED_PARENTS, ...UNSCORED_LINE_BEARING]
       .every(id => atRiskThen.some(p => p.id === id)));
 
-  // Healthy, real future traffic: AV contains timing thresholds, not new members
-  // of the old audit's "no line" class. Both arms call the production projector.
-  const laterAV = (M.prediction_sets.find(s => s.id === 'AV') || { predictions: [] }).predictions;
-  const extendedHistory = [...auditedPredictions, ...laterAV];
+  // Healthy, real future traffic: AV and AW contain timing thresholds, not new
+  // members of the old audit's "no line" class. Both arms call the production
+  // projector, so another timing replay cannot silently broaden the old census.
+  const laterTiming = ['AV','AW'].flatMap(id =>
+    (M.prediction_sets.find(s => s.id === id) || { predictions: [] }).predictions);
+  const extendedHistory = [...auditedPredictions, ...laterTiming];
   const healthyExtension = inspectHistorical(extendedHistory);
-  check('the real AV extension leaves the historical census unchanged and unclassified here',
-    laterAV.length > 0 && laterAV.every(p => !auditedIds.has(p.id)
+  check('the real AV/AW extensions leave the historical census unchanged and unclassified here',
+    laterTiming.length === 4 && laterTiming.every(p => !auditedIds.has(p.id)
       && R.classify(p.at_risk) === 'at-risk')
     && healthyExtension.defects.length === 0 && healthyExtension.atRisk.length === atRiskThen.length
-    && laterAV.every(p => !healthyExtension.rows.some(q => q.id === p.id)));
+    && laterTiming.every(p => !healthyExtension.rows.some(q => q.id === p.id)));
   // Mutate the actual projection's predicate, rather than reimplementing a bad
   // counter in the test. The same inspector must reject the original drift.
   const projectionSource = historicalScope.toString();

@@ -2,8 +2,8 @@
  "schema": "tryte-vm/slate@1",
  "purpose": "A retrieval-shaped projection of FINDINGS.json plus authored marginalia. Flat, addressable entries with stable ids, topic routes and validated cross-links. The manifest remains the authority; this is a view of it and never a second copy of the truth.",
  "counts": {
-  "entries": 297,
-  "predictions": 199,
+  "entries": 299,
+  "predictions": 201,
   "findings": 66,
   "traps": 19,
   "notes": 13,
@@ -80,6 +80,7 @@
    "AT3",
    "AU3",
    "AV2",
+   "AW2",
    "F-FOLD-BUYS-DEPTH",
    "F-RADIX-ECONOMY",
    "F-GATES-FROM-SWITCHES",
@@ -308,6 +309,7 @@
    "AU1",
    "AU3",
    "AU4",
+   "AW1",
    "F-COST-INVARIANCE-IS-THE-NORM",
    "F-TERNARY-RICHER-IN-VARIETY-POORER-IN-STRUCTURE",
    "F-27-EDO-BEATS-12-EDO-ON-CONSONANCE",
@@ -7349,6 +7351,64 @@
    "asserted_in": "test/test-compute-preflight.js",
    "registered_at": "abcfb635adb43439341013328d4e6c95daa75e5d",
    "results_at": "62ccfaf2c9eaf9e1a74fccba37fcaf76f2a5f6d4",
+   "links": []
+  },
+  {
+   "id": "AW1",
+   "kind": "prediction",
+   "set": "AW",
+   "subject": "One-node Ryzen 7 5825U replay of native ternary dense-layer profiling: resident feature packing versus repacking both operands; single-threaded, with no fleet, independent-example bit slicing, training or model-quality claim",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "At width1024, median(native resident)/median(sign resident) >= 1.25.",
+   "argument": null,
+   "note": "HELD on the single registered node-ecd2b9 run. At width1024, median full dense-layer batch time was 46.3795 us native versus 7.784171875 us sign-packed, a ratio of 5.958180361992585 against the 1.25 floor. The same-code native/native-control ratio was 0.9968254458665142. The host was one Ryzen 7 5825U running Linux with GCC 13.3.0, and seven same-process repetitions from one short single-threaded run are local observations, not independent machines, sustained-load evidence or a population confidence interval. Bit positions represent features within each dot product, not independent examples. No useful neural model, inference quality or training was measured.",
+   "measured": {
+    "id": "AW1",
+    "stage": "resident",
+    "threshold": 1.25,
+    "comparison": ">=",
+    "ratio": 5.958180361992585,
+    "margin": 4.708180361992585,
+    "outcome": "HELD"
+   },
+   "tool": "research/compute-preflight/worker-audit.cjs",
+   "asserted_in": "test/test-compute-preflight.js",
+   "registered_at": "a1ff9e1777fa9e002e1fe02281c4e1c85afde37f",
+   "results_at": "bd22d7ee600a2de05f3516849a52897b95b2c02d",
+   "links": []
+  },
+  {
+   "id": "AW2",
+   "kind": "prediction",
+   "set": "AW",
+   "subject": "One-node Ryzen 7 5825U replay of native ternary dense-layer profiling: resident feature packing versus repacking both operands; single-threaded, with no fleet, independent-example bit slicing, training or model-quality claim",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "cost-model"
+   ],
+   "routes_derived": true,
+   "claim": "At width1024, median(native end_to_end)/median(sign end_to_end) <= 1.00.",
+   "argument": null,
+   "note": "HELD on this one-node replay. Repacking both inputs and weights into reused buffers plus computation took median 146.5601015625 us versus 46.5824609375 us native. The native/packed ratio was 0.31783862347853986, so the packed path was approximately 3.1462507264083936 times slower; the same-code native/native-control ratio was 0.9993585727497837. This repeats the controller result's direction at the same frozen boundary, not its exact magnitude and not a fleet result. End-to-end here excludes allocation, validation, model loading, process launch and network, and does not measure the resident-weight/new-activation regime named in the registration.",
+   "measured": {
+    "id": "AW2",
+    "stage": "end_to_end",
+    "threshold": 1,
+    "comparison": "<=",
+    "ratio": 0.31783862347853986,
+    "margin": 0.6821613765214601,
+    "outcome": "HELD"
+   },
+   "tool": "research/compute-preflight/worker-audit.cjs",
+   "asserted_in": "test/test-compute-preflight.js",
+   "registered_at": "a1ff9e1777fa9e002e1fe02281c4e1c85afde37f",
+   "results_at": "bd22d7ee600a2de05f3516849a52897b95b2c02d",
    "links": []
   },
   {

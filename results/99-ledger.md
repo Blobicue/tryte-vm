@@ -7,13 +7,13 @@ Every registered prediction, in the order it was registered, rendered from
 [`FINDINGS.json`](../FINDINGS.json). **Nothing on this page is authored** — if a
 line here is wrong, the manifest is wrong.
 
-**48 sets · 199 predictions · 161 held · 38 failed**
+**49 sets · 201 predictions · 163 held · 38 failed**
 · 66 measured but never registered
 · 19 defect classes, 70 occurrences
 
-Of those 199 predictions, **167 were genuinely at risk**;
+Of those 201 predictions, **169 were genuinely at risk**;
 25 were not, and 7 could not be called. The failure rate is
-therefore **22.8% of what was at risk** and 19.1% of everything
+therefore **22.5% of what was at risk** and 18.9% of everything
 registered. Both are true and they answer different questions —
 see `F-REGISTRATION-IS-NOT-RISK`.
 
@@ -2264,6 +2264,38 @@ branch rather than merely present in a local object store.
 **Measured.** id: AV2; stage: end_to_end; threshold: 1.1; ratio: 0.3606629232117895; margin: -0.7393370767882106; outcome: FAILED
 
 **Note.** FAILED, and retained. Repacking both operands into reused buffers plus computation took median65.9484375 us versus native23.78515625 us, approximately2.77x slower. The same-code control ratio was0.9866800622245269. End-to-end here excludes allocation, input validation, model loading, process launch and network. This does not measure a resident-weight/new-input regime, sustained target hardware, training or useful task quality. The design implication is to measure persistent representations and conversion costs separately, not declare packed arithmetic universally faster. Other tested widths are descriptive rather than retrospectively selected successes.
+
+---
+
+## Set `AW` — One-node Ryzen 7 5825U replay of native ternary dense-layer profiling: resident feature packing versus repacking both operands; single-threaded, with no fleet, independent-example bit slicing, training or model-quality claim
+
+| | |
+|---|---|
+| outcome | 2 held, 0 failed |
+| tool | `research/compute-preflight/worker-audit.cjs` |
+| asserted in | `test/test-compute-preflight.js` |
+| registered | `a1ff9e1777fa9e002e1fe02281c4e1c85afde37f` |
+| results | `bd22d7ee600a2de05f3516849a52897b95b2c02d` |
+
+### `AW1` — HELD
+
+**Claim.** At width1024, median(native resident)/median(sign resident) >= 1.25.
+
+**At risk.** Linux GCC can vectorize the native loop differently, while the 5825U's POPCNT throughput, dependencies and power envelope can reduce the ratio below 1.25 even when packed arithmetic is correct.
+
+**Measured.** id: AW1; stage: resident; threshold: 1.25; comparison: >=; ratio: 5.958180361992585; margin: 4.708180361992585; outcome: HELD
+
+**Note.** HELD on the single registered node-ecd2b9 run. At width1024, median full dense-layer batch time was 46.3795 us native versus 7.784171875 us sign-packed, a ratio of 5.958180361992585 against the 1.25 floor. The same-code native/native-control ratio was 0.9968254458665142. The host was one Ryzen 7 5825U running Linux with GCC 13.3.0, and seven same-process repetitions from one short single-threaded run are local observations, not independent machines, sustained-load evidence or a population confidence interval. Bit positions represent features within each dot product, not independent examples. No useful neural model, inference quality or training was measured.
+
+### `AW2` — HELD
+
+**Claim.** At width1024, median(native end_to_end)/median(sign end_to_end) <= 1.00.
+
+**At risk.** this CPU's cache hierarchy and lower native throughput can make packing cheap enough that the ratio rises above one, reversing the controller's conversion-cost result.
+
+**Measured.** id: AW2; stage: end_to_end; threshold: 1; comparison: <=; ratio: 0.31783862347853986; margin: 0.6821613765214601; outcome: HELD
+
+**Note.** HELD on this one-node replay. Repacking both inputs and weights into reused buffers plus computation took median 146.5601015625 us versus 46.5824609375 us native. The native/packed ratio was 0.31783862347853986, so the packed path was approximately 3.1462507264083936 times slower; the same-code native/native-control ratio was 0.9993585727497837. This repeats the controller result's direction at the same frozen boundary, not its exact magnitude and not a fleet result. End-to-end here excludes allocation, validation, model loading, process launch and network, and does not measure the resident-weight/new-activation regime named in the registration.
 
 ---
 
