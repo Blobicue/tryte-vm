@@ -15,7 +15,7 @@ const { TryteVM } = require('./vm.js');
 const { assemble, loadInto } = require('./assembler.js');
 const { TryteJIT } = require('./jit.js');
 const { getCircuit } = require('../quantum/src/arsenal.js');
-const { certifyCircuit } = require('../quantum/src/certifier.js');
+const { generateWideAddTASM } = require('./multiprecision.js');
 
 const ROOT = path.resolve(__dirname, '..');
 
@@ -126,8 +126,26 @@ y0:     .word 0`;
       };
     }
 
-    // Case B: Infix or Named Operator
+    // Case B: Multi-Precision Carry Chain (e.g. add12, add18, add24, add_wide_2)
     let op = Array.isArray(ast) ? ast[0] : ast;
+    const wideMatch = String(op).toLowerCase().match(/^add(?:_wide_)?(\d+)$/);
+    if (wideMatch) {
+      const num = parseInt(wideMatch[1], 10);
+      const wordCount = num > 6 ? Math.round(num / 6) : num;
+      const tritCount = wordCount * 6;
+      const tasm = generateWideAddTASM(wordCount);
+
+      return {
+        type: 'multiprecision_carry_chain',
+        ast,
+        signature: `add_${tritCount}trit`,
+        wordCount,
+        tritCount,
+        tasm,
+      };
+    }
+
+    // Case C: Infix or Named Operator
     let signature = op;
 
     // Normalization
@@ -199,4 +217,5 @@ module.exports = {
   DAGCompiler,
   parseExpression,
   TABLE_PRESETS,
+  multiprecision: require('./multiprecision.js'),
 };

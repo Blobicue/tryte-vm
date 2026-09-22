@@ -251,3 +251,122 @@ theorem fold_eval_assoc (t1 t2 t3 : Table9) (x y : Trit) :
     evalTOP (foldTable (foldTable t1 t2) t3) x y = evalTOP (foldTable t1 (foldTable t2 t3)) x y := by
   repeat rw [fold_soundness]
 
+-- ===========================================================================
+-- Section 7: 27-Entry Carry Table (TOPC) & Multi-Precision Carry Theory
+-- ===========================================================================
+
+/-- Full 1-trit adder with carry-in and carry-out: (sum, cout) -/
+def fullAddTrit (x y c : Trit) : Trit × Trit :=
+  match x, y, c with
+  | .neg,  .neg,  .neg  => (.zero, .neg)
+  | .neg,  .neg,  .zero => (.pos,  .neg)
+  | .neg,  .neg,  .pos  => (.neg,  .zero)
+  | .neg,  .zero, .neg  => (.pos,  .neg)
+  | .neg,  .zero, .zero => (.neg,  .zero)
+  | .neg,  .zero, .pos  => (.zero, .zero)
+  | .neg,  .pos,  .neg  => (.neg,  .zero)
+  | .neg,  .pos,  .zero => (.zero, .zero)
+  | .neg,  .pos,  .pos  => (.pos,  .zero)
+
+  | .zero, .neg,  .neg  => (.pos,  .neg)
+  | .zero, .neg,  .zero => (.neg,  .zero)
+  | .zero, .neg,  .pos  => (.zero, .zero)
+  | .zero, .zero, .neg  => (.neg,  .zero)
+  | .zero, .zero, .zero => (.zero, .zero)
+  | .zero, .zero, .pos  => (.pos,  .zero)
+  | .zero, .pos,  .neg  => (.zero, .zero)
+  | .zero, .pos,  .zero => (.pos,  .zero)
+  | .zero, .pos,  .pos  => (.neg,  .pos)
+
+  | .pos,  .neg,  .neg  => (.neg,  .zero)
+  | .pos,  .neg,  .zero => (.zero, .zero)
+  | .pos,  .neg,  .pos  => (.pos,  .zero)
+  | .pos,  .zero, .neg  => (.zero, .zero)
+  | .pos,  .zero, .zero => (.pos,  .zero)
+  | .pos,  .zero, .pos  => (.neg,  .pos)
+  | .pos,  .pos,  .neg  => (.pos,  .zero)
+  | .pos,  .pos,  .zero => (.neg,  .pos)
+  | .pos,  .pos,  .pos  => (.zero, .pos)
+
+/-- 27-row truth table with packed (output, carry) entries -/
+structure Table27 where
+  entries : Array (Trit × Trit)
+  deriving Repr
+
+/-- Evaluate a 27-entry carry table at (x, y, c) matching Tryte-VM TOPC hardware semantics -/
+def evalTOPC (tbl : Table27) (x y c : Trit) : Trit × Trit :=
+  let idx := match x, y, c with
+    | .neg,  .neg,  .neg  => 0
+    | .neg,  .neg,  .zero => 1
+    | .neg,  .neg,  .pos  => 2
+    | .neg,  .zero, .neg  => 3
+    | .neg,  .zero, .zero => 4
+    | .neg,  .zero, .pos  => 5
+    | .neg,  .pos,  .neg  => 6
+    | .neg,  .pos,  .zero => 7
+    | .neg,  .pos,  .pos  => 8
+    | .zero, .neg,  .neg  => 9
+    | .zero, .neg,  .zero => 10
+    | .zero, .neg,  .pos  => 11
+    | .zero, .zero, .neg  => 12
+    | .zero, .zero, .zero => 13
+    | .zero, .zero, .pos  => 14
+    | .zero, .pos,  .neg  => 15
+    | .zero, .pos,  .zero => 16
+    | .zero, .pos,  .pos  => 17
+    | .pos,  .neg,  .neg  => 18
+    | .pos,  .neg,  .zero => 19
+    | .pos,  .neg,  .pos  => 20
+    | .pos,  .zero, .neg  => 21
+    | .pos,  .zero, .zero => 22
+    | .pos,  .zero, .pos  => 23
+    | .pos,  .pos,  .neg  => 24
+    | .pos,  .pos,  .zero => 25
+    | .pos,  .pos,  .pos  => 26
+  tbl.entries.getD idx (.zero, .zero)
+
+/-- Canonical 27-entry carry table for balanced ternary addition -/
+def addCarryTable27 : Table27 :=
+  ⟨#[
+    (.zero, .neg),  (.pos,  .neg),  (.neg,  .zero),
+    (.pos,  .neg),  (.neg,  .zero), (.zero, .zero),
+    (.neg,  .zero), (.zero, .zero), (.pos,  .zero),
+
+    (.pos,  .neg),  (.neg,  .zero), (.zero, .zero),
+    (.neg,  .zero), (.zero, .zero), (.pos,  .zero),
+    (.zero, .zero), (.pos,  .zero), (.neg,  .pos),
+
+    (.neg,  .zero), (.zero, .zero), (.pos,  .zero),
+    (.zero, .zero), (.pos,  .zero), (.neg,  .pos),
+    (.pos,  .zero), (.neg,  .pos),  (.zero, .pos)
+  ]⟩
+
+/-- Soundness of 27-row carry table: exactly computes full balanced ternary addition -/
+theorem addCarry_soundness (x y c : Trit) :
+    evalTOPC addCarryTable27 x y c = fullAddTrit x y c := by
+  cases x <;> cases y <;> cases c <;> rfl
+
+/-- Full addition symmetry: x + y + c = y + x + c -/
+theorem fullAddTrit_comm (x y c : Trit) :
+    fullAddTrit x y c = fullAddTrit y x c := by
+  cases x <;> cases y <;> cases c <;> rfl
+
+/-- Zero identity: x + 0 + 0 = (x, 0) -/
+theorem fullAddTrit_zero (x : Trit) :
+    fullAddTrit x .zero .zero = (x, .zero) := by
+  cases x <;> rfl
+
+/-- Integer value of a trit in {-1, 0, 1} -/
+def tritVal (t : Trit) : Int :=
+  match t with
+  | .neg  => -1
+  | .zero => 0
+  | .pos  => 1
+
+/-- Exact conservation of arithmetic value across the carry ripple -/
+theorem fullAdd_arithmetic_value (x y c : Trit) :
+    let (s, cout) := fullAddTrit x y c
+    tritVal s + 3 * tritVal cout = tritVal x + tritVal y + tritVal c := by
+  cases x <;> cases y <;> cases c <;> rfl
+
+
