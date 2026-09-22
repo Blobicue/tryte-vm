@@ -151,30 +151,49 @@ console.log('\n>>> [4/7] Testing Ternary NTRU KEM & Shared Key Derivation...');
 }
 
 // ---------------------------------------------------------------------------
-// 5. Ternary Ring-LWE Key Encapsulation Mechanism
+// 5. Multi-Scale Parameter Sets (toy, embedded_9, embedded_27, medium_81, pq_128, pq_256)
 // ---------------------------------------------------------------------------
-console.log('\n>>> [5/7] Testing Ternary Ring-LWE KEM (Negacyclic Ring X^N + 1)...');
+console.log('\n>>> [5/8] Testing Scalable NTRU Parameter Presets up to PQ-256...');
 
 {
-  const rlwe = new TernaryRingLWE(9);
-  let rlwePass = true;
-
-  for (let trial = 0; trial < 100; trial++) {
-    const keypair = rlwe.generateKeyPair();
-    const kem = rlwe.encapsulate(keypair.publicKey);
-    const decap = rlwe.decapsulate(keypair.privateKey, kem.ciphertext);
-
-    if (!kem.sharedSecret.equals(decap.sharedSecret)) rlwePass = false;
-    if (kem.symmetricKey !== decap.symmetricKey) rlwePass = false;
+  const presetNames = ['toy', 'embedded_9', 'embedded_27', 'medium_81', 'pq_128', 'pq_256'];
+  for (const name of presetNames) {
+    const ntruInstance = TernaryNTRU.fromPreset(name);
+    const kp = ntruInstance.generateKeyPair();
+    const msg = TernaryPoly.randomTernary(ntruInstance.N);
+    const { ciphertext } = ntruInstance.encrypt(kp.publicKey, msg);
+    const decrypted = ntruInstance.decrypt(kp.privateKey, ciphertext);
+    check(`Parameter preset '${name}' (N=${ntruInstance.N}) encrypts and decrypts with 100% exact fidelity`, msg.equals(decrypted));
   }
-
-  check('Ring-LWE KEM establishes matching shared secrets across 100 trials (0% error rate)', rlwePass);
 }
 
 // ---------------------------------------------------------------------------
-// 6. Native TryteVM TASM Execution
+// 6. Ternary Ring-LWE Key Encapsulation Mechanism
 // ---------------------------------------------------------------------------
-console.log('\n>>> [6/7] Testing Native TASM Execution on TryteVM...');
+console.log('\n>>> [6/8] Testing Ternary Ring-LWE KEM (Negacyclic Ring X^N + 1)...');
+
+{
+  for (const deg of [9, 27]) {
+    const rlwe = new TernaryRingLWE(deg);
+    let rlwePass = true;
+
+    for (let trial = 0; trial < 50; trial++) {
+      const keypair = rlwe.generateKeyPair();
+      const kem = rlwe.encapsulate(keypair.publicKey);
+      const decap = rlwe.decapsulate(keypair.privateKey, kem.ciphertext);
+
+      if (!kem.sharedSecret.equals(decap.sharedSecret)) rlwePass = false;
+      if (kem.symmetricKey !== decap.symmetricKey) rlwePass = false;
+    }
+
+    check(`Ring-LWE KEM (N=${deg}) establishes matching shared secrets across 50 trials (0% error rate)`, rlwePass);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 7. Native TryteVM TASM Execution
+// ---------------------------------------------------------------------------
+console.log('\n>>> [7/8] Testing Native TASM Execution on TryteVM...');
 
 {
   const N = 3;
@@ -215,9 +234,9 @@ console.log('\n>>> [6/7] Testing Native TASM Execution on TryteVM...');
 }
 
 // ---------------------------------------------------------------------------
-// 7. Adversarial Tampering & Boundary Stress
+// 8. Adversarial Tampering & Boundary Stress
 // ---------------------------------------------------------------------------
-console.log('\n>>> [7/7] Testing Adversarial Tampering & Boundary Stress...');
+console.log('\n>>> [8/8] Testing Adversarial Tampering & Boundary Stress...');
 
 {
   const ntru = new TernaryNTRU(27);

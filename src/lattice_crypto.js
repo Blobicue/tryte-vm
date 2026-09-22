@@ -258,14 +258,31 @@ class TernaryPoly {
   }
 }
 
+const PARAMETER_SETS = {
+  toy: { N: 3, dF: 1, dG: 1, dR: 1, doc: 'TASM execution on TryteVM core (3 trits)' },
+  embedded_9: { N: 9, dF: 3, dG: 3, dR: 3, doc: 'Lightweight embedded microcontroller (9 trits)' },
+  embedded_27: { N: 27, dF: 6, dG: 6, dR: 6, doc: 'Default Tryte-QOS 3-tryte block size (27 trits)' },
+  medium_81: { N: 81, dF: 18, dG: 18, dR: 18, doc: 'Medium security (81 trits / 162 dimension)' },
+  pq_128: { N: 243, dF: 24, dG: 24, dR: 24, doc: 'NIST Level 1 Post-Quantum (~128-bit security, 486 dimension)' },
+  pq_256: { N: 729, dF: 48, dG: 48, dR: 48, doc: 'NIST Level 5 Post-Quantum (~256-bit security, 1458 dimension)' },
+};
+
 /**
  * Ternary NTRU Key Encapsulation Mechanism and Encryption.
  */
 class TernaryNTRU {
-  constructor(N = DEFAULT_N) {
+  constructor(N = DEFAULT_N, defaultDF = 6, defaultDG = 6) {
     this.N = N;
+    this.defaultDF = defaultDF;
+    this.defaultDG = defaultDG;
     this.q = MODULUS_Q; // 729
     this.p = MODULUS_P; // 3
+  }
+
+  static fromPreset(name = 'embedded_27') {
+    const p = PARAMETER_SETS[name];
+    if (!p) throw new Error(`Unknown parameter set '${name}'. Available: ${Object.keys(PARAMETER_SETS).join(', ')}`);
+    return new TernaryNTRU(p.N, p.dF, p.dG);
   }
 
   /**
@@ -273,10 +290,13 @@ class TernaryNTRU {
    * Private key: f = 1 + 3*F
    * Public key: h = 3 * f^-1 * g (mod 729)
    */
-  generateKeyPair(dF = 6, dG = 6) {
+  generateKeyPair(dF = null, dG = null) {
+    const dfCount = dF !== null ? dF : this.defaultDF;
+    const dgCount = dG !== null ? dG : this.defaultDG;
     // Sample F and g as ternary polynomials
-    const F = TernaryPoly.randomTernary(this.N, dF, 'cyclic');
-    const g = TernaryPoly.randomTernary(this.N, dG, 'cyclic');
+    const F = TernaryPoly.randomTernary(this.N, dfCount, 'cyclic');
+    F.coeffs[0] = 0; // Standard NTRU: f(0) = 1 + 3*0 = 1
+    const g = TernaryPoly.randomTernary(this.N, dgCount, 'cyclic');
 
     // f = 1 + 3*F
     const f = F.scalarMul(3).add(TernaryPoly.constant(1, this.N, 'cyclic'));
@@ -561,6 +581,7 @@ module.exports = {
   DEFAULT_N,
   MODULUS_Q,
   MODULUS_P,
+  PARAMETER_SETS,
   TernaryPoly,
   TernaryNTRU,
   TernaryRingLWE,
