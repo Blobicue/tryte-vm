@@ -126,20 +126,23 @@ right:  .word 0""",
     }
 
 
+def trit_to_lean(v: int) -> str:
+    if v == -1:
+        return ".neg"
+    elif v == 0:
+        return ".zero"
+    elif v == 1:
+        return ".pos"
+    raise ValueError(f"Invalid trit: {v}")
+
+
 def emit_lean_cert(sig: str, c: dict) -> Path:
     """Emits an isolated Lean 4 certificate."""
     pascal_name = "".join(part.capitalize() for part in sig.split("_"))
     cert_path = CERT_DIR / f"{sig}_cert.lean"
 
     tt = c["truth_table"]
-    lean_trits = []
-    for v in tt:
-        if v == -1:
-            lean_trits.append(".neg")
-        elif v == 0:
-            lean_trits.append(".zero")
-        elif v == 1:
-            lean_trits.append(".pos")
+    lean_trits = [trit_to_lean(v) for v in tt]
 
     if len(tt) == 9:
         entries_str = ", ".join(lean_trits)
@@ -170,15 +173,36 @@ end Certificate.{pascal_name}
     else:
         # 27-row table
         entries_str = ", ".join(lean_trits)
+        match_branches = [
+            f"      | {trit_to_lean(l)},  {trit_to_lean(c_val)},  {trit_to_lean(r)}  => {lean_trits[idx]}"
+            for idx, (l, c_val, r) in enumerate([
+                (-1, -1, -1), (-1, -1, 0), (-1, -1, 1),
+                (-1, 0, -1), (-1, 0, 0), (-1, 0, 1),
+                (-1, 1, -1), (-1, 1, 0), (-1, 1, 1),
+                (0, -1, -1), (0, -1, 0), (0, -1, 1),
+                (0, 0, -1), (0, 0, 0), (0, 0, 1),
+                (0, 1, -1), (0, 1, 0), (0, 1, 1),
+                (1, -1, -1), (1, -1, 0), (1, -1, 1),
+                (1, 0, -1), (1, 0, 0), (1, 0, 1),
+                (1, 1, -1), (1, 1, 0), (1, 1, 1),
+            ])
+        ]
+        match_str = "\n".join(match_branches)
         content = f"""import TryteArsenal
+
+open Trit
 
 namespace Certificate.{pascal_name}
 
 /-- Table definition for {sig} (27 entries) -/
-def table_size : Nat := {len(tt)}
+def table : RuleTable27 := ⟨#[{entries_str}]⟩
 
-/-- Formally verified deterministic specification for {sig} -/
-theorem {sig}_certified : table_size = 27 := by rfl
+/-- Formally verified deterministic specification for {sig} across all 27 ternary neighborhood states -/
+theorem {sig}_certified (l c r : Trit) :
+    evalRule27 table l c r =
+      match l, c, r with
+{match_str} := by
+  cases l <;> cases c <;> cases r <;> rfl
 
 end Certificate.{pascal_name}
 """

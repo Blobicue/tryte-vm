@@ -79,5 +79,42 @@ test('tsh CLI boots microkernel via boot command', () => {
   assert.ok(out.includes('PID 2 (Quantum Anyon Braid Task'));
 });
 
+// 5. Illegal Syscall Trapping
+test('Microkernel traps invalid syscall IDs and flags faulting process as CRASHED', () => {
+  const src = fs.readFileSync(path.resolve(__dirname, '../programs/microkernel.tasm'), 'utf8');
+  // Inject illegal syscall ID 5 into Process 1
+  const modifiedSrc = src.replace('LOADI 1\n        JMP   syscall_trap', 'LOADI 5\n        JMP   syscall_trap');
+
+  const tmpPath = path.resolve(__dirname, '../programs/microkernel_fault_test.tasm');
+  fs.writeFileSync(tmpPath, modifiedSrc, 'utf8');
+  try {
+    const res = bootKernel({ srcPath: tmpPath, deterministicQuantum: true });
+    assert.strictEqual(res.processes[0].status, 'CRASHED');
+    assert.strictEqual(res.processes[0].statusCode, -364);
+    // Process 2 should still run and terminate normally
+    assert.strictEqual(res.processes[1].status, 'TERMINATED');
+  } finally {
+    if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
+  }
+});
+
+// 6. Preemption & Timeout Handling
+test('Microkernel controller handles runaway processes gracefully with TIMEOUT_PREEMPTION_REQUIRED', () => {
+  const src = fs.readFileSync(path.resolve(__dirname, '../programs/microkernel.tasm'), 'utf8');
+  // Replace P1 body with infinite loop without yielding
+  const modifiedSrc = src.replace('p1_body:\n        LOAD  p1_count', 'p1_body:\n        JMP   p1_body\n        LOAD  p1_count');
+
+  const tmpPath = path.resolve(__dirname, '../programs/microkernel_loop_test.tasm');
+  fs.writeFileSync(tmpPath, modifiedSrc, 'utf8');
+  try {
+    const kernel = new TryteKernel({ srcPath: tmpPath, deterministicQuantum: true });
+    const res = kernel.boot();
+    assert.strictEqual(res.status, 'TIMEOUT_PREEMPTION_REQUIRED');
+    assert.ok(res.error.includes('step limit exceeded'));
+  } finally {
+    if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
+  }
+});
+
 console.log(`\nMicrokernel Tests Completed: ${passed} passed, ${failed} failed.`);
 if (failed > 0) process.exit(1);

@@ -210,7 +210,7 @@
       "synthesis_method": "autonomous_grokking_forge",
       "lean_certified": true,
       "lean_certificate": "quantum/lean/Certificates/mul_mod_3_cert.lean",
-      "lean_theorem": "Certificate.MulMod3.mul_mod_3_certified_deterministic"
+      "lean_theorem": "Certificate.MulMod3.mul_mod_3_certified"
     },
     "crypto_sbox_9": {
       "signature": "crypto_sbox_9",
@@ -235,7 +235,7 @@
       "synthesis_method": "cryptographic_permutation_forge",
       "lean_certified": true,
       "lean_certificate": "quantum/lean/Certificates/crypto_sbox_9_cert.lean",
-      "lean_theorem": "Certificate.CryptoSbox9.crypto_sbox_9_certified_deterministic"
+      "lean_theorem": "Certificate.CryptoSbox9.crypto_sbox_9_certified"
     },
     "ternary_hash_step": {
       "signature": "ternary_hash_step",
@@ -260,7 +260,7 @@
       "synthesis_method": "cryptographic_hash_forge",
       "lean_certified": true,
       "lean_certificate": "quantum/lean/Certificates/ternary_hash_step_cert.lean",
-      "lean_theorem": "Certificate.TernaryHashStep.ternary_hash_step_certified_deterministic"
+      "lean_theorem": "Certificate.TernaryHashStep.ternary_hash_step_certified"
     },
     "ternary_rule_110": {
       "signature": "ternary_rule_110",
@@ -303,7 +303,7 @@
       "synthesis_method": "cellular_automata_forge",
       "lean_certified": true,
       "lean_certificate": "quantum/lean/Certificates/ternary_rule_110_cert.lean",
-      "lean_theorem": "Certificate.TernaryRule110.ternary_rule_110_certified_deterministic"
+      "lean_theorem": "Certificate.TernaryRule110.ternary_rule_110_certified"
     },
     "nor_ternary": {
       "signature": "nor_ternary",
@@ -328,7 +328,7 @@
       "synthesis_method": "autonomous_grokking_forge",
       "lean_certified": true,
       "lean_certificate": "quantum/lean/Certificates/nor_ternary_cert.lean",
-      "lean_theorem": "Certificate.NorTernary.nor_ternary_certified_deterministic"
+      "lean_theorem": "Certificate.NorTernary.nor_ternary_certified"
     },
     "sqr_sub": {
       "signature": "sqr_sub",
@@ -353,7 +353,7 @@
       "synthesis_method": "autonomous_grokking_forge",
       "lean_certified": true,
       "lean_certificate": "quantum/lean/Certificates/sqr_sub_cert.lean",
-      "lean_theorem": "Certificate.SqrSub.sqr_sub_certified_deterministic"
+      "lean_theorem": "Certificate.SqrSub.sqr_sub_certified"
     }
   }
 }

@@ -100,9 +100,16 @@ class TryteVM {
       case 'QEXEC': {
         const { evaluateBraid3 } = getUnifiedCompiler();
         const len = this.read(operand);
+        if (len < 0 || len > 100) {
+          throw new Error(`invalid QEXEC braid length ${len} at address ${pcBefore}`);
+        }
         const word = [];
         for (let i = 0; i < len; i++) {
-          word.push(this.read(T.wrap(operand + 1 + i)));
+          const g = this.read(T.wrap(operand + 1 + i));
+          if (![-3, -2, -1, 1, 2, 3].includes(g)) {
+            throw new Error(`invalid QEXEC braid generator ${g} at address ${T.wrap(operand + 1 + i)}`);
+          }
+          word.push(g);
         }
         const mat = evaluateBraid3(word);
         const inTrit = T.lowTrit(this.A);
@@ -112,16 +119,20 @@ class TryteVM {
         const pPos = mat.m[2][col].absSq();
 
         // Projective measurement into balanced ternary basis {-1, 0, +1}
+        let outcome = 0;
         if (this.deterministicQuantum) {
-          if (pNeg >= pZero && pNeg >= pPos) this.A = -1;
-          else if (pZero >= pNeg && pZero >= pPos) this.A = 0;
-          else this.A = 1;
+          if (pNeg >= pZero && pNeg >= pPos) outcome = -1;
+          else if (pZero >= pNeg && pZero >= pPos) outcome = 0;
+          else outcome = 1;
         } else {
           const r = this.quantumRng ? this.quantumRng() : Math.random();
-          if (r < pNeg) this.A = -1;
-          else if (r < pNeg + pZero) this.A = 0;
-          else this.A = 1;
+          if (r < pNeg) outcome = -1;
+          else if (r < pNeg + pZero) outcome = 0;
+          else outcome = 1;
         }
+
+        // Preserve upper 5 trits of accumulator A and update lowest trit with measurement
+        this.A = T.wrap((this.A - inTrit) + outcome);
         break;
       }
       default: throw new Error(`unimplemented op ${op.name}`);

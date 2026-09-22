@@ -89,6 +89,23 @@ def csumT : Trit → Trit → Trit
   | .pos,  .zero => .pos
   | .pos,  .pos  => .pos
 
+/-- Trit multiplication over Z_3 -/
+def mulT : Trit → Trit → Trit
+  | .zero, _     => .zero
+  | .neg,  .neg  => .pos
+  | .neg,  .zero => .zero
+  | .neg,  .pos  => .neg
+  | .pos,  .neg  => .neg
+  | .pos,  .zero => .zero
+  | .pos,  .pos  => .pos
+
+/-- NOR operation on trits: neg (max x y) -/
+def norT (x y : Trit) : Trit := negT (maxT x y)
+
+/-- Multiplication is commutative -/
+theorem mul_comm (x y : Trit) : mulT x y = mulT y x := by
+  cases x <;> cases y <;> rfl
+
 -- ===========================================================================
 -- Section 2: Algebraic Proofs (Abelian Group Z_3 & Lattice)
 -- ===========================================================================
@@ -368,6 +385,43 @@ theorem fullAdd_arithmetic_value (x y c : Trit) :
     let (s, cout) := fullAddTrit x y c
     tritVal s + 3 * tritVal cout = tritVal x + tritVal y + tritVal c := by
   cases x <;> cases y <;> cases c <;> rfl
+
+/-- A 27-entry rule table mapping 3 input trits (left, center, right) to 1 output trit -/
+structure RuleTable27 where
+  entries : Array Trit
+  deriving Repr
+
+/-- Evaluate a 27-entry rule table at (l, c, r) matching ternary cellular automata / 3-input trit ops -/
+def evalRule27 (tbl : RuleTable27) (l c r : Trit) : Trit :=
+  let idx := match l, c, r with
+    | .neg,  .neg,  .neg  => 0
+    | .neg,  .neg,  .zero => 1
+    | .neg,  .neg,  .pos  => 2
+    | .neg,  .zero, .neg  => 3
+    | .neg,  .zero, .zero => 4
+    | .neg,  .zero, .pos  => 5
+    | .neg,  .pos,  .neg  => 6
+    | .neg,  .pos,  .zero => 7
+    | .neg,  .pos,  .pos  => 8
+    | .zero, .neg,  .neg  => 9
+    | .zero, .neg,  .zero => 10
+    | .zero, .neg,  .pos  => 11
+    | .zero, .zero, .neg  => 12
+    | .zero, .zero, .zero => 13
+    | .zero, .zero, .pos  => 14
+    | .zero, .pos,  .neg  => 15
+    | .zero, .pos,  .zero => 16
+    | .zero, .pos,  .pos  => 17
+    | .pos,  .neg,  .neg  => 18
+    | .pos,  .neg,  .zero => 19
+    | .pos,  .neg,  .pos  => 20
+    | .pos,  .zero, .neg  => 21
+    | .pos,  .zero, .zero => 22
+    | .pos,  .zero, .pos  => 23
+    | .pos,  .pos,  .neg  => 24
+    | .pos,  .pos,  .zero => 25
+    | .pos,  .pos,  .pos  => 26
+  tbl.entries.getD idx .zero
 
 -- ===========================================================================
 -- Section 8: Quantum Qutrit Co-Processor & Measurement Projection

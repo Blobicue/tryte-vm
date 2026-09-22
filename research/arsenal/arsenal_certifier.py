@@ -142,7 +142,13 @@ def addTryte2 (a0 a1 b0 b1 : Trit) : Trit × Trit :=
   let c0 := match a0, b0 with
     | .pos, .pos => Trit.pos
     | .neg, .neg => Trit.neg
-    | _, _ => Trit.zero
+    | .pos, .zero => Trit.zero
+    | .pos, .neg => Trit.zero
+    | .zero, .pos => Trit.zero
+    | .zero, .zero => Trit.zero
+    | .zero, .neg => Trit.zero
+    | .neg, .pos => Trit.zero
+    | .neg, .zero => Trit.zero
   let sum1 := addT (addT a1 b1) c0
   (sum0, sum1)
 
@@ -156,8 +162,27 @@ end Certificate.{ns}
 
     elif "truth_table" in circuit:
         tt = circuit["truth_table"]
-        entries_str = ", ".join(trit_to_lean(t) for t in tt)
-        code = f"""/-
+        lean_trits = [trit_to_lean(t) for t in tt]
+        entries_str = ", ".join(lean_trits)
+
+        if len(tt) == 9:
+            extra_theorems = ""
+            if sig == "mul_mod_3":
+                extra_theorems = f"""
+/-- Proves equivalence with abstract multiplication over Z_3 -/
+theorem {sig}_certified_mul (x y : Trit) :
+    evalTOP {sig}_table x y = mulT x y := by
+  cases x <;> cases y <;> rfl
+"""
+            elif sig == "nor_ternary":
+                extra_theorems = f"""
+/-- Proves equivalence with ternary NOR operator -/
+theorem {sig}_certified_nor (x y : Trit) :
+    evalTOP {sig}_table x y = norT x y := by
+  cases x <;> cases y <;> rfl
+"""
+
+            code = f"""/-
   =============================================================================
   {filename} — Machine-Checked Lean 4 Certificate for {sig}
   =============================================================================
@@ -172,13 +197,67 @@ namespace Certificate.{ns}
 def {sig}_table : Table9 :=
   ⟨#[{entries_str}]⟩
 
-theorem {sig}_certified_deterministic (x y : Trit) :
-    evalTOP {sig}_table x y = evalTOP {sig}_table x y := by
-  rfl
+/-- Formally verified deterministic specification for {sig} -/
+theorem {sig}_certified (x y : Trit) :
+    evalTOP {sig}_table x y =
+      match x, y with
+      | .neg,  .neg  => {lean_trits[0]}
+      | .neg,  .zero => {lean_trits[1]}
+      | .neg,  .pos  => {lean_trits[2]}
+      | .zero, .neg  => {lean_trits[3]}
+      | .zero, .zero => {lean_trits[4]}
+      | .zero, .pos  => {lean_trits[5]}
+      | .pos,  .neg  => {lean_trits[6]}
+      | .pos,  .zero => {lean_trits[7]}
+      | .pos,  .pos  => {lean_trits[8]} := by
+  cases x <;> cases y <;> rfl
+{extra_theorems}
+end Certificate.{ns}
+"""
+            return code, f"Certificate.{ns}.{sig}_certified", filename
+
+        else:
+            match_branches = [
+                f"      | {trit_to_lean(l)},  {trit_to_lean(c_val)},  {trit_to_lean(r)}  => {lean_trits[idx]}"
+                for idx, (l, c_val, r) in enumerate([
+                    (-1, -1, -1), (-1, -1, 0), (-1, -1, 1),
+                    (-1, 0, -1), (-1, 0, 0), (-1, 0, 1),
+                    (-1, 1, -1), (-1, 1, 0), (-1, 1, 1),
+                    (0, -1, -1), (0, -1, 0), (0, -1, 1),
+                    (0, 0, -1), (0, 0, 0), (0, 0, 1),
+                    (0, 1, -1), (0, 1, 0), (0, 1, 1),
+                    (1, -1, -1), (1, -1, 0), (1, -1, 1),
+                    (1, 0, -1), (1, 0, 0), (1, 0, 1),
+                    (1, 1, -1), (1, 1, 0), (1, 1, 1),
+                ])
+            ]
+            match_str = "\n".join(match_branches)
+            code = f"""/-
+  =============================================================================
+  {filename} — Machine-Checked Lean 4 Certificate for {sig}
+  =============================================================================
+-/
+
+import TryteArsenal
+
+open Trit
+
+namespace Certificate.{ns}
+
+/-- Table definition for {sig} (27 entries) -/
+def {sig}_table : RuleTable27 :=
+  ⟨#[{entries_str}]⟩
+
+/-- Formally verified deterministic specification for {sig} across all 27 ternary neighborhood states -/
+theorem {sig}_certified (l c r : Trit) :
+    evalRule27 {sig}_table l c r =
+      match l, c, r with
+{match_str} := by
+  cases l <;> cases c <;> cases r <;> rfl
 
 end Certificate.{ns}
 """
-        return code, f"Certificate.{ns}.{sig}_certified_deterministic", filename
+            return code, f"Certificate.{ns}.{sig}_certified", filename
 
     elif "braid_word" in circuit or "braid_word_qutrit_a" in circuit:
         word = circuit.get("braid_word", [])

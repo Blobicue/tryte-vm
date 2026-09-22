@@ -131,7 +131,8 @@ y0:     .word 0`;
     const wideMatch = String(op).toLowerCase().match(/^add(?:_wide_)?(\d+)$/);
     if (wideMatch) {
       const num = parseInt(wideMatch[1], 10);
-      const wordCount = num > 6 ? Math.round(num / 6) : num;
+      const isWideWord = String(op).toLowerCase().includes('_wide_');
+      const wordCount = isWideWord ? num : (num <= 6 ? 1 : Math.ceil(num / 6));
       const tritCount = wordCount * 6;
       const tasm = generateWideAddTASM(wordCount);
 

@@ -18,7 +18,13 @@ def addTryte2 (a0 a1 b0 b1 : Trit) : Trit × Trit :=
   let c0 := match a0, b0 with
     | .pos, .pos => Trit.pos
     | .neg, .neg => Trit.neg
-    | _, _ => Trit.zero
+    | .pos, .zero => Trit.zero
+    | .pos, .neg => Trit.zero
+    | .zero, .pos => Trit.zero
+    | .zero, .zero => Trit.zero
+    | .zero, .neg => Trit.zero
+    | .neg, .pos => Trit.zero
+    | .neg, .zero => Trit.zero
   let sum1 := addT (addT a1 b1) c0
   (sum0, sum1)
 

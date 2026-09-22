@@ -141,5 +141,46 @@ test('tsh CLI executes hybrid quantum program via run hybrid command', () => {
   assert.ok(out.includes('Status: PASS'));
 });
 
+// 8. Robustness & Error Handling
+test('QEXEC rejects invalid braid lengths and illegal generators cleanly', () => {
+  // Invalid length (> 100)
+  const badLenTasm = `
+        LOADI 0
+        QEXEC bad_braid
+        HALT
+bad_braid: .word 150
+  `;
+  const vm1 = new TryteVM();
+  loadInto(vm1, badLenTasm);
+  assert.throws(() => vm1.run(), /invalid QEXEC braid length/);
+
+  // Invalid generator (e.g. 5, not in {-3..3})
+  const badGenTasm = `
+        LOADI 0
+        QEXEC bad_gen_braid
+        HALT
+bad_gen_braid: .word 1, 5
+  `;
+  const vm2 = new TryteVM();
+  loadInto(vm2, badGenTasm);
+  assert.throws(() => vm2.run(), /invalid QEXEC braid generator/);
+});
+
+// 9. Accumulator Preservation
+test('QEXEC preserves upper trits of Accumulator A during projective measurement', () => {
+  // In balanced ternary, 27 = 3^3 (trit 3 is +1, trit 0 is 0)
+  // When measuring identity braid on |0>, lowest trit remains 0, upper trits (27) must remain intact!
+  const tasm = `
+        LOADI 27
+        QEXEC id_braid
+        HALT
+id_braid: .word 0
+  `;
+  const vm = new TryteVM({ deterministicQuantum: true });
+  loadInto(vm, tasm);
+  vm.run();
+  assert.strictEqual(vm.A, 27, 'Upper trits of A must be preserved');
+});
+
 console.log(`\nHybrid Co-Processor Tests Completed: ${passed} passed, ${failed} failed.`);
 if (failed > 0) process.exit(1);

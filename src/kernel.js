@@ -30,15 +30,39 @@ class TryteKernel {
     });
 
     loadInto(this.vm, src);
-    this.vm.run();
+    let runError = null;
+    try {
+      this.vm.run();
+    } catch (err) {
+      runError = err.message;
+    }
+
+    const decodeStatus = (statusCode) => {
+      if (statusCode === -1) return 'TERMINATED';
+      if (statusCode === 1) return 'READY';
+      if (statusCode === 0) return 'SUSPENDED';
+      if (statusCode === -364) return 'CRASHED';
+      return `UNKNOWN(${statusCode})`;
+    };
+
+    const p1Raw = this.vm.labels && 'p1_status' in this.vm.labels ? this.vm.read(this.vm.labels['p1_status']) : -1;
+    const p2Raw = this.vm.labels && 'p2_status' in this.vm.labels ? this.vm.read(this.vm.labels['p2_status']) : -1;
+
+    let kernelStatus = 'RUNNING';
+    if (this.vm.halted) {
+      kernelStatus = 'SHUTDOWN_CLEAN';
+    } else if (runError) {
+      kernelStatus = runError.includes('step limit') ? 'TIMEOUT_PREEMPTION_REQUIRED' : `ERROR: ${runError}`;
+    }
 
     return {
-      status: this.vm.halted ? 'SHUTDOWN_CLEAN' : 'RUNNING',
+      status: kernelStatus,
       steps: this.vm.steps,
       output: this.vm.output,
+      error: runError,
       processes: [
-        { pid: 1, name: 'Classical Counter', status: 'TERMINATED' },
-        { pid: 2, name: 'Quantum Anyon Braid Task', status: 'TERMINATED' },
+        { pid: 1, name: 'Classical Counter', status: decodeStatus(p1Raw), statusCode: p1Raw },
+        { pid: 2, name: 'Quantum Anyon Braid Task', status: decodeStatus(p2Raw), statusCode: p2Raw },
       ],
     };
   }

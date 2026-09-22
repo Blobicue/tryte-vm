@@ -111,6 +111,7 @@ function addWide(xWords, yWords) {
     sum,
     carryOut: cin,
     value: fromTrytes(sum),
+    exactValue: fromTrytes(cin === 0 ? sum : [...sum, cin]),
   };
 }
 
@@ -122,106 +123,131 @@ function subWide(xWords, yWords) {
   return addWide(xWords, negY);
 }
 
+let waddInstanceCounter = 0;
+
 /**
  * Generates an unrolled TASM multi-word addition program for N words.
- * Reads X words and Y words from input, ripples carries, and emits sum words to OUT.
+ * Reads X words and Y words from input, ripples carries via 2-step balanced carry detection,
+ * and emits sum words + final carry out to OUT.
+ * Accepts an optional label prefix to avoid symbol collisions when chaining adders.
  */
-function generateWideAddTASM(wordCount = 2) {
+function generateWideAddTASM(wordCount = 2, prefix = null) {
+  const pfx = prefix !== null ? prefix : `wadd_${++waddInstanceCounter}_`;
   let asm = `; --- Multi-Precision Addition (${wordCount} words / ${wordCount * 6} trits) ---
-; Read X words (x0 .. x${wordCount - 1})
+; Read X words (${pfx}x0 .. ${pfx}x${wordCount - 1})
 `;
   for (let i = 0; i < wordCount; i++) {
-    asm += `        IN\n        STORE x${i}\n`;
+    asm += `        IN\n        STORE ${pfx}x${i}\n`;
   }
-  asm += `; Read Y words (y0 .. y${wordCount - 1})\n`;
+  asm += `; Read Y words (${pfx}y0 .. ${pfx}y${wordCount - 1})\n`;
   for (let i = 0; i < wordCount; i++) {
-    asm += `        IN\n        STORE y${i}\n`;
+    asm += `        IN\n        STORE ${pfx}y${i}\n`;
   }
 
-  asm += `; Initialize carry\n        LOADI 0\n        STORE c0\n\n`;
+  asm += `; Initialize carry\n        LOADI 0\n        STORE ${pfx}c0\n\n`;
 
   for (let i = 0; i < wordCount; i++) {
-    asm += `; --- Word ${i} Stage ---
-        LOAD  x${i}
-        ADD   y${i}
-        ADD   c${i}
-        STORE r${i}
+    asm += `; --- Word ${i} Stage (2-Step Balanced Carry) ---
+        ; Step 1: w_${i} = wrap(x_${i} + y_${i})
+        LOAD  ${pfx}x${i}
+        ADD   ${pfx}y${i}
+        STORE ${pfx}w${i}
 
-        ; Detect Carry Out c${i + 1}
-        ; Compute exact s = x${i} + y${i} + c${i}
-        LOAD  x${i}
-        BR3   chk_x_${i}
-chk_x_${i}: .table x_neg_${i}, c_zero_${i}, x_pos_${i}
+        ; Detect cxy: +1 if (x>0 && y>0 && w<0), -1 if (x<0 && y<0 && w>0), else 0
+        LOAD  ${pfx}x${i}
+        BR3   ${pfx}chk_x_${i}
+${pfx}chk_x_${i}: .table ${pfx}x_neg_${i}, ${pfx}cxy_zero_${i}, ${pfx}x_pos_${i}
 
-x_pos_${i}:
-        LOAD  y${i}
-        BR3   chk_y_pos_${i}
-chk_y_pos_${i}: .table chk_cin_pos_${i}, chk_cin_pos_${i}, carry_pos_cand_${i}
+${pfx}x_pos_${i}:
+        LOAD  ${pfx}y${i}
+        BR3   ${pfx}chk_y_pos_${i}
+${pfx}chk_y_pos_${i}: .table ${pfx}cxy_zero_${i}, ${pfx}cxy_zero_${i}, ${pfx}chk_w_pos_${i}
 
-carry_pos_cand_${i}:
-        LOAD  r${i}
-        BR3   chk_r_pos_${i}
-chk_r_pos_${i}: .table carry_pos_${i}, carry_pos_${i}, c_zero_${i}
+${pfx}chk_w_pos_${i}:
+        LOAD  ${pfx}w${i}
+        BR3   ${pfx}chk_w_pos_br_${i}
+${pfx}chk_w_pos_br_${i}: .table ${pfx}cxy_pos_${i}, ${pfx}cxy_zero_${i}, ${pfx}cxy_zero_${i}
 
-chk_cin_pos_${i}:
-        LOAD  c${i}
-        BR3   chk_c_only_pos_${i}
-chk_c_only_pos_${i}: .table c_zero_${i}, c_zero_${i}, chk_r_pos_cin_${i}
+${pfx}x_neg_${i}:
+        LOAD  ${pfx}y${i}
+        BR3   ${pfx}chk_y_neg_${i}
+${pfx}chk_y_neg_${i}: .table ${pfx}chk_w_neg_${i}, ${pfx}cxy_zero_${i}, ${pfx}cxy_zero_${i}
 
-chk_r_pos_cin_${i}:
-        LOAD  r${i}
-        BR3   chk_r_cin_pos_${i}
-chk_r_cin_pos_${i}: .table carry_pos_${i}, carry_pos_${i}, c_zero_${i}
+${pfx}chk_w_neg_${i}:
+        LOAD  ${pfx}w${i}
+        BR3   ${pfx}chk_w_neg_br_${i}
+${pfx}chk_w_neg_br_${i}: .table ${pfx}cxy_zero_${i}, ${pfx}cxy_zero_${i}, ${pfx}cxy_neg_${i}
 
-x_neg_${i}:
-        LOAD  y${i}
-        BR3   chk_y_neg_${i}
-chk_y_neg_${i}: .table carry_neg_cand_${i}, chk_cin_neg_${i}, chk_cin_neg_${i}
-
-carry_neg_cand_${i}:
-        LOAD  r${i}
-        BR3   chk_r_neg_${i}
-chk_r_neg_${i}: .table c_zero_${i}, carry_neg_${i}, carry_neg_${i}
-
-chk_cin_neg_${i}:
-        LOAD  c${i}
-        BR3   chk_c_only_neg_${i}
-chk_c_only_neg_${i}: .table chk_r_neg_cin_${i}, c_zero_${i}, c_zero_${i}
-
-chk_r_neg_cin_${i}:
-        LOAD  r${i}
-        BR3   chk_r_cin_neg_${i}
-chk_r_cin_neg_${i}: .table c_zero_${i}, carry_neg_${i}, carry_neg_${i}
-
-carry_pos_${i}:
+${pfx}cxy_pos_${i}:
         LOADI 1
-        STORE c${i + 1}
-        JMP   step_end_${i}
+        STORE ${pfx}cxy_${i}
+        JMP   ${pfx}step1_done_${i}
 
-carry_neg_${i}:
+${pfx}cxy_neg_${i}:
         LOADI -1
-        STORE c${i + 1}
-        JMP   step_end_${i}
+        STORE ${pfx}cxy_${i}
+        JMP   ${pfx}step1_done_${i}
 
-c_zero_${i}:
+${pfx}cxy_zero_${i}:
         LOADI 0
-        STORE c${i + 1}
+        STORE ${pfx}cxy_${i}
 
-step_end_${i}:
+${pfx}step1_done_${i}:
+        ; Step 2: r_${i} = wrap(w_${i} + c_${i})
+        LOAD  ${pfx}w${i}
+        ADD   ${pfx}c${i}
+        STORE ${pfx}r${i}
+
+        ; Detect cwc: +1 if (c=1 && w=364), -1 if (c=-1 && w=-364), else 0
+        LOAD  ${pfx}c${i}
+        BR3   ${pfx}chk_c_${i}
+${pfx}chk_c_${i}: .table ${pfx}chk_c_neg_${i}, ${pfx}cwc_zero_${i}, ${pfx}chk_c_pos_${i}
+
+${pfx}chk_c_pos_${i}:
+        LOAD  ${pfx}w${i}
+        ADDI  -364
+        BR3   ${pfx}chk_w_is_364_${i}
+${pfx}chk_w_is_364_${i}: .table ${pfx}cwc_zero_${i}, ${pfx}cwc_pos_${i}, ${pfx}cwc_zero_${i}
+
+${pfx}chk_c_neg_${i}:
+        LOAD  ${pfx}w${i}
+        ADDI  364
+        BR3   ${pfx}chk_w_is_neg_364_${i}
+${pfx}chk_w_is_neg_364_${i}: .table ${pfx}cwc_zero_${i}, ${pfx}cwc_neg_${i}, ${pfx}cwc_zero_${i}
+
+${pfx}cwc_pos_${i}:
+        LOADI 1
+        STORE ${pfx}cwc_${i}
+        JMP   ${pfx}step2_done_${i}
+
+${pfx}cwc_neg_${i}:
+        LOADI -1
+        STORE ${pfx}cwc_${i}
+        JMP   ${pfx}step2_done_${i}
+
+${pfx}cwc_zero_${i}:
+        LOADI 0
+        STORE ${pfx}cwc_${i}
+
+${pfx}step2_done_${i}:
+        ; Total Carry: c_${i+1} = cxy_${i} + cwc_${i}
+        LOAD  ${pfx}cxy_${i}
+        ADD   ${pfx}cwc_${i}
+        STORE ${pfx}c${i + 1}
 `;
   }
 
   asm += `; Emit outputs\n`;
   for (let i = 0; i < wordCount; i++) {
-    asm += `        LOAD  r${i}\n        OUT\n`;
+    asm += `        LOAD  ${pfx}r${i}\n        OUT\n`;
   }
-  asm += `; Emit final carry out\n        LOAD  c${wordCount}\n        OUT\n        HALT\n\n`;
+  asm += `; Emit final carry out\n        LOAD  ${pfx}c${wordCount}\n        OUT\n        HALT\n\n`;
 
   // Variables
   for (let i = 0; i < wordCount; i++) {
-    asm += `x${i}:     .word 0\ny${i}:     .word 0\nr${i}:     .word 0\nc${i}:     .word 0\n`;
+    asm += `${pfx}x${i}:     .word 0\n${pfx}y${i}:     .word 0\n${pfx}w${i}:     .word 0\n${pfx}r${i}:     .word 0\n${pfx}c${i}:     .word 0\n${pfx}cxy_${i}:   .word 0\n${pfx}cwc_${i}:   .word 0\n`;
   }
-  asm += `c${wordCount}:     .word 0\n`;
+  asm += `${pfx}c${wordCount}:     .word 0\n`;
 
   return asm;
 }

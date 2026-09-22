@@ -31,11 +31,13 @@ chk_p2: .table all_done, all_done, run_p2
 run_p1:
         LOADI 0
         STORE active_pid
+        LDC   p1_reg_c          ; Restore Process 1 control register C
         JMPX  p1_pc
 
 run_p2:
         LOADI 1
         STORE active_pid
+        LDC   p2_reg_c          ; Restore Process 2 control register C
         JMPX  p2_pc
 
 ; --- System Call Dispatcher ---
@@ -43,6 +45,7 @@ run_p2:
 ;   arg = -1 : Exit
 ;   arg =  0 : Yield
 ;   arg =  1 : OUT
+; Any other value routes to illegal syscall fault handler (sys_bad_p1 / sys_bad_p2)
 syscall_trap:
         STORE sys_arg
         LOAD  active_pid
@@ -51,8 +54,25 @@ route_pid: .table handle_p1_call, handle_p1_call, handle_p2_call
 
 handle_p1_call:
         LOAD  sys_arg
-        BR3   route_call_p1
-route_call_p1: .table sys_exit_p1, sys_yield_p1, sys_out_p1
+        BR3   chk_p1_arg
+chk_p1_arg: .table chk_p1_neg, sys_yield_p1, chk_p1_pos
+
+chk_p1_pos:
+        LOAD  sys_arg
+        ADDI  -1
+        BR3   chk_p1_is_one
+chk_p1_is_one: .table sys_bad_p1, sys_out_p1, sys_bad_p1
+
+chk_p1_neg:
+        LOAD  sys_arg
+        ADDI  1
+        BR3   chk_p1_is_neg_one
+chk_p1_is_neg_one: .table sys_bad_p1, sys_exit_p1, sys_bad_p1
+
+sys_bad_p1:
+        LOADI -364              ; Fault code: Process 1 crashed
+        STORE p1_status
+        JMP   chk_p2_only
 
 sys_exit_p1:
         LOADI -1
@@ -75,8 +95,25 @@ chk_p2_after_o1: .table run_p1, run_p1, run_p2
 
 handle_p2_call:
         LOAD  sys_arg
-        BR3   route_call_p2
-route_call_p2: .table sys_exit_p2, sys_yield_p2, sys_out_p2
+        BR3   chk_p2_arg
+chk_p2_arg: .table chk_p2_neg, sys_yield_p2, chk_p2_pos
+
+chk_p2_pos:
+        LOAD  sys_arg
+        ADDI  -1
+        BR3   chk_p2_is_one
+chk_p2_is_one: .table sys_bad_p2, sys_out_p2, sys_bad_p2
+
+chk_p2_neg:
+        LOAD  sys_arg
+        ADDI  1
+        BR3   chk_p2_is_neg_one
+chk_p2_is_neg_one: .table sys_bad_p2, sys_exit_p2, sys_bad_p2
+
+sys_bad_p2:
+        LOADI -364              ; Fault code: Process 2 crashed
+        STORE p2_status
+        JMP   scheduler_loop
 
 sys_exit_p2:
         LOADI -1
@@ -160,10 +197,12 @@ sys_arg:      .word 0
 p1_status:    .word 1
 p1_count:     .word 2
 p1_val:       .word 0
+p1_reg_c:     .word 0
 p1_pc:        .word p1_body
 
 ; Process 2 Control Block
 p2_status:    .word 1
 p2_val:       .word 0
+p2_reg_c:     .word 0
 p2_pc:        .word p2_body
 p2_braid:     .word 2, 2, -2     ; 2 crossings: sigma2, sigma2^-1 (identity)
