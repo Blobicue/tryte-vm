@@ -69,7 +69,10 @@
     "quantum:test": "node quantum/test/test-quantum.js",
     "quantum:compile": "node quantum/cli.js",
     "quantum:lean": "lean quantum/lean/FibonacciAnyon.lean",
-    "quantum:bench": "node quantum/bench/bench-tryte-anyon.js"
+    "quantum:bench": "node quantum/bench/bench-tryte-anyon.js",
+    "tsh": "node quantum/cli/tsh.js",
+    "qos": "node quantum/cli/tsh.js",
+    "cluster:node": "node quantum/cluster/cluster-node.js"
   },
   "license": "MIT",
   "private": true

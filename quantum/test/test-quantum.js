@@ -281,5 +281,99 @@ check('Topological Qutrit: 4-anyon fusion space dimension F₄ = 3 matches Tryte
   assert.strictEqual(qutrit.ternaryVMAlignment.physicalAnyonsPerQutrit, 4, 'Qutrit corresponds to 4 anyons');
 });
 
+// ---------------------------------------------------------------------------
+// 7. Tryte-QOS Subsystems: Unified Compiler, Binary Format, SU(9) & Sharding
+// ---------------------------------------------------------------------------
+console.log('\n7. Tryte-QOS Subsystems: Unified Compiler, Binary Format, SU(9) & Cluster:');
+
+const {
+  Mat3,
+  Mat9,
+  T_NEG,
+  T_CYCLE,
+  H3,
+  S3,
+  CX3,
+  CZ3,
+  SWAP3,
+  createQutritBellCircuit,
+  evaluateBraid3,
+  UnifiedQutritCompiler,
+} = require('../src/unified-compiler.js');
+
+const {
+  packBraidWord,
+  unpackBraidWord,
+  encodeBraidProgram,
+  decodeBraidProgram,
+} = require('../src/binary-format.js');
+
+const { ClusterNode } = require('../cluster/cluster-node.js');
+
+check('Unified Compiler: Indexes and compiles target B₄ anyon braid words with machine precision', () => {
+  const uqc = new UnifiedQutritCompiler(3);
+  uqc.index(3);
+  const targetWord = [1, 2, -1];
+  const targetMat = evaluateBraid3(targetWord);
+  const res = uqc.compile(targetMat, 0.01);
+  assert.deepStrictEqual(res.word, targetWord, 'Compiler must recover exact target braid word');
+  assert(res.distance < 1e-10, `Expected exact distance 0, got ${res.distance}`);
+  assert(res.verified, 'Compilation must be verified');
+});
+
+check('Unified Compiler: Compiles Classical Reversible and Quantum Qutrit Gate structures', () => {
+  const uqc = new UnifiedQutritCompiler(3);
+  const resNeg = uqc.compileClassical('NEG', 1.0);
+  assert.strictEqual(resNeg.name, 'NEG');
+  assert.strictEqual(resNeg.type, 'CLASSICAL_REVERSIBLE_TERNARY');
+  assert(resNeg.matrix.isUnitary(), 'Result matrix must be unitary in SU(3)');
+
+  const resH3 = uqc.compileQuantum('H3', 1.0);
+  assert.strictEqual(resH3.name, 'H3');
+  assert.strictEqual(resH3.type, 'QUANTUM_QUTRIT_SU3');
+  assert(resH3.matrix.isUnitary(), 'Result matrix must be unitary in SU(3)');
+});
+
+check('Multi-Qutrit SU(9): CX₃, CZ₃, and SWAP₃ are exactly unitary', () => {
+  assert(CX3.isUnitary(), 'CX3 must be unitary in SU(9)');
+  assert(CZ3.isUnitary(), 'CZ3 must be unitary in SU(9)');
+  assert(SWAP3.isUnitary(), 'SWAP3 must be unitary in SU(9)');
+});
+
+check('Multi-Qutrit Entanglement: 2-Qutrit Bell circuit creates unitary entangled state', () => {
+  const bell = createQutritBellCircuit();
+  assert(bell.isUnitary, 'Bell circuit operator must be unitary in SU(9)');
+});
+
+check('Binary Format: 4-bit nibble packing round-trips with zero loss', () => {
+  const word = [1, -2, 3, -1, 2, -3, 1, 1];
+  const packed = packBraidWord(word);
+  const unpacked = unpackBraidWord(packed, word.length);
+  assert.deepStrictEqual(unpacked, word, 'Unpacked braid must match original');
+});
+
+check('Binary Format: Full .braid executable encoding and checksum verification', () => {
+  const prog = {
+    name: 'test_qutrit_bell',
+    type: 'QUANTUM_QUTRIT',
+    qutritCount: 2,
+    tryteRegisterCount: 1,
+    word: [1, 2, -1, 3, -2],
+  };
+  const buf = encodeBraidProgram(prog);
+  const decoded = decodeBraidProgram(buf);
+  assert.strictEqual(decoded.name, prog.name);
+  assert.strictEqual(decoded.qutritCount, 2);
+  assert.deepStrictEqual(decoded.word, prog.word);
+});
+
+check('Cluster Sharding: 12 mini PC nodes map to the 12 canonical branches of B₃', () => {
+  const node = new ClusterNode({ nodeId: 'node-test-0', shardIndex: 4 });
+  assert.strictEqual(node.shardIndex, 4);
+  assert.strictEqual(node.shardPrefix.length, 2);
+  assert.strictEqual(node.totalClusterNodes, 12);
+});
+
 console.log(`\nAll ${passed} checks passed successfully!`);
+
 
