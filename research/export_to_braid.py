@@ -34,6 +34,56 @@ def pack_braid_word(word: Sequence[int]) -> bytes:
     return bytes(buf)
 
 
+def unpack_braid_word(data: bytes, num_crossings: int) -> list[int]:
+    """
+    Unpacks a compact byte stream back into an array of signed generator indices.
+    """
+    word = []
+    for i in range(num_crossings):
+        byte_idx = i // 2
+        byte = data[byte_idx]
+        nibble = (byte >> 4) & 0x0F if i % 2 == 0 else byte & 0x0F
+        sign_bit = (nibble >> 3) & 0x01
+        abs_gen = nibble & 0x07
+        gen = -abs_gen if sign_bit == 1 else abs_gen
+        word.append(gen)
+    return word
+
+
+def decode_braid_program(data: bytes) -> dict:
+    """
+    Deserializes a .braid binary into a dictionary.
+    """
+    if len(data) < 13:
+        raise ValueError("Invalid .braid file: too short")
+
+    magic, version, p_type, q_count, r_count, word_len, name_len = struct.unpack_from(">4sBBBBHB", data, 0)
+    if magic != b"TQOS":
+        raise ValueError(f"Invalid magic: {magic}")
+
+    name_start = 11
+    name_end = name_start + name_len
+    name = data[name_start:name_end].decode("utf-8")
+
+    packed_bytes = (word_len + 1) // 2
+    packed_data = data[name_end : name_end + packed_bytes]
+    word = unpack_braid_word(packed_data, word_len)
+
+    return {
+        "name": name,
+        "version": version,
+        "type": p_type,
+        "qutrit_count": q_count,
+        "tryte_registers": r_count,
+        "word": word,
+    }
+
+
+def decode_braid_file(filepath: str) -> dict:
+    with open(filepath, "rb") as f:
+        return decode_braid_program(f.read())
+
+
 def encode_braid_program(
     word: Sequence[int],
     name: str = "learned_anyon",

@@ -1,0 +1,103 @@
+{
+  "version": "1.0.0",
+  "name": "Tryte-QOS Arsenal of Compute",
+  "description": "Content-addressed cache of grokked circuits, truth tables, and anyon braids for self-synthesizing ternary computation",
+  "circuits": {
+    "add_mod_3": {
+      "signature": "add_mod_3",
+      "name": "Single-Trit Modular Addition",
+      "kind": "truth_table",
+      "domain": "Z_3 x Z_3 -> Z_3",
+      "inputs": 2,
+      "outputs": 1,
+      "truth_table": [1, -1, 0, -1, 0, 1, 0, 1, -1],
+      "tasm": "; --- add_mod_3.tasm (Truth-table TOP instruction) ---\n        IN\n        STORE in_0\n        IN\n        STORE in_1\n        SETC  table\n        LOAD  in_0\n        TOP   in_1\n        OUT\n        HALT\ntable:  .word 1, -1, 0, -1, 0, 1, 0, 1, -1\nin_0:   .word 0\nin_1:   .word 0",
+      "verified": true,
+      "synthesis_method": "isa_top_table"
+    },
+    "add_mod_9": {
+      "signature": "add_mod_9",
+      "name": "2-Trit Tryte Modular Addition",
+      "kind": "classical_tasm",
+      "domain": "Z_9 x Z_9 -> Z_9",
+      "inputs": 2,
+      "outputs": 1,
+      "tasm": "; --- add_mod_9.tasm ---\n        IN\n        STORE in_0\n        IN\n        STORE in_1\n        LOAD  in_0\n        ADD   in_1\n        OUT\n        HALT\n        .org  -2\nin_0:   .word 0\nin_1:   .word 0",
+      "verified": true,
+      "synthesis_method": "isa_direct"
+    },
+    "t_neg": {
+      "signature": "t_neg",
+      "name": "Reversible Trit Negation",
+      "kind": "truth_table",
+      "domain": "Z_3 -> Z_3",
+      "inputs": 1,
+      "outputs": 1,
+      "truth_table": [1, 1, 1, 0, 0, 0, -1, -1, -1],
+      "tasm": "; --- t_neg.tasm ---\n        IN\n        NEG\n        OUT\n        HALT",
+      "verified": true,
+      "synthesis_method": "isa_primitive"
+    },
+    "t_cycle": {
+      "signature": "t_cycle",
+      "name": "Reversible Trit Cycle (+1 increment mod 3)",
+      "kind": "permutation",
+      "domain": "Z_3 -> Z_3",
+      "inputs": 1,
+      "outputs": 1,
+      "permutation": [1, 2, 0],
+      "tasm": "; --- t_cycle.tasm ---\n        IN\n        BR3   c_tbl\nc_tbl:  .table c_neg, c_zero, c_pos\nc_neg:  LOADI 0\n        JMP   c_done\nc_zero: LOADI 1\n        JMP   c_done\nc_pos:  LOADI -1\nc_done: OUT\n        HALT",
+      "verified": true,
+      "synthesis_method": "exact_permutation"
+    },
+    "qutrit_h3": {
+      "signature": "qutrit_h3",
+      "name": "Chrestenson / Qutrit Hadamard Gate in SU(3)",
+      "kind": "quantum_qutrit",
+      "domain": "C^3 -> C^3",
+      "inputs": 1,
+      "outputs": 1,
+      "braid_word": [2, 1, -2, 1, -2],
+      "unitary_group": "SU(3)",
+      "verified": true,
+      "synthesis_method": "topological_compilation"
+    },
+    "anyon_bell_state": {
+      "signature": "anyon_bell_state",
+      "name": "Maximally Entangled Qutrit Bell Pair State",
+      "kind": "topological_braid",
+      "domain": "C^3 x C^3 -> C^9",
+      "inputs": 2,
+      "outputs": 2,
+      "braid_word": [1, 2, 3, 2, 1],
+      "entanglement_entropy_bits": 1.585,
+      "verified": true,
+      "synthesis_method": "topological_b4_entangler"
+    },
+    "anyon_hadamard": {
+      "signature": "anyon_hadamard",
+      "name": "Compiled Single-Qubit Hadamard Anyon Braid",
+      "kind": "topological_braid",
+      "domain": "SU(2)",
+      "inputs": 1,
+      "outputs": 1,
+      "braid_word": [2, -1, 2, 2, 2, -1, 2, 2, -1, 2, 1, 1],
+      "compiled_distance": 0.0467,
+      "verified": true,
+      "synthesis_method": "solovay_kitaev_anyon"
+    },
+    "learned_qutrit_add": {
+      "signature": "learned_qutrit_add",
+      "name": "Grokking Synthesized Qutrit Braid Sequence",
+      "kind": "topological_braid",
+      "domain": "C^3 x C^3 -> C^9",
+      "inputs": 2,
+      "outputs": 2,
+      "braid_word_qutrit_a": [-1, 2, -3],
+      "braid_word_qutrit_b": [1, 2, -3],
+      "braid_word": [-1, 2, -3, 1, 2, -3],
+      "verified": true,
+      "synthesis_method": "true_ternary_quantum_hypernetwork"
+    }
+  }
+}

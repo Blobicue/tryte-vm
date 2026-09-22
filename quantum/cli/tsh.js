@@ -28,6 +28,12 @@ const {
   saveBraidFile,
   loadBraidFile,
 } = require('../src/binary-format.js');
+const {
+  listCircuits,
+  getCircuit,
+  runCircuit,
+  exportCircuit,
+} = require('../src/arsenal.js');
 
 class TryteQOSShell {
   constructor() {
@@ -70,6 +76,7 @@ Available Tryte-QOS Commands:
   status                   Show system status, vTQPU metrics, and cluster capacity
   compile <gate> [epsilon] Compile a gate (H, T, S, X, Z, T_NEG, T_CYCLE, H3, S3)
   run <algorithm>          Execute verified algorithm: bell, deutsch, teleport, grover, qutrit
+  arsenal <action>         Arsenal of Compute (list, get, run, export, forge)
   braid <gen1 gen2 ...>    Render spacetime anyon worldlines (e.g. braid 2 -1 2 1)
   export <gate> <file>     Compile and save executable .braid binary
   import <file>            Load and inspect an executable .braid binary
@@ -88,6 +95,7 @@ Available Tryte-QOS Commands:
         console.log(`Cluster Capacity (12x)  : 96 Zen 3 Cores | 110.59 Trillion anyon ops/sec`);
         console.log(`Qubit Indexed Tree      : ${this.qubitCompiler.forwardTable.length} states`);
         console.log(`Qutrit Indexed Tree     : ${this.qutritCompiler.table.length} states in B₄`);
+        console.log(`Arsenal of Compute      : ${listCircuits().length} Grokked Circuits in Cache`);
         console.log('----------------------------------------------------------------');
         break;
 
@@ -153,6 +161,85 @@ Available Tryte-QOS Commands:
           console.log(`4 Anyons -> Dimension ${q.hilbertSpaceDimensions['4 Anyons (Qutrit)'].dim} (Balanced Ternary Qutrit)`);
         } else {
           console.error(`Unknown algorithm: ${algo}. Available: bell, deutsch, teleport, grover, qutrit`);
+        }
+        break;
+      }
+
+      case 'arsenal': {
+        const sub = (args[0] || 'list').toLowerCase();
+        const subArgs = args.slice(1);
+
+        if (sub === 'list') {
+          const list = listCircuits();
+          console.log('================================================================================');
+          console.log(`  Tryte-QOS Arsenal of Compute: ${list.length} Grokked Circuits in Cache`);
+          console.log('================================================================================');
+          console.log(`${'Signature'.padEnd(20)} | ${'Kind'.padEnd(18)} | ${'Domain'.padEnd(18)} | Verified`);
+          console.log('--------------------------------------------------------------------------------');
+          for (const c of list) {
+            const sig = (c.signature || '').padEnd(20);
+            const kind = (c.kind || '').padEnd(18);
+            const domain = (c.domain || '').padEnd(18);
+            const ver = c.verified ? 'YES' : 'NO';
+            console.log(`${sig} | ${kind} | ${domain} | ${ver}`);
+          }
+          console.log('================================================================================');
+        } else if (sub === 'get' || sub === 'info') {
+          const sig = subArgs[0];
+          if (!sig) {
+            console.log('Usage: arsenal get <signature>');
+            break;
+          }
+          const c = getCircuit(sig);
+          if (!c) {
+            console.log(`Circuit '${sig}' not found in Arsenal.`);
+          } else {
+            console.log(JSON.stringify(c, null, 2));
+          }
+        } else if (sub === 'run') {
+          const sig = subArgs[0];
+          if (!sig) {
+            console.log('Usage: arsenal run <signature> [arg1 arg2 ...]');
+            break;
+          }
+          try {
+            const inputs = subArgs.slice(1).map(Number);
+            const res = runCircuit(sig, inputs);
+            console.log(`Execution Results for '${sig}':`);
+            if (res.type === 'tryte_vm') {
+              console.log(`  Substrate : Tryte-VM Balanced Ternary CPU (src/vm.js)`);
+              console.log(`  Inputs    : [${inputs.join(', ')}]`);
+              console.log(`  Output    : [${res.output.join(', ')}]`);
+              console.log(`  Cycles    : ${res.steps} steps (halted: ${res.halted})`);
+            } else if (res.type === 'quantum_qutrit') {
+              console.log(`  Substrate : Topological Quantum Kernel (vTQPU Anyons)`);
+              console.log(`  Braid Word: [${res.braidWord.join(', ')}]`);
+              console.log(`  Unitary   : ${res.isUnitary ? 'YES (Valid Quantum Evolution)' : 'NO'}`);
+              console.log(`  Matrix    :\n${res.unitaryMatrix}`);
+            }
+          } catch (err) {
+            console.error(`Arsenal Run Error: ${err.message}`);
+          }
+        } else if (sub === 'export') {
+          const sig = subArgs[0];
+          const outPath = subArgs[1];
+          if (!sig || !outPath) {
+            console.log('Usage: arsenal export <signature> <filepath>');
+            break;
+          }
+          try {
+            const res = exportCircuit(sig, outPath);
+            console.log(`Successfully exported '${sig}' to ${res.path} (Format: ${res.format})`);
+          } catch (err) {
+            console.error(`Arsenal Export Error: ${err.message}`);
+          }
+        } else if (sub === 'forge') {
+          const task = subArgs[0] || 'z3_add';
+          console.log(`[Arsenal Forge] Grokking synthesis forge requested for task: '${task}'`);
+          console.log(`Substrate: Discrete Ternary Weights {-1, 0, 1} x Braid Generators (σ_i^±1)`);
+          console.log(`Run 'python3 -m research.quantum_grokking.quantum_hypernet_grokking' to forge new topological circuits.`);
+        } else {
+          console.log(`Unknown arsenal action: '${sub}'. Available: list, get, run, export, forge`);
         }
         break;
       }

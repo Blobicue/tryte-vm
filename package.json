@@ -80,7 +80,9 @@
     "quantum_grokking:test": "python3 -m unittest research/quantum_grokking/test_quantum_grokking.py",
     "quantum_grokking:train": "python3 -m research.quantum_grokking.train_quantum",
     "ternary_quantum:train": "python3 -m research.quantum_grokking.train_ternary_quantum",
-    "tryte:export_test": "python3 -m unittest research/test_tryte_export.py"
+    "tryte:export_test": "python3 -m unittest research/test_tryte_export.py",
+    "arsenal:test": "node test/test-arsenal.js",
+    "arsenal:test_py": "python3 -m pytest research/arsenal/test_arsenal.py"
   },
   "license": "MIT",
   "private": true
