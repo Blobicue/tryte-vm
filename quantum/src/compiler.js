@@ -182,33 +182,43 @@ class QuaternionSpatialIndex {
    * Checks neighboring grid cells in 4D space.
    */
   findNearest(queryQuat, maxDist) {
-    const [qw, qx, qy, qz] = queryQuat;
     const b = this.bucketSize;
     const radius = Math.ceil(maxDist / b);
-    const kw0 = Math.floor(qw / b);
-    const kx0 = Math.floor(qx / b);
-    const ky0 = Math.floor(qy / b);
-    const kz0 = Math.floor(qz / b);
+    const searchCenters = [queryQuat];
+    // If near the equatorial cut locus (w ≈ 0), also search the antipodal neighborhood
+    if (Math.abs(queryQuat[0]) <= maxDist) {
+      searchCenters.push([-queryQuat[0], -queryQuat[1], -queryQuat[2], -queryQuat[3]]);
+    }
 
     let bestMatch = null;
     let bestDist = Infinity;
+    const visitedKeys = new Set();
 
-    for (let dw = -radius; dw <= radius; dw++) {
-      for (let dx = -radius; dx <= radius; dx++) {
-        for (let dy = -radius; dy <= radius; dy++) {
-          for (let dz = -radius; dz <= radius; dz++) {
-            const key = `${kw0 + dw},${kx0 + dx},${ky0 + dy},${kz0 + dz}`;
-            const list = this.buckets.get(key);
-            if (!list) continue;
-            for (const item of list) {
-              const [iw, ix, iy, iz] = item.quat;
-              // Quaternion distance accounting for antipodal identity ±q
-              const dot = Math.abs(qw * iw + qx * ix + qy * iy + qz * iz);
-              // traceDistance is √(1 - dot)
-              const d = Math.sqrt(Math.max(0, 1 - Math.min(1, dot)));
-              if (d < bestDist) {
-                bestDist = d;
-                bestMatch = { ...item, distance: d };
+    for (const [qw, qx, qy, qz] of searchCenters) {
+      const kw0 = Math.floor(qw / b);
+      const kx0 = Math.floor(qx / b);
+      const ky0 = Math.floor(qy / b);
+      const kz0 = Math.floor(qz / b);
+
+      for (let dw = -radius; dw <= radius; dw++) {
+        for (let dx = -radius; dx <= radius; dx++) {
+          for (let dy = -radius; dy <= radius; dy++) {
+            for (let dz = -radius; dz <= radius; dz++) {
+              const key = `${kw0 + dw},${kx0 + dx},${ky0 + dy},${kz0 + dz}`;
+              if (visitedKeys.has(key)) continue;
+              visitedKeys.add(key);
+              const list = this.buckets.get(key);
+              if (!list) continue;
+              for (const item of list) {
+                const [iw, ix, iy, iz] = item.quat;
+                // Quaternion distance accounting for antipodal identity ±q
+                const dot = Math.abs(queryQuat[0] * iw + queryQuat[1] * ix + queryQuat[2] * iy + queryQuat[3] * iz);
+                // traceDistance is √(1 - dot)
+                const d = Math.sqrt(Math.max(0, 1 - Math.min(1, dot)));
+                if (d < bestDist) {
+                  bestDist = d;
+                  bestMatch = { ...item, distance: d };
+                }
               }
             }
           }

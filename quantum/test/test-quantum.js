@@ -345,6 +345,17 @@ check('Multi-Qutrit Entanglement: 2-Qutrit Bell circuit creates unitary entangle
   assert(bell.isUnitary, 'Bell circuit operator must be unitary in SU(9)');
 });
 
+check('B₄ Artin Relations: σ₁ σ₃ = σ₃ σ₁, σ₁ σ₂ σ₁ = σ₂ σ₁ σ₂, σ₂ σ₃ σ₂ = σ₃ σ₂ σ₃ with σ₁ ≠ σ₃', () => {
+  const { B4_GENERATORS } = require('../src/unified-compiler.js');
+  const s1 = B4_GENERATORS[1];
+  const s2 = B4_GENERATORS[2];
+  const s3 = B4_GENERATORS[3];
+  assert(s1.distance(s3) > 0.5, 'σ₁ and σ₃ must be distinct (broken scalar block symmetry)');
+  assert(s1.mul(s3).distance(s3.mul(s1)) < 1e-10, 'σ₁ σ₃ = σ₃ σ₁ must hold');
+  assert(s1.mul(s2).mul(s1).distance(s2.mul(s1).mul(s2)) < 1e-6, 'σ₁ σ₂ σ₁ = σ₂ σ₁ σ₂ must hold');
+  assert(s2.mul(s3).mul(s2).distance(s3.mul(s2).mul(s3)) < 1e-6, 'σ₂ σ₃ σ₂ = σ₃ σ₂ σ₃ must hold');
+});
+
 check('Binary Format: 4-bit nibble packing round-trips with zero loss', () => {
   const word = [1, -2, 3, -1, 2, -3, 1, 1];
   const packed = packBraidWord(word);

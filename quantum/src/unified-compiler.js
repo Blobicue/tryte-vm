@@ -178,37 +178,61 @@ const Z3 = S3;
 // ---------------------------------------------------------------------------
 // 4-Strand Anyon Braid Generators B₄ acting on Qutrit Space (Dim = 3)
 // In a 4-Fibonacci-anyon cluster (τ ⊗ τ ⊗ τ ⊗ τ), the 3-dimensional fusion
-// space admits representations of the 3 braid generators σ₁, σ₂, σ₃.
+// space admits an irreducible, unitary representation of the braid group B₄
+// via the Temperley-Lieb algebra TL₄(φ) with Kauffman parameter A = e^{i 2π/5}.
+// Generators satisfy:
+//   e_i² = φ e_i
+//   e_i e_{i±1} e_i = e_i
+//   e_i e_j = e_j e_i (|i - j| ≥ 2)
+//   σ_i = A I + A⁻¹ e_i (strictly unitary since A² + A⁻² = -φ)
 // ---------------------------------------------------------------------------
 
-// σ₁ braids anyons 1 & 2: diagonal phase twists in fusion tree
-const SIGMA1_3 = new Mat3([
-  [Complex.fromPolar(1, -4 * Math.PI / 5), new Complex(0, 0), new Complex(0, 0)],
-  [new Complex(0, 0), Complex.fromPolar(1, 3 * Math.PI / 5), new Complex(0, 0)],
-  [new Complex(0, 0), new Complex(0, 0), Complex.fromPolar(1, 3 * Math.PI / 5)],
-]);
-
-// 3x3 F-matrix (Associator) for 4 anyons in golden ratio basis
 const phi = (1 + Math.sqrt(5)) / 2;
 const invPhi = 1 / phi;
-const invSqrtPhi = 1 / Math.sqrt(phi);
+const invPhi2 = invPhi * invPhi;
+const invPhi3_2 = Math.pow(phi, -1.5);
 
-const F3 = new Mat3([
-  [new Complex(invPhi, 0), new Complex(invSqrtPhi, 0), new Complex(0, 0)],
-  [new Complex(invSqrtPhi, 0), new Complex(-invPhi, 0), new Complex(0, 0)],
-  [new Complex(0, 0), new Complex(0, 0), new Complex(1, 0)],
-]);
+// Kauffman bracket parameter A for Fibonacci anyons
+const TL_A = Complex.fromPolar(1, 2 * Math.PI / 5);
+const TL_A_INV = Complex.fromPolar(1, -2 * Math.PI / 5);
 
-// σ₂ = F₃ * σ₁ * F₃
-const SIGMA2_3 = F3.mul(SIGMA1_3).mul(F3);
+function makeB4Generator(eReal) {
+  const elements = [];
+  for (let i = 0; i < 3; i++) {
+    const row = [];
+    for (let j = 0; j < 3; j++) {
+      const diag = (i === j) ? TL_A : new Complex(0, 0);
+      const off = TL_A_INV.mul(eReal[i][j]);
+      row.push(diag.add(off));
+    }
+    elements.push(row);
+  }
+  return new Mat3(elements);
+}
 
-// σ₃ braids anyons 3 & 4
-const F3_prime = new Mat3([
-  [new Complex(1, 0), new Complex(0, 0), new Complex(0, 0)],
-  [new Complex(0, 0), new Complex(invPhi, 0), new Complex(invSqrtPhi, 0)],
-  [new Complex(0, 0), new Complex(invSqrtPhi, 0), new Complex(-invPhi, 0)],
-]);
-const SIGMA3_3 = F3_prime.mul(SIGMA1_3).mul(F3_prime);
+// Temperley-Lieb algebra generators on 3D fusion space V₄(τ)
+const E1_TL = [
+  [phi, 0, 0],
+  [0, 0, 0],
+  [0, 0, 0],
+];
+
+const E2_TL = [
+  [invPhi, invPhi3_2, invPhi],
+  [invPhi3_2, invPhi2, invPhi3_2],
+  [invPhi, invPhi3_2, invPhi],
+];
+
+const E3_TL = [
+  [0, 0, 0],
+  [0, 0, 0],
+  [0, 0, phi],
+];
+
+// Exact unitary braid generators for B₄
+const SIGMA1_3 = makeB4Generator(E1_TL);
+const SIGMA2_3 = makeB4Generator(E2_TL);
+const SIGMA3_3 = makeB4Generator(E3_TL);
 
 const B4_GENERATORS = {
   1: SIGMA1_3,
