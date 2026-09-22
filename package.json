@@ -92,6 +92,8 @@
     "crypto:test": "node test/test-crypto-arsenal.js",
     "kernel:test": "node test/test-microkernel.js",
     "lean:arsenal": "lean -o quantum/lean/TryteArsenal.olean quantum/lean/TryteArsenal.lean",
+    "lean:ntru": "lean quantum/lean/TernaryNTRU.lean",
+    "lattice:test": "node test/test-lattice-crypto.js",
     "fuzz": "node test/adversarial_fuzz.js"
   },
   "license": "MIT",
