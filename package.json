@@ -78,7 +78,8 @@
     "grokking:train": "python3 -m research.grokking.train",
     "grokking:sweep": "python3 -m research.grokking.run_experiments",
     "quantum_grokking:test": "python3 -m unittest research/quantum_grokking/test_quantum_grokking.py",
-    "quantum_grokking:train": "python3 -m research.quantum_grokking.train_quantum"
+    "quantum_grokking:train": "python3 -m research.quantum_grokking.train_quantum",
+    "ternary_quantum:train": "python3 -m research.quantum_grokking.train_ternary_quantum"
   },
   "license": "MIT",
   "private": true

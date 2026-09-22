@@ -107,5 +107,43 @@ class TestQuantumHypernetwork(unittest.TestCase):
         self.assertGreater(torch.norm(hypernet.latent.grad).item(), 0.0)
 
 
+class TestTrueTernaryQuantumHypernetwork(unittest.TestCase):
+    def test_b4_generators_unitarity(self):
+        from research.quantum_grokking.ternary_qutrit_circuit import build_b4_generators
+        b4 = build_b4_generators()
+        id3 = torch.eye(3, dtype=torch.complex64)
+        for gen_idx in [1, -1, 2, -2, 3, -3]:
+            U = b4[gen_idx]
+            prod = torch.matmul(U.conj().T, U)
+            diff = torch.max(torch.abs(prod - id3)).item()
+            self.assertLess(diff, 1e-5, f"B4 generator {gen_idx} not unitary")
+
+    def test_cx3_unitarity(self):
+        from research.quantum_grokking.ternary_qutrit_circuit import build_qutrit_cx
+        cx = build_qutrit_cx()
+        id9 = torch.eye(9, dtype=torch.complex64)
+        prod = torch.matmul(cx.conj().T, cx)
+        diff = torch.max(torch.abs(prod - id9)).item()
+        self.assertLess(diff, 1e-5, "CX3 entangler not unitary in SU(9)")
+
+    def test_ternary_quantum_hypernet_forward(self):
+        from research.quantum_grokking.ternary_quantum_hypernet import TrueTernaryQuantumHypernetwork
+        model = TrueTernaryQuantumHypernetwork(latent_dim=8, hidden_dim=16)
+        a = torch.tensor([0, 1, 2])
+        b = torch.tensor([2, 1, 0])
+        y = torch.tensor([2, 2, 2])
+
+        logits = model(a, b)
+        self.assertEqual(logits.shape, (3, 3))
+
+        loss = torch.nn.CrossEntropyLoss()(logits, y)
+        loss.backward()
+
+        self.assertIsNotNone(model.latent.grad)
+        trits_a, trits_b = model.generate_braid_trits()
+        for t in list(trits_a) + list(trits_b):
+            self.assertIn(t.item(), [-1.0, 0.0, 1.0])
+
+
 if __name__ == "__main__":
     unittest.main()
