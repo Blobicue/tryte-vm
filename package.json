@@ -93,7 +93,9 @@
     "kernel:test": "node test/test-microkernel.js",
     "lean:arsenal": "lean -o quantum/lean/TryteArsenal.olean quantum/lean/TryteArsenal.lean",
     "lean:ntru": "lean quantum/lean/TernaryNTRU.lean",
+    "lean:channel": "lean quantum/lean/TernaryChannel.lean",
     "lattice:test": "node test/test-lattice-crypto.js",
+    "channel:test": "node test/test-secure-channel.js",
     "fuzz": "node test/adversarial_fuzz.js"
   },
   "license": "MIT",
