@@ -95,11 +95,20 @@ class DAGCompiler {
    * Compiles an expression into an execution plan and TASM source.
    */
   compile(expr) {
+    if (typeof expr !== 'string' && !Array.isArray(expr)) {
+      throw new Error(`Invalid expression type: expected string or array, got ${typeof expr}`);
+    }
     const ast = parseExpression(expr);
+    if (!ast || (typeof ast === 'string' && ast.trim() === '')) {
+      throw new Error('Cannot compile empty expression');
+    }
 
     // Case A: Monoid Fold Chain
     if (Array.isArray(ast) && ast[0] === 'fold') {
       const ops = ast.slice(1);
+      if (ops.length === 0) {
+        throw new Error('fold() requires at least one operator');
+      }
       const foldedTable = this.foldChain(ops);
       const tableWords = foldedTable.join(', ');
 
@@ -131,8 +140,14 @@ y0:     .word 0`;
     const wideMatch = String(op).toLowerCase().match(/^add(?:_wide_)?(\d+)$/);
     if (wideMatch) {
       const num = parseInt(wideMatch[1], 10);
+      if (num <= 0 || !Number.isFinite(num)) {
+        throw new Error(`Invalid word count ${num} for multi-precision addition`);
+      }
       const isWideWord = String(op).toLowerCase().includes('_wide_');
       const wordCount = isWideWord ? num : (num <= 6 ? 1 : Math.ceil(num / 6));
+      if (wordCount > 60 || !Number.isFinite(wordCount)) {
+        throw new Error(`Requested word count ${wordCount} exceeds TryteVM memory capacity`);
+      }
       const tritCount = wordCount * 6;
       const tasm = generateWideAddTASM(wordCount);
 
@@ -153,6 +168,10 @@ y0:     .word 0`;
     if (op === '+') signature = 'add_mod_3';
     else if (op === '*') signature = 'mul_mod_3';
     else if (op === '-') signature = 'sqr_sub';
+
+    if (!/^[A-Za-z0-9_]+$/.test(signature)) {
+      throw new Error(`Invalid operator or syntax: '${signature}'`);
+    }
 
     // Check if in Arsenal, TABLE_PRESETS, or JIT groks it
     let circuit = getCircuit(signature);

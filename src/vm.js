@@ -112,8 +112,8 @@ class TryteVM {
           word.push(g);
         }
         const mat = evaluateBraid3(word);
-        const inTrit = T.lowTrit(this.A);
-        const col = inTrit + 1; // -1 -> 0, 0 -> 1, +1 -> 2
+        const inTrit = Math.max(-1, Math.min(1, T.lowTrit(this.A)));
+        const col = inTrit + 1; // strictly 0, 1, 2
         const pNeg = mat.m[0][col].absSq();
         const pZero = mat.m[1][col].absSq();
         const pPos = mat.m[2][col].absSq();
