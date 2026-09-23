@@ -10,3 +10,5 @@ dist/
 *.olean
 *.ilean
 .pytest_cache/
+target/
+native/target/

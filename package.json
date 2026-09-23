@@ -96,7 +96,10 @@
     "lean:channel": "lean quantum/lean/TernaryChannel.lean",
     "lattice:test": "node test/test-lattice-crypto.js",
     "channel:test": "node test/test-secure-channel.js",
-    "fuzz": "node test/adversarial_fuzz.js"
+    "fuzz": "node test/adversarial_fuzz.js",
+    "simd:test": "node test/test-native-simd.js",
+    "simd:bench": "cargo run --release --manifest-path native/Cargo.toml --bin tryte -- bench-simd",
+    "simd:crypto": "cargo run --release --manifest-path native/Cargo.toml --bin tryte -- bench-crypto"
   },
   "license": "MIT",
   "private": true
