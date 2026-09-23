@@ -104,7 +104,8 @@
     "simd:bench": "cargo run --release --manifest-path native/Cargo.toml --bin tryte -- bench-simd",
     "simd:crypto": "cargo run --release --manifest-path native/Cargo.toml --bin tryte -- bench-crypto",
     "tril:test": "node test/test-tril-compiler.js",
-    "tril:compile": "node src/compiler/cli.js"
+    "tril:compile": "node src/compiler/cli.js",
+    "stdlib:test": "node test/test-tril-stdlib.js"
   },
   "license": "MIT",
   "private": true
