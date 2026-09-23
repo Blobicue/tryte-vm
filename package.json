@@ -96,12 +96,15 @@
     "lean:channel": "LEAN_PATH=quantum/lean lean quantum/lean/TernaryChannel.lean",
     "lean:silicon": "LEAN_PATH=quantum/lean lean -o quantum/lean/TryteSiliconCore.olean quantum/lean/TryteSiliconCore.lean",
     "lean:simd": "LEAN_PATH=quantum/lean lean -o quantum/lean/TryteSimdEngine.olean quantum/lean/TryteSimdEngine.lean",
+    "lean:compiler": "LEAN_PATH=quantum/lean lean -o quantum/lean/TryteCompilerSoundness.olean quantum/lean/TryteCompilerSoundness.lean",
     "lattice:test": "node test/test-lattice-crypto.js",
     "channel:test": "node test/test-secure-channel.js",
     "fuzz": "node test/adversarial_fuzz.js",
     "simd:test": "node test/test-native-simd.js",
     "simd:bench": "cargo run --release --manifest-path native/Cargo.toml --bin tryte -- bench-simd",
-    "simd:crypto": "cargo run --release --manifest-path native/Cargo.toml --bin tryte -- bench-crypto"
+    "simd:crypto": "cargo run --release --manifest-path native/Cargo.toml --bin tryte -- bench-crypto",
+    "tril:test": "node test/test-tril-compiler.js",
+    "tril:compile": "node src/compiler/cli.js"
   },
   "license": "MIT",
   "private": true

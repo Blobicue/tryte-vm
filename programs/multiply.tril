@@ -1,0 +1,31 @@
+// multiply.tril — Shift-and-add balanced ternary multiplication in high-level Tril
+fn main() {
+  let mult = in();
+  let rem = in();
+  let result = 0;
+  let count = 6;
+
+  while3 (count) {
+    let remhi = rem >> 1;
+    let tmp = remhi << 1;
+    let lowtrit = rem - tmp;
+
+    branch3 (lowtrit) {
+      neg => {
+        result = result - mult;
+      },
+      zero => {
+      },
+      pos => {
+        result = result + mult;
+      }
+    }
+
+    mult = mult << 1;
+    rem = remhi;
+    count = count - 1;
+  }
+
+  out(result);
+  halt();
+}

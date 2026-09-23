@@ -14,7 +14,7 @@ fn print_usage() {
     println!("  test                         Run comprehensive native mathematical parity suite");
 }
 
-fn cmd_run(hex_path: &str, input_str: Option<&str>) {
+fn cmd_run(hex_path: &str, input_args: &[String]) {
     let content = match fs::read_to_string(hex_path) {
         Ok(c) => c,
         Err(e) => {
@@ -29,8 +29,8 @@ fn cmd_run(hex_path: &str, input_str: Option<&str>) {
         std::process::exit(1);
     }
 
-    if let Some(inputs) = input_str {
-        for s in inputs.split(',') {
+    for arg in input_args {
+        for s in arg.split(',') {
             let trimmed = s.trim();
             if !trimmed.is_empty() {
                 match trimmed.parse::<i16>() {
@@ -147,7 +147,7 @@ fn main() {
                 eprintln!("Usage: tryte run <file.hex>");
                 std::process::exit(1);
             }
-            cmd_run(&args[2], args.get(3).map(|s| s.as_str()));
+            cmd_run(&args[2], &args[3..]);
         }
         "bench-crypto" => cmd_bench_crypto(),
         "bench-simd" => cmd_bench_simd(),
