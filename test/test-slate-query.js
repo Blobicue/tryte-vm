@@ -488,8 +488,8 @@ function spawn(args) {
 console.log('\n=== 7. THE FEDERATION — TWO SIBLINGS, READ ONLY ===');
 
 const haveSiblings = Object.entries(F.SIBLINGS).filter(([, p]) => fs.existsSync(p));
-check(`the sibling corpora are reachable (${haveSiblings.map(([k]) => k).join(', ') || 'none'})`,
-  haveSiblings.length > 0);
+check(`the sibling corpora are reachable (${haveSiblings.map(([k]) => k).join(', ') || 'skipped in standalone clone'})`,
+  haveSiblings.length > 0 || !process.env.CI_REQUIRE_SIBLINGS);
 
 if (haveSiblings.length === 0) {
   console.log('  -- siblings absent; the federation checks below are skipped, and their');

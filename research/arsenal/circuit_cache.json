@@ -305,31 +305,6 @@
       "lean_certificate": "quantum/lean/Certificates/ternary_rule_110_cert.lean",
       "lean_theorem": "Certificate.TernaryRule110.ternary_rule_110_certified"
     },
-    "nor_ternary": {
-      "signature": "nor_ternary",
-      "name": "Ternary Universal NOR Gate",
-      "kind": "truth_table",
-      "domain": "Z_3 x Z_3 -> Z_3",
-      "inputs": 2,
-      "outputs": 1,
-      "truth_table": [
-        1,
-        0,
-        -1,
-        0,
-        0,
-        -1,
-        -1,
-        -1,
-        -1
-      ],
-      "tasm": "; --- nor_ternary.tasm (Synthesized TOP Truth Table) ---\n        IN\n        STORE in_0\n        IN\n        STORE in_1\n        SETC  table\n        LOAD  in_0\n        TOP   in_1\n        OUT\n        HALT\ntable:  .word 1, 0, -1, 0, 0, -1, -1, -1, -1\nin_0:   .word 0\nin_1:   .word 0",
-      "verified": true,
-      "synthesis_method": "autonomous_grokking_forge",
-      "lean_certified": true,
-      "lean_certificate": "quantum/lean/Certificates/nor_ternary_cert.lean",
-      "lean_theorem": "Certificate.NorTernary.nor_ternary_certified"
-    },
     "sqr_sub": {
       "signature": "sqr_sub",
       "name": "Quadratic Difference Operator",
@@ -354,6 +329,31 @@
       "lean_certified": true,
       "lean_certificate": "quantum/lean/Certificates/sqr_sub_cert.lean",
       "lean_theorem": "Certificate.SqrSub.sqr_sub_certified"
+    },
+    "nor_ternary": {
+      "signature": "nor_ternary",
+      "name": "Ternary Universal NOR Gate",
+      "kind": "truth_table",
+      "domain": "Z_3 x Z_3 -> Z_3",
+      "inputs": 2,
+      "outputs": 1,
+      "truth_table": [
+        1,
+        0,
+        -1,
+        0,
+        0,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "tasm": "; --- nor_ternary.tasm (Synthesized TOP Truth Table) ---\n        IN\n        STORE in_0\n        IN\n        STORE in_1\n        SETC  table\n        LOAD  in_0\n        TOP   in_1\n        OUT\n        HALT\ntable:  .word 1, 0, -1, 0, 0, -1, -1, -1, -1\nin_0:   .word 0\nin_1:   .word 0",
+      "verified": true,
+      "synthesis_method": "autonomous_grokking_forge",
+      "lean_certified": true,
+      "lean_certificate": "quantum/lean/Certificates/nor_ternary_cert.lean",
+      "lean_theorem": "Certificate.NorTernary.nor_ternary_certified"
     }
   }
 }

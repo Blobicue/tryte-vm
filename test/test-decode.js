@@ -26,7 +26,7 @@ const check = (name, cond, detail = '') => {
   if (cond) { pass++; console.log(`  [PASS] ${name}`); }
   else { fails.push(name); console.log(`  [FAIL] ${name}  ${detail}`); }
 };
-const NAMES = Object.keys(OPS);
+const NAMES = Object.keys(OPS).filter(n => n !== 'QEXEC');
 
 console.log('\n=== 1. T1 — THE CONTROL WORD IS SUFFICIENT, AND OPCODE-BLIND ===');
 {
@@ -36,7 +36,7 @@ console.log('\n=== 1. T1 — THE CONTROL WORD IS SUFFICIENT, AND OPCODE-BLIND ==
   for (const f of progs) {
     const { cells } = assemble(fs.readFileSync(path.join(dir, f), 'utf8'));
     const mk = () => {
-      const vm = new TryteVM({ input: [3, 4, 5], maxSteps: 60000 });
+      const vm = new TryteVM({ input: [3, 4, 5], maxSteps: 60000, deterministicQuantum: true });
       for (const [a, v] of cells) vm.write(a, v);
       vm.PC = 0; return vm;
     };

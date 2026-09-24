@@ -115,42 +115,22 @@ h_tgate:LDC   ic           ; the inner control register drives the outer gate
         STORE ia
         JMP   fetch
 
-; SHL/SHR take an immediate count, so a variable count repeats a shift of one.
+; SHL/SHR take an immediate count, dynamically bound into the instruction.
 h_shl:  LOAD  opd
-        STORE cnt
+        STORE shl_imm
         LOAD  ia
-        STORE tmp
-shl_lp: LOAD  cnt
-        BR3   shl_t
-shl_t:  .table shl_end, shl_end, shl_go
-shl_go: LOAD  tmp
-        SHL   1
-        STORE tmp
-        LOAD  cnt
-        ADDI  -1
-        STORE cnt
-        JMP   shl_lp
-shl_end:LOAD  tmp
+shl_i:  SHL   0
         STORE ia
         JMP   fetch
+shl_imm:.equ  shl_i + 1
 
 h_shr:  LOAD  opd
-        STORE cnt
+        STORE shr_imm
         LOAD  ia
-        STORE tmp
-shr_lp: LOAD  cnt
-        BR3   shr_t
-shr_t:  .table shr_end, shr_end, shr_go
-shr_go: LOAD  tmp
-        SHR   1
-        STORE tmp
-        LOAD  cnt
-        ADDI  -1
-        STORE cnt
-        JMP   shr_lp
-shr_end:LOAD  tmp
+shr_i:  SHR   0
         STORE ia
         JMP   fetch
+shr_imm:.equ  shr_i + 1
 
 h_jmp:  LOAD  opd
         STORE ipc
@@ -232,12 +212,23 @@ h_topc: LOAD  ic
         STORE ia
         JMP   fetch
 
+; The quantum co-processor execution: the guest's braid data lives at guest
+; address opd, which is contiguous at host address ea. Dynamic binding into
+; QEXEC runs the host's topological quantum co-processor directly.
+h_qexec:LOAD  ea
+        STORE q_opd
+        LOAD  ia
+q_inst: QEXEC 0
+        STORE ia
+        JMP   fetch
+q_opd:  .equ  q_inst + 1
+
 ; ---------------------------------------------------------------- dispatch table
 ; One entry per opcode, in opcode order. JMPX indexes straight into it.
 jtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_neg
         .word h_min, h_max, h_csum, h_setc, h_tgate, h_shl, h_shr, h_jmp
         .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_ldc, h_top
-        .word h_topc
+        .word h_topc, h_qexec
 
 ; ---------------------------------------------------------------- state
 ipc:    .word 0            ; inner program counter
