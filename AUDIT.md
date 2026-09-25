@@ -103,7 +103,7 @@ A 64-trit vector is stored across two 64-bit unsigned integers $(P, N) \in \{0, 
 - Trit value $0 \implies P = 0, N = 0$
 - Trit value $-1 \implies P = 0, N = 1$
 - State $(1, 1)$ is illegal in dual-rail logic.
-- **Sealed Dual-Rail Invariant**: The fields $p$ and $n$ of `TritVec64` are private, preventing direct instantiation of un-sanitized states. All public constructors and vector operations actively sanitize overlapping bits:
+- **Sealed Dual-Rail Invariant**: The fields $p$ and $n$ of `TritVec64` are private, preventing direct external instantiation of invalid $(1, 1)$ states. Constructors and operations producing new combinations (`min`, `max`, `csum`, `add_mod_3`, `mul_mod_3`, `tgate`) sanitize overlapping bits via `Self::new(...)`, while `neg` performs an in-place rail swap preserving validity:
   $$\text{ill} = P \land N, \quad P' = P \land \neg\text{ill}, \quad N' = N \land \neg\text{ill}$$
 
 ### 4.2 Vector Logic Operations & Differential Parity
@@ -112,7 +112,7 @@ A 64-trit vector is stored across two 64-bit unsigned integers $(P, N) \in \{0, 
 - **Maximum (`MAX`)**: $P' = P_a \lor P_b, \quad N' = N_a \land N_b$
 - **Clamped Sum (`CSUM`)**: Evaluated in 4 bitwise SIMD instructions without branch hazards.
 - **Dynamic Host Benchmarking**: Sustained throughput is measured dynamically on the host CPU (typically ~47,000–103,000 Million trits/sec depending on host CPU frequency, architecture, and throttling). The banner dynamically detects and prints the host OS and architecture.
-- **Differential Execution Parity**: True differential testing (`npm run simd:test`) runs TASM programs concurrently on the JavaScript reference VM and Native Rust VM, asserting exact equality across output tape, registers ($A$, $C$, $PC$), and trap behavior.
+- **Differential Execution Parity**: True differential testing (`npm run simd:test`) runs TASM programs concurrently on the JavaScript reference VM and Native Rust VM, asserting exact equality across output tape, registers ($A$, $C$, $PC$), and illegal opcode trap behavior. Opcode 25 (`QEXEC`) is verified separately as an explicit native unimplemented trap.
 
 ---
 
@@ -197,10 +197,10 @@ python3 quantum/lean/audit_soundness.py
 | TryteVM JavaScript | `npm test` | 59 suites (2,123 checks) | **100% PASS** |
 | TRIL Compiler | `npm run tril:test` | 31 checks | **100% PASS** |
 | TRIL Standard Library | `npm run stdlib:test` | 23 checks | **100% PASS** |
-| Native SIMD Engine | `npm run simd:test` | 6 differential tests + benchmarks | **100% PASS** |
+| Native SIMD Engine | `npm run simd:test` | 5 differential tests + QEXEC absence check + benchmarks | **100% PASS** |
 | Adversarial Fuzzing | `npm run fuzz` | 50k trials + 1.59M carry ops | **0 ERRORS** |
 | Lean 4 Soundness | `python3 quantum/lean/audit_soundness.py` | 21 specifications | **0 SORRY, 0 CUSTOM AXIOMS** |
 
 ---
 
-*Dossier prepared and certified for independent external auditing.*
+*Dossier prepared for independent external review.*

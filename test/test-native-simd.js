@@ -181,7 +181,7 @@ assert.strictEqual(nativeTrap.trapped, true, 'Native VM must trap on illegal opc
 console.log('  ✓ 100% exact trap parity on illegal opcode execution');
 
 // 6. Native Unimplemented Status: QEXEC (Opcode 25)
-console.log('\n>>> [6/6] Differential Testing: QEXEC (Opcode 25) Unimplemented Trap on Native VM...');
+console.log('\n>>> [6/6] Native Feature Absence Check: QEXEC (Opcode 25) Traps as Unimplemented...');
 const qexecProg = `
 .word 25
 .word 0
@@ -200,5 +200,5 @@ const benchCryptoOut = execSync(`${NATIVE_BIN} bench-crypto`, { encoding: 'utf8'
 console.log(benchCryptoOut);
 
 console.log('===============================================================');
-console.log('ALL NATIVE SIMD ENGINE DIFFERENTIAL PARITY TESTS & BENCHMARKS PASSED!');
+console.log('ALL NATIVE SIMD ENGINE DIFFERENTIAL TESTS, ABSENCE CHECKS & BENCHMARKS PASSED!');
 console.log('===============================================================');

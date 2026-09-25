@@ -9,7 +9,7 @@ fn print_usage() {
     println!("Usage: tryte <command> [args]");
     println!("Commands:");
     println!("  run <file.hex> [in1,in2,...] Execute compiled 729-word hex program");
-    println!("  bench-crypto                 Benchmark Post-Quantum NTRU Lattice Crypto (Toy..PQ-256)");
+    println!("  bench-crypto                 Benchmark Experimental Ternary NTRU Lattice Polynomials (Toy..Research-729)");
     println!("  bench-simd                   Benchmark 64-Trit Bit-Sliced Dual-Rail SIMD vs Scalar ALU");
     println!("  test                         Run comprehensive native mathematical parity suite");
 }

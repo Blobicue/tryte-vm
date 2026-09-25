@@ -10,7 +10,7 @@ All findings and critical observations raised by external audit reviews have bee
 |:---|:---|:---|:---:|
 | **F1: Lattice Polynomial & PRNG Properties** | `native/src/poly.rs`, `native/src/crypto.rs`, `AUDIT.md` | Disclosed that polynomial multiplication is an exploratory research prototype with sparse-polynomial acceleration (`if a_i == 0 continue`) and PRNG (`XorShift64`). Removed claims of "constant-time" and "zero branch divergence". | **CALIBRATED** |
 | **F2: Axiom Accounting & Foundations** | `quantum/lean/audit_soundness.py`, `audit.sh`, `AUDIT.md` | Replaced "0 AXIOMS" with "0 CUSTOM AXIOMS" across scripts and reports; explicitly declared permitted Lean 4 standard foundational axioms (`propext`, `Quot.sound`, `Classical.choice`). No sorry, no custom axioms. | **CALIBRATED** |
-| **F3 & F11: Native VM Parity & QEXEC Status** | `native/src/vm.rs`, `test/test-native-simd.js` | Native Rust VM explicitly marks opcode 25 (`QEXEC`) as unimplemented and cleanly traps. Differential testing in `test/test-native-simd.js` verifies register (`A`, `C`, `PC`) and tape equality across JS and Native engines, plus verified opcode 25 trap parity. | **VERIFIED** |
+| **F3 & F11: Native VM Parity & QEXEC Status** | `native/src/vm.rs`, `test/test-native-simd.js` | Native Rust VM explicitly marks opcode 25 (`QEXEC`) as unimplemented and cleanly traps. Differential testing in `test/test-native-simd.js` verifies register (`A`, `C`, `PC`) and tape equality across JS and Native engines for supported opcodes, and test 6 verifies that native VM cleanly traps opcode 25 as unimplemented. | **VERIFIED** |
 | **F4: Formal Theorem Scope in Lean** | `quantum/lean/TernaryNTRU.lean`, `AUDIT.md` | Calibrated `AUDIT.md` to accurately describe scalar theorems in `TernaryNTRU.lean` (scalar Hensel lifting mod 729, 81-state scalar $\mathbb{Z}_3$ decryption soundness, and headroom bounds $189 \le 364$ for $N=9, 27$). | **CALIBRATED** |
 | **F5: Hensel Inversion Validation** | `native/src/poly.rs` | Strictly verifies that all non-constant coefficients of $(f - 1)$ are divisible by 3 and verifies roundtrip $f \cdot \text{inv} \equiv 1 \pmod{729}$ before returning `Some(inv)`. Added rejection unit tests. | **VERIFIED** |
 | **F6: Dual-Rail SIMD Representation Invariants** | `native/src/simd.rs` | Sealed `p` and `n` fields in `TritVec64` as private; provided read accessors `p()` and `n()`; routed all operations (`min`, `max`, `csum`, `add_mod_3`, `mul_mod_3`, `tgate`) through `Self::new(...)` to guarantee overlap sanitization (`p & !ill`, `n & !ill`). | **SEALED** |
@@ -44,8 +44,8 @@ Executing `./audit.sh` runs all 7 verification stages with exit code 0:
    - Covers core collections, arithmetic routines, and string operations.
 
 5. **Stage 5: Native SIMD Parity & Throughput (`npm run simd:test`)**
-   - 6 differential tests passed: `multiply.tasm`, `threeway.tasm`, `tgate.tasm`, `TOPC` carry-table opcode, illegal opcode trapping, and native `QEXEC` trap parity.
-   - Differential checks verify exact match of output tapes and registers (`A`, `C`, `PC`).
+   - 5 differential tests passed (`multiply.tasm`, `threeway.tasm`, `tgate.tasm`, `TOPC` carry-table opcode, illegal opcode trapping), asserting exact match across output tapes and registers (`A`, `C`, `PC`) between JS VM and Native Rust VM.
+   - 1 native feature-absence check passed, verifying that opcode 25 (`QEXEC`) explicitly traps as unimplemented on the native engine (topological quantum coprocessor simulation is supported only on the JS reference machine).
    - Dynamic SIMD vector throughput and NTRU polynomial benchmark reported.
 
 6. **Stage 6: Adversarial Fuzzing (`npm run fuzz`)**

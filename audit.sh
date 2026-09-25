@@ -71,8 +71,8 @@ echo -e "${BOLD}${BLUE}                   AUDIT VERIFICATION SUMMARY            
 echo -e "${BOLD}${BLUE}================================================================${NC}"
 
 if [ ${#FAILED_STAGES[@]} -eq 0 ]; then
-    echo -e "${BOLD}${GREEN}ALL AUDIT STAGES PASSED WITH 100% FIDELITY!${NC}"
-    echo -e "${GREEN}The TryteVM codebase is fully verified and certified ready for external audits.${NC}"
+    echo -e "${BOLD}${GREEN}ALL 7 HARNESS STAGES PASSED (exit code 0)${NC}"
+    echo -e "${GREEN}All test suites, differential checks, fuzzers, and formal proof audits completed without errors.${NC}"
     echo -e "${BOLD}${BLUE}================================================================${NC}"
     exit 0
 else
