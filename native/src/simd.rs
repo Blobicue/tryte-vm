@@ -9,8 +9,8 @@
 /// - bit i of both is 0 if trit i is 0
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TritVec64 {
-    pub p: u64,
-    pub n: u64,
+    p: u64,
+    n: u64,
 }
 
 impl TritVec64 {
@@ -26,6 +26,16 @@ impl TritVec64 {
             p: p & !ill,
             n: n & !ill,
         }
+    }
+
+    #[inline(always)]
+    pub fn p(&self) -> u64 {
+        self.p
+    }
+
+    #[inline(always)]
+    pub fn n(&self) -> u64 {
+        self.n
     }
 
     #[inline(always)]
@@ -79,20 +89,14 @@ impl TritVec64 {
     /// p = a.p & b.p, n = a.n | b.n
     #[inline(always)]
     pub fn min(&self, other: &Self) -> Self {
-        Self {
-            p: self.p & other.p,
-            n: self.n | other.n,
-        }
+        Self::new(self.p & other.p, self.n | other.n)
     }
 
     /// Parallel 64-trit MAX (OR-like lattice op):
     /// p = a.p | b.p, n = a.n & b.n
     #[inline(always)]
     pub fn max(&self, other: &Self) -> Self {
-        Self {
-            p: self.p | other.p,
-            n: self.n & other.n,
-        }
+        Self::new(self.p | other.p, self.n & other.n)
     }
 
     /// Parallel 64-trit clamped sum (CSUM):
@@ -100,10 +104,10 @@ impl TritVec64 {
     /// n = (a.n & !b.p) | (b.n & !a.p)
     #[inline(always)]
     pub fn csum(&self, other: &Self) -> Self {
-        Self {
-            p: (self.p & !other.n) | (other.p & !self.n),
-            n: (self.n & !other.p) | (other.n & !self.p),
-        }
+        Self::new(
+            (self.p & !other.n) | (other.p & !self.n),
+            (self.n & !other.p) | (other.n & !self.p),
+        )
     }
 
     /// Parallel 64-trit addition modulo 3 over Abelian group Z_3:
@@ -117,10 +121,7 @@ impl TritVec64 {
         let z_b = !(other.p | other.n);
         let res_p = (self.p & z_b) | (z_a & other.p) | (self.n & other.n);
         let res_n = (self.n & z_b) | (z_a & other.n) | (self.p & other.p);
-        Self {
-            p: res_p,
-            n: res_n,
-        }
+        Self::new(res_p, res_n)
     }
 
     /// Parallel 64-trit subtraction modulo 3 over Z_3: a - b = a + neg(b)
@@ -137,10 +138,7 @@ impl TritVec64 {
     pub fn mul_mod_3(&self, other: &Self) -> Self {
         let res_p = (self.p & other.p) | (self.n & other.n);
         let res_n = (self.p & other.n) | (self.n & other.p);
-        Self {
-            p: res_p,
-            n: res_n,
-        }
+        Self::new(res_p, res_n)
     }
 
     /// Parallel 64-trit Reconfigurable TGATE:
@@ -159,10 +157,7 @@ impl TritVec64 {
 
         let res_p = (v_neg.p & m_neg) | (v_max.p & m_pos) | (v_min.p & m_zero);
         let res_n = (v_neg.n & m_neg) | (v_max.n & m_pos) | (v_min.n & m_zero);
-        Self {
-            p: res_p,
-            n: res_n,
-        }
+        Self::new(res_p, res_n)
     }
 }
 
@@ -316,7 +311,7 @@ mod tests {
         // bit 2: p=1, n=0 -> preserved p=1 (+1)
         // bit 3: p=1, n=1 -> sanitized to 0
         assert!(v.is_valid());
-        assert_eq!(v.p & v.n, 0);
+        assert_eq!(v.p() & v.n(), 0);
         let trits = v.to_vec(4);
         assert_eq!(trits, vec![0, -1, 1, 0]);
 

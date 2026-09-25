@@ -63,7 +63,7 @@ run_stage "Adversarial Fuzzing (50k BigInt + 1.59M carry combinations)" \
     "npm run fuzz"
 
 # 7. Formal Lean 4 Soundness Audit
-run_stage "Lean 4 Formal Soundness Audit (21 modules, 0 sorry, 0 axioms)" \
+run_stage "Lean 4 Formal Soundness Audit (21 modules, 0 sorry, 0 custom axioms)" \
     "python3 quantum/lean/audit_soundness.py"
 
 echo -e "${BOLD}${BLUE}================================================================${NC}"

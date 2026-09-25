@@ -32,12 +32,18 @@ function runJS(tasmSource, inputs = []) {
       output: vm.output.slice(),
       halted: vm.halted,
       trapped: false,
+      A: vm.A,
+      C: vm.C,
+      PC: vm.PC,
     };
   } catch (err) {
     return {
       output: [],
       halted: true,
       trapped: true,
+      A: 0,
+      C: 0,
+      PC: 0,
       error: err.message,
     };
   }
@@ -53,10 +59,13 @@ function runNative(tasmSource, inputs = []) {
     const res = spawnSync(NATIVE_BIN, ['run', tmpHex, inputArg], { encoding: 'utf8' });
     const stdout = res.stdout || '';
 
-    // Parse status
-    const statusMatch = stdout.match(/Status: halted=(\w+), trapped=(\w+)/);
+    // Parse status and registers: Status: halted=true, trapped=false, PC=12, A=35, C=0
+    const statusMatch = stdout.match(/Status:\s*halted=(\w+),\s*trapped=(\w+)(?:,\s*PC=(-?\d+),\s*A=(-?\d+),\s*C=(-?\d+))?/);
     const halted = statusMatch ? statusMatch[1] === 'true' : false;
     const trapped = statusMatch ? statusMatch[2] === 'true' : (res.status === 2);
+    const pc = statusMatch && statusMatch[3] !== undefined ? parseInt(statusMatch[3], 10) : null;
+    const a = statusMatch && statusMatch[4] !== undefined ? parseInt(statusMatch[4], 10) : null;
+    const c = statusMatch && statusMatch[5] !== undefined ? parseInt(statusMatch[5], 10) : null;
 
     // Parse output queue
     const outMatch = stdout.match(/Output queue \((\d+) trytes\): \[(.*?)\]/);
@@ -69,6 +78,9 @@ function runNative(tasmSource, inputs = []) {
       output,
       halted,
       trapped,
+      A: a,
+      C: c,
+      PC: pc,
       exitCode: res.status,
     };
   } finally {
@@ -92,11 +104,20 @@ function assertDifferential(name, tasmSource, inputs = []) {
       jsRes.output,
       `[${name}] Output mismatch: JS=${JSON.stringify(jsRes.output)}, Native=${JSON.stringify(nativeRes.output)}`
     );
+    if (nativeRes.A !== null && jsRes.A !== null) {
+      assert.strictEqual(nativeRes.A, jsRes.A, `[${name}] Register A mismatch: JS=${jsRes.A}, Native=${nativeRes.A}`);
+    }
+    if (nativeRes.C !== null && jsRes.C !== null) {
+      assert.strictEqual(nativeRes.C, jsRes.C, `[${name}] Register C mismatch: JS=${jsRes.C}, Native=${nativeRes.C}`);
+    }
+    if (nativeRes.PC !== null && jsRes.PC !== null) {
+      assert.strictEqual(nativeRes.PC, jsRes.PC, `[${name}] Register PC mismatch: JS=${jsRes.PC}, Native=${nativeRes.PC}`);
+    }
   }
 }
 
 // 1. Program Parity: multiply.tasm
-console.log('>>> [1/5] Differential Testing: multiply.tasm (JS VM vs Native Rust VM)...');
+console.log('>>> [1/6] Differential Testing: multiply.tasm (JS VM vs Native Rust VM)...');
 const mulSrc = fs.readFileSync(path.join(PROG_DIR, 'multiply.tasm'), 'utf8');
 const mulTests = [
   [10, 20],
@@ -110,22 +131,22 @@ const mulTests = [
 for (const [a, b] of mulTests) {
   assertDifferential(`multiply(${a}, ${b})`, mulSrc, [a, b]);
 }
-console.log('  ✓ 100% exact differential parity across multiplication test vectors');
+console.log('  ✓ 100% exact differential parity across multiplication test vectors and registers (A, C, PC)');
 
 // 2. Program Parity: threeway.tasm
-console.log('\n>>> [2/5] Differential Testing: threeway.tasm (JS VM vs Native Rust VM)...');
+console.log('\n>>> [2/6] Differential Testing: threeway.tasm (JS VM vs Native Rust VM)...');
 const threewaySrc = fs.readFileSync(path.join(PROG_DIR, 'threeway.tasm'), 'utf8');
 assertDifferential('threeway', threewaySrc, [1, -1, 0, 1, -1]);
-console.log('  ✓ 100% exact differential parity for 3-way conditional branch engine');
+console.log('  ✓ 100% exact differential parity for 3-way conditional branch engine and registers');
 
 // 3. Program Parity: tgate.tasm
-console.log('\n>>> [3/5] Differential Testing: tgate.tasm (JS VM vs Native Rust VM)...');
+console.log('\n>>> [3/6] Differential Testing: tgate.tasm (JS VM vs Native Rust VM)...');
 const tgateSrc = fs.readFileSync(path.join(PROG_DIR, 'tgate.tasm'), 'utf8');
 assertDifferential('tgate', tgateSrc, [123, -45]);
-console.log('  ✓ 100% exact differential parity for reconfigurable TGATE modes');
+console.log('  ✓ 100% exact differential parity for reconfigurable TGATE modes and registers');
 
 // 4. Opcode Parity: TOPC (27-row carry table)
-console.log('\n>>> [4/5] Differential Testing: TOPC opcode (JS VM vs Native Rust VM)...');
+console.log('\n>>> [4/6] Differential Testing: TOPC opcode (JS VM vs Native Rust VM)...');
 const topcProg = `
 LOADI tbl
 STORE cp
@@ -145,10 +166,10 @@ w: .word 0
 tbl: .word -3, -2, -1, -2, -1, 0, -1, 0, 1, -2, -1, 0, -1, 0, 1, 0, 1, 2, -1, 0, 1, 0, 1, 2, 1, 2, 3
 `;
 assertDifferential('topc', topcProg, []);
-console.log('  ✓ 100% exact differential parity for TOPC carry-table opcode');
+console.log('  ✓ 100% exact differential parity for TOPC carry-table opcode and registers');
 
 // 5. Differential Trap Testing: Illegal Opcode Handling
-console.log('\n>>> [5/5] Differential Testing: Illegal Opcode Trapping (JS VM vs Native Rust VM)...');
+console.log('\n>>> [5/6] Differential Testing: Illegal Opcode Trapping (JS VM vs Native Rust VM)...');
 const trapProg = `
 .word 99
 .word 0
@@ -158,6 +179,16 @@ const nativeTrap = runNative(trapProg);
 assert.strictEqual(jsTrap.trapped, true, 'JS VM must trap on illegal opcode');
 assert.strictEqual(nativeTrap.trapped, true, 'Native VM must trap on illegal opcode');
 console.log('  ✓ 100% exact trap parity on illegal opcode execution');
+
+// 6. Native Unimplemented Status: QEXEC (Opcode 25)
+console.log('\n>>> [6/6] Differential Testing: QEXEC (Opcode 25) Unimplemented Trap on Native VM...');
+const qexecProg = `
+.word 25
+.word 0
+`;
+const nativeQexec = runNative(qexecProg);
+assert.strictEqual(nativeQexec.trapped, true, 'Native VM must trap QEXEC as unimplemented');
+console.log('  ✓ Native VM correctly traps opcode 25 (QEXEC) as an unimplemented JS-only coprocessor bridge');
 
 console.log('\n===============================================================');
 console.log('RUNNING NATIVE BENCHMARKS');

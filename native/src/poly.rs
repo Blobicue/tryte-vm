@@ -1,5 +1,7 @@
 //! High-Performance Polynomial Ring Engine over Z_729[X] / (X^N ± 1)
 //! Accelerated with SIMD vector additions/subtractions.
+//! Note: This is an academic research prototype using sparse polynomial skips (`if a_i == 0 continue`).
+//! It is NOT constant-time or hardened against side-channel analysis.
 
 use crate::simd::portable::{vec_poly_add, vec_poly_sub};
 use crate::ternary::wrap;

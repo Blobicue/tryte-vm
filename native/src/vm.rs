@@ -230,27 +230,15 @@ impl TryteVM {
                 self.a = t_table_c(&tbl, self.a, op_b);
             }
             25 => {
-                // QEXEC: Topological Quantum Co-Processor
-                let len = self.read_mem(operand);
-                if len < 0 || len > 100 {
-                    self.trapped = true;
-                    self.trap_reason = Some(format!("invalid QEXEC braid length {} at address {}", len, add(self.pc, -2)));
-                    self.halted = true;
-                    return false;
-                }
-                for i in 0..len {
-                    let g = self.read_mem(add(add(operand, 1), i as i16));
-                    if g != -3 && g != -2 && g != -1 && g != 1 && g != 2 && g != 3 {
-                        self.trapped = true;
-                        self.trap_reason = Some(format!("invalid QEXEC braid generator {} at address {}", g, add(add(operand, 1), i as i16)));
-                        self.halted = true;
-                        return false;
-                    }
-                }
-                // Deterministic execution: preserve upper 5 trits, measured ground state 0
-                let in_trit = (self.a % 3).clamp(-1, 1);
-                let outcome = 0i16;
-                self.a = wrap((self.a - in_trit + outcome) as i32);
+                // Opcode 25 (QEXEC) is an experimental JS-only research bridge to the floating-point vTQPU.
+                // It is explicitly unimplemented on the native SIMD execution engine.
+                self.trapped = true;
+                self.trap_reason = Some(format!(
+                    "unimplemented opcode QEXEC (25) on native engine at address {}",
+                    add(self.pc, -2)
+                ));
+                self.halted = true;
+                return false;
             }
             _ => {
                 // Unknown opcode: trap and halt (matching JS TryteVM error behavior)
@@ -358,6 +346,17 @@ mod tests {
         // Out of range wraps modulo 729
         assert_eq!(TryteVM::phys_addr(365), 0);   // 365 wraps to -364 -> phys 0
         assert_eq!(TryteVM::phys_addr(-365), 728); // -365 wraps to +364 -> phys 728
+    }
+
+    #[test]
+    fn test_vm_qexec_unimplemented() {
+        let mut vm = TryteVM::new();
+        vm.write_mem(0, 25); // Opcode 25 (QEXEC)
+        vm.write_mem(1, 10);
+        vm.step();
+        assert!(vm.halted);
+        assert!(vm.trapped);
+        assert!(vm.trap_reason.unwrap().contains("unimplemented opcode QEXEC (25)"));
     }
 }
 
