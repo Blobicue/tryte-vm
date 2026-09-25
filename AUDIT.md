@@ -84,7 +84,7 @@ The repository includes a comprehensive formal verification suite developed in *
 | **Silicon & Circuits**| `TryteSiliconCore.lean` | Soundness of CMOS ternary inverter, transmission-gate multiplexer, and switch-level datapath | 0 / 0 |
 | **SIMD Formalism** | `TryteSimdEngine.lean` | Dual-rail bit-sliced encoding bijection, SIMD MIN/MAX/NEG identity with serial ternary semantics | 0 / 0 |
 | **Compiler Soundness**| `TryteCompilerSoundness.lean` | Semantic preservation between AST evaluation and TASM instruction emission | 0 / 0 |
-| **Lattice Ring Arithmetic** | `TernaryNTRU.lean` | Scalar Hensel lifting coefficient inversion mod 729, exhaustive $\mathbb{Z}_3$ scalar decryption soundness ($3^4 = 81$ states), and concrete tryte capacity headroom bounds for $N=9, 27$ ($189 \le 364$) | 0 / 0 |
+| **Lattice Ring Arithmetic** | `TernaryNTRU.lean` | Scalar Hensel lifting coefficient inversion mod 729, exhaustive $\mathbb{Z}_3$ scalar decryption soundness ($3^4 = 81$ states), and concrete tryte capacity headroom bounds ($63 \le 364$ for $N=9$, $189 \le 364$ for $N=27$) | 0 / 0 |
 | **Information Theory**| `TernaryChannel.lean` | Shannon entropy bounds and capacity theorems for ternary symmetric erasure channels | 0 / 0 |
 | **Quantum Coprocessor**| `FibonacciAnyon.lean` | Exact algebraic formal proof of 3-strand braid group $B_3$ over $2 \times 2$ matrices in $\mathbb{Z}[\zeta_{10}, s]$ satisfying the Yang-Baxter relation $(R_1 R_2 R_1 = R_2 R_1 R_2)$ | 0 / 0 |
 | **Truth Table Certs** | `Certificates/*.lean` (14 files)| Exhaustive 9-state formal verification of Cellular Automaton Rule 110, S-Boxes, modular arithmetic, and qutrit gate projections | 0 / 0 |
@@ -103,7 +103,7 @@ A 64-trit vector is stored across two 64-bit unsigned integers $(P, N) \in \{0, 
 - Trit value $0 \implies P = 0, N = 0$
 - Trit value $-1 \implies P = 0, N = 1$
 - State $(1, 1)$ is illegal in dual-rail logic.
-- **Sealed Dual-Rail Invariant**: The fields $p$ and $n$ of `TritVec64` are private, preventing direct external instantiation of invalid $(1, 1)$ states. Constructors and operations producing new combinations (`min`, `max`, `csum`, `add_mod_3`, `mul_mod_3`, `tgate`) sanitize overlapping bits via `Self::new(...)`, while `neg` performs an in-place rail swap preserving validity:
+- **Sealed Dual-Rail Invariant**: The fields $p$ and $n$ of `TritVec64` are private, preventing direct external instantiation of invalid $(1, 1)$ states. Constructors and operations producing new combinations (`min`, `max`, `csum`, `add_mod_3`, `mul_mod_3`, `tgate`) sanitize overlapping bits via `Self::new(...)`, while `neg` returns a rail-swapped vector (swapping `p` and `n`) preserving validity:
   $$\text{ill} = P \land N, \quad P' = P \land \neg\text{ill}, \quad N' = N \land \neg\text{ill}$$
 
 ### 4.2 Vector Logic Operations & Differential Parity
