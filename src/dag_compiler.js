@@ -141,10 +141,18 @@ y0:     .word 0`;
     if (wideMatch) {
       const num = parseInt(wideMatch[1], 10);
       if (num <= 0 || !Number.isFinite(num)) {
-        throw new Error(`Invalid word count ${num} for multi-precision addition`);
+        throw new Error(`Invalid width ${num} for multi-precision addition`);
       }
       const isWideWord = String(op).toLowerCase().includes('_wide_');
-      const wordCount = isWideWord ? num : (num <= 6 ? 1 : Math.ceil(num / 6));
+      let wordCount;
+      if (isWideWord) {
+        wordCount = num;
+      } else {
+        if (num % 6 !== 0) {
+          throw new Error(`Multi-precision trit count must be a multiple of 6 (e.g. add6, add12, add18, add24), got ${num}`);
+        }
+        wordCount = num / 6;
+      }
       if (wordCount > 60 || !Number.isFinite(wordCount)) {
         throw new Error(`Requested word count ${wordCount} exceeds TryteVM memory capacity`);
       }

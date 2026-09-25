@@ -450,29 +450,51 @@ console.log();
 console.log('>>> [6/6] Auditing DAG Compiler Expression Parsing...');
 
 const compiler = new DAGCompiler();
-const testExprs = ['add1', 'add6', 'add7', 'add12', 'add18', 'add24'];
+const validExprs = [
+  { expr: 'add6', expectedWords: 1, expectedTrits: 6 },
+  { expr: 'add12', expectedWords: 2, expectedTrits: 12 },
+  { expr: 'add18', expectedWords: 3, expectedTrits: 18 },
+  { expr: 'add24', expectedWords: 4, expectedTrits: 24 },
+  { expr: 'add_wide_2', expectedWords: 2, expectedTrits: 12 },
+];
 
-for (const expr of testExprs) {
-  const plan = compiler.compile(expr);
-  const num = parseInt(expr.replace('add', ''), 10);
-  // An "add6" instruction would logically denote 6 trits (1 word).
-  // But line 134 in dag_compiler.js does:
-  // num > 6 ? Math.round(num / 6) : num;
-  // For num = 6, 6 > 6 is false, so wordCount becomes 6 (36 trits)!
-  RESULTS.dagCompilerBugs.push({
-    expression: expr,
-    parsedWordCount: plan.wordCount,
-    emittedTritCount: plan.tritCount,
-    flaw: (expr === 'add6' && plan.wordCount === 6)
-      ? 'CRITICAL: "add6" yields 6 words (36 trits) instead of 1 word (6 trits) due to `num > 6` condition!'
-      : (expr === 'add1' && plan.wordCount === 1)
-        ? 'INCONSISTENCY: "add1" treats 1 as word count (6 trits), while "add12" treats 12 as trit count (2 words).'
-        : 'OK',
-  });
+for (const { expr, expectedWords, expectedTrits } of validExprs) {
+  try {
+    const plan = compiler.compile(expr);
+    if (plan.wordCount !== expectedWords || plan.tritCount !== expectedTrits) {
+      RESULTS.dagCompilerBugs.push({
+        expression: expr,
+        parsedWordCount: plan.wordCount,
+        emittedTritCount: plan.tritCount,
+        flaw: `Mismatch: expected ${expectedWords} words (${expectedTrits} trits), got ${plan.wordCount} words (${plan.tritCount} trits)`,
+      });
+    } else {
+      console.log(`    [${expr}] -> ${plan.wordCount} words (${plan.tritCount} trits): OK`);
+    }
+  } catch (err) {
+    RESULTS.dagCompilerBugs.push({
+      expression: expr,
+      flaw: `Compilation unexpectedly threw: ${err.message}`,
+    });
+  }
+}
+
+// Invalid expressions (non-multiples of 6 for add<N>): must be rejected
+const invalidExprs = ['add1', 'add7', 'add13'];
+for (const expr of invalidExprs) {
+  try {
+    compiler.compile(expr);
+    RESULTS.dagCompilerBugs.push({
+      expression: expr,
+      flaw: `Expected error for non-multiple-of-6 trit count '${expr}', but it compiled`,
+    });
+  } catch (err) {
+    console.log(`    [${expr}] -> Correctly rejected: ${err.message}`);
+  }
 }
 
 RESULTS.dagCompilerBugs.forEach(b => {
-  console.log(`    [${b.expression}] -> ${b.parsedWordCount} words (${b.emittedTritCount} trits): ${b.flaw}`);
+  console.log(`    [${b.expression}] -> BUG: ${b.flaw}`);
 });
 
 console.log('\n===============================================================');
@@ -481,3 +503,17 @@ console.log('===============================================================\n')
 
 // Output JSON summary for artifact embedding
 console.log('AUDIT_SUMMARY_JSON:' + JSON.stringify(RESULTS));
+
+const hasFailures =
+  RESULTS.boundaryChecks.failed > 0 ||
+  RESULTS.bigIntFuzz.failed > 0 ||
+  RESULTS.tasmExecutionFuzz.failed > 0 ||
+  RESULTS.cascadeAttacks.failed > 0 ||
+  RESULTS.dagCompilerBugs.length > 0;
+
+if (hasFailures) {
+  console.error('\nADVERSARIAL FUZZ ENCOUNTERED FLAWS/FAILURES. Exiting with code 1.');
+  process.exit(1);
+} else {
+  console.log('\nALL ADVERSARIAL CHECKS PASSED.');
+}

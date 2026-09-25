@@ -12,6 +12,8 @@ pub struct TryteVM {
     pub c: i16,
     pub pc: i16,
     pub halted: bool,
+    pub trapped: bool,
+    pub trap_reason: Option<String>,
     pub steps: usize,
     pub input_queue: VecDeque<i16>,
     pub output_queue: Vec<i16>,
@@ -31,6 +33,8 @@ impl TryteVM {
             c: 0,
             pc: 0,
             halted: false,
+            trapped: false,
+            trap_reason: None,
             steps: 0,
             input_queue: VecDeque::new(),
             output_queue: Vec::new(),
@@ -39,9 +43,10 @@ impl TryteVM {
 
     #[inline(always)]
     pub fn phys_addr(balanced: i16) -> usize {
-        let p = (balanced as i32 + MEM_OFFSET) as usize;
-        p.min(MEM_SIZE - 1)
+        let w = wrap(balanced as i32);
+        (w as i32 + MEM_OFFSET) as usize
     }
+
 
     #[inline(always)]
     pub fn read_mem(&self, addr: i16) -> i16 {
@@ -215,8 +220,42 @@ impl TryteVM {
                 }
                 self.a = t_table(&tbl, self.a, op_b);
             }
+            24 => {
+                // TOPC: 27-row carry table
+                let op_b = self.read_mem(operand);
+                let mut tbl = [0i16; 27];
+                for i in 0..27 {
+                    tbl[i] = self.read_mem(add(self.c, i as i16));
+                }
+                self.a = t_table_c(&tbl, self.a, op_b);
+            }
+            25 => {
+                // QEXEC: Topological Quantum Co-Processor
+                let len = self.read_mem(operand);
+                if len < 0 || len > 100 {
+                    self.trapped = true;
+                    self.trap_reason = Some(format!("invalid QEXEC braid length {} at address {}", len, add(self.pc, -2)));
+                    self.halted = true;
+                    return false;
+                }
+                for i in 0..len {
+                    let g = self.read_mem(add(add(operand, 1), i as i16));
+                    if g != -3 && g != -2 && g != -1 && g != 1 && g != 2 && g != 3 {
+                        self.trapped = true;
+                        self.trap_reason = Some(format!("invalid QEXEC braid generator {} at address {}", g, add(add(operand, 1), i as i16)));
+                        self.halted = true;
+                        return false;
+                    }
+                }
+                // Deterministic execution: preserve upper 5 trits, measured ground state 0
+                let in_trit = (self.a % 3).clamp(-1, 1);
+                let outcome = 0i16;
+                self.a = wrap((self.a - in_trit + outcome) as i32);
+            }
             _ => {
-                // Unknown opcode: halt
+                // Unknown opcode: trap and halt (matching JS TryteVM error behavior)
+                self.trapped = true;
+                self.trap_reason = Some(format!("unknown opcode {} at address {}", opcode, add(self.pc, -2)));
                 self.halted = true;
                 return false;
             }
@@ -281,4 +320,44 @@ mod tests {
         vm.step();
         assert_eq!(vm.pc, 0);
     }
+
+    #[test]
+    fn test_vm_topc() {
+        let mut vm = TryteVM::new();
+        // Setup a 27-row table at address 50
+        for i in 0..27 {
+            vm.write_mem(50 + i as i16, i as i16 - 13);
+        }
+        vm.c = 50;
+        vm.a = 123;
+        vm.write_mem(10, -45);
+        // TOPC at address 0
+        vm.write_mem(0, 24); // TOPC
+        vm.write_mem(1, 10); // operand address
+        vm.step();
+        assert_eq!(vm.pc, 2);
+        assert!(!vm.trapped);
+    }
+
+    #[test]
+    fn test_vm_trap_unknown_opcode() {
+        let mut vm = TryteVM::new();
+        vm.write_mem(0, 99); // Unknown opcode 99
+        vm.write_mem(1, 0);
+        vm.step();
+        assert!(vm.halted);
+        assert!(vm.trapped);
+        assert!(vm.trap_reason.is_some());
+    }
+
+    #[test]
+    fn test_vm_phys_addr_wrap() {
+        assert_eq!(TryteVM::phys_addr(0), 364);
+        assert_eq!(TryteVM::phys_addr(364), 728);
+        assert_eq!(TryteVM::phys_addr(-364), 0);
+        // Out of range wraps modulo 729
+        assert_eq!(TryteVM::phys_addr(365), 0);   // 365 wraps to -364 -> phys 0
+        assert_eq!(TryteVM::phys_addr(-365), 728); // -365 wraps to +364 -> phys 728
+    }
 }
+

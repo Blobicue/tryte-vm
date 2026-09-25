@@ -242,14 +242,22 @@ impl TernaryPoly {
             return None;
         }
         let n = self.n;
-        // Verify f(0) == 1 (mod 3)
-        if ((self.coeffs[0] % 3) + 3) % 3 != 1 {
+        if n == 0 {
             return None;
         }
 
+        // Verify f ≡ 1 (mod 3), i.e., constant term ≡ 1 (mod 3) and all higher terms ≡ 0 (mod 3).
+        // Equivalently, every coefficient of (f - 1) must be divisible by 3.
+        let mut diff_coeffs = self.coeffs.clone();
+        diff_coeffs[0] = wrap(diff_coeffs[0] as i32 - 1);
+        for &c in &diff_coeffs {
+            if c % 3 != 0 {
+                return None;
+            }
+        }
+
         // F = (f - 1) / 3
-        let mut f_coeffs = self.coeffs.clone();
-        f_coeffs[0] = wrap(f_coeffs[0] as i32 - 1);
+        let mut f_coeffs = diff_coeffs;
         for c in &mut f_coeffs {
             *c = wrap((*c as i32) / 3);
         }
@@ -268,6 +276,12 @@ impl TernaryPoly {
             inv = inv.add(&term);
             current_pow = current_pow.mul(&f_poly);
             sign_coeff = wrap(sign_coeff * -3) as i32;
+        }
+
+        // Roundtrip verification: check f * inv == 1 (mod 729)
+        let check = self.mul(&inv);
+        if check.coeffs != id_coeffs {
+            return None;
         }
 
         Some(inv)
@@ -325,5 +339,22 @@ mod tests {
         let mut expected = vec![0i16; 9];
         expected[0] = 1;
         assert_eq!(prod.coeffs, expected);
+    }
+
+    #[test]
+    fn test_hensel_inversion_rejects_invalid() {
+        // f = 1 + X (X is not divisible by 3)
+        let mut f1_coeffs = vec![0i16; 9];
+        f1_coeffs[0] = 1;
+        f1_coeffs[1] = 1;
+        let f1 = TernaryPoly::from_coeffs(&f1_coeffs, RingMode::Cyclic);
+        assert!(f1.hensel_inv().is_none());
+
+        // f = 2 + 3*X (constant term is not 1 mod 3)
+        let mut f2_coeffs = vec![0i16; 9];
+        f2_coeffs[0] = 2;
+        f2_coeffs[1] = 3;
+        let f2 = TernaryPoly::from_coeffs(&f2_coeffs, RingMode::Cyclic);
+        assert!(f2.hensel_inv().is_none());
     }
 }

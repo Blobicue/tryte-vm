@@ -1,17 +1,22 @@
-//! Post-Quantum Lattice Cryptography & Secure Channel Engine
-//! Fast Ternary NTRU & Ring-LWE KEM with SIMD acceleration.
+//! Experimental Ternary Lattice Polynomial Arithmetic & Research Prototype
+//!
+//! NOTE: This module is an algebraic research prototype demonstrating polynomial
+//! ring convolution and ternary modular reduction over Z_q[X]/(X^N - 1).
+//! It is NOT a production-hardened Post-Quantum KEM and must NOT be used to generate
+//! security-critical cryptographic keys. Key sampling uses deterministic xorshift
+//! for reproducibility, which is not constant-time or side-channel resistant.
 
 use crate::poly::{RingMode, TernaryPoly};
 use crate::ternary::wrap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NtruPreset {
-    Toy,        // N = 3
-    Embedded9,  // N = 9
-    Embedded27, // N = 27
-    Medium81,   // N = 81
-    Pq128,      // N = 243
-    Pq256,      // N = 729
+    Toy,         // N = 3
+    Embedded9,   // N = 9
+    Embedded27,  // N = 27
+    Medium81,    // N = 81
+    Research243, // N = 243 (algebraic research dimension)
+    Research729, // N = 729 (algebraic research dimension)
 }
 
 impl NtruPreset {
@@ -21,11 +26,12 @@ impl NtruPreset {
             NtruPreset::Embedded9 => (9, 2),
             NtruPreset::Embedded27 => (27, 5),
             NtruPreset::Medium81 => (81, 14),
-            NtruPreset::Pq128 => (243, 40),
-            NtruPreset::Pq256 => (729, 120),
+            NtruPreset::Research243 => (243, 40),
+            NtruPreset::Research729 => (729, 120),
         }
     }
 }
+
 
 pub struct NtruKeyPair {
     pub pub_key: TernaryPoly,
@@ -137,8 +143,8 @@ impl TernaryNtru {
             9 => NtruPreset::Embedded9.params(),
             27 => NtruPreset::Embedded27.params(),
             81 => NtruPreset::Medium81.params(),
-            243 => NtruPreset::Pq128.params(),
-            _ => NtruPreset::Pq256.params(),
+            243 => NtruPreset::Research243.params(),
+            _ => NtruPreset::Research729.params(),
         };
 
         let mut rng = LcgRng::new(seed);

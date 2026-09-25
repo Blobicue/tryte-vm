@@ -20,7 +20,17 @@ impl TritVec64 {
 
     #[inline(always)]
     pub fn new(p: u64, n: u64) -> Self {
-        Self { p, n }
+        // Sanitize illegal overlap: in dual-rail, (1, 1) is physically invalid.
+        let ill = p & n;
+        Self {
+            p: p & !ill,
+            n: n & !ill,
+        }
+    }
+
+    #[inline(always)]
+    pub fn is_valid(&self) -> bool {
+        (self.p & self.n) == 0
     }
 
     /// Convert a slice of trits in {-1, 0, 1} (up to 64) into bit-sliced dual-rail format
@@ -34,7 +44,7 @@ impl TritVec64 {
                 n |= 1u64 << i;
             }
         }
-        Self { p, n }
+        Self::new(p, n)
     }
 
     /// Unpack bit-sliced dual-rail trits back into a vector of signed trits in {-1, 0, 1}
@@ -294,5 +304,28 @@ mod tests {
         assert_eq!(res[1], -1); // MIN(1, -1) = -1
         assert_eq!(res[2], 1);  // MAX(1, -1) = 1
         assert_eq!(res[3], -1); // MIN(1, -1) = -1
+    }
+
+    #[test]
+    fn test_tritvec64_illegal_state_sanitized() {
+        // Construct with overlapping bits (p & n != 0)
+        let v = TritVec64::new(0b1101, 0b1011);
+        // Overlap bits are bit 0 and bit 3:
+        // bit 0: p=1, n=1 -> sanitized to 0
+        // bit 1: p=0, n=1 -> preserved n=1 (-1)
+        // bit 2: p=1, n=0 -> preserved p=1 (+1)
+        // bit 3: p=1, n=1 -> sanitized to 0
+        assert!(v.is_valid());
+        assert_eq!(v.p & v.n, 0);
+        let trits = v.to_vec(4);
+        assert_eq!(trits, vec![0, -1, 1, 0]);
+
+        // Verify operations preserve validity
+        let v2 = TritVec64::new(0b0101, 0b0010);
+        assert!(v.min(&v2).is_valid());
+        assert!(v.max(&v2).is_valid());
+        assert!(v.csum(&v2).is_valid());
+        assert!(v.add_mod_3(&v2).is_valid());
+        assert!(v.mul_mod_3(&v2).is_valid());
     }
 }

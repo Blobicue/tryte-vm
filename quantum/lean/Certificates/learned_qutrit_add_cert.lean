@@ -2,17 +2,22 @@
   =============================================================================
   learned_qutrit_add_cert.lean — Machine-Checked Lean 4 Certificate for learned_qutrit_add
   =============================================================================
-  Proves topological braid representation and crossing length in B₄.
+  Formally proves that learned_qutrit_add executes exact modular addition over Z_3.
 -/
 
 import TryteArsenal
 
+open Trit
+
 namespace Certificate.LearnedQutritAdd
 
-/-- Formal certificate for topological anyon braid learned_qutrit_add -/
-def learned_qutrit_add_crossings : Nat := 6
+/-- The grokked 9-entry truth table for learned_qutrit_add -/
+def learned_qutrit_add_table : Table9 :=
+  ⟨#[.pos, .neg, .zero, .neg, .zero, .pos, .zero, .pos, .neg]⟩
 
-theorem learned_qutrit_add_certified_topological : learned_qutrit_add_crossings = 6 := by
-  rfl
+/-- Formally verified deterministic specification for learned_qutrit_add table -/
+theorem learned_qutrit_add_certified_topological (x y : Trit) :
+    evalTOP learned_qutrit_add_table x y = addT x y := by
+  cases x <;> cases y <;> rfl
 
 end Certificate.LearnedQutritAdd

@@ -49,14 +49,19 @@ fn cmd_run(hex_path: &str, input_args: &[String]) {
 
     let mips = (steps as f64 / elapsed.as_secs_f64()) / 1_000_000.0;
     println!("Execution completed in {:?} ({} steps, {:.2} MIPS)", elapsed, steps, mips);
-    println!("Status: halted={}, PC={}, A={}, C={}", vm.halted, vm.pc, vm.a, vm.c);
+    println!("Status: halted={}, trapped={}, PC={}, A={}, C={}", vm.halted, vm.trapped, vm.pc, vm.a, vm.c);
+    if vm.trapped {
+        let reason = vm.trap_reason.as_deref().unwrap_or("unknown");
+        eprintln!("TRAP: {}", reason);
+        std::process::exit(2);
+    }
     println!("Output queue ({} trytes): {:?}", vm.output_queue.len(), vm.output_queue);
 }
 
 fn cmd_bench_crypto() {
     println!("================================================================");
-    println!("BENCHMARKING NATIVE POST-QUANTUM LATTICE CRYPTO (Ternary NTRU)");
-    println!("Architecture: ARMv9 / Cortex-X925 Native SIMD Acceleration");
+    println!("BENCHMARKING EXPERIMENTAL TERNARY NTRU LATTICE POLYNOMIAL ARITHMETIC");
+    println!("Host Architecture: {} / {}", std::env::consts::OS, std::env::consts::ARCH);
     println!("================================================================");
 
     let presets = [
@@ -64,9 +69,10 @@ fn cmd_bench_crypto() {
         ("Embedded-9 (N=9)", NtruPreset::Embedded9, 10_000),
         ("Embedded-27 (N=27)", NtruPreset::Embedded27, 2_000),
         ("Medium-81 (N=81)", NtruPreset::Medium81, 500),
-        ("PQ-128 (N=243)", NtruPreset::Pq128, 100),
-        ("PQ-256 (N=729)", NtruPreset::Pq256, 30),
+        ("Research-243 (N=243)", NtruPreset::Research243, 100),
+        ("Research-729 (N=729)", NtruPreset::Research729, 30),
     ];
+
 
     for (name, preset, iters) in presets {
         let (n, _) = preset.params();

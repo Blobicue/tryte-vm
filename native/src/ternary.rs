@@ -202,6 +202,23 @@ pub fn t_table(tbl: &[i16], a: i16, b: i16) -> i16 {
     from_trits(&out)
 }
 
+/// 27-entry truth table evaluation with carry ripple matching TOPC instruction
+pub fn t_table_c(tbl: &[i16], a: i16, b: i16) -> i16 {
+    let ta = to_trits(a);
+    let tb = to_trits(b);
+    let mut out = [0i8; 6];
+    let mut c: i8 = 0;
+    for i in 0..6 {
+        let idx = ((ta[i] as i32 + 1) * 9 + (tb[i] as i32 + 1) * 3 + (c as i32 + 1)) as usize;
+        let cell = tbl.get(idx).copied().unwrap_or(0);
+        let cell_trits = to_trits(wrap(cell as i32));
+        out[i] = cell_trits[0];
+        c = cell_trits[1];
+    }
+    from_trits(&out)
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
