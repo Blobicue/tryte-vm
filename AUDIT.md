@@ -111,7 +111,7 @@ A 64-trit vector is stored across two 64-bit unsigned integers $(P, N) \in \{0, 
 - **Minimum (`MIN`)**: $P' = P_a \land P_b, \quad N' = N_a \lor N_b$
 - **Maximum (`MAX`)**: $P' = P_a \lor P_b, \quad N' = N_a \land N_b$
 - **Clamped Sum (`CSUM`)**: Evaluated in 4 bitwise SIMD instructions without branch hazards.
-- **Dynamic Host Benchmarking**: Sustained throughput is measured dynamically on the host CPU (typically ~47,000–103,000 Million trits/sec depending on host CPU frequency, architecture, and throttling). The banner dynamically detects and prints the host OS and architecture.
+- **Dynamic Host Benchmarking**: Sustained throughput is measured dynamically on the host CPU (typically ~40,000–103,000 Million trits/sec depending on host CPU frequency, architecture, and thermal throttling). The banner dynamically detects and prints the host OS and architecture.
 - **Differential Execution Parity**: True differential testing (`npm run simd:test`) runs TASM programs concurrently on the JavaScript reference VM and Native Rust VM, asserting exact equality across output tape, registers ($A$, $C$, $PC$), and illegal opcode trap behavior. Opcode 25 (`QEXEC`) is verified separately as an explicit native unimplemented trap.
 
 ---

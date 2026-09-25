@@ -19,7 +19,7 @@ All findings and critical observations raised by external audit reviews have bee
 | **F9: TRIL Toolchain Characterization** | `programs/trilc.tril`, `AUDIT.md` | Clarified `programs/trilc.tril` as a demonstration token-to-bytecode translator running on TryteVM rather than a full self-compiling compiler pipeline. | **CALIBRATED** |
 | **F10: Interpreter Cell Invariants** | `programs/interp-core.tasm`, `programs/interp.tasm` | Preserved core interpreter cell count at exactly 224 cells (`interpSize('core') === 224`). Documented full interpreter at exactly 325 cells (`interpSize('full') === 325`). | **VERIFIED** |
 | **Certificates: Scope and Methodology** | `quantum/lean/Certificates/`, `AUDIT.md` | Clarified certificates as 9-state exhaustive truth-table fidelity proofs across 14 tables verified by Lean 4 kernel with 0 custom axioms. | **CALIBRATED** |
-| **SIMD Throughput Representation** | `AUDIT.md`, `native/src/bin/tryte.rs` | Replaced hardcoded single-run benchmark numbers with dynamically measured host throughput ranges (~45,000–103,000 M trits/s depending on host frequency and architecture) and dynamic host architecture banners. | **CALIBRATED** |
+| **SIMD Throughput Representation** | `AUDIT.md`, `native/src/bin/tryte.rs` | Replaced hardcoded single-run benchmark numbers with dynamically measured host throughput ranges (~40,000–103,000 M trits/s depending on host frequency, architecture, and thermal throttling) and dynamic host architecture banners. | **CALIBRATED** |
 
 ---
 
