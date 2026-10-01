@@ -2,13 +2,13 @@
  "schema": "tryte-vm/slate@1",
  "purpose": "A retrieval-shaped projection of FINDINGS.json plus authored marginalia. Flat, addressable entries with stable ids, topic routes and validated cross-links. The manifest remains the authority; this is a view of it and never a second copy of the truth.",
  "counts": {
-  "entries": 313,
-  "predictions": 209,
+  "entries": 317,
+  "predictions": 213,
   "findings": 72,
   "traps": 19,
   "notes": 13,
-  "proven": 17,
-  "failed": 44
+  "proven": 18,
+  "failed": 46
  },
  "routes": {
   "algebra": [
@@ -85,6 +85,10 @@
    "AX2",
    "AX3",
    "AX4",
+   "AY1",
+   "AY2",
+   "AY3",
+   "AY4",
    "F-FOLD-BUYS-DEPTH",
    "F-RADIX-ECONOMY",
    "F-GATES-FROM-SWITCHES",
@@ -330,6 +334,10 @@
    "AX1",
    "AX2",
    "AX3",
+   "AY1",
+   "AY2",
+   "AY3",
+   "AY4",
    "F-COST-INVARIANCE-IS-THE-NORM",
    "F-TERNARY-RICHER-IN-VARIETY-POORER-IN-STRUCTURE",
    "F-27-EDO-BEATS-12-EDO-ON-CONSONANCE",
@@ -8242,6 +8250,161 @@
    "asserted_in": "test/test-phases.js",
    "registered_at": "aab3dba",
    "results_at": "59e2f50",
+   "links": []
+  },
+  {
+   "id": "AY1",
+   "kind": "prediction",
+   "set": "AY",
+   "subject": "What does replacing the reachability walk's worklist with frontier relaxation cost, at one lane, before any lane parallelism is added? R2 against R2f -- the same module with reachFn replaced and nothing else altered -- over 64 states on two networks, registered so that a bitsliced R3 can be argued against a measured number instead of built and then explained.",
+   "outcome": "FAILED",
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "relaxation is slower at one lane, and the ratio R2f/R2 lands in [0.35, 0.75]",
+   "argument": null,
+   "note": "FAILED LOW, past the floor rather than at it: relaxation is 3.91x slower than the walk where at worst three times was registered. The band was drawn from an edge count and from the argument that relaxation's edge scan is CHEAPER than the walk's -- no stack traffic, no unpredictable branch on `seen` -- and the registration named that as the same shape of reasoning that failed in AV1. It failed the same way again, and in the direction the risk line said would refute it: sweeping the whole node array once per frontier level costs more than the branchless inner loop saves. What the edge count could not have said is that the cost is set by SWEEP COUNT rather than by edge density -- see AY3, which failed for the same reason from the other side.",
+   "measured": {
+    "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+    "node_version": "v22.22.3",
+    "passes_per_state": 20000,
+    "repetitions": 6,
+    "repetitions_kept": 5,
+    "states": 64,
+    "reach_sets_compared_against_reference": 96,
+    "reach_set_disagreements": 0,
+    "r2f_module_bytes": 1404,
+    "stock_module_bytes": 1386,
+    "ratio": 0.2557,
+    "registered_band": [
+     0.35,
+     0.75
+    ],
+    "r2_seconds": 7.0672,
+    "r2f_seconds": 27.6359,
+    "times_slower": 3.91
+   },
+   "tool": "tools/relax-audit.js",
+   "asserted_in": "test/test-relax.js",
+   "registered_at": "844c6f0",
+   "results_at": "2fc4f4c",
+   "links": []
+  },
+  {
+   "id": "AY2",
+   "kind": "prediction",
+   "set": "AY",
+   "subject": "What does replacing the reachability walk's worklist with frontier relaxation cost, at one lane, before any lane parallelism is added? R2 against R2f -- the same module with reachFn replaced and nothing else altered -- over 64 states on two networks, registered so that a bitsliced R3 can be argued against a measured number instead of built and then explained.",
+   "outcome": "HELD",
+   "basis": "proven",
+   "routes": [
+    "cost-model",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "the change is local: conduction and the update loop cost the same in R2f as in R2, measured by AX's additive method, within 0.10 relative",
+   "argument": "AX's additive decomposition times each phase in ISOLATION: it seeds one fixed state and runs a variant that executes only the phase in question. The conduction loop and the update loop live in solveFn, which R2f does not touch -- only reach is substituted -- so the conduction variant of R2 and the conduction variant of R2f are the SAME FUNCTION, and likewise for update. Two identical functions run over identical input produce identical work, so their times can differ only by measurement noise, which the registered tolerance of 0.10 relative comfortably covers. No possible run refutes it, which is what makes it decorative rather than confirmed.",
+   "note": "DECORATIVE, AND THE at_risk FIELD ABOVE IS THE REGISTERED LINE RATHER THAN THIS VERDICT, because that field quotes what was registered and is not a place to record a later judgement. The registered line argues this is independent of AY1 and can fail while AY1 holds. It cannot. The registration also prescribed the METHOD -- AX's additive decomposition -- and that method times each phase in ISOLATION, so the conduction and update variants of R2 and R2f are the same function over the same input and must agree. The effect the prediction names is real and remains unmeasured: relaxation writes the reachability bitsets in a different order and leaves the cache differently, so the update loop may pay differently IN CONTEXT -- and isolation is exactly what removes that. The measurable version is whole-solve time against the sum of the isolated phases, for both solvers. Note also what this corpus cannot currently record: the 25 decorative predictions are a frozen list from the 1acfeee audit and  only moves ids within it, so a post-1acfeee prediction found decorative has nowhere to live but a note like this one.",
+   "measured": {
+    "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+    "node_version": "v22.22.3",
+    "passes_per_state": 20000,
+    "repetitions": 6,
+    "repetitions_kept": 5,
+    "states": 64,
+    "reach_sets_compared_against_reference": 96,
+    "reach_set_disagreements": 0,
+    "r2f_module_bytes": 1404,
+    "stock_module_bytes": 1386,
+    "measurable_by_registered_method": false
+   },
+   "tool": "tools/relax-audit.js",
+   "asserted_in": "test/test-relax.js",
+   "registered_at": "844c6f0",
+   "results_at": "2fc4f4c",
+   "links": []
+  },
+  {
+   "id": "AY3",
+   "kind": "prediction",
+   "set": "AY",
+   "subject": "What does replacing the reachability walk's worklist with frontier relaxation cost, at one lane, before any lane parallelism is added? R2 against R2f -- the same module with reachFn replaced and nothing else altered -- over 64 states on two networks, registered so that a bitsliced R3 can be argued against a measured number instead of built and then explained.",
+   "outcome": "FAILED",
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "the price is a property of the algorithm, not of the network: the R2f/R2 ratio on the decoded adder is within 0.15 absolute of the tree adder's",
+   "argument": null,
+   "note": "FAILED, narrowly and informatively. The separation is 0.1666 against a tolerance of 0.15, so the price is NOT a property of the algorithm alone. The risk line predicted the decoded adder would separate because it packs more edges per node and relaxation sweeps edges -- and the direction is the OPPOSITE of that reasoning: relaxation does BETTER on the denser network (0.4223 against 0.2557), because the decoded adder reaches its fixed point in 2 sweeps where the tree adder needs 3 or 4. Sweep count dominates edge density. That is the mechanism AY1 could not see and this one did, and it is worth more than either verdict: relaxation is priced by how DEEP a network is, not by how many edges it has.",
+   "measured": {
+    "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+    "node_version": "v22.22.3",
+    "passes_per_state": 20000,
+    "repetitions": 6,
+    "repetitions_kept": 5,
+    "states": 64,
+    "reach_sets_compared_against_reference": 96,
+    "reach_set_disagreements": 0,
+    "r2f_module_bytes": 1404,
+    "stock_module_bytes": 1386,
+    "tree_ratio": 0.2557,
+    "decoded_ratio": 0.4223,
+    "separation": 0.1666,
+    "registered_tolerance": 0.15
+   },
+   "tool": "tools/relax-audit.js",
+   "asserted_in": "test/test-relax.js",
+   "registered_at": "844c6f0",
+   "results_at": "2fc4f4c",
+   "links": []
+  },
+  {
+   "id": "AY4",
+   "kind": "prediction",
+   "set": "AY",
+   "subject": "What does replacing the reachability walk's worklist with frontier relaxation cost, at one lane, before any lane parallelism is added? R2 against R2f -- the same module with reachFn replaced and nothing else altered -- over 64 states on two networks, registered so that a bitsliced R3 can be argued against a measured number instead of built and then explained.",
+   "outcome": "HELD",
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "method"
+   ],
+   "routes_derived": true,
+   "claim": "relaxation's own depth is small and data-dependent: over the sixty-four states on both networks the sweeps to a fixed point never exceed 6, and are not the same for every state",
+   "argument": null,
+   "note": "HELD ON THE SENTENCE AND THE READER SHOULD NOT STOP THERE. The bound holds easily -- 4 against a registered 6 -- and over the pooled population the depth does vary, so the sentence as written is true. But the variation is BETWEEN networks, not within one: the tree adder gives 3 and 4, and the decoded adder gives 2 for every one of its 64 states. The registration said \"over the sixty-four states on both networks\", which pools them, and a per-network reading would have failed on the decoded adder. That ambiguity is the registrant's. And the per-network answer is the one that matters for the question this set was built to serve, because lanes hold pairs from ONE network: on the decoded adder no lane ever diverges, and on the tree adder the deepest lane in a word costs a quarter more than the shallowest.",
+   "measured": {
+    "machine": "AMD Ryzen 7 7800X3D 8-Core Processor",
+    "node_version": "v22.22.3",
+    "passes_per_state": 20000,
+    "repetitions": 6,
+    "repetitions_kept": 5,
+    "states": 64,
+    "reach_sets_compared_against_reference": 96,
+    "reach_set_disagreements": 0,
+    "r2f_module_bytes": 1404,
+    "stock_module_bytes": 1386,
+    "tree_sweeps": [
+     3,
+     4
+    ],
+    "decoded_sweeps": [
+     2
+    ],
+    "ceiling": 6,
+    "varies_within_tree": true,
+    "varies_within_decoded": false
+   },
+   "tool": "tools/relax-audit.js",
+   "asserted_in": "test/test-relax.js",
+   "registered_at": "844c6f0",
+   "results_at": "2fc4f4c",
    "links": []
   },
   {
