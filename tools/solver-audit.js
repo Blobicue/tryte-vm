@@ -930,6 +930,12 @@ async function report(argv = []) {
     log('one, and NOTHING BELOW IS A MEASUREMENT. `npm run audit:solver` is the audit.');
   }
 
+  // Every verdict line carries this in quick mode, as relax-audit's do. Two hundred
+  // pairs over two repetitions put the timing ratios in the noise, so a quick verdict
+  // can disagree with the manifest -- and the banner above is three screens up by the
+  // time a reader reaches the verdicts. The marker goes on the line that can be misread.
+  const tag = quick ? '  (QUICK — NOT A MEASUREMENT)' : '';
+
   const A = await runAudit(quick ? { pairs: 200, reps: 2 } : {});
 
   log('\n--- 0. THE INSTRUMENT, BEFORE ANY VERDICT ---');
@@ -964,21 +970,21 @@ async function report(argv = []) {
   log(`      R0 ${sec(M.small.R0.median)}   R0 ablated ${sec(M.small.R0abl.median)}`
     + `   R1 ${sec(M.small.R1.median)}`);
   log(`      the ablation recovers ${(A.av1 * 100).toFixed(1)}% of the R0-to-R1 gap`
-    + `   (more than half was registered)   ${A.verdict.AV1}`);
+    + `   (more than half was registered)   ${A.verdict.AV1}${tag}`);
 
   log('\n--- AV2  R1 over R0: what the representation buys ---');
   log(`      R1 is ${A.av2.toFixed(2)}x R0 on the benchmark`
-    + `   (registered band [${A.band.av2.join(', ')}])   ${A.verdict.AV2}`);
+    + `   (registered band [${A.band.av2.join(', ')}])   ${A.verdict.AV2}${tag}`);
 
   log('\n--- AV3  R2 over R1: what WebAssembly buys ---');
   log(`      R2 ${sec(M.small.R2.median)}   R2 is ${A.av3.toFixed(2)}x R1 on the benchmark`
-    + `   (registered band [${A.band.av3.join(', ')}])   ${A.verdict.AV3}`);
+    + `   (registered band [${A.band.av3.join(', ')}])   ${A.verdict.AV3}${tag}`);
 
   log('\n--- AV4  the same ratio at 2.8x the size ---');
   log(`      leafmid: R1 ${sec(M.big.R1.median)}   R2 ${sec(M.big.R2.median)}`
     + `   R2 is ${A.av3big.toFixed(2)}x R1`);
   log(`      the two ratios separate by ${A.av4.toFixed(2)}`
-    + `   (refuted at ${A.band.av4} or more)   ${A.verdict.AV4}`);
+    + `   (refuted at ${A.band.av4} or more)   ${A.verdict.AV4}${tag}`);
   log('\n' + line);
   return A;
 }

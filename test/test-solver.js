@@ -137,6 +137,12 @@ console.log('\n=== 0. THE INSTRUMENT, BEFORE ANY VERDICT ===');
     ['AV1', 'AV2', 'AV3', 'AV4'].every(id => out.includes(`--- ${id} `)));
   check('   and a quick run says on its face that it is not a measurement',
     /QUICK MODE/.test(out) && /NOTHING BELOW IS A MEASUREMENT/.test(out));
+  // The banner is far above the verdicts, so it does not protect them: every line that
+  // prints a verdict must say on that line that it is not one.
+  const verdictLines = out.split('\n').filter(l => /\b(HELD|FAILED)\b/.test(l));
+  check('   and every verdict line it prints carries the marker on the line itself',
+    verdictLines.length >= 4 && verdictLines.every(l => l.includes('QUICK — NOT A MEASUREMENT')),
+    verdictLines.filter(l => !l.includes('QUICK — NOT A MEASUREMENT')).join(' | '));
 
   // 0c. Check the pipeline against a case whose answer is known independently.
   //
