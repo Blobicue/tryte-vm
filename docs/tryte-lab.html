@@ -262,7 +262,6 @@ const TRYTE_MIN = -TRYTE_MAX;                    // -364
 
 /** Fold any integer into the balanced tryte range, wrapping mod 729. */
 function wrap(v) {
-  if (v === undefined || Number.isNaN(v)) return 0;
   return ((((v - TRYTE_MIN) % TRYTE_STATES) + TRYTE_STATES) % TRYTE_STATES) + TRYTE_MIN;
 }
 
@@ -401,7 +400,6 @@ function ttable(table, x, y) {
 
 /** The least significant trit of a value. Exact because shiftRight rounds. */
 function lowTrit(v) {
-  if (v === undefined || Number.isNaN(v)) return 0;
   const w = wrap(v);
   return w - 3 * shiftRight(w, 1);
 }
@@ -475,10 +473,9 @@ function ttableC(table, x, y) {
   const out = [];
   let c = 0;
   for (let i = 0; i < TRITS_PER_TRYTE; i++) {
-    const idx = (xs[i] + 1) * 9 + (ys[i] + 1) * 3 + (c + 1);
-    const cell = wrap(table[idx] !== undefined ? table[idx] : 0);
+    const cell = wrap(table[(xs[i] + 1) * 9 + (ys[i] + 1) * 3 + (c + 1)]);
     out.push(lowTrit(cell));
-    c = lowTrit(shiftRight(cell, 1));
+    c = shiftRight(cell, 1);
   }
   return fromTrits(out);
 }

@@ -76,9 +76,9 @@ digits do not. Read the ladder, not the digits.
 | words | range | programs that fit as placed |
 |---|---|---|
 | 27 | −13..13 | **none** — `countdown` fits only if relocated (span 23) |
-| **81** | **−40..40** | **4** — `countdown`, `threeway`, `kleene`, `hybrid_quantum` |
-| 243 | −121..121 | 9 — adds `tgate`, `multiply`, `fold`, `hailstone`, `ladder` |
-| 729 | −364..364 | 14 — adds `interp-core`, `interp`, `microkernel`, `ntru`, `secure_microkernel` |
+| **81** | **−40..40** | **3** — `countdown`, `threeway`, `kleene` |
+| 243 | −121..121 | 8 — adds `tgate`, `multiply`, `fold`, `hailstone`, `ladder` |
+| 729 | −364..364 | 8 — adds `interp-core`, `interp` (the self-interpreter) |
 
 **The two ladders intersect in exactly one place: 81 words under `M1`.** It is the
 only configuration that both fits the sweep budget and runs a program somebody

@@ -22,8 +22,6 @@ const path = require('path');
 const B = require('../tools/budget.js');
 const D = require('../src/device.js');
 const { assemble } = require('../src/assembler.js');
-// TEMPORARY, removed in the next commit: programs/ still holds this line's QEXEC programs.
-require('../quantum/qexec.js');
 
 let pass = 0; const fails = [];
 const check = (name, cond, detail = '') => {
@@ -113,8 +111,8 @@ console.log('\n=== 3. THE PROGRAM LADDER MATCHES THE ASSEMBLER ===');
 
   check(`27 words fits ${fitting(27)} programs as placed — the roadmap says none`,
     fitting(27) === 0 && /27 \| −13\.\.13 \| \*\*none\*\*/.test(ROADMAP), String(fitting(27)));
-  check(`81 words fits ${fitting(81)} — the roadmap says 4`, fitting(81) === 4, String(fitting(81)));
-  check(`243 words fits ${fitting(243)} — the roadmap says 9`, fitting(243) === 9, String(fitting(243)));
+  check(`81 words fits ${fitting(81)} — the roadmap says 3`, fitting(81) === 3, String(fitting(81)));
+  check(`243 words fits ${fitting(243)} — the roadmap says 8`, fitting(243) === 8, String(fitting(243)));
   check(`729 words fits all ${fitting(729)}`, fitting(729) === progs.length, String(fitting(729)));
   check('   and countdown is the only program narrow enough to relocate into 27',
     progs.filter(p => p.hi - p.lo + 1 <= 27).map(p => p.name).join() === 'countdown');

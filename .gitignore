@@ -7,8 +7,8 @@ Thumbs.db
 # staging one would commit another branch's tree into this one.
 .claude/worktrees/
 
-# Build products from the quantum, Lean and native toolchains.
-quantum/native/vtqpu
+# Build products from native and Python toolchains. The quantum line, whose Lean and Rust
+# builds most of these entries were for, moved to tryte-quantum.
 *.o
 *.so
 __pycache__/

@@ -19,8 +19,6 @@ const D = require('../src/device.js');
 const { OPS, BY_CODE } = require('../src/isa.js');
 const { TryteVM } = require('../src/vm.js');
 const { assemble } = require('../src/assembler.js');
-// TEMPORARY, removed in the next commit: programs/ still holds this line's QEXEC programs.
-require('../quantum/qexec.js');
 const { CONTROL, FIELDS, widthOf, blindStep, bestSubset } = require('../tools/decode-audit.js');
 
 let pass = 0; const fails = [];
@@ -28,7 +26,7 @@ const check = (name, cond, detail = '') => {
   if (cond) { pass++; console.log(`  [PASS] ${name}`); }
   else { fails.push(name); console.log(`  [FAIL] ${name}  ${detail}`); }
 };
-const NAMES = Object.keys(OPS).filter(n => n !== 'QEXEC');
+const NAMES = Object.keys(OPS);
 
 console.log('\n=== 1. T1 — THE CONTROL WORD IS SUFFICIENT, AND OPCODE-BLIND ===');
 {
@@ -38,7 +36,7 @@ console.log('\n=== 1. T1 — THE CONTROL WORD IS SUFFICIENT, AND OPCODE-BLIND ==
   for (const f of progs) {
     const { cells } = assemble(fs.readFileSync(path.join(dir, f), 'utf8'));
     const mk = () => {
-      const vm = new TryteVM({ input: [3, 4, 5], maxSteps: 60000, deterministicQuantum: true });
+      const vm = new TryteVM({ input: [3, 4, 5], maxSteps: 60000 });
       for (const [a, v] of cells) vm.write(a, v);
       vm.PC = 0; return vm;
     };

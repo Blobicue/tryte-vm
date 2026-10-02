@@ -24,8 +24,6 @@
 
 const T = require('../src/ternary.js');
 const { OPS } = require('../src/isa.js');
-// TEMPORARY, removed in the next commit: programs/ still holds this line's QEXEC programs.
-require('../quantum/qexec.js');
 const E = require('../tools/erasure-audit.js');
 const { idPerm, chainOf } = require('../tools/perm-lib.js');
 const { execFileSync } = require('child_process');

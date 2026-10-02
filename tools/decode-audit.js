@@ -77,7 +77,7 @@ const fs = require('fs');
 const path = require('path');
 const T = require('../src/ternary.js');
 const D = require('../src/device.js');
-const { OPS, BY_CODE, EXT_BY_CODE } = require('../src/isa.js');   // EXT_BY_CODE: TEMPORARY, see below
+const { OPS, BY_CODE } = require('../src/isa.js');
 const { TryteVM } = require('../src/vm.js');
 const { assemble } = require('../src/assembler.js');
 
@@ -112,9 +112,8 @@ const CONTROL = {
   LDC: { op: 'addr', rd: 1, wr: 0, ix: 0, alu: 'pass', dst: 'C', pc: 'inc', io: 'none' },
   TOP: { op: 'addr', rd: 1, wr: 0, ix: 0, alu: 'top', dst: 'A', pc: 'inc', io: 'none' },
   TOPC: { op: 'addr', rd: 1, wr: 0, ix: 0, alu: 'topc', dst: 'A', pc: 'inc', io: 'none' },
-  QEXEC: { op: 'addr', rd: 1, wr: 0, ix: 0, alu: 'qexec', dst: 'A', pc: 'inc', io: 'none' },
 };
-const NAMES = Object.keys(OPS).filter(n => n !== 'QEXEC');
+const NAMES = Object.keys(OPS);
 const FIELDS = ['op', 'rd', 'wr', 'ix', 'alu', 'dst', 'pc', 'io'];
 const valuesOf = f => [...new Set(NAMES.map(n => CONTROL[n][f]))];
 const widthOf = f => Math.max(1, Math.ceil(Math.log(valuesOf(f).length) / Math.log(3) - 1e-9));
@@ -127,7 +126,7 @@ const widthOf = f => Math.max(1, Math.ceil(Math.log(valuesOf(f).length) / Math.l
 function blindStep(vm) {
   if (vm.halted) return false;
   const opcode = vm.read(vm.PC);
-  const op = BY_CODE[opcode] || EXT_BY_CODE[opcode];   // TEMPORARY: QEXEC programs leave programs/ next commit
+  const op = BY_CODE[opcode];
   const c = CONTROL[op.name];                 // the ONLY thing taken from the opcode
   const operand = vm.read(vm.PC + 1);
   let next = T.wrap(vm.PC + 2);
@@ -153,33 +152,6 @@ function blindStep(vm) {
     case 'topc': {
       const tbl = []; for (let i = 0; i < 27; i++) tbl.push(vm.read(T.wrap(vm.C + i)));
       val = T.ttableC(tbl, vm.A, src); break;
-    }
-    case 'qexec': {
-      const { evaluateBraid3 } = require('../quantum/src/unified-compiler.js');
-      const len = vm.read(operand);
-      const word = [];
-      for (let i = 0; i < len; i++) {
-        word.push(vm.read(T.wrap(operand + 1 + i)));
-      }
-      const mat = evaluateBraid3(word);
-      const inTrit = Math.max(-1, Math.min(1, T.lowTrit(vm.A)));
-      const col = inTrit + 1;
-      const pNeg = mat.m[0][col].absSq();
-      const pZero = mat.m[1][col].absSq();
-      const pPos = mat.m[2][col].absSq();
-      let outcome = 0;
-      if (vm.opts.deterministicQuantum) {
-        if (pNeg >= pZero && pNeg >= pPos) outcome = -1;
-        else if (pZero >= pNeg && pZero >= pPos) outcome = 0;
-        else outcome = 1;
-      } else {
-        const r = vm.opts.quantumRng ? vm.opts.quantumRng() : Math.random();
-        if (r < pNeg) outcome = -1;
-        else if (r < pNeg + pZero) outcome = 0;
-        else outcome = 1;
-      }
-      val = T.wrap((vm.A - inTrit) + outcome);
-      break;
     }
     default: val = null;
   }

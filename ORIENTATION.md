@@ -58,15 +58,16 @@ files, so git reported nothing — and the VM looks up `BY_CODE` first, so every
 `PHINORM` would have run a quantum braid. Phinary's opcodes moved to 26–29, and
 `test/test-opcodes.js` now fails if any two opcode tables share a code or a name.
 
-**Seven of its suites now run with everything else; nine cannot.** `FENCE.md` lists every
-path the line added and is held to git history by `test/test-fence.js`, so the README's
-promises are not read as covering it. `test/test-quantum-line.js` runs the seven suites
-that need only Node and counts only its own checks, not theirs. It also plants bugs into
-the three batteries that report "zero defects" without a count. Most of their checks
-catch them; three cannot fire at all, and those are asserted as such. The other nine need
-Lean, Python with numpy, or a built Rust binary, and the harness lists each one with its
-reason. `AUDIT.md` describes the line as ready for external audit; that is its own claim,
-and nothing in `FINDINGS.json` checks it.
+**It now lives in its own repository.** On 2026-10-02 it moved out to `tryte-quantum`,
+built from this repository's history, the way the compute-horizon work did. Unlike that
+work it had reached into the core, so it went in two steps. First `QEXEC` left the core
+tables and began registering itself through a new extension hook in `src/isa.js`, and the
+quantum line's own suites showed the move preserved its behaviour. Then its files left.
+`FENCE.md` says what it changed inside the core and what was kept or reverted, and
+`test/test-fence.js` fails if any of its files come back. While it was here, three of its
+batteries were found to hold a check that could never fire, and its quantum hypernetwork
+was found to have nothing to learn (`F-QUTRIT-HYPERNET-NOTHING-TO-LEARN`, still asserted
+here from history).
 
 ---
 
@@ -105,16 +106,15 @@ reachable from this repository too.
 
 None of these belong to whoever writes this file.
 
-1. **Whether the quantum line belongs in this repository.** Like the compute-horizon
-   work, it asks a different question from "can this machine be measured honestly?"
-   Unlike it, it is published on `main`, so separating it would cost far more. It is
-   fenced in the meantime (`FENCE.md`). The choice is between bringing it into the
-   discipline -- registered predictions, its batteries repaired, an environment for its
-   nine unrun suites -- and splitting it out the way the compute-horizon work was.
-2. **Whether the quantum line's changes to the oracle stay.** `src/ternary.js` now maps
-   `undefined` and `NaN` to 0 instead of propagating them, which is the shape of
-   `T-SILENT-NAN`. Nothing recorded depends on the old behaviour, and `FENCE.md` names
-   the change; whether to revert it is a decision, not a cleanup.
+1. **Whether phinary moves onto the extension hook, or out.** It is the one remaining
+   fenced line: a different number base, its four opcodes still wired directly into the
+   assembler and the VM. The hook's collision check already covers its table, so moving it
+   would be mechanical; whether it belongs here at all is the same question the quantum
+   line raised.
+
+Settled on 2026-10-02: the quantum line moved out to `tryte-quantum`, and its masking of
+`undefined` and `NaN` as 0 in `src/ternary.js` was reverted while its shift fixes were
+kept (`FENCE.md`).
 
 Settled on 2026-10-01: `test-slate-query.js` now reports its federation section as
 **skipped** when the siblings are absent, never passed. The lab page no longer shows
