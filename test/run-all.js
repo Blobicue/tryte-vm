@@ -13,6 +13,7 @@ const SUITES = ['test-device.js', 'test-axioms.js', 'test-adder.js', 'test-midra
   'test-selfhost.js', 'test-bench.js', 'test-logic.js', 'test-monoid.js',
   'test-fold.js', 'test-page.js', 'test-style.js', 'test-artstyle.js', 'test-lab.js', 'test-sift.js', 'test-solver.js', 'test-carryin.js', 'test-phases.js', 'test-relax.js',
   'test-opcodes.js', 'test-phinary.js', 'test-phinary-vm.js', 'test-phinary-wasm.js',
+  'test-fence.js', 'test-quantum-line.js',
   'test-findings.js'];
 
 let failed = false;

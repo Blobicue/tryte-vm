@@ -3,7 +3,7 @@
 **This repository is two things.**
 
 **A working computer that counts in three states instead of two** — core
-arithmetic, a 25-instruction machine, an assembler, an emulator written in its own
+arithmetic, a 25-instruction core machine, an assembler, an emulator written in its own
 assembly, transistors underneath it, and <!--g:readme-audits-lede-->fifty-two audits establishing<!--/g--> exactly what
 its instruction set can reach and what the device model beneath it rests on.
 
@@ -30,6 +30,7 @@ node src/run.js programs/multiply.tasm 7 5
 | **What is not built** | [`design/`](design/) — interconnect, decode and sequencing, enumerated before anything is chosen, and [`design/12-roadmap.md`](design/12-roadmap.md) for the order to build them in |
 | **What is known** | [`.claude/knowledge/doctrees/tryte-vm/`](.claude/knowledge/doctrees/tryte-vm/) — 13 pillars, each declaring how well mapped it is |
 | **Every claim** | [`FINDINGS.json`](FINDINGS.json) — machine-readable, validated by `test/test-findings.js` |
+| **What is not verified** | [`FENCE.md`](FENCE.md) — the lines merged in without passing through the protocol, and where they changed the core |
 | **Before changing it** | [`AGENTS.md`](AGENTS.md) — pre-registration protocol, test standards, and the traps this repo has fallen into |
 | **Where it came from** | [`docs/origin/`](docs/origin/) — append-only provenance |
 
@@ -44,7 +45,7 @@ node src/run.js programs/multiply.tasm 7 5
 | Memory | 729 cells, addressed **−364 … +364**; address 0 is the *centre* |
 | Registers | `A` accumulator, `C` gate/table control, `PC` |
 | Instruction | two cells: opcode, operand |
-| Instructions | 25 (`src/isa.js`) |
+| Instructions | 25 core (`src/isa.js`), plus extensions outside the verification regime — see [`FENCE.md`](FENCE.md) |
 
 ```
 src/         device.js (switch-level transistors -- the layer BELOW the arithmetic),
@@ -628,8 +629,8 @@ accumulator values.
 ## It emulates itself, three deep
 
 `programs/interp.tasm` is a tryte VM written in this assembly, running on this
-machine. Same source, same inputs, **same output** — asserted for all 25 opcodes
-and every demo program, not just demonstrated.
+machine. Same source, same inputs, **same output** — asserted for all 26 opcodes —
+the 25 core instructions and the `QEXEC` extension — and every demo program, not just demonstrated.
 
 ```bash
 npm run selfhost
@@ -640,8 +641,8 @@ oversight:
 
 | | full | core |
 |---|---|---|
-| Opcodes | 25 | 16 |
-| Size | 358 cells | **224** |
+| Opcodes | 26 | 16 |
+| Size | 325 cells | **224** |
 | Stacks | 2 deep | **3 deep** |
 | Carries (`TOPC`) | yes | no |
 
