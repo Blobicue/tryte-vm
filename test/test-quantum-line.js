@@ -339,7 +339,7 @@ console.log('\n=== 5. F-QUTRIT-HYPERNET-NOTHING-TO-LEARN ===');
     check('   and float32 breaks some ties the right way, so its 3-to-8 spread is rounding, not learning',
       ref.scores.some((s, i) => s > scored[i].right));
   } else {
-    console.log('  [SKIP] the Python cross-check -- no Python with torch here, so not asked and not counted');
+    console.log('  [SKIP] the two Python cross-checks -- no Python with torch here, so not asked and not counted');
   }
 }
 

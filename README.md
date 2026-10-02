@@ -13,7 +13,7 @@ before it was measured, in its own commit, and every failed prediction was kept.
 successes only 135 were ever at risk<!--/g-->. That loop is written up separately in
 [`METHOD.md`](METHOD.md), for anyone who wants to run it on something else.
 
-**2,610 checks**, all passing. Every number below is recomputed by one of them,
+**2,623 checks**, all passing. Every number below is recomputed by one of them,
 including the numbers in `METHOD.md` about the method itself.
 
 ```bash
