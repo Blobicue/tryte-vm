@@ -537,8 +537,22 @@ check('   while the file it writes stays inside THIS checkout',
   dest.startsWith(path.resolve(ROOT) + path.sep), dest);
 
 const haveSiblings = Object.entries(F.SIBLINGS).filter(([, p]) => fs.existsSync(p));
-check(`the sibling corpora are reachable (${haveSiblings.map(([k]) => k).join(', ') || 'skipped in standalone clone'})`,
-  haveSiblings.length > 0 || !process.env.CI_REQUIRE_SIBLINGS);
+// THREE OUTCOMES, NOT TWO. Siblings present: the check runs and counts. Siblings absent
+// in a standalone clone: it could not be asked, so it is SKIPPED -- reported, and counted
+// as neither a pass nor a failure. An earlier edit made this case PASS instead, which let
+// a fresh clone go green but also put a check that never ran into the total; the stamped
+// count fell from 2,148 to 2,123 because of exactly that. "Could not check" and "checked
+// and fine" are different facts -- T-EXHAUSTED-NOT-CLOSED is the same confusion between
+// running out and finishing -- and only the second belongs in a sum of passing checks.
+// CI_REQUIRE_SIBLINGS still turns absence into a real failure where siblings are expected.
+if (haveSiblings.length > 0) {
+  check(`the sibling corpora are reachable (${haveSiblings.map(([k]) => k).join(', ')})`, true);
+} else if (process.env.CI_REQUIRE_SIBLINGS) {
+  check('the sibling corpora are reachable (none, and CI_REQUIRE_SIBLINGS is set)', false);
+} else {
+  sink.skipped = (sink.skipped || 0) + 1;
+  console.log('  [SKIP] the sibling corpora are reachable -- absent in this clone, so not asked');
+}
 
 if (haveSiblings.length === 0) {
   console.log('  -- siblings absent; the federation checks below are skipped, and their');
@@ -677,6 +691,10 @@ if (haveSiblings.length === 0) {
 console.log(`\n${'='.repeat(64)}`);
 console.log(sink.fails.length
   ? `${sink.fails.length} CHECK(S) FAILED:\n  ${sink.fails.join('\n  ')}`
-  : `ALL ${sink.pass} CHECKS PASSED`);
+  // The skip is reported as a SECTION, not as a number: the federation checks that depend
+  // on the siblings sit inside a block that is never entered when they are absent, so
+  // this suite cannot count them without running them. A skip count of "1" would
+  // understate what did not run by the whole section.
+  : `ALL ${sink.pass} CHECKS PASSED${sink.skipped ? ' (FEDERATION SECTION SKIPPED and not counted: siblings absent)' : ''}`);
 console.log('='.repeat(64));
 process.exit(sink.fails.length ? 1 : 0);
