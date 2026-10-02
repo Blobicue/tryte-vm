@@ -407,9 +407,24 @@ console.log('\n=== 5. THE CONTROLS ===');
   // The cost table is the page's comparison, and it is drawn nowhere else.
   const rows = () => byId['cost-body'].children.map(tr => tr.children.map(td => td.textContent));
   const defined = L.costRows();
-  check('the cost table has a row for every design plus the binary one it is read against',
-    rows().length === defined.length && rows().length === L.FAMILIES.length * L.RESTORES.length + 1,
+  const designs = L.FAMILIES.reduce((n, [f]) => n + L.restoresFor(f).length, 0);
+  check('the cost table has a row for every distinct design plus the binary one it is read against',
+    rows().length === defined.length && rows().length === designs + 1,
     String(rows().length));
+  // A restore option a builder ignores yields the same network under another name. It
+  // gets no row: three identical decoded rows once read as three designs measured.
+  // Control: the comparison must be able to say "changed", or it would collapse every
+  // family to one row and this check would still pass.
+  check('   the tree builder honours every restore option, so the comparison can see a change',
+    L.restoresFor('tree').length === L.RESTORES.length);
+  check('   and no two rows of one family are the same network',
+    L.FAMILIES.every(([f]) => {
+      const nets = L.restoresFor(f).map(([r]) => JSON.stringify(L.buildNetwork({ family: f, restore: r }).devices));
+      return new Set(nets).size === nets.length;
+    }));
+  check('   and a family with one row says why it has only one',
+    L.FAMILIES.every(([f]) => L.restoresFor(f).length > 1
+      || defined.find(r => r.id === f + '/none').label.includes('places no restoring buffers')));
   check('   and its numbers are the builders\' own cost(), not transcribed',
     rows().every((row, i) => row[1].replace(/,/g, '') === String(defined[i].switches)
       && row[2].replace(/,/g, '') === String(defined[i].midRail)));
@@ -432,6 +447,14 @@ console.log('\n=== 5. THE CONTROLS ===');
   check('   switching to the decoded selector moves the mark to its row',
     byId['cost-body'].children[0].className !== 'here' &&
     byId['cost-body'].children.filter(tr => tr.className === 'here').length === 1);
+  check('   and the restore control is offered exactly when the chosen builder honours it',
+    byId['c-restore'].disabled === (L.restoresFor('decoded').length === 1));
+  byId['c-family'].value = 'tree';
+  byId['c-family'].dispatch('change');
+  check('   and switching back to the tree selector offers it again',
+    byId['c-restore'].disabled === false);
+  byId['c-family'].value = 'decoded';
+  byId['c-family'].dispatch('change');
 
   // A sample must not read as a sweep.
   byId['c-stride'].value = '1';

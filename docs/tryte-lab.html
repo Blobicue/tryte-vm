@@ -2498,16 +2498,33 @@ function buildNetwork(spec) {
   return net;
 }
 
+/** Whether a restore option changes the network a family builds. Compared device by
+ * device rather than by cost: two networks can cost the same and still differ. The
+ * decoded builder takes the option and ignores it, which once gave this table three
+ * identical decoded rows that read as three designs measured. */
+function restoreChanges(family, restore) {
+  if (restore === 'none') return true;
+  const plain = JSON.stringify(buildNetwork({ family, restore: 'none' }).devices);
+  return JSON.stringify(buildNetwork({ family, restore }).devices) !== plain;
+}
+
+/** The restore options that mean something for a family: 'none' and any that change it. */
+function restoresFor(family) {
+  return RESTORES.filter(([restore]) => restoreChanges(family, restore));
+}
+
 /** Every design the selectors can name, plus the binary row they are read against. */
 function costRows() {
   const rows = [];
   for (const [family, familyLabel] of FAMILIES) {
-    for (const [restore] of RESTORES) {
+    const honoured = restoresFor(family);
+    for (const [restore] of honoured) {
       const c = buildNetwork({ family, restore }).cost();
       rows.push({
         id: family + '/' + restore,
         label: WIDTH + '-trit ripple, ' + familyLabel
-          + (restore === 'none' ? '' : ', restore: ' + restore),
+          + (restore === 'none' ? '' : ', restore: ' + restore)
+          + (honoured.length === 1 ? ' (this builder places no restoring buffers)' : ''),
         switches: c.switches, midRail: c.midRailConnections, rails: c.rails,
       });
     }
@@ -2843,9 +2860,17 @@ if (root) {
   $('b-run').addEventListener('click', run);
   $('b-stop').addEventListener('click', () => { stopping = true; });
   $('b-stop').disabled = true;
+  // A restore option the chosen builder ignores is not offered: the sweep would run
+  // the unbuffered network under a buffered name.
+  const syncRestore = () => {
+    const offered = restoresFor($('c-family').value).length > 1;
+    $('c-restore').disabled = !offered;
+    if (!offered) $('c-restore').value = 'none';
+  };
   for (const id of ['c-family', 'c-restore', 'c-cin', 'c-stride']) {
-    $(id).addEventListener('change', () => { drawCost(); drawDomain(); });
+    $(id).addEventListener('change', () => { syncRestore(); drawCost(); drawDomain(); });
   }
+  syncRestore();
   drawCost();
   drawDomain();
   READY = showInstrument();
@@ -2866,6 +2891,7 @@ globalThis.__LAB_EXPORT__ = {
   solvePassesFn: solvePassesFn, passSweepFn: passSweepFn,
   LAB_FUNCS: LAB_FUNCS, LAB_EXPORTS: LAB_EXPORTS,
   instrument: instrument, buildNetwork: buildNetwork, costRows: costRows,
+  restoreChanges: restoreChanges, restoresFor: restoresFor,
   operandValues: operandValues, oracle: oracle, runSweep: runSweep,
   ready: () => READY,
 };
