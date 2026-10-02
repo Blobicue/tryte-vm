@@ -12,6 +12,7 @@
 const assert = require('assert');
 const crypto = require('crypto');
 const T = require('../src/ternary.js');
+require('../quantum/qexec.js');           // registers QEXEC, so opcode 25 still executes here
 const MP = require('../src/multiprecision.js');
 const { TryteVM } = require('../src/vm.js');
 const { loadInto } = require('../src/assembler.js');

@@ -6,6 +6,9 @@
  * address 0 is the CENTRE of memory, not one end. Programs are assembled
  * upward from 0; data conventionally sits below it. */
 
+// phinary's table is consulted only to refuse an extension that would collide with it
+const P = require('./phinary.js');
+
 const OPS = {
   HALT:  { code:  0, operand: 'none', doc: 'stop the machine' },
   LOADI: { code:  1, operand: 'imm',  doc: 'A = immediate' },
@@ -51,16 +54,47 @@ const OPS = {
   // a single instruction can express functions no positionwise table can. ADD is
   // one particular TOPC table.
   TOPC:   { code: 24, operand: 'addr', doc: 'A = carry-chained table at C applied to (A, mem[addr])' },
-
-  // --- the quantum co-processor --------------------------------------------
-  // Executes a topological Fibonacci anyon braid program on the vTQPU.
-  // The operand points to [length, gen1, gen2, ...].
-  // Prepares qutrit |A>, applies braid unitary U in SU(3), projectively
-  // measures into {-1, 0, +1}, and writes the collapsed trit into A.
-  QEXEC:  { code: 25, operand: 'addr', doc: 'A = vTQPU braid execution of program at addr' },
 };
 
 const BY_CODE = {};
 for (const [name, spec] of Object.entries(OPS)) BY_CODE[spec.code] = { name, ...spec };
 
-module.exports = { OPS, BY_CODE };
+/* ---------------------------------------------------------------- extensions
+ * Instructions defined OUTSIDE the core, registered at runtime by the code that owns them.
+ * The core instruction set above is what every finding in this repository rests on; an
+ * extension executes on the same machine without being part of it.
+ *
+ * This exists because the quantum line put QEXEC into OPS and its execution into vm.js,
+ * which made the core require a quantum compiler to load. An extension carries its own
+ * `exec(vm, operand, ctx)`, so the core names nothing it does not own. The assembler and
+ * the VM consult this table at assemble and step time, never at load, because registration
+ * happens after the core has loaded.
+ *
+ * A registration that claims a code or a mnemonic already in use -- in OPS, in phinary's
+ * table, or by another extension -- is refused: two tables once both claimed opcode 25,
+ * and the VM silently ran a quantum braid where a normalisation was asked for. Registering
+ * the identical spec twice is a no-op, so load order among the modules that register it
+ * cannot matter. */
+const EXTENSIONS = {};       // name -> spec
+const EXT_BY_CODE = {};      // code -> { name, ...spec }
+
+function registerExtension(name, spec) {
+  if (!/^[A-Z][A-Z0-9]*$/.test(name)) throw new Error(`extension mnemonic must be upper case: '${name}'`);
+  if (!Number.isInteger(spec.code)) throw new Error(`extension ${name} needs an integer code`);
+  if (!['none', 'imm', 'addr'].includes(spec.operand)) throw new Error(`extension ${name}: operand must be none, imm or addr`);
+  if (typeof spec.exec !== 'function') throw new Error(`extension ${name} needs an exec(vm, operand, ctx) function`);
+  const prior = EXTENSIONS[name];
+  if (prior) {
+    if (prior.code === spec.code && prior.exec === spec.exec) return EXT_BY_CODE[spec.code];
+    throw new Error(`extension ${name} is already registered with a different definition`);
+  }
+  const taken = { ...OPS, ...P.PHINARY_OPS, ...EXTENSIONS };
+  if (name in taken) throw new Error(`mnemonic ${name} is already in use`);
+  const owner = Object.entries(taken).find(([, s]) => s.code === spec.code);
+  if (owner) throw new Error(`opcode ${spec.code} is already ${owner[0]}'s; ${name} cannot have it`);
+  EXTENSIONS[name] = { ...spec };
+  EXT_BY_CODE[spec.code] = { name, ...spec };
+  return EXT_BY_CODE[spec.code];
+}
+
+module.exports = { OPS, BY_CODE, EXTENSIONS, EXT_BY_CODE, registerExtension };

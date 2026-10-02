@@ -14,7 +14,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { OPS, BY_CODE } = require('../src/isa.js');
+const { OPS, BY_CODE, EXTENSIONS, EXT_BY_CODE, registerExtension } = require('../src/isa.js');
 const P = require('../src/phinary.js');
 const { assemble, loadInto } = require('../src/assembler.js');
 const { TryteVM } = require('../src/vm.js');
@@ -64,15 +64,15 @@ console.log('\n=== 1. THE TABLES DO NOT COLLIDE ===');
   // listed here -- so a third table added to the assembler but not to this suite fails
   // instead of going unchecked.
   const asm = fs.readFileSync(path.join(__dirname, '..', 'src', 'assembler.js'), 'utf8');
-  const merged = /const ALL_OPS = \{([^}]*)\}/.exec(asm);
+  const merged = /function opTable\(\) \{ return \{([^}]*)\}/.exec(asm);
   const spreads = merged ? [...merged[1].matchAll(/\.\.\.([\w.]+)/g)].map(m => m[1]) : [];
-  const KNOWN = { OPS, 'P.PHINARY_OPS': P.PHINARY_OPS };
+  const KNOWN = { OPS, 'P.PHINARY_OPS': P.PHINARY_OPS, EXTENSIONS };
   check('the assembler merges exactly the tables this suite knows how to check',
     spreads.length > 0 && spreads.every(s => s in KNOWN)
     && Object.keys(KNOWN).every(k => spreads.includes(k)),
     `assembler spreads ${spreads.join(', ')}`);
 
-  const c = clashes({ OPS, PHINARY_OPS: P.PHINARY_OPS });
+  const c = clashes({ OPS, PHINARY_OPS: P.PHINARY_OPS, EXTENSIONS });
   check('no opcode number is claimed by two entries',
     c.codes.length === 0, JSON.stringify(c.codes));
   check('no mnemonic is claimed by two tables',
@@ -84,9 +84,9 @@ console.log('\n=== 2. EVERY OPCODE DISPATCHES TO ITSELF ===');
   // Uniqueness is necessary and not sufficient. What matters is that the VM's lookup --
   // BY_CODE first, PHINARY_BY_CODE second -- resolves every code to the instruction that
   // owns it, which is the thing that was silently false.
-  const all = { ...OPS, ...P.PHINARY_OPS };
+  const all = { ...OPS, ...P.PHINARY_OPS, ...EXTENSIONS };
   const wrong = Object.entries(all).filter(([name, spec]) => {
-    const got = BY_CODE[spec.code] || P.PHINARY_BY_CODE[spec.code];
+    const got = BY_CODE[spec.code] || P.PHINARY_BY_CODE[spec.code] || EXT_BY_CODE[spec.code];
     return !got || got.name !== name;
   }).map(([n]) => n);
   check(`all ${Object.keys(all).length} opcodes resolve to themselves through the VM's own lookup`,
@@ -117,6 +117,49 @@ console.log('\n=== 3. AND THE ONE THAT WAS BROKEN, RUN ===');
   check('   and the instruction the VM executed was PHINORM, not QEXEC',
     vm.trace.some(t => t.op === 'PHINORM') && !vm.trace.some(t => t.op === 'QEXEC'),
     vm.trace.map(t => t.op).join(' '));
+}
+
+console.log('\n=== 4. THE EXTENSION HOOK REFUSES WHAT WOULD COLLIDE ===');
+{
+  // Extensions register at runtime (isa.js), so the collision that put two instructions on
+  // opcode 25 must be refused at registration, not discovered by a sweep afterwards. Every
+  // code and name here is derived from the live tables, never typed.
+  const taken = { ...OPS, ...P.PHINARY_OPS, ...EXTENSIONS };
+  const used = new Set(Object.values(taken).map(s => s.code));
+  let free = Math.max(...used) + 1; while (used.has(free)) free++;
+  const core = Object.entries(OPS)[4], phin = Object.entries(P.PHINARY_OPS)[0];
+  const refuses = (name, spec, why) => {
+    try { registerExtension(name, spec); return false; } catch (e) { return why.test(e.message); }
+  };
+  const exec = () => {};
+  check(`registering a core opcode's code (${core[1].code}, ${core[0]}'s) is refused, naming the owner`,
+    refuses('XA', { code: core[1].code, operand: 'none', exec }, new RegExp(`already ${core[0]}'s`)));
+  check(`   and phinary's (${phin[1].code}, ${phin[0]}'s) likewise`,
+    refuses('XB', { code: phin[1].code, operand: 'none', exec }, new RegExp(`already ${phin[0]}'s`)));
+  check(`   and a core mnemonic (${core[0]}) on a free code`,
+    refuses(core[0], { code: free, operand: 'none', exec }, /already in use/));
+  check('   and nothing refused was half-registered',
+    !('XA' in EXTENSIONS) && !('XB' in EXTENSIONS) && !(free in EXT_BY_CODE));
+
+  // Before registration the mnemonic does not exist: the assembler must refuse it.
+  let unknown = false;
+  try { assemble('XPROBE 0\nHALT'); } catch (e) { unknown = /unknown instruction 'XPROBE'/.test(e.message); }
+  check('an extension nobody registered is an unknown instruction to the assembler', unknown);
+
+  const seen = [];
+  const probe = { code: free, operand: 'addr', doc: 'test probe',
+    exec: (vm, operand, ctx) => { seen.push([operand, ctx.pc]); vm.A = 7; } };
+  registerExtension('XPROBE', probe);
+  check('   and once registered, re-registering the identical spec is a no-op',
+    (() => { try { registerExtension('XPROBE', probe); return true; } catch (e) { return false; } })());
+  check('   while a different definition under the same name is refused',
+    refuses('XPROBE', { ...probe, exec: () => {} }, /different definition/));
+  const vm = new TryteVM({ trace: true });
+  loadInto(vm, 'XPROBE 5\nOUT\nHALT', 0);
+  vm.run();
+  check('the VM dispatches to the extension\'s own exec, with its operand and its address, and traces it by name',
+    seen.length === 1 && seen[0][0] === 5 && seen[0][1] === 0 && vm.output[0] === 7
+    && vm.trace[0].op === 'XPROBE', JSON.stringify({ seen, out: vm.output }));
 }
 
 console.log(`\n${'='.repeat(64)}`);

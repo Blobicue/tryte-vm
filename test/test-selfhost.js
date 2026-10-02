@@ -64,7 +64,6 @@ const PROG = {
   TOP:    'LOADI tbl\nSTORE cp\nLDC cp\nLOADI 123\nTOP yv\nOUT\nHALT\n.org -50\ncp: .word 0\nyv: .word -45\ntbl: .word -1,-1,-1,-1,0,0,-1,0,1',
   TOPC:   'LOADI tb\nSTORE cp\nLDC cp\nLOADI 123\nTOPC yv\nOUT\nHALT\n.org -60\ncp: .word 0\nyv: .word -45\ntb: .word -3, -2, -1, -2, -1, 0, -1, 0, 1, -2, -1, 0, -1, 0, 1, 0, 1, 2, -1, 0, 1, 0, 1, 2, 1, 2, 3',
   LDC:    'LOADI t+0-+0-\nSTORE w\nLDC w\nLOADI -45\nSTORE v\nLOADI 123\nTGATE v\nOUT\nHALT' + D,
-  QEXEC:  'LOADI 0\nSTORE v\nQEXEC b\nOUT\nHALT\n.org -60\nv: .word 0\nb: .word 2, 1, 1',
 };
 const INPUTS = { BR3: [42], IN: [11, -22] };
 for (const op of Object.keys(OPS)) {

@@ -15,6 +15,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+require('../quantum/qexec.js');           // registers QEXEC with the VM
 const { execSync } = require('child_process');
 const { OPS } = require('../src/isa.js');
 const { TryteVM } = require('../src/vm.js');
@@ -39,9 +40,13 @@ console.log('Running Hybrid Quantum-Classical Co-Processor (QEXEC) Test Suite...
 
 // 1. ISA & Assembler Integration
 test('QEXEC is defined with opcode 25 and accepted by assembler', () => {
-  assert.ok(OPS.QEXEC);
-  assert.strictEqual(OPS.QEXEC.code, 25);
-  assert.strictEqual(OPS.QEXEC.operand, 'addr');
+  // QEXEC is an extension of the VM now (quantum/qexec.js), not an entry in the core OPS table.
+  const { EXTENSIONS, EXT_BY_CODE } = require('../src/isa.js');
+  assert.ok(EXTENSIONS.QEXEC);
+  assert.strictEqual(EXTENSIONS.QEXEC.code, 25);
+  assert.strictEqual(EXTENSIONS.QEXEC.operand, 'addr');
+  assert.strictEqual(EXT_BY_CODE[25].name, 'QEXEC');
+  assert.ok(!('QEXEC' in OPS), 'QEXEC must not be in the core table');
 
   const tasm = `
         LOADI 0

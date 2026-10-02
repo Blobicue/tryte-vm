@@ -11,6 +11,7 @@ const { execSync, spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
+require('../quantum/qexec.js');           // registers QEXEC with the VM
 const { TryteVM } = require('../src/vm.js');
 const { assemble } = require('../src/assembler.js');
 const { assembleToHex } = require('../tools/tasm_to_hex.js');

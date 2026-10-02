@@ -212,23 +212,12 @@ h_topc: LOAD  ic
         STORE ia
         JMP   fetch
 
-; The quantum co-processor execution: the guest's braid data lives at guest
-; address opd, which is contiguous at host address ea. Dynamic binding into
-; QEXEC runs the host's topological quantum co-processor directly.
-h_qexec:LOAD  ea
-        STORE q_opd
-        LOAD  ia
-q_inst: QEXEC 0
-        STORE ia
-        JMP   fetch
-q_opd:  .equ  q_inst + 1
-
 ; ---------------------------------------------------------------- dispatch table
 ; One entry per opcode, in opcode order. JMPX indexes straight into it.
 jtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_neg
         .word h_min, h_max, h_csum, h_setc, h_tgate, h_shl, h_shr, h_jmp
         .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_ldc, h_top
-        .word h_topc, h_qexec
+        .word h_topc
 
 ; ---------------------------------------------------------------- state
 ipc:    .word 0            ; inner program counter

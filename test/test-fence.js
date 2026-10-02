@@ -19,7 +19,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
-const { OPS } = require('../src/isa.js');
+const { OPS, EXTENSIONS } = require('../src/isa.js');
 const { assemble } = require('../src/assembler.js');
 
 const ROOT = path.join(__dirname, '..');
@@ -124,13 +124,15 @@ console.log('\n=== 3. THE README POINTS HERE, AND ITS COUNTS ARE THE CODE\'S ===
   const readme = read('README.md');
   check('the README links FENCE.md', readme.includes('(FENCE.md)'));
 
-  // The core instruction set is the ISA without its extension. Derived, not typed.
-  const core = Object.keys(OPS).filter(n => n !== 'QEXEC').length;
-  const all = Object.keys(OPS).length;
+  // The core instruction set is OPS. Extensions register into a separate table and are
+  // never part of it. Derived, not typed.
+  const core = Object.keys(OPS).length;
+  // every opcode the machine knows: the core, plus any extension registered in this process
+  const all = Object.keys(OPS).length + Object.keys(EXTENSIONS).length;
   check(`the README calls it a ${core}-instruction core machine`,
     readme.includes(`a ${core}-instruction core machine`));
-  check(`   and its machine table says ${core} core instructions`,
-    readme.includes(`| Instructions | ${core} core (`));
+  check(`   and its machine table says ${core} instructions`,
+    readme.includes(`| Instructions | ${core} (`));
 
   // The self-hosting section's claims about the full interpreter.
   const cells = assemble(read('programs/interp.tasm')).cells.size;

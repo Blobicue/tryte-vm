@@ -22,6 +22,8 @@ const path = require('path');
 const B = require('../tools/budget.js');
 const D = require('../src/device.js');
 const { assemble } = require('../src/assembler.js');
+// TEMPORARY, removed in the next commit: programs/ still holds this line's QEXEC programs.
+require('../quantum/qexec.js');
 
 let pass = 0; const fails = [];
 const check = (name, cond, detail = '') => {

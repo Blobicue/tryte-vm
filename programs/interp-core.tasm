@@ -53,7 +53,7 @@ fetch:  LOAD  ipc
 ; ---------------------------------------------------------------- handlers
 h_halt: HALT
 
-h_bad:  .equ  h_halt       ; an opcode this core does not implement
+h_bad:  HALT               ; an opcode this core does not implement
 
 h_loadi:LOAD  opd
         STORE ia
@@ -154,7 +154,7 @@ h_top:  LOAD  ic
 jtbl:   .word h_halt, h_loadi, h_load, h_store, h_add, h_addi, h_sub, h_bad
         .word h_bad, h_bad, h_bad, h_bad, h_bad, h_bad, h_bad, h_jmp
         .word h_br3, h_out, h_in, h_loadx, h_stox, h_jmpx, h_ldc, h_top
-        .word h_bad, h_bad         ; TOPC, QEXEC: see tools/carryop-audit.js, U3 -- it would end depth 4
+        .word h_bad                ; TOPC: see tools/carryop-audit.js, U3 -- it would end depth 4
 
 ; ---------------------------------------------------------------- state
 ipc:    .word 0
@@ -165,4 +165,3 @@ opd:    .word 0
 ea:     .word 0
 mval:   .word 0
 ptr:    .word 0
-pad:    .word 0

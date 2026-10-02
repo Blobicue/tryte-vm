@@ -14,6 +14,7 @@ const readline = require('readline');
 const os = require('os');
 const { BraidCompiler, GATES, formatBraid } = require('../src/compiler.js');
 const { UnifiedQutritCompiler } = require('../src/unified-compiler.js');
+require('../qexec.js');                   // registers QEXEC with the VM
 const { renderASCII } = require('../src/visualizer.js');
 const {
   runBellState,

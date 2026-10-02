@@ -96,7 +96,7 @@ function layout() {
 
 /** Run a program directly on the JavaScript VM. */
 function runNative(src, input = [], opts = {}) {
-  const vm = new TryteVM({ input: input.slice(), maxSteps: opts.maxSteps || 200000, deterministicQuantum: true });
+  const vm = new TryteVM({ input: input.slice(), maxSteps: opts.maxSteps || 200000 });
   const { cells } = assemble(src, 0);
   for (const [addr, val] of cells) vm.write(addr, val);
   vm.PC = 0;
@@ -115,7 +115,7 @@ function runHosted(src, input = [], opts = {}) {
   // when the full one cannot be stacked that deep.
   const variant = opts.variant || pickVariant(src, depth);
   const P = plan(depth, variant);
-  const vm = new TryteVM({ input: input.slice(), maxSteps: opts.maxSteps || 20000000, deterministicQuantum: true });
+  const vm = new TryteVM({ input: input.slice(), maxSteps: opts.maxSteps || 20000000 });
 
   let off = 0;                       // host address of this level's address 0
   const layers = [];

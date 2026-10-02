@@ -45,7 +45,7 @@ node src/run.js programs/multiply.tasm 7 5
 | Memory | 729 cells, addressed **−364 … +364**; address 0 is the *centre* |
 | Registers | `A` accumulator, `C` gate/table control, `PC` |
 | Instruction | two cells: opcode, operand |
-| Instructions | 25 core (`src/isa.js`), plus extensions outside the verification regime — see [`FENCE.md`](FENCE.md) |
+| Instructions | 25 (`src/isa.js`). Code outside the core can register extensions at runtime; none is part of this machine — see [`FENCE.md`](FENCE.md) |
 
 ```
 src/         device.js (switch-level transistors -- the layer BELOW the arithmetic),
@@ -629,8 +629,8 @@ accumulator values.
 ## It emulates itself, three deep
 
 `programs/interp.tasm` is a tryte VM written in this assembly, running on this
-machine. Same source, same inputs, **same output** — asserted for all 26 opcodes —
-the 25 core instructions and the `QEXEC` extension — and every demo program, not just demonstrated.
+machine. Same source, same inputs, **same output** — asserted for all 25 opcodes
+and every demo program, not just demonstrated.
 
 ```bash
 npm run selfhost
@@ -641,8 +641,8 @@ oversight:
 
 | | full | core |
 |---|---|---|
-| Opcodes | 26 | 16 |
-| Size | 325 cells | **224** |
+| Opcodes | 25 | 16 |
+| Size | 312 cells | **224** |
 | Stacks | 2 deep | **3 deep** |
 | Carries (`TOPC`) | yes | no |
 

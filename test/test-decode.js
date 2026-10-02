@@ -19,6 +19,8 @@ const D = require('../src/device.js');
 const { OPS, BY_CODE } = require('../src/isa.js');
 const { TryteVM } = require('../src/vm.js');
 const { assemble } = require('../src/assembler.js');
+// TEMPORARY, removed in the next commit: programs/ still holds this line's QEXEC programs.
+require('../quantum/qexec.js');
 const { CONTROL, FIELDS, widthOf, blindStep, bestSubset } = require('../tools/decode-audit.js');
 
 let pass = 0; const fails = [];

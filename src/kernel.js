@@ -12,6 +12,7 @@ const fs = require('fs');
 const path = require('path');
 const { TryteVM } = require('./vm.js');
 const { loadInto } = require('./assembler.js');
+require('../quantum/qexec.js');           // QEXEC is an extension now; registering it is explicit
 
 const KERNEL_SRC_PATH = path.resolve(__dirname, '../programs/microkernel.tasm');
 

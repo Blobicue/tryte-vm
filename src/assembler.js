@@ -12,9 +12,11 @@
  */
 
 const T = require('./ternary.js');
-const { OPS } = require('./isa.js');
+const { OPS, EXTENSIONS } = require('./isa.js');
 const P = require('./phinary.js');
-const ALL_OPS = { ...OPS, ...P.PHINARY_OPS };
+/** Every mnemonic the assembler accepts. A function, read when assembling, because
+ * extensions (isa.js) register after this module has loaded. */
+function opTable() { return { ...OPS, ...P.PHINARY_OPS, ...EXTENSIONS }; }
 
 function parseNumber(tok, labels, where) {
   tok = tok.trim();
@@ -62,6 +64,7 @@ function checkLabelName(name, lineNo) {
 }
 
 function assemble(src, origin = 0) {
+  const ALL_OPS = opTable();
   const lines = tokenize(src);
   const labels = {};
   const span = {};                       // label -> cells emitted for its datum
@@ -176,4 +179,4 @@ function loadInto(vm, src, origin = 0) {
   return vm;
 }
 
-module.exports = { assemble, loadInto, tokenize };
+module.exports = { assemble, loadInto, tokenize, opTable };
