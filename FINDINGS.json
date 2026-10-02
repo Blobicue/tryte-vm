@@ -6427,6 +6427,42 @@
         "sampled_before": 784,
         "sampling_stride_before": 37
       }
+    },
+    {
+      "id": "F-QUTRIT-HYPERNET-NOTHING-TO-LEARN",
+      "outcome": "MEASURED_NOT_REGISTERED",
+      "basis": "measured",
+      "claim": "The fenced quantum line's 'true ternary quantum hypernetwork' (research/quantum_grokking) has nothing to learn on the task it is trained for. Its ternary controller emits six braid trits, so it can choose among exactly 729 two-qutrit circuits. In exact arithmetic, 81 of them compute (a+b) mod 3 on all 9 inputs with no ties, and those 81 are exactly the words with sigma_2 off on both qutrits, where the braids reduce to phases and the hardwired entangler CX3, which maps |a,b> to |a,(a+b) mod 3>, does the whole computation. Every other word wins exactly 3 of the 9 inputs outright and ties or loses the rest. The recorded training run ended on one of those, winning 3 outright with 4 tied. The qutrit Hadamard that the circuit's docstring lists among its parts is built and never applied.",
+      "argument": "The circuit's control space is small enough to enumerate, so the question 'can training find a good circuit' has an answer that needs no training: one word in nine is perfect, and all of those are the trivial one in disguise. The first enumeration ran the Python original and reported a score spread of 3 to 8 out of 9 and a trained word scoring 4; both were float32 deciding exact probability ties. A Node re-implementation in double precision disagreed, and separating outright wins from ties showed the spread was rounding. That is T-INSTRUMENT-FALSE-VERDICT, caught by a second implementation before it reached this record. The underlying physics is sound: the generators satisfy the Temperley-Lieb relations with loop value phi, each braid is unitary, and -A^2 - A^-2 = phi as Fibonacci anyons require. The defect is the experiment, not the simulator.",
+      "evidence": "All 729 words scored in exact double-precision complex arithmetic with ties counted separately, held against the Python circuit run unchanged (every float32 score lies in [outright wins, outright wins + ties], and the same 81 are perfect). The trained word is parsed from the session log.",
+      "scope": "This circuit and task as the quantum line wrote them: two qutrits, three B4 generators each, (a+b) mod 3. It says nothing about qutrit neural networks in general, nor about the classical ternary grokking results in the cluster repository's experiments/hypernet-grok.",
+      "asserted_in": "test/test-quantum-line.js",
+      "measured": {
+        "circuits": 729,
+        "perfect_no_ties": 81,
+        "perfect_iff_sigma2_off_on_both": true,
+        "other_words_outright_wins": 3,
+        "words_by_outright_plus_tied": {
+          "9+0": 81,
+          "3+4": 324,
+          "3+6": 324
+        },
+        "trained_word": [
+          -1,
+          1,
+          -1,
+          1,
+          1,
+          -1
+        ],
+        "trained_word_outright": 3,
+        "trained_word_tied": 4,
+        "float32_score_range_reported_first": [
+          3,
+          8
+        ],
+        "hadamard_applied": false
+      }
     }
   ],
   "reaudits": [],

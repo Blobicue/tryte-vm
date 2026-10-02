@@ -2,9 +2,9 @@
  "schema": "tryte-vm/slate@1",
  "purpose": "A retrieval-shaped projection of FINDINGS.json plus authored marginalia. Flat, addressable entries with stable ids, topic routes and validated cross-links. The manifest remains the authority; this is a view of it and never a second copy of the truth.",
  "counts": {
-  "entries": 317,
+  "entries": 318,
   "predictions": 213,
-  "findings": 72,
+  "findings": 73,
   "traps": 19,
   "notes": 13,
   "proven": 18,
@@ -114,6 +114,7 @@
    "F-THE-GATE-IS-THE-RESULT-NOT-THE-RATIOS",
    "F-NODE-COUNTS-OF-THE-BENCHMARK-NETWORKS",
    "F-RESTORE-VARIANTS-EXHAUSTIVE",
+   "F-QUTRIT-HYPERNET-NOTHING-TO-LEARN",
    "N-program-relative",
    "N-depth-is-blind-to-algebra"
   ],
@@ -516,6 +517,7 @@
    "F-CARRY-IN-SWEEPS-CLOSED",
    "F-RESTORE-VARIANTS-EXHAUSTIVE",
    "F-BINARY-ADDER-EXHAUSTIVE",
+   "F-QUTRIT-HYPERNET-NOTHING-TO-LEARN",
    "N-asymptotic-does-not-settle-a-width"
   ],
   "tree": [
@@ -9971,6 +9973,28 @@
    "measured": null,
    "tool": null,
    "asserted_in": "test/test-carryin.js",
+   "registered_at": null,
+   "results_at": null,
+   "links": []
+  },
+  {
+   "id": "F-QUTRIT-HYPERNET-NOTHING-TO-LEARN",
+   "kind": "finding",
+   "set": null,
+   "subject": null,
+   "outcome": "MEASURED_NOT_REGISTERED",
+   "basis": "measured",
+   "routes": [
+    "cost-model",
+    "ternary-vs-binary"
+   ],
+   "routes_derived": true,
+   "claim": "The fenced quantum line's 'true ternary quantum hypernetwork' (research/quantum_grokking) has nothing to learn on the task it is trained for. Its ternary controller emits six braid trits, so it can choose among exactly 729 two-qutrit circuits. In exact arithmetic, 81 of them compute (a+b) mod 3 on all 9 inputs with no ties, and those 81 are exactly the words with sigma_2 off on both qutrits, where the braids reduce to phases and the hardwired entangler CX3, which maps |a,b> to |a,(a+b) mod 3>, does the whole computation. Every other word wins exactly 3 of the 9 inputs outright and ties or loses the rest. The recorded training run ended on one of those, winning 3 outright with 4 tied. The qutrit Hadamard that the circuit's docstring lists among its parts is built and never applied.",
+   "argument": "The circuit's control space is small enough to enumerate, so the question 'can training find a good circuit' has an answer that needs no training: one word in nine is perfect, and all of those are the trivial one in disguise. The first enumeration ran the Python original and reported a score spread of 3 to 8 out of 9 and a trained word scoring 4; both were float32 deciding exact probability ties. A Node re-implementation in double precision disagreed, and separating outright wins from ties showed the spread was rounding. That is T-INSTRUMENT-FALSE-VERDICT, caught by a second implementation before it reached this record. The underlying physics is sound: the generators satisfy the Temperley-Lieb relations with loop value phi, each braid is unitary, and -A^2 - A^-2 = phi as Fibonacci anyons require. The defect is the experiment, not the simulator.",
+   "note": null,
+   "measured": null,
+   "tool": null,
+   "asserted_in": "test/test-quantum-line.js",
    "registered_at": null,
    "results_at": null,
    "links": []

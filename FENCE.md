@@ -51,6 +51,14 @@ failure, and wave 3's arithmetic fuzz compares only one field of the sum. Each i
 asserted to stay silent with its seed planted, so a repair shows up rather than passing
 unnoticed.
 
+Its "true ternary quantum hypernetwork" (`research/quantum_grokking`) has nothing to
+learn. Its controller picks one of 729 circuits, and the perfect ones are exactly those
+whose braids reduce to phases: the hardwired entangler already computes the task. The
+qutrit simulator underneath is sound; the experiment cannot show anything.
+`F-QUTRIT-HYPERNET-NOTHING-TO-LEARN` is the record, asserted in
+`test/test-quantum-line.js`, which re-implements the circuit and holds it against the
+Python original whenever torch is present.
+
 Fenced paths:
 
 - `AUDIT.md`
