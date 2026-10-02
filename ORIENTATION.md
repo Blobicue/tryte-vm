@@ -32,15 +32,39 @@ The instrument work that grew from it is recorded as prediction sets:
 - **`AX`** — where a solver pass actually goes, across conduction, the reachability
   walk and the update loop. All four held.
 - **`AY`** — what giving up the walk for frontier relaxation costs, measured at one
-  lane before any lane is added. **Complete but not merged**: branch `ay-relaxation`,
-  tip `d5bd7b3`. It is the number any bitsliced solver has to beat, and it found that
-  relaxation is priced by a network's *depth*, not its edge count.
+  lane before any lane is added. It is the number any bitsliced solver has to beat,
+  and it found that relaxation is priced by a network's *depth*, not its edge count.
 
 `design/13-instrument.md` is this line's plan, with each step marked done.
 
 `main` also carries commit `1506225`, from a separate writer: a phinary memory
 subsystem, Z[φ] arithmetic, 2D lattice addressing and a WebAssembly engine. It is a
-different number base, not ternary, and no prediction set covers it.
+different number base, not ternary, and no prediction set covers it. Its four opcodes
+were renumbered when it met the line below — see the next section.
+
+---
+
+## The quantum, crypto and toolchain line
+
+A third line was developed on GitHub's `main` from the same fork point: quantum and
+anyon compilers with a `QEXEC` instruction, a cooperative microkernel, lattice
+cryptography, Lean 4 proofs, a Rust SIMD engine, SystemVerilog RTL and the TRIL
+compiler. It was merged with the lines above on 2026-10-01. It registered no prediction
+sets, so it did not collide in the record.
+
+**It collided in the instruction set instead.** `QEXEC` in `src/isa.js` and phinary's
+`PHINORM` in `src/phinary.js` both claimed opcode 25. The tables are in different
+files, so git reported nothing — and the VM looks up `BY_CODE` first, so every
+`PHINORM` would have run a quantum braid. Phinary's opcodes moved to 26–29, and
+`test/test-opcodes.js` now fails if any two opcode tables share a code or a name.
+
+**Its tests are not in the suite.** None of its suites were ever wired into
+`run-all.js`. Some pass with nothing but Node; the others need Lean, Python with
+numpy, or a built Rust binary, and no environment this repository has run in is set
+up for all three. They score identically before and after the merge, so the merge
+broke none of them — but most have not passed anywhere this repository can see.
+`AUDIT.md` describes the line as ready for external audit; that is its own claim, and
+nothing in `FINDINGS.json` checks it.
 
 ---
 
@@ -79,16 +103,20 @@ reachable from this repository too.
 
 None of these belong to whoever writes this file.
 
-1. **Whether `AY` merges.** It is complete and its suites pass individually, but
-   `main` moved under it: `1506225` touches `build/bundle.js` and
-   `docs/tryte-lab.html`, which `AY`'s line also touched. Its full-suite run was
-   repeatedly killed by the environment, so its aggregate check count is unconfirmed.
-2. **Whether the browser thread continues.** It is finished as asked. Small open items
+1. **What to do with the quantum line's unrun suites.** Provision an environment with
+   Lean, Python and numpy, and the built Rust binary, and wire them in — or record
+   which of their claims stand unverified. Until then they are present but unchecked.
+2. **Whether a vacuous pass stays.** The quantum line changed `test-slate-query.js` so
+   that when the sibling repositories are absent, the reachability check passes instead
+   of failing and the federation checks are skipped. That lets the suite go green in a
+   standalone clone; it also means a check answers yes to a question it could not ask.
+3. **Whether the quantum line belongs in this repository.** Like the compute-horizon
+   work, it asks a different question from "can this machine be measured honestly?"
+   Unlike it, it is published on `main`, so separating it now would cost far more.
+4. **Whether the browser thread continues.** It is finished as asked. Small open items
    remain: `dRippleAdder` ignores its `restore` option, so three rows of the lab page's
    cost table are one design under three labels; and `solver-audit.js --quick` can
    print a verdict that contradicts the manifest.
-3. **Where each repository is published.** `origin/main` is still `a7b452f`. Nothing
-   from either line has been pushed, and ternary-compute has no remote at all.
 
 ---
 
