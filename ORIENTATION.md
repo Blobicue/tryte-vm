@@ -58,13 +58,15 @@ files, so git reported nothing — and the VM looks up `BY_CODE` first, so every
 `PHINORM` would have run a quantum braid. Phinary's opcodes moved to 26–29, and
 `test/test-opcodes.js` now fails if any two opcode tables share a code or a name.
 
-**Its tests are not in the suite.** None of its suites were ever wired into
-`run-all.js`. Some pass with nothing but Node; the others need Lean, Python with
-numpy, or a built Rust binary, and no environment this repository has run in is set
-up for all three. They score identically before and after the merge, so the merge
-broke none of them — but most have not passed anywhere this repository can see.
-`AUDIT.md` describes the line as ready for external audit; that is its own claim, and
-nothing in `FINDINGS.json` checks it.
+**Seven of its suites now run with everything else; nine cannot.** `FENCE.md` lists every
+path the line added and is held to git history by `test/test-fence.js`, so the README's
+promises are not read as covering it. `test/test-quantum-line.js` runs the seven suites
+that need only Node and counts only its own checks, not theirs. It also plants bugs into
+the three batteries that report "zero defects" without a count. Most of their checks
+catch them; three cannot fire at all, and those are asserted as such. The other nine need
+Lean, Python with numpy, or a built Rust binary, and the harness lists each one with its
+reason. `AUDIT.md` describes the line as ready for external audit; that is its own claim,
+and nothing in `FINDINGS.json` checks it.
 
 ---
 
@@ -103,20 +105,22 @@ reachable from this repository too.
 
 None of these belong to whoever writes this file.
 
-1. **What to do with the quantum line's unrun suites.** Provision an environment with
-   Lean, Python and numpy, and the built Rust binary, and wire them in — or record
-   which of their claims stand unverified. Until then they are present but unchecked.
-2. **Whether a vacuous pass stays.** The quantum line changed `test-slate-query.js` so
-   that when the sibling repositories are absent, the reachability check passes instead
-   of failing and the federation checks are skipped. That lets the suite go green in a
-   standalone clone; it also means a check answers yes to a question it could not ask.
-3. **Whether the quantum line belongs in this repository.** Like the compute-horizon
+1. **Whether the quantum line belongs in this repository.** Like the compute-horizon
    work, it asks a different question from "can this machine be measured honestly?"
-   Unlike it, it is published on `main`, so separating it now would cost far more.
-4. **Whether the browser thread continues.** It is finished as asked. Small open items
-   remain: `dRippleAdder` ignores its `restore` option, so three rows of the lab page's
-   cost table are one design under three labels; and `solver-audit.js --quick` can
-   print a verdict that contradicts the manifest.
+   Unlike it, it is published on `main`, so separating it would cost far more. It is
+   fenced in the meantime (`FENCE.md`). The choice is between bringing it into the
+   discipline -- registered predictions, its batteries repaired, an environment for its
+   nine unrun suites -- and splitting it out the way the compute-horizon work was.
+2. **Whether the quantum line's changes to the oracle stay.** `src/ternary.js` now maps
+   `undefined` and `NaN` to 0 instead of propagating them, which is the shape of
+   `T-SILENT-NAN`. Nothing recorded depends on the old behaviour, and `FENCE.md` names
+   the change; whether to revert it is a decision, not a cleanup.
+
+Settled on 2026-10-01: `test-slate-query.js` now reports its federation section as
+**skipped** when the siblings are absent, never passed. The lab page no longer shows
+three identical decoded rows: a restore option the builder ignores gets no row and is
+not offered. And every verdict line of `solver-audit.js --quick` says on its face that
+it is not a measurement.
 
 ---
 
