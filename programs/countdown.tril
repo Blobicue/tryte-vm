@@ -1,0 +1,9 @@
+// countdown.tril — Countdown loop in high-level Tril
+fn main() {
+  let n = in();
+  while3 (n) {
+    out(n);
+    n = n - 1;
+  }
+  halt();
+}

@@ -1,0 +1,85 @@
+// trilc.tril — Self-Hosting Balanced Ternary Compiler Core
+// Written in high-level Tril.
+// Translates tokenized instruction streams into TryteVM machine bytecode.
+fn main() {
+  let running = 1;
+
+  while3 (running) {
+    let tok = in();
+
+    branch3 (tok) {
+      neg => {
+        // tok < 0: stop compiler
+        running = 0;
+      },
+      zero => {
+        // tok == 0: emit HALT (0, 0) and stop
+        out(0);
+        out(0);
+        running = 0;
+      },
+      pos => {
+        // tok > 0: inspect instruction class
+        branch3 (tok - 17) {
+          pos => {
+            // tok > 17: check for IN (18) or pseudo-ops (.TABLE = 50, .WORD = 51)
+            branch3 (tok - 18) {
+              neg => {},
+              zero => {
+                // IN: opcode 18, 0
+                out(18);
+                out(0);
+              },
+              pos => {
+                branch3 (tok - 50) {
+                  neg => {},
+                  zero => {
+                    // .TABLE: emit neg, zero, pos targets
+                    let tn = in();
+                    let tz = in();
+                    let tp = in();
+                    out(tn);
+                    out(tz);
+                    out(tp);
+                  },
+                  pos => {
+                    // .WORD: emit raw datum
+                    let w = in();
+                    out(w);
+                  }
+                }
+              }
+            }
+          },
+          zero => {
+            // OUT: opcode 17, 0
+            out(17);
+            out(0);
+          },
+          neg => {
+            // tok < 17: instructions with operand or zero-operand NEG (7)
+            branch3 (tok - 7) {
+              neg => {
+                let opd = in();
+                out(tok);
+                out(opd);
+              },
+              zero => {
+                // NEG: opcode 7, 0
+                out(7);
+                out(0);
+              },
+              pos => {
+                let opd = in();
+                out(tok);
+                out(opd);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  halt();
+}

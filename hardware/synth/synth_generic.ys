@@ -1,0 +1,11 @@
+# Yosys generic technology synthesis and lint script
+read_verilog -sv hardware/rtl/tryte_pkg.sv
+read_verilog -sv hardware/rtl/tryte_alu.sv
+read_verilog -sv hardware/rtl/tryte_cpu.sv
+read_verilog -sv hardware/rtl/tryte_ram.sv
+read_verilog -sv hardware/rtl/tryte_top.sv
+
+hierarchy -check -top tryte_top
+synth -top tryte_top
+stat
+check

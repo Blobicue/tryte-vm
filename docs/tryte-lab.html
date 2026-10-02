@@ -262,6 +262,7 @@ const TRYTE_MIN = -TRYTE_MAX;                    // -364
 
 /** Fold any integer into the balanced tryte range, wrapping mod 729. */
 function wrap(v) {
+  if (v === undefined || Number.isNaN(v)) return 0;
   return ((((v - TRYTE_MIN) % TRYTE_STATES) + TRYTE_STATES) % TRYTE_STATES) + TRYTE_MIN;
 }
 
@@ -319,14 +320,23 @@ function sign(a) {
   return 0;
 }
 
-/** Shift left n trits — multiply by 3^n, wrapping. */
-const shiftLeft = (a, n) => wrap(a * RADIX ** n);
+/** Shift left n trits — multiply by 3^n, wrapping. Safely handles arbitrary integer n. */
+function shiftLeft(a, n) {
+  if (n < 0) return shiftRight(a, -n);
+  if (n >= TRITS_PER_TRYTE) return 0;
+  if (n === 0) return wrap(a);
+  return wrap(wrap(a) * (RADIX ** n));
+}
 
 /**
  * Shift right n trits. Dropping low trits in balanced ternary rounds to
  * nearest (ties away from zero), which is why no rounding logic is needed.
+ * Safely handles negative n, large n, and out-of-range bounds without RangeError.
  */
 function shiftRight(a, n) {
+  if (n < 0) return shiftLeft(a, -n);
+  if (n >= TRITS_PER_TRYTE) return 0;
+  if (n === 0) return wrap(a);
   const t = toTrits(a);
   const kept = t.slice(n).concat(new Array(n).fill(0));
   return fromTrits(kept);
@@ -391,6 +401,7 @@ function ttable(table, x, y) {
 
 /** The least significant trit of a value. Exact because shiftRight rounds. */
 function lowTrit(v) {
+  if (v === undefined || Number.isNaN(v)) return 0;
   const w = wrap(v);
   return w - 3 * shiftRight(w, 1);
 }
@@ -464,9 +475,10 @@ function ttableC(table, x, y) {
   const out = [];
   let c = 0;
   for (let i = 0; i < TRITS_PER_TRYTE; i++) {
-    const cell = wrap(table[(xs[i] + 1) * 9 + (ys[i] + 1) * 3 + (c + 1)]);
+    const idx = (xs[i] + 1) * 9 + (ys[i] + 1) * 3 + (c + 1);
+    const cell = wrap(table[idx] !== undefined ? table[idx] : 0);
     out.push(lowTrit(cell));
-    c = shiftRight(cell, 1);
+    c = lowTrit(shiftRight(cell, 1));
   }
   return fromTrits(out);
 }

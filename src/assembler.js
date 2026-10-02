@@ -69,7 +69,12 @@ function assemble(src, origin = 0) {
   // --- pass 1: sizes and label addresses -----------------------------------
   let pc = origin;
   for (const L of lines) {
-    if (L.label) checkLabelName(L.label, L.lineNo);
+    if (L.label) {
+      checkLabelName(L.label, L.lineNo);
+      if (L.label in labels) {
+        throw new Error(`duplicate label '${L.label}' (line ${L.lineNo})`);
+      }
+    }
     // How many cells the labelled datum spans, so .fold can refuse a table that
     // is too short. Without this a 2-cell .word silently borrows the seven cells
     // that happen to follow it, and the fold succeeds with the wrong table.

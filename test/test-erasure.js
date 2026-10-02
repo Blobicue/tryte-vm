@@ -128,8 +128,8 @@ console.log('\n=== 2. AB2 — THE ERASERS ARE NOT THE ACCUMULATOR OVERWRITES ===
     eq(of('fixed'), ['IN', 'LOAD', 'LOADI', 'STORE'].sort()), of('fixed').join(' '));
   check('5 erase an operand-dependent amount: MIN MAX CSUM SHL SHR',
     eq(of('varies'), ['CSUM', 'MAX', 'MIN', 'SHL', 'SHR'].sort()), of('varies').join(' '));
-  check('5 are table families or three-place, and out of scope for a two-place census',
-    eq(of('family'), ['LOADX', 'STOREX', 'TGATE', 'TOP', 'TOPC'].sort()), of('family').join(' '));
+  check('6 are table families, quantum, or three-place, and out of scope for a two-place census',
+    eq(of('family'), ['LOADX', 'QEXEC', 'STOREX', 'TGATE', 'TOP', 'TOPC'].sort()), of('family').join(' '));
 
   const store = E.census.find(r => r.name === 'STORE');
   check('STORE erases the maximum 9.5098 bits — and it never writes the accumulator',

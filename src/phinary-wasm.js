@@ -22,6 +22,11 @@
  */
 
 const W = require('./wasm-emit.js');
+// The phinary opcode numbers are READ from phinary.js, never typed here. This engine
+// kept its own copy of them once, and when phinary's codes had to move to clear a
+// collision with QEXEC, a renumber of phinary.js alone would have left this dispatch
+// matching the old codes -- the same bug, one file over.
+const { PHINARY_OPS } = require('./phinary.js');
 
 // Memory pointers
 const A_PTR = 0;
@@ -265,8 +270,8 @@ function emitPhinaryWasm() {
         ]
       ]),
 
-      // Opcode 26: PHIMUL (imm >= 0 -> phiScale, imm < 0 -> phiScaleInv)
-      W.ifThen(W.eq(W.get('op'), W.konst(26)), [
+      // PHIMUL (imm >= 0 -> phiScale, imm < 0 -> phiScaleInv)
+      W.ifThen(W.eq(W.get('op'), W.konst(PHINARY_OPS.PHIMUL.code)), [
         W.ifElse(
           W.geS(W.get('imm'), W.konst(0)),
           [W.callStmt('phiScale', [])],
@@ -274,8 +279,8 @@ function emitPhinaryWasm() {
         )
       ]),
 
-      // Opcode 27: PHILOAD (loads mem[27*mem[imm] + A])
-      W.ifThen(W.eq(W.get('op'), W.konst(27)), [
+      // PHILOAD (loads mem[27*mem[imm] + A])
+      W.ifThen(W.eq(W.get('op'), W.konst(PHINARY_OPS.PHILOAD.code)), [
         W.set('v', W.call('readCell', [W.get('imm')])),
         W.set('u', W.load32(W.konst(A_PTR))),
         W.store32(W.konst(A_PTR), W.call('readCell', [
@@ -283,8 +288,8 @@ function emitPhinaryWasm() {
         ]))
       ]),
 
-      // Opcode 28: PHISTORE (writes mem[27*mem[imm] + C] = A)
-      W.ifThen(W.eq(W.get('op'), W.konst(28)), [
+      // PHISTORE (writes mem[27*mem[imm] + C] = A)
+      W.ifThen(W.eq(W.get('op'), W.konst(PHINARY_OPS.PHISTORE.code)), [
         W.set('v', W.call('readCell', [W.get('imm')])),
         W.set('u', W.load32(W.konst(C_PTR))),
         W.callStmt('writeCell', [

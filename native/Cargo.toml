@@ -1,0 +1,23 @@
+[package]
+name = "tryte-simd"
+version = "0.1.0"
+edition = "2021"
+authors = ["Tryte-QOS Core Team"]
+description = "Blazing Fast Native SIMD & Post-Quantum Lattice Crypto Engine for TryteVM"
+
+[lib]
+name = "tryte_simd"
+path = "src/lib.rs"
+
+[[bin]]
+name = "tryte"
+path = "src/bin/tryte.rs"
+
+[dependencies]
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+overflow-checks = false

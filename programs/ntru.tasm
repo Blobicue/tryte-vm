@@ -1,0 +1,354 @@
+; --- Tryte-QOS Native Ternary NTRU Engine (N = 3) ---
+; Registers:
+;   A: Accumulator (ALU operations, wrapped mod 729)
+;   Memory layout:
+;     h[0..2] : Public key
+;     m[0..2] : Message trits
+;     r[0..2] : Blinding trits
+;     F[0..2] : Private key trits (f = 1 + 3*F, F_0 = 0)
+;     e[0..2] : Ciphertext
+;     a[0..2] : Decrypted intermediate
+
+; --- 1. Load Inputs ---
+; Read Public Key h (3 words)
+        IN
+        STORE h_0
+        IN
+        STORE h_1
+        IN
+        STORE h_2
+; Read Message m (3 trits)
+        IN
+        STORE m_0
+        IN
+        STORE m_1
+        IN
+        STORE m_2
+; Read Blinding r (3 trits)
+        IN
+        STORE r_0
+        IN
+        STORE r_1
+        IN
+        STORE r_2
+; Read Private Key F (3 trits)
+        IN
+        STORE F_0
+        IN
+        STORE F_1
+        IN
+        STORE F_2
+
+; --- 2. Encrypt: e = r * h + m (mod 729) ---
+; Compute e_0
+        LOAD  m_0
+        STORE e_0
+        LOAD  r_0
+        BR3   br_enc_0_0
+br_enc_0_0: .table enc_neg_0_0, enc_zero_0_0, enc_pos_0_0
+enc_pos_0_0:
+        LOAD  e_0
+        ADD   h_0
+        STORE e_0
+        JMP   enc_next_0_0
+enc_neg_0_0:
+        LOAD  e_0
+        SUB   h_0
+        STORE e_0
+        JMP   enc_next_0_0
+enc_zero_0_0:
+enc_next_0_0:
+        LOAD  r_1
+        BR3   br_enc_0_1
+br_enc_0_1: .table enc_neg_0_1, enc_zero_0_1, enc_pos_0_1
+enc_pos_0_1:
+        LOAD  e_0
+        ADD   h_2
+        STORE e_0
+        JMP   enc_next_0_1
+enc_neg_0_1:
+        LOAD  e_0
+        SUB   h_2
+        STORE e_0
+        JMP   enc_next_0_1
+enc_zero_0_1:
+enc_next_0_1:
+        LOAD  r_2
+        BR3   br_enc_0_2
+br_enc_0_2: .table enc_neg_0_2, enc_zero_0_2, enc_pos_0_2
+enc_pos_0_2:
+        LOAD  e_0
+        ADD   h_1
+        STORE e_0
+        JMP   enc_next_0_2
+enc_neg_0_2:
+        LOAD  e_0
+        SUB   h_1
+        STORE e_0
+        JMP   enc_next_0_2
+enc_zero_0_2:
+enc_next_0_2:
+; Compute e_1
+        LOAD  m_1
+        STORE e_1
+        LOAD  r_0
+        BR3   br_enc_1_0
+br_enc_1_0: .table enc_neg_1_0, enc_zero_1_0, enc_pos_1_0
+enc_pos_1_0:
+        LOAD  e_1
+        ADD   h_1
+        STORE e_1
+        JMP   enc_next_1_0
+enc_neg_1_0:
+        LOAD  e_1
+        SUB   h_1
+        STORE e_1
+        JMP   enc_next_1_0
+enc_zero_1_0:
+enc_next_1_0:
+        LOAD  r_1
+        BR3   br_enc_1_1
+br_enc_1_1: .table enc_neg_1_1, enc_zero_1_1, enc_pos_1_1
+enc_pos_1_1:
+        LOAD  e_1
+        ADD   h_0
+        STORE e_1
+        JMP   enc_next_1_1
+enc_neg_1_1:
+        LOAD  e_1
+        SUB   h_0
+        STORE e_1
+        JMP   enc_next_1_1
+enc_zero_1_1:
+enc_next_1_1:
+        LOAD  r_2
+        BR3   br_enc_1_2
+br_enc_1_2: .table enc_neg_1_2, enc_zero_1_2, enc_pos_1_2
+enc_pos_1_2:
+        LOAD  e_1
+        ADD   h_2
+        STORE e_1
+        JMP   enc_next_1_2
+enc_neg_1_2:
+        LOAD  e_1
+        SUB   h_2
+        STORE e_1
+        JMP   enc_next_1_2
+enc_zero_1_2:
+enc_next_1_2:
+; Compute e_2
+        LOAD  m_2
+        STORE e_2
+        LOAD  r_0
+        BR3   br_enc_2_0
+br_enc_2_0: .table enc_neg_2_0, enc_zero_2_0, enc_pos_2_0
+enc_pos_2_0:
+        LOAD  e_2
+        ADD   h_2
+        STORE e_2
+        JMP   enc_next_2_0
+enc_neg_2_0:
+        LOAD  e_2
+        SUB   h_2
+        STORE e_2
+        JMP   enc_next_2_0
+enc_zero_2_0:
+enc_next_2_0:
+        LOAD  r_1
+        BR3   br_enc_2_1
+br_enc_2_1: .table enc_neg_2_1, enc_zero_2_1, enc_pos_2_1
+enc_pos_2_1:
+        LOAD  e_2
+        ADD   h_1
+        STORE e_2
+        JMP   enc_next_2_1
+enc_neg_2_1:
+        LOAD  e_2
+        SUB   h_1
+        STORE e_2
+        JMP   enc_next_2_1
+enc_zero_2_1:
+enc_next_2_1:
+        LOAD  r_2
+        BR3   br_enc_2_2
+br_enc_2_2: .table enc_neg_2_2, enc_zero_2_2, enc_pos_2_2
+enc_pos_2_2:
+        LOAD  e_2
+        ADD   h_0
+        STORE e_2
+        JMP   enc_next_2_2
+enc_neg_2_2:
+        LOAD  e_2
+        SUB   h_0
+        STORE e_2
+        JMP   enc_next_2_2
+enc_zero_2_2:
+enc_next_2_2:
+
+; --- 3. Decrypt: a = f * e (mod 729) ---
+; Compute a_0
+        LOAD  e_0
+        STORE a_0
+        LOAD  F_1
+        BR3   br_dec_0_1
+br_dec_0_1: .table dec_neg_0_1, dec_zero_0_1, dec_pos_0_1
+dec_pos_0_1:
+        LOAD  e_2
+        SHL   1
+        ADD   a_0
+        STORE a_0
+        JMP   dec_next_0_1
+dec_neg_0_1:
+        LOAD  e_2
+        SHL   1
+        STORE tmp
+        LOAD  a_0
+        SUB   tmp
+        STORE a_0
+        JMP   dec_next_0_1
+dec_zero_0_1:
+dec_next_0_1:
+        LOAD  F_2
+        BR3   br_dec_0_2
+br_dec_0_2: .table dec_neg_0_2, dec_zero_0_2, dec_pos_0_2
+dec_pos_0_2:
+        LOAD  e_1
+        SHL   1
+        ADD   a_0
+        STORE a_0
+        JMP   dec_next_0_2
+dec_neg_0_2:
+        LOAD  e_1
+        SHL   1
+        STORE tmp
+        LOAD  a_0
+        SUB   tmp
+        STORE a_0
+        JMP   dec_next_0_2
+dec_zero_0_2:
+dec_next_0_2:
+        LOAD  a_0
+        SHR   1
+        SHL   1
+        STORE tmp
+        LOAD  a_0
+        SUB   tmp
+        OUT
+; Compute a_1
+        LOAD  e_1
+        STORE a_1
+        LOAD  F_1
+        BR3   br_dec_1_1
+br_dec_1_1: .table dec_neg_1_1, dec_zero_1_1, dec_pos_1_1
+dec_pos_1_1:
+        LOAD  e_0
+        SHL   1
+        ADD   a_1
+        STORE a_1
+        JMP   dec_next_1_1
+dec_neg_1_1:
+        LOAD  e_0
+        SHL   1
+        STORE tmp
+        LOAD  a_1
+        SUB   tmp
+        STORE a_1
+        JMP   dec_next_1_1
+dec_zero_1_1:
+dec_next_1_1:
+        LOAD  F_2
+        BR3   br_dec_1_2
+br_dec_1_2: .table dec_neg_1_2, dec_zero_1_2, dec_pos_1_2
+dec_pos_1_2:
+        LOAD  e_2
+        SHL   1
+        ADD   a_1
+        STORE a_1
+        JMP   dec_next_1_2
+dec_neg_1_2:
+        LOAD  e_2
+        SHL   1
+        STORE tmp
+        LOAD  a_1
+        SUB   tmp
+        STORE a_1
+        JMP   dec_next_1_2
+dec_zero_1_2:
+dec_next_1_2:
+        LOAD  a_1
+        SHR   1
+        SHL   1
+        STORE tmp
+        LOAD  a_1
+        SUB   tmp
+        OUT
+; Compute a_2
+        LOAD  e_2
+        STORE a_2
+        LOAD  F_1
+        BR3   br_dec_2_1
+br_dec_2_1: .table dec_neg_2_1, dec_zero_2_1, dec_pos_2_1
+dec_pos_2_1:
+        LOAD  e_1
+        SHL   1
+        ADD   a_2
+        STORE a_2
+        JMP   dec_next_2_1
+dec_neg_2_1:
+        LOAD  e_1
+        SHL   1
+        STORE tmp
+        LOAD  a_2
+        SUB   tmp
+        STORE a_2
+        JMP   dec_next_2_1
+dec_zero_2_1:
+dec_next_2_1:
+        LOAD  F_2
+        BR3   br_dec_2_2
+br_dec_2_2: .table dec_neg_2_2, dec_zero_2_2, dec_pos_2_2
+dec_pos_2_2:
+        LOAD  e_0
+        SHL   1
+        ADD   a_2
+        STORE a_2
+        JMP   dec_next_2_2
+dec_neg_2_2:
+        LOAD  e_0
+        SHL   1
+        STORE tmp
+        LOAD  a_2
+        SUB   tmp
+        STORE a_2
+        JMP   dec_next_2_2
+dec_zero_2_2:
+dec_next_2_2:
+        LOAD  a_2
+        SHR   1
+        SHL   1
+        STORE tmp
+        LOAD  a_2
+        SUB   tmp
+        OUT
+        HALT
+
+; --- Variables ---
+h_0:   .word 0
+m_0:   .word 0
+r_0:   .word 0
+F_0:   .word 0
+e_0:   .word 0
+a_0:   .word 0
+h_1:   .word 0
+m_1:   .word 0
+r_1:   .word 0
+F_1:   .word 0
+e_1:   .word 0
+a_1:   .word 0
+h_2:   .word 0
+m_2:   .word 0
+r_2:   .word 0
+F_2:   .word 0
+e_2:   .word 0
+a_2:   .word 0
+tmp:    .word 0

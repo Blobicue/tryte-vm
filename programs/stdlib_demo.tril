@@ -1,0 +1,32 @@
+# =============================================================================
+# stdlib_demo.tril — Comprehensive Demonstration of Tril Standard Library
+# =============================================================================
+# Exercises:
+# 1. Balanced ternary math routines (abs, sgn)
+# 2. Dynamic bump heap memory management (alloc) and buffer initialization (memset)
+# 3. Pointer dereference read (*p) and write (*(p + 1) = val)
+# 4. Cryptographic Galois stream cipher in-place encryption & decryption (aead_enc, aead_dec)
+# =============================================================================
+
+fn main() {
+  # --- 1. Math Routines ---
+  out(abs(-42));          # 42
+  out(sgn(-10));          # -1
+
+  # --- 2. Dynamic Memory Management & Pointer Arithmetic ---
+  let p = alloc(4);
+  memset(p, 7, 4);
+  out(*p);                # 7
+  *(p + 1) = 9;
+  out(*(p + 1));          # 9
+
+  # --- 3. Cryptographic Stream Cipher In-Place ---
+  array secret[4] = [10, 20, 30, 40];
+  let key = 5;
+  aead_enc(secret, key, 4);
+  aead_dec(secret, key, 4);
+  out(secret[0]);         # 10
+  out(secret[3]);         # 40
+
+  halt();
+}

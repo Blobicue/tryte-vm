@@ -244,11 +244,17 @@ class PhiCache {
   }
 }
 
+/* Codes 26 to 29, deliberately above every code in src/isa.js. They were first
+ * numbered 25 to 28, and 25 is also QEXEC's code there. The two tables live in
+ * different files, so the merge that brought them together raised no conflict -- and
+ * because vm.js consults BY_CODE before PHINARY_BY_CODE, every PHINORM would silently
+ * have executed QEXEC instead. test/test-opcodes.js now fails if any two opcode tables
+ * share a code or a mnemonic. */
 const PHINARY_OPS = {
-  PHINORM:  { code: 25, operand: 'none', doc: 'A = Zeckendorf normalized form of A' },
-  PHIMUL:   { code: 26, operand: 'imm',  doc: 'A = exact scaling of (A, C) by phi (+1) or phi^-1 (-1)' },
-  PHILOAD:  { code: 27, operand: 'addr', doc: 'A = mem[addrFromCoord(u, v)] where u=A, v=mem[addr]' },
-  PHISTORE: { code: 28, operand: 'addr', doc: 'mem[addrFromCoord(u, v)] = A where u=C, v=mem[addr]' },
+  PHINORM:  { code: 26, operand: 'none', doc: 'A = Zeckendorf normalized form of A' },
+  PHIMUL:   { code: 27, operand: 'imm',  doc: 'A = exact scaling of (A, C) by phi (+1) or phi^-1 (-1)' },
+  PHILOAD:  { code: 28, operand: 'addr', doc: 'A = mem[addrFromCoord(u, v)] where u=A, v=mem[addr]' },
+  PHISTORE: { code: 29, operand: 'addr', doc: 'mem[addrFromCoord(u, v)] = A where u=C, v=mem[addr]' },
 };
 
 const PHINARY_BY_CODE = {};

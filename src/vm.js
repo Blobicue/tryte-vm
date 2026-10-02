@@ -11,6 +11,14 @@ const P = require('./phinary.js');
 const CELLS = T.TRYTE_STATES;              // 729
 const idx = addr => T.wrap(addr) - T.TRYTE_MIN;   // tryte address -> array slot
 
+let unifiedCompiler = null;
+function getUnifiedCompiler() {
+  if (!unifiedCompiler) {
+    unifiedCompiler = require('../quantum/src/unified-compiler.js');
+  }
+  return unifiedCompiler;
+}
+
 class TryteVM {
   constructor(opts = {}) {
     this.mem = new Int16Array(CELLS);
@@ -22,6 +30,8 @@ class TryteVM {
     this.maxSteps = opts.maxSteps || 200000;
     this.trace = [];
     this.tracing = !!opts.trace;
+    this.deterministicQuantum = !!opts.deterministicQuantum;
+    this.quantumRng = opts.quantumRng || null;
   }
 
   read(addr) { return this.mem[idx(addr)]; }
@@ -114,6 +124,45 @@ class TryteVM {
         const v = this.read(operand);
         const u = this.C;
         this.write(27 * v + u, this.A);
+        break;
+      }
+      // Topological Quantum Co-Processor: executes B4 anyon braid on vTQPU
+      case 'QEXEC': {
+        const { evaluateBraid3 } = getUnifiedCompiler();
+        const len = this.read(operand);
+        if (len < 0 || len > 100) {
+          throw new Error(`invalid QEXEC braid length ${len} at address ${pcBefore}`);
+        }
+        const word = [];
+        for (let i = 0; i < len; i++) {
+          const g = this.read(T.wrap(operand + 1 + i));
+          if (![-3, -2, -1, 1, 2, 3].includes(g)) {
+            throw new Error(`invalid QEXEC braid generator ${g} at address ${T.wrap(operand + 1 + i)}`);
+          }
+          word.push(g);
+        }
+        const mat = evaluateBraid3(word);
+        const inTrit = Math.max(-1, Math.min(1, T.lowTrit(this.A)));
+        const col = inTrit + 1; // strictly 0, 1, 2
+        const pNeg = mat.m[0][col].absSq();
+        const pZero = mat.m[1][col].absSq();
+        const pPos = mat.m[2][col].absSq();
+
+        // Projective measurement into balanced ternary basis {-1, 0, +1}
+        let outcome = 0;
+        if (this.deterministicQuantum) {
+          if (pNeg >= pZero && pNeg >= pPos) outcome = -1;
+          else if (pZero >= pNeg && pZero >= pPos) outcome = 0;
+          else outcome = 1;
+        } else {
+          const r = this.quantumRng ? this.quantumRng() : Math.random();
+          if (r < pNeg) outcome = -1;
+          else if (r < pNeg + pZero) outcome = 0;
+          else outcome = 1;
+        }
+
+        // Preserve upper 5 trits of accumulator A and update lowest trit with measurement
+        this.A = T.wrap((this.A - inTrit) + outcome);
         break;
       }
       default: throw new Error(`unimplemented op ${op.name}`);

@@ -1,0 +1,37 @@
+
+The command exited with code 1.
+Output:
+==================================================================================
+  True Ternary Quantum Hypernetwork: (add) mod 3
+  Meta-Weights: Discrete {-1, 0, +1} (TernaryLinear)
+  Quantum Circuit: 4-Anyon Topological Qutrits in SU(3) / SU(9) driven by B₄
+  Dataset: 4 Train / 5 Test (50% Split)
+  Weight Decay: 0.01 | Learning Rate: 0.03
+==================================================================================
+Epoch    | Train Acc  | Test Acc   | Train Loss  | Weight Sparsity  | Braid Pruning 
+----------------------------------------------------------------------------------
+1        |  25.00%    | 100.00%    |     1.0727  |          74.35% |        33.33%
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/juzz/Tryte-vm-spark/tryte-vm/research/quantum_grokking/train_ternary_quantum.py", line 166, in <module>
+    main()
+  File "/home/juzz/Tryte-vm-spark/tryte-vm/research/quantum_grokking/train_ternary_quantum.py", line 156, in main
+    run_ternary_quantum_experiment(
+  File "/home/juzz/Tryte-vm-spark/tryte-vm/research/quantum_grokking/train_ternary_quantum.py", line 77, in run_ternary_quantum_experiment
+    loss.backward()
+  File "/home/juzz/.local/lib/python3.12/site-packages/torch/_tensor.py", line 626, in backward
+    torch.autograd.backward(
+  File "/home/juzz/.local/lib/python3.12/site-packages/torch/autograd/__init__.py", line 347, in backward
+    _engine_run_backward(
+  File "/home/juzz/.local/lib/python3.12/site-packages/torch/autograd/graph.py", line 823, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/juzz/.local/lib/python3.12/site-packages/torch/autograd/function.py", line 307, in apply
+    return user_fn(self, *args)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/juzz/Tryte-vm-spark/tryte-vm/research/quantum_grokking/ternary_qutrit_circuit.py", line 141, in backward
+    (s,) = ctx.saved_tensors
+           ^^^^^^^^^^^^^^^^^
+RuntimeError: Trying to backward through the graph a second time (or directly access saved tensors after they have already been freed). Saved intermediate values of the graph are freed when you call .backward() or autograd.grad(). Specify retain_graph=True if you need to backward through the graph a second time or if you need to access saved tensors after calling backward.
+
